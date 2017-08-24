@@ -13,8 +13,8 @@ This is the implementation of the Content Intake Service microservice for the Co
 ## Interface Documentation
 
 When the microservice is running, you can get the Swagger REST API documentation from:
-[http://localhost:9601/cls-intake/api/swagger.json](http://localhost:9601/cls-intake/api/swagger.json)
-[http://localhost:9601/cls-intake/swagger/index.html](http://localhost:9601/cls-intake/swagger/index.html)
+- [http://localhost:9601/cls-intake/api/swagger.json](http://localhost:9601/cls-intake/api/swagger.json)
+- [http://localhost:9601/cls-intake/swagger/index.html](http://localhost:9601/cls-intake/swagger/index.html)
 
 ## Prerequisities
 
