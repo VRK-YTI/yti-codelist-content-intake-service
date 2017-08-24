@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    <property name="LOG_PATH" value="/data/logs"/>
+    <property name="SERVICE_NAME" value="cls-content-intake-service"/>
+
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${SERVICE_NAME}.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${SERVICE_NAME}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%date{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--<logger name="org.hibernate.SQL" level="DEBUG" />-->
+    <!--<logger name="org.hibernate.type" level="DEBUG" />-->
+    <!--<logger name="org.hibernate" level="DEBUG" />-->
+
+    <!--<logger name="org.hibernate.SQL" additivity="false" >-->
+        <!--<level value="DEBUG" />-->
+        <!--<appender-ref ref="ROLLING" />-->
+    <!--</logger>-->
+
+    <!--<logger name="org.hibernate.type" additivity="false" >-->
+        <!--<level value="TRACE" />-->
+        <!--<appender-ref ref="ROLLING" />-->
+    <!--</logger>-->
+
+    <logger name="org.apache" level="WARN"/>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="fi.vm" level="DEBUG"/>
+
+    <root level="INFO">
+        <appender-ref ref="ROLLING"/>
+    </root>
+
+</configuration>

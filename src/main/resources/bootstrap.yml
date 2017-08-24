@@ -1,0 +1,7 @@
+spring:
+  cloud:
+    config:
+      failFast: false
+      uri: ${config_server_uri:file:../cls-config/cls-content-intake-service.yml}
+  application:
+    name: cls-content-intake-service

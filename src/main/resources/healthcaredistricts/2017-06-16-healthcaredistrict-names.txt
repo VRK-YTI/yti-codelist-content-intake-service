@@ -1,0 +1,22 @@
+CodeId;Abbreviation;ShortName;LongName;BeginningDate;ExpiringDate;LastModifiedDate;LastModifiedBy;Status;Description;OID;A:LiittynytYhteisrekisteriinPvm;A:Långt_namn
+03;VSSHP;Varsinais-Suomen sairaanhoitopiiri;03:Varsinais-Suomen sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Egentliga Finlands sjukvårdsdistrikt
+04;SATSHP;Satakunnan sairaanhoitopiiri;04:Satakunnan sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Satakunta sjukvårdsdistrikt
+05;KHSHP;Kanta-Hämeen sairaanhoitopiiri;05:Kanta-Hämeen sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Centrala Tavastlands sjukvårdsdistrikt
+06;PSHP;Pirkanmaan sairaanhoitopiiri;06:Pirkanmaan sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Birkalands sjukvårdsdistrikt
+07;PHSHP;Päijät-Hämeen sairaanhoitopiiri;07:Päijät-Hämeen sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;Päijät-Hämeen Päijät-Hämeen sosiaali- ja terveysyhtymähttp://www.phsotey.fi/;;;Päijät-Häme sjukvårdsdistrikt
+08;KYMSHP;Kymenlaakson sairaanhoitopiiri;08:Kymenlaakson sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Kymmenedalens sjukvårdsdistrikt
+09;EKSOTE;Etelä-Karjalan sosiaali- ja terveyspiiri;09:Etelä-Karjalan sosiaali- ja terveyspiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Södra Karelens sjukvårdsdistrikt
+10;ESSOTE;Etelä-Savon sosiaali- ja terveyspalvelujen kuntayhtymä;10:Etelä-Savon sosiaali- ja terveyspalvelujen kuntayhtymä;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Södra Savolax sjukvårdsdistrikt
+11;ISSHP;Itä-Savon sairaanhoitopiiri;11:Itä-Savon sairaanhoitopiiri;01.01.2003;01.01.2020;15.11.2012;Lehtonen, Jari;1;;;20121115;Östra Savolax sjukvårdsdistrikt
+12;PKSHP;Pohjois-Karjalan sairaanhoitopiiri;12:Pohjois-Karjalan sairaanhoitopiiri;01.01.2003;01.01.2020;03.12.2012;Peltonen, Veli-Pekka;1;Pohjois-Karjalan sairaanhoito- ja sosiaalipalvelujen kuntayhtymähttp://www.pkssk.fi;;20121128;Norra Karelens sjukvårdsdistrikt
+13;PSSHP;Pohjois-Savon sairaanhoitopiiri;13:Pohjois-Savon sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Norra Savolax sjukvårdsdistrikt
+14;KSSHP;Keski-Suomen sairaanhoitopiiri;14:Keski-Suomen sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Mellersta Finlands sjukvårdsdistrikt
+15;EPSHP;Etelä-Pohjanmaan sairaanhoitopiiri;15:Etelä-Pohjanmaan sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Syd-Österbottens sjukvårdsdistrikt
+16;VSHP;Vaasan sairaanhoitopiiri;16:Vaasan sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Vasa sjukvårdsdistrikt
+17;KPSHP;Keski-Pohjanmaan sairaanhoitopiiri;17:Keski-Pohjanmaan sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Mellersta Österbottens sjukvårdsdistrikt
+18;PPSHP;Pohjois-Pohjanmaan sairaanhoitopiiri;18:Pohjois-Pohjanmaan sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Norra Österbottens sjukvårdsdistrikt
+19;KASHP;Kainuun sairaanhoitopiiri;19:Kainuun sairaanhoitopiiri;01.01.2003;01.01.2020;08.10.2012;Peltonen, Veli-Pekka;1;;;;Kajanalands sjukvårdsdistrikt
+20;LPSHP;Länsi-Pohjan sairaanhoitopiiri;20:Länsi-Pohjan sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Länsi-Pohja sjukvårdsdistrikt
+21;LSHP;Lapin sairaanhoitopiiri;21:Lapin sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Lapplands sjukvårdsdistrikt
+22;Ahvenanmaan maakunta;Ahvenanmaan maakunta;22:Ahvenanmaan maakunta;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Ålands hälso- och sjukvård
+25;HUS;Helsingin ja Uudenmaan sairaanhoitopiiri;25:Helsingin ja Uudenmaan sairaanhoitopiiri;01.01.2003;01.01.2020;05.10.2012;Peltonen, Veli-Pekka;1;;;;Helsingfors och Nylands sjukvårdsdistrikt

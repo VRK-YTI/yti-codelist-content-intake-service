@@ -1,0 +1,12 @@
+CODE,VERSION,STATUS,TYPE,NAME_FI,NAME_SE,NAME_EN
+municipalities,v1,VALID,CODELIST_CUSTOM,Kuntakoodisto,,Municipalities
+postalcodes,v1,VALID,CODELIST_CUSTOM,Postikoodit,,PostalCodes
+postmanagementdistricts,v1,VALID,CODELIST_CUSTOM,Postin hallintoalueet,,PostManagementDistricts
+regions,v1,VALID,CODELIST_CUSTOM,Maakunnat,,Regions
+electoraldistricts,v1,VALID,CODELIST_CUSTOM,Vaalipiirit,,ElectoralDistricts
+magistrates,v1,VALID,CODELIST_CUSTOM,Maistraatit,,Magistrates
+magistrateserviceunits,v1,VALID,CODELIST_CUSTOM,Maistraattien palveluyksiköt,,MagistrateServiceUnits
+healthcaredistricts,v1,VALID,CODELIST_CUSTOM,Sairaanhoitopiirit,,HealthCareDistricts
+businessservicesubregions,v1,VALID,CODELIST_CUSTOM,Yrityspalveluiden seutualueet,,BusinessServiceSubRegions
+streetaddresses,v1,VALID,CODELIST_CUSTOM,Katuosoitteet,,StreetAddresses
+businessids,v1,VALID,CODELIST_CUSTOM,Y-tunnukset,,BusinessIds
