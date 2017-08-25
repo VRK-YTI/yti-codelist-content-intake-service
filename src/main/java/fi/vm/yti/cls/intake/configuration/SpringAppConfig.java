@@ -78,7 +78,9 @@ public class SpringAppConfig {
 
         final TransportAddress address = new InetSocketTransportAddress(InetAddress.getByName(m_elasticsearchHost), m_elasticsearchPort);
         final Settings settings = Settings.builder().put("cluster.name", m_clusterName).put("client.transport.ignore_cluster_name", false).put("client.transport.sniff", false).build();
-        return new PreBuiltTransportClient(settings).addTransportAddress(address);
+        try (PreBuiltTransportClient preBuiltTransportClient = new PreBuiltTransportClient(settings)) {
+            return preBuiltTransportClient.addTransportAddress(address);
+        }
 
     }
 

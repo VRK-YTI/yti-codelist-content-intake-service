@@ -94,11 +94,11 @@ public class MunicipalityParser {
 
         final List<Municipality> m_municipalities = new ArrayList<>();
 
-        try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
-            final BufferedReader in = new BufferedReader(inputStreamReader);
-            FileUtils.skipBom(in);
+        try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                final BufferedReader in = new BufferedReader(inputStreamReader);
+                final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
 
-            final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader());
+            FileUtils.skipBom(in);
 
             final List<CSVRecord> records = csvParser.getRecords();
 

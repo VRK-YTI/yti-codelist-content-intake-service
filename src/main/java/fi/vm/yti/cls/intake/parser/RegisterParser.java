@@ -65,12 +65,11 @@ public class RegisterParser {
 
         final Map<String, Register> existingRegistersMap = m_parserUtils.getRegistersMap();
 
-        try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+        try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                final BufferedReader in = new BufferedReader(inputStreamReader);
+                final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
 
-            final BufferedReader in = new BufferedReader(inputStreamReader);
             FileUtils.skipBom(in);
-
-            final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader());
 
             final List<CSVRecord> records = csvParser.getRecords();
 
