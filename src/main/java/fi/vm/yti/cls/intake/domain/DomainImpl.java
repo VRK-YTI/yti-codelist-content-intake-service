@@ -40,14 +40,12 @@ import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.flush.FlushRequest;
-import org.elasticsearch.action.admin.indices.flush.FlushResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.reindex.BulkIndexByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,7 +189,7 @@ public class DomainImpl implements Domain {
 
         if (exists) {
             LOG.info("Clearing index " + indexName + " type " + indexType + ".");
-            final BulkIndexByScrollResponse response = DeleteByQueryAction.INSTANCE.newRequestBuilder(m_client).filter(QueryBuilders.boolQuery().must(QueryBuilders.termQuery("_type", indexType))).source(indexName).get();
+            DeleteByQueryAction.INSTANCE.newRequestBuilder(m_client).filter(QueryBuilders.boolQuery().must(QueryBuilders.termQuery("_type", indexType))).source(indexName).get();
         } else {
             LOG.info("Index " + indexName + " did not exist in Elastic yet, so nothing to clear.");
         }
@@ -356,7 +354,7 @@ public class DomainImpl implements Domain {
         final FlushRequest request = new FlushRequest(indexName);
 
         try {
-            final FlushResponse response = m_client.admin().indices().flush(request).get();
+            m_client.admin().indices().flush(request).get();
             LOG.info("ElasticSearch index: " + indexName + " flushed.");
         } catch (InterruptedException | ExecutionException e) {
             LOG.error("Flushing ElasticSearch index: " + indexName + " failed with error: " + e.getMessage());

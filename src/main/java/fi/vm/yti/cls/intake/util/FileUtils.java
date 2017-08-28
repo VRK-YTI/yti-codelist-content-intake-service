@@ -21,7 +21,7 @@ public abstract class FileUtils {
 
         reader.mark(1);
         final char[] possibleBOM = new char[1];
-        final int readBytes = reader.read(possibleBOM);
+        reader.read(possibleBOM);
 
         if (possibleBOM[0] != '\ufeff') {
             reader.reset();
