@@ -1,5 +1,14 @@
 package fi.vm.yti.cls.intake.parser;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Component;
+
 import fi.vm.yti.cls.common.model.BusinessServiceSubRegion;
 import fi.vm.yti.cls.common.model.ElectoralDistrict;
 import fi.vm.yti.cls.common.model.HealthCareDistrict;
@@ -24,15 +33,6 @@ import fi.vm.yti.cls.intake.jpa.RegionRepository;
 import fi.vm.yti.cls.intake.jpa.RegisterItemRepository;
 import fi.vm.yti.cls.intake.jpa.RegisterRepository;
 import fi.vm.yti.cls.intake.jpa.StreetAddressRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -40,8 +40,6 @@ import java.util.Set;
  */
 @Component
 public class ParserUtils {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ParserUtils.class);
 
     private final RegionRepository m_regionRepository;
 

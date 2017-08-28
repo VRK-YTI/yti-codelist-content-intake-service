@@ -1,15 +1,15 @@
 package fi.vm.yti.cls.intake.update;
 
-import fi.vm.yti.cls.common.model.UpdateStatus;
-import fi.vm.yti.cls.intake.jpa.UpdateStatusRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Component;
+
+import fi.vm.yti.cls.common.model.UpdateStatus;
+import fi.vm.yti.cls.intake.jpa.UpdateStatusRepository;
 
 
 /**
@@ -17,8 +17,6 @@ import java.util.UUID;
  */
 @Component
 public class UpdateManager {
-
-    private static final Logger LOG = LoggerFactory.getLogger(UpdateManager.class);
 
     public static final String UPDATE_SUCCESSFUL = "successful";
 
