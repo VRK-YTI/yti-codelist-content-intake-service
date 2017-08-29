@@ -109,7 +109,7 @@ public class RegisterParser {
         if (type == RegisterType.CODELIST) {
             url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_REGISTERS, code);
         } else {
-            url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_REGISTERS + "/" + code, null);
+            url = m_apiUtils.createResourceUrl("/" + code, null);
         }
         final Date timeStamp = new Date(System.currentTimeMillis());
 
