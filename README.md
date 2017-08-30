@@ -33,9 +33,14 @@ When the microservice is running, you can get the Swagger REST API documentation
 
 Add the following Run configurations options:
 
-- Program arguments: `--spring.profiles.active=default,local --spring.config.location=../cls-config/application.yml,../cls-config/cls-content-intake-service.yml`
+- Program arguments: `--spring.profiles.active=default --spring.config.location=../cls-config/application.yml,../cls-config/cls-content-intake-service.yml`
 - Workdir: `$MODULE_DIR$`
 
+Add folder for cls-project, application writes modified files there:
+
+```bash
+$ mkdir /data/cls
+```
 
 ### Building the Docker Image
 
