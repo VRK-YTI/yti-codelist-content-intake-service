@@ -16,7 +16,7 @@ public abstract class FileUtils {
      * @param reader Reader.
      * @throws IOException
      */
-    @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
+    @SuppressFBWarnings("RR_NOT_CHECKED")
     public static void skipBom(final Reader reader) throws IOException {
 
         reader.mark(1);
