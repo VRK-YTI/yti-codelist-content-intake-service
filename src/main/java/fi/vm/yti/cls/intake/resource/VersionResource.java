@@ -1,5 +1,6 @@
 package fi.vm.yti.cls.intake.resource;
 
+import fi.vm.yti.cls.intake.configuration.VersionInformation;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -22,6 +23,16 @@ public class VersionResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(VersionResource.class);
 
+    private VersionInformation m_versionInformation;
+
+
+    public VersionResource(final VersionInformation versionInformation) {
+
+        m_versionInformation = versionInformation;
+
+    }
+
+
     @GET
     @ApiOperation(value = "Get version information", response = String.class)
     @ApiResponse(code = 200, message = "Returns the version of the running Content Intake Service application.")
@@ -43,7 +54,7 @@ public class VersionResource {
                "/____  >\\___  >__|    \\_/ |__|\\___  >___  >\n" +
                "     \\/     \\/                    \\/    \\/ \n" +
                "\n" +
-               "                --- Version " + APP_VERSION + " running. --- \n";
+               "                --- Version " + m_versionInformation.getVersion() + " running. --- \n";
 
     }
 

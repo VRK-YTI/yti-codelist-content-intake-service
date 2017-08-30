@@ -31,9 +31,9 @@ public class ContentIntakeServiceApplication {
 
         final ApplicationContext context = SpringApplication.run(ContentIntakeServiceApplication.class, args);
 
-        printLogo();
-
         final ServiceInitializer serviceInitializer = (ServiceInitializer) context.getBean(ServiceInitializer.class);
+
+        serviceInitializer.printLogo();
 
         if (INITIALIZE_ON_STARTUP) {
             serviceInitializer.initialize(ONLY_INDEX);
@@ -41,29 +41,4 @@ public class ContentIntakeServiceApplication {
 
     }
 
-
-    /**
-     * Application logo printout to log.
-     */
-    private static void printLogo() {
-
-        LOG.info("");
-        LOG.info("       .__                     .__        __          __           ");
-        LOG.info("  ____ |  |   ______           |__| _____/  |______  |  | __ ____  ");
-        LOG.info("_/ ___\\|  |  /  ___/   ______  |  |/    \\   __\\__  \\ |  |/ // __ \\ ");
-        LOG.info("\\  \\___|  |__\\___ \\   /_____/  |  |   |  \\  |  / __ \\|    <\\  ___/ ");
-        LOG.info(" \\___  >____/____  >           |__|___|  /__| (____  /__|_ \\\\___  >");
-        LOG.info("     \\/          \\/                    \\/          \\/     \\/    \\/ ");
-        LOG.info("                          .__              ");
-        LOG.info("  ______ ______________  _|__| ____  ____  ");
-        LOG.info(" /  ___// __ \\_  __ \\  \\/ /  |/ ___\\/ __ \\ ");
-        LOG.info(" \\___ \\\\  ___/|  | \\/\\   /|  \\  \\__\\  ___/ ");
-        LOG.info("/____  >\\___  >__|    \\_/ |__|\\___  >___  >");
-        LOG.info("     \\/     \\/                    \\/    \\/ ");
-        LOG.info("");
-        LOG.info("                --- Version " + APP_VERSION + " starting up. --- ");
-        LOG.info("");
-
-    }
-    
 }

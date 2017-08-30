@@ -8,6 +8,7 @@ import com.google.common.base.Stopwatch;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.cls.intake.api.ApiUtils;
 import fi.vm.yti.cls.intake.configuration.PublicApiServiceProperties;
+import fi.vm.yti.cls.intake.configuration.VersionInformation;
 import fi.vm.yti.cls.intake.data.GenericDataAccess;
 import fi.vm.yti.cls.intake.data.PostiDataAccess;
 import fi.vm.yti.cls.intake.data.YtjDataAccess;
@@ -16,6 +17,7 @@ import fi.vm.yti.cls.intake.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import sun.text.normalizer.VersionInfo;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -52,14 +54,19 @@ public class ServiceInitializer {
 
     private final PublicApiServiceProperties m_publicApiServiceProperties;
 
+    private final VersionInformation m_versionInformation;
+
 
     @Inject
-    public ServiceInitializer(final Domain domain,
+    public ServiceInitializer(final VersionInformation versionInformation,
+                              final Domain domain,
                               final ApiUtils apiUtils,
                               final GenericDataAccess genericDataAccess,
                               final YtjDataAccess ytjDataAccess,
                               final PostiDataAccess postiDataAccess,
                               final PublicApiServiceProperties publicApiServiceProperties) {
+
+        m_versionInformation = versionInformation;
 
         m_domain = domain;
 
@@ -116,6 +123,32 @@ public class ServiceInitializer {
         LOG.info("*** Data initialization complete, took " + watch + ". ***");
 
     }
+
+
+    /**
+     * Application logo printout to log.
+     */
+    public void printLogo() {
+
+        LOG.info("");
+        LOG.info("       .__                     .__        __          __           ");
+        LOG.info("  ____ |  |   ______           |__| _____/  |______  |  | __ ____  ");
+        LOG.info("_/ ___\\|  |  /  ___/   ______  |  |/    \\   __\\__  \\ |  |/ // __ \\ ");
+        LOG.info("\\  \\___|  |__\\___ \\   /_____/  |  |   |  \\  |  / __ \\|    <\\  ___/ ");
+        LOG.info(" \\___  >____/____  >           |__|___|  /__| (____  /__|_ \\\\___  >");
+        LOG.info("     \\/          \\/                    \\/          \\/     \\/    \\/ ");
+        LOG.info("                          .__              ");
+        LOG.info("  ______ ______________  _|__| ____  ____  ");
+        LOG.info(" /  ___// __ \\_  __ \\  \\/ /  |/ ___\\/ __ \\ ");
+        LOG.info(" \\___ \\\\  ___/|  | \\/\\   /|  \\  \\__\\  ___/ ");
+        LOG.info("/____  >\\___  >__|    \\_/ |__|\\___  >___  >");
+        LOG.info("     \\/     \\/                    \\/    \\/ ");
+        LOG.info("");
+        LOG.info("                --- Version " + m_versionInformation.getVersion() + " starting up. --- ");
+        LOG.info("");
+
+    }
+
 
 
     /**
