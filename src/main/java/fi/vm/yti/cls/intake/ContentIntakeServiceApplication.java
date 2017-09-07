@@ -26,6 +26,8 @@ public class ContentIntakeServiceApplication {
 
     private static boolean ONLY_INDEX = false;
 
+    private static boolean YTI_ONLY = true;
+
 
     public static void main(final String[] args) {
 
@@ -36,7 +38,7 @@ public class ContentIntakeServiceApplication {
         serviceInitializer.printLogo();
 
         if (INITIALIZE_ON_STARTUP) {
-            serviceInitializer.initialize(ONLY_INDEX);
+            serviceInitializer.initialize(YTI_ONLY, ONLY_INDEX);
         }
 
     }

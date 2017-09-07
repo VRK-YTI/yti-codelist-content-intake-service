@@ -78,7 +78,7 @@ public class HealthCareDistrictResource {
         final List<HealthCareDistrict> healthCareDistricts = m_healthCareDistrictParser.parseHealthCareDistrictsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final HealthCareDistrict healthCareDistrict : healthCareDistricts) {
-            LOG.info("Region parsed from input: " + healthCareDistrict.getCode());
+            LOG.info("Region parsed from input: " + healthCareDistrict.getCodeValue());
         }
 
         if (!healthCareDistricts.isEmpty()) {
@@ -95,19 +95,19 @@ public class HealthCareDistrictResource {
 
 
     @DELETE
-    @Path("{code}")
+    @Path("{codeValue}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single healthCareDistrict. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response retireHealthCareDistrict(@ApiParam(value = "HealthCareDistricts code.") @PathParam("code") final String code) {
+    public Response retireHealthCareDistrict(@ApiParam(value = "HealthCareDistricts code.") @PathParam("codeValue") final String codeValue) {
 
-        LOG.info("/v1/healthcaredistricts/" + code + " DELETE request.");
+        LOG.info("/v1/healthcaredistricts/" + codeValue + " DELETE request.");
 
         final Meta meta = new Meta();
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final HealthCareDistrict healthCareDistrict = m_healthCareDistrictRepository.findByCode(code);
+        final HealthCareDistrict healthCareDistrict = m_healthCareDistrictRepository.findByCodeValue(codeValue);
 
         if (healthCareDistrict != null) {
             healthCareDistrict.setStatus(Status.RETIRED.toString());

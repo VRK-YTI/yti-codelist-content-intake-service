@@ -78,7 +78,7 @@ public class PostalCodeResource {
         final List<PostalCode> postalCodes = m_postalCodeParser.parsePostalCodesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final PostalCode postalCode : postalCodes) {
-            LOG.info("Postal code parsed from input: " + postalCode.getCode());
+            LOG.info("Postal code parsed from input: " + postalCode.getCodeValue());
         }
 
         if (!postalCodes.isEmpty()) {
@@ -95,19 +95,19 @@ public class PostalCodeResource {
 
 
     @DELETE
-    @Path("{code}")
+    @Path("{codeValue}")
     @ApiResponse(code = 200, message = "Returns success.")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single postalCode. This means that the item status is set to Status.RETIRED.")
-    public Response retirePostalCode(@ApiParam(value = "PostalCode code.") @PathParam("code") final String code) {
+    public Response retirePostalCode(@ApiParam(value = "PostalCode code.") @PathParam("codeValue") final String codeValue) {
 
-        LOG.info("/v1/postalcodes/" + code + " DELETE request.");
+        LOG.info("/v1/postalcodes/" + codeValue + " DELETE request.");
 
         final Meta meta = new Meta();
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final PostalCode postalCode = m_postalCodeRepository.findByCode(code);
+        final PostalCode postalCode = m_postalCodeRepository.findByCodeValue(codeValue);
 
         if (postalCode != null) {
             postalCode.setStatus(Status.RETIRED.toString());

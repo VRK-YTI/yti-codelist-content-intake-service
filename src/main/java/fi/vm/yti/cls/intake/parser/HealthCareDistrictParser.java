@@ -85,7 +85,7 @@ public class HealthCareDistrictParser {
 
             records.forEach(record -> {
 
-                final String code = Utils.ensureHealthCareDistrictIdPadding(record.get("CODE"));
+                final String code = Utils.ensureHealthCareDistrictIdPadding(record.get("CODEVALUE"));
 
                 if (code != null && !code.isEmpty()) {
 
@@ -93,9 +93,9 @@ public class HealthCareDistrictParser {
 
                     if (!healthCareDistrictMap.containsKey(code)) {
 
-                        final String finnishName = record.get("NAME_FI");
-                        final String swedishName = record.get("NAME_SE");
-                        final String englishName = record.get("NAME_EN");
+                        final String finnishName = record.get("PREFLABEL_FI");
+                        final String swedishName = record.get("PREFLABEL_SE");
+                        final String englishName = record.get("PREFLABEL_EN");
                         final Status status = Status.valueOf(record.get("STATUS"));
                         final String abbr = record.get("ABBR");
                         final String specialAreaOfResponsibilityCode = record.get("SPECIAL_AREA_CODE");
@@ -116,7 +116,7 @@ public class HealthCareDistrictParser {
                         if (municipalities != null) {
                             boolean skip = false;
                             for (final Municipality munic : municipalities) {
-                                if (municipality.getCode().equalsIgnoreCase(munic.getCode())) {
+                                if (municipality.getCodeValue().equalsIgnoreCase(munic.getCodeValue())) {
                                     skip = true;
                                 }
                             }
@@ -189,12 +189,12 @@ public class HealthCareDistrictParser {
                         final String finnishName = parts[2];
                         final String swedishName = parts[12];
 
-                        if (!Objects.equals(healthCareDistrict.getNameFinnish(), finnishName)) {
-                            healthCareDistrict.setNameFinnish(finnishName);
+                        if (!Objects.equals(healthCareDistrict.getPrefLabelFi(), finnishName)) {
+                            healthCareDistrict.setPrefLabelFi(finnishName);
                             hasChanges = true;
                         }
-                        if (!Objects.equals(healthCareDistrict.getNameSwedish(), swedishName)) {
-                            healthCareDistrict.setNameSwedish(swedishName);
+                        if (!Objects.equals(healthCareDistrict.getPrefLabelSe(), swedishName)) {
+                            healthCareDistrict.setPrefLabelSe(swedishName);
                             hasChanges = true;
                         }
                         if (!Objects.equals(healthCareDistrict.getAbbreviation(), abbr)) {
@@ -274,7 +274,7 @@ public class HealthCareDistrictParser {
                         if (municipalities != null) {
                             boolean skip = false;
                             for (final Municipality munic : municipalities) {
-                                if (municipality.getCode().equalsIgnoreCase(munic.getCode())) {
+                                if (municipality.getCodeValue().equalsIgnoreCase(munic.getCodeValue())) {
                                     skip = true;
                                 }
                             }
@@ -326,24 +326,24 @@ public class HealthCareDistrictParser {
                 healthCareDistrict.setStatus(status.toString());
                 hasChanges = true;
             }
-            if (!Objects.equals(healthCareDistrict.getUrl(), url)) {
-                healthCareDistrict.setUrl(url);
+            if (!Objects.equals(healthCareDistrict.getUri(), url)) {
+                healthCareDistrict.setUri(url);
                 hasChanges = true;
             }
             if (!Objects.equals(healthCareDistrict.getSource(), source)) {
                 healthCareDistrict.setSource(source);
                 hasChanges = true;
             }
-            if (!Objects.equals(healthCareDistrict.getNameFinnish(), finnishName)) {
-                healthCareDistrict.setNameFinnish(finnishName);
+            if (!Objects.equals(healthCareDistrict.getPrefLabelFi(), finnishName)) {
+                healthCareDistrict.setPrefLabelFi(finnishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(healthCareDistrict.getNameSwedish(), swedishName)) {
-                healthCareDistrict.setNameSwedish(swedishName);
+            if (!Objects.equals(healthCareDistrict.getPrefLabelSe(), swedishName)) {
+                healthCareDistrict.setPrefLabelSe(swedishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(healthCareDistrict.getNameEnglish(), englishName)) {
-                healthCareDistrict.setNameEnglish(englishName);
+            if (!Objects.equals(healthCareDistrict.getPrefLabelEn(), englishName)) {
+                healthCareDistrict.setPrefLabelEn(englishName);
                 hasChanges = true;
             }
             if (!Objects.equals(healthCareDistrict.getAbbreviation(), abbr)) {
@@ -362,14 +362,14 @@ public class HealthCareDistrictParser {
         } else {
             healthCareDistrict = new HealthCareDistrict();
             healthCareDistrict.setId(UUID.randomUUID().toString());
-            healthCareDistrict.setUrl(url);
+            healthCareDistrict.setUri(url);
             healthCareDistrict.setStatus(status.toString());
             healthCareDistrict.setSource(source);
             healthCareDistrict.setCreated(timeStamp);
-            healthCareDistrict.setCode(code);
-            healthCareDistrict.setNameFinnish(finnishName);
-            healthCareDistrict.setNameSwedish(swedishName);
-            healthCareDistrict.setNameEnglish(englishName);
+            healthCareDistrict.setCodeValue(code);
+            healthCareDistrict.setPrefLabelFi(finnishName);
+            healthCareDistrict.setPrefLabelSe(swedishName);
+            healthCareDistrict.setPrefLabelEn(englishName);
             healthCareDistrict.setAbbreviation(abbr);
             if (specialAreaOfResponsibilityCode != null) {
                 healthCareDistrict.setSpecialAreaOfResponsibility(specialAreaOfResponsibilityCode);

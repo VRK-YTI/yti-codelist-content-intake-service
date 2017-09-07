@@ -7,7 +7,7 @@
     <groupId>fi.vm.yti.cls</groupId>
     <artifactId>cls-content-intake-service</artifactId>
     <packaging>jar</packaging>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
     <name>cls-content-intake-service</name>
     <description>Content Intake Service for CLS (Code List Service)</description>
 
@@ -55,7 +55,7 @@
         <dependency>
             <groupId>fi.vm.yti.cls</groupId>
             <artifactId>cls-common-model</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.2-SNAPSHOT</version>
         </dependency>
 
         <!-- Spring boot -->
@@ -436,7 +436,7 @@
                     <replacements>
                         <replacement>
                             <token>http://petstore.swagger.io/v2/swagger.json</token>
-                            <value>/cls-intake/api/swagger.json</value>
+                            <value>/api/swagger.json</value>
                         </replacement>
                     </replacements>
                 </configuration>
@@ -490,6 +490,24 @@
                     <password></password>
                     <url>jdbc:postgresql://${psql.host}:${psql.port}/${project.db.name}</url>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.5</version>
+                <executions>
+                    <execution>
+                        <id>failing-on-high</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>findbugs</goal>
+                        </goals>
+                        <configuration>
+                            <failOnError>true</failOnError>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
         </plugins>

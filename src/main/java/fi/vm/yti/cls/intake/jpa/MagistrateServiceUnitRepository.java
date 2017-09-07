@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface MagistrateServiceUnitRepository extends CrudRepository<MagistrateServiceUnit, String> {
 
-    MagistrateServiceUnit findByCode(final String code);
+    MagistrateServiceUnit findByCodeValue(final String codeValue);
 
     List<MagistrateServiceUnit> findAll();
 

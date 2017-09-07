@@ -79,15 +79,15 @@ public class ElectoralDistrictParser {
 
             for (final CSVRecord record : records) {
 
-                final String code = Utils.ensureElectoralDistrictIdPadding(record.get("CODE"));
+                final String code = Utils.ensureElectoralDistrictIdPadding(record.get("CODEVALUE"));
 
                 ElectoralDistrict electoralDistrict = null;
 
                 if (!electoralDistrictsMap.containsKey(code)) {
 
-                    final String finnishName = record.get("NAME_FI");
-                    final String swedishName = record.get("NAME_SE");
-                    final String englishName = record.get("NAME_EN");
+                    final String finnishName = record.get("PREFLABEL_FI");
+                    final String swedishName = record.get("PREFLABEL_SE");
+                    final String englishName = record.get("PREFLABEL_EN");
                     final Status status = Status.valueOf(record.get("STATUS"));
 
                     electoralDistrict = createOrUpdateElectoralDistrict(existingElectoralDistrictsMap, code, status, source, finnishName, swedishName, englishName);
@@ -106,7 +106,7 @@ public class ElectoralDistrictParser {
                     if (municipalities != null) {
                         boolean skip = false;
                         for (final Municipality munic : municipalities) {
-                            if (municipality.getCode().equalsIgnoreCase(munic.getCode())) {
+                            if (municipality.getCodeValue().equalsIgnoreCase(munic.getCodeValue())) {
                                 skip = true;
                             }
                         }
@@ -187,7 +187,7 @@ public class ElectoralDistrictParser {
                         if (municipalities != null) {
                             boolean skip = false;
                             for (final Municipality munic : municipalities) {
-                                if (municipality.getCode().equalsIgnoreCase(munic.getCode())) {
+                                if (municipality.getCodeValue().equalsIgnoreCase(munic.getCodeValue())) {
                                     skip = true;
                                 }
                             }
@@ -235,24 +235,24 @@ public class ElectoralDistrictParser {
                 electoralDistrict.setStatus(status.toString());
                 hasChanges = true;
             }
-            if (!Objects.equals(electoralDistrict.getUrl(), url)) {
-                electoralDistrict.setUrl(url);
+            if (!Objects.equals(electoralDistrict.getUri(), url)) {
+                electoralDistrict.setUri(url);
                 hasChanges = true;
             }
             if (!Objects.equals(electoralDistrict.getSource(), source)) {
                 electoralDistrict.setSource(source);
                 hasChanges = true;
             }
-            if (!Objects.equals(electoralDistrict.getNameFinnish(), finnishName)) {
-                electoralDistrict.setNameFinnish(finnishName);
+            if (!Objects.equals(electoralDistrict.getPrefLabelFi(), finnishName)) {
+                electoralDistrict.setPrefLabelFi(finnishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(electoralDistrict.getNameSwedish(), swedishName)) {
-                electoralDistrict.setNameSwedish(swedishName);
+            if (!Objects.equals(electoralDistrict.getPrefLabelSe(), swedishName)) {
+                electoralDistrict.setPrefLabelSe(swedishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(electoralDistrict.getNameEnglish(), englishName)) {
-                electoralDistrict.setNameEnglish(englishName);
+            if (!Objects.equals(electoralDistrict.getPrefLabelEn(), englishName)) {
+                electoralDistrict.setPrefLabelEn(englishName);
                 hasChanges = true;
             }
             if (hasChanges) {
@@ -263,14 +263,14 @@ public class ElectoralDistrictParser {
         } else {
             electoralDistrict = new ElectoralDistrict();
             electoralDistrict.setId(UUID.randomUUID().toString());
-            electoralDistrict.setUrl(url);
+            electoralDistrict.setUri(url);
             electoralDistrict.setSource(source);
             electoralDistrict.setStatus(status.toString());
             electoralDistrict.setCreated(timeStamp);
-            electoralDistrict.setCode(code);
-            electoralDistrict.setNameFinnish(finnishName);
-            electoralDistrict.setNameSwedish(swedishName);
-            electoralDistrict.setNameEnglish(englishName);
+            electoralDistrict.setCodeValue(code);
+            electoralDistrict.setPrefLabelFi(finnishName);
+            electoralDistrict.setPrefLabelSe(swedishName);
+            electoralDistrict.setPrefLabelEn(englishName);
         }
 
         return electoralDistrict;

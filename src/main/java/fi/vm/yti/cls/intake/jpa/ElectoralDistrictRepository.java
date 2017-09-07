@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface ElectoralDistrictRepository extends CrudRepository<ElectoralDistrict, String> {
 
-    ElectoralDistrict findByCode(final String code);
+    ElectoralDistrict findByCodeValue(final String codeValue);
 
     List<ElectoralDistrict> findAll();
 

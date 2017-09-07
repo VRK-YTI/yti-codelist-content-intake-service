@@ -91,19 +91,19 @@ public class PostManagementDistrictResource {
 
 
     @DELETE
-    @Path("{code}")
+    @Path("{codeValue}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single postManagementDistrict. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response retirePostManagementDistrict(@ApiParam(value = "PostManagementDistrict code.") @PathParam("code") final String code) {
+    public Response retirePostManagementDistrict(@ApiParam(value = "PostManagementDistrict code.") @PathParam("code") final String codeValue) {
 
-        LOG.info("/v1/postmanagementdistricts/" + code + " DELETE request.");
+        LOG.info("/v1/postmanagementdistricts/" + codeValue + " DELETE request.");
 
         final Meta meta = new Meta();
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final PostManagementDistrict postManagementDistrict = m_postManagementDistrictRepository.findByCode(code);
+        final PostManagementDistrict postManagementDistrict = m_postManagementDistrictRepository.findByCodeValue(codeValue);
 
         if (postManagementDistrict != null) {
             postManagementDistrict.setStatus(Status.RETIRED.toString());

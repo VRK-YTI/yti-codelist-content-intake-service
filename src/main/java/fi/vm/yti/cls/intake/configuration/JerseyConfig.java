@@ -1,12 +1,13 @@
 package fi.vm.yti.cls.intake.configuration;
 
+import fi.vm.yti.cls.intake.api.ApiConstants;
+import fi.vm.yti.cls.intake.resource.CodeRegistryResource;
 import fi.vm.yti.cls.intake.resource.ElectoralDistrictResource;
 import fi.vm.yti.cls.intake.resource.HealthCareDistrictResource;
 import fi.vm.yti.cls.intake.resource.MagistrateResource;
 import fi.vm.yti.cls.intake.resource.MagistrateServiceUnitResource;
 import fi.vm.yti.cls.intake.resource.PostManagementDistrictResource;
 import fi.vm.yti.cls.intake.resource.PostalCodeResource;
-import fi.vm.yti.cls.intake.resource.RegisterResource;
 import fi.vm.yti.cls.intake.resource.SwaggerResource;
 import fi.vm.yti.cls.intake.resource.VersionResource;
 import io.swagger.annotations.Api;
@@ -37,7 +38,7 @@ import javax.ws.rs.ApplicationPath;
         )
     ),
     host = "localhost:9601",
-    basePath = "/cls-intake/api",
+    basePath = ApiConstants.API_CONTEXT_PATH + ApiConstants.API_BASE_PATH,
     consumes = {"application/json", "application/xml"},
     produces = {"application/json", "application/xml"},
     schemes = {SwaggerDefinition.Scheme.HTTP, SwaggerDefinition.Scheme.HTTPS}
@@ -55,8 +56,10 @@ public class JerseyConfig extends ResourceConfig {
         // Multipart support.
         register(MultiPartFeature.class);
 
-        // Admin APIs for Content Intake
-        register(RegisterResource.class);
+        // Admin APIs for YTI model.
+        register(CodeRegistryResource.class);
+
+        // Admin APIs for Content Intake.
         register(PostalCodeResource.class);
         register(PostManagementDistrictResource.class);
         register(MagistrateServiceUnitResource.class);
@@ -64,12 +67,6 @@ public class JerseyConfig extends ResourceConfig {
         register(MagistrateServiceUnitResource.class);
         register(ElectoralDistrictResource.class);
         register(HealthCareDistrictResource.class);
-        register(RegisterResource.class);
-
-//        TODO: Implement these.
-//        register(BusinessIdResource.class);
-//        register(BusinessServiceSubRegionResource.class);
-//        register(StreetAddressResource.class);
 
     }
 

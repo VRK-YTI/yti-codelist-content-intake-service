@@ -1,15 +1,9 @@
 package fi.vm.yti.cls.intake.parser;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.inject.Inject;
-
-import org.springframework.stereotype.Component;
-
 import fi.vm.yti.cls.common.model.BusinessServiceSubRegion;
+import fi.vm.yti.cls.common.model.Code;
+import fi.vm.yti.cls.common.model.CodeRegistry;
+import fi.vm.yti.cls.common.model.CodeScheme;
 import fi.vm.yti.cls.common.model.ElectoralDistrict;
 import fi.vm.yti.cls.common.model.HealthCareDistrict;
 import fi.vm.yti.cls.common.model.Magistrate;
@@ -18,10 +12,11 @@ import fi.vm.yti.cls.common.model.Municipality;
 import fi.vm.yti.cls.common.model.PostManagementDistrict;
 import fi.vm.yti.cls.common.model.PostalCode;
 import fi.vm.yti.cls.common.model.Region;
-import fi.vm.yti.cls.common.model.Register;
-import fi.vm.yti.cls.common.model.RegisterItem;
 import fi.vm.yti.cls.common.model.StreetAddress;
 import fi.vm.yti.cls.intake.jpa.BusinessServiceSubRegionRepository;
+import fi.vm.yti.cls.intake.jpa.CodeRegistryRepository;
+import fi.vm.yti.cls.intake.jpa.CodeRepository;
+import fi.vm.yti.cls.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.cls.intake.jpa.ElectoralDistrictRepository;
 import fi.vm.yti.cls.intake.jpa.HealthCareDistrictRepository;
 import fi.vm.yti.cls.intake.jpa.MagistrateRepository;
@@ -30,9 +25,14 @@ import fi.vm.yti.cls.intake.jpa.MunicipalityRepository;
 import fi.vm.yti.cls.intake.jpa.PostManagementDistrictRepository;
 import fi.vm.yti.cls.intake.jpa.PostalCodeRepository;
 import fi.vm.yti.cls.intake.jpa.RegionRepository;
-import fi.vm.yti.cls.intake.jpa.RegisterItemRepository;
-import fi.vm.yti.cls.intake.jpa.RegisterRepository;
 import fi.vm.yti.cls.intake.jpa.StreetAddressRepository;
+import org.springframework.stereotype.Component;
+
+import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -61,9 +61,11 @@ public class ParserUtils {
 
     private final StreetAddressRepository m_streetAddressRepository;
 
-    private final RegisterRepository m_registerRepository;
+    private final CodeRegistryRepository m_codeRegistryRepository;
 
-    private final RegisterItemRepository m_registerItemRepository;
+    private final CodeSchemeRepository m_codeSchemeRepository;
+
+    private final CodeRepository m_codeRepository;
 
 
     @Inject
@@ -77,8 +79,9 @@ public class ParserUtils {
                        final ElectoralDistrictRepository electoralDistrictRepository,
                        final BusinessServiceSubRegionRepository businessServiceSubRegionRepository,
                        final StreetAddressRepository streetAddressRepository,
-                       final RegisterRepository registerRepository,
-                       final RegisterItemRepository registerItemRepository) {
+                       final CodeRegistryRepository codeRegistryRepository,
+                       final CodeSchemeRepository codeSchemeRepository,
+                       final CodeRepository codeRepository) {
 
         m_regionRepository = regionRepository;
         m_magistrateRepository = magistrateRepository;
@@ -90,8 +93,9 @@ public class ParserUtils {
         m_electoralDistrictRepository = electoralDistrictRepository;
         m_businessServiceSubRegionRepository = businessServiceSubRegionRepository;
         m_streetAddressRepository = streetAddressRepository;
-        m_registerRepository = registerRepository;
-        m_registerItemRepository = registerItemRepository;
+        m_codeRegistryRepository = codeRegistryRepository;
+        m_codeSchemeRepository = codeSchemeRepository;
+        m_codeRepository = codeRepository;
 
     }
 
@@ -103,7 +107,7 @@ public class ParserUtils {
         final Map<String, Region> regionsMap = new HashMap<>();
 
         for (final Region region : regions) {
-            regionsMap.put(region.getCode(), region);
+            regionsMap.put(region.getCodeValue(), region);
         }
 
         return regionsMap;
@@ -117,7 +121,7 @@ public class ParserUtils {
         final Map<String, Magistrate> magistratesMap = new HashMap<>();
 
         for (final Magistrate magistrate : magistrates) {
-            magistratesMap.put(magistrate.getCode(), magistrate);
+            magistratesMap.put(magistrate.getCodeValue(), magistrate);
         }
 
         return magistratesMap;
@@ -132,7 +136,7 @@ public class ParserUtils {
         final Map<String, Municipality> municipalityMap = new HashMap<>();
 
         for (final Municipality municipality : municipalities) {
-            municipalityMap.put(municipality.getCode(), municipality);
+            municipalityMap.put(municipality.getCodeValue(), municipality);
         }
 
         return municipalityMap;
@@ -147,7 +151,7 @@ public class ParserUtils {
         final Map<String, PostalCode> postalCodeMap = new HashMap<>();
 
         for (final PostalCode postalCode : postalCodes) {
-            postalCodeMap.put(postalCode.getCode(), postalCode);
+            postalCodeMap.put(postalCode.getCodeValue(), postalCode);
         }
 
         return postalCodeMap;
@@ -162,7 +166,7 @@ public class ParserUtils {
         final Map<String, MagistrateServiceUnit> magistrateServiceUnitMap = new HashMap<>();
 
         for (final MagistrateServiceUnit magistrateServiceUnit : magistrateServiceUnits) {
-            magistrateServiceUnitMap.put(magistrateServiceUnit.getCode(), magistrateServiceUnit);
+            magistrateServiceUnitMap.put(magistrateServiceUnit.getCodeValue(), magistrateServiceUnit);
         }
 
         return magistrateServiceUnitMap;
@@ -177,7 +181,7 @@ public class ParserUtils {
         final Map<String, HealthCareDistrict> healthCareDistrictsMap = new HashMap<>();
 
         for (final HealthCareDistrict healthCareDistrict : healthCareDistricts) {
-            healthCareDistrictsMap.put(healthCareDistrict.getCode(), healthCareDistrict);
+            healthCareDistrictsMap.put(healthCareDistrict.getCodeValue(), healthCareDistrict);
         }
 
         return healthCareDistrictsMap;
@@ -192,7 +196,7 @@ public class ParserUtils {
         final Map<String, ElectoralDistrict> electoralDistrictsMap = new HashMap<>();
 
         for (final ElectoralDistrict electoralDistrict : electoralDistricts) {
-            electoralDistrictsMap.put(electoralDistrict.getCode(), electoralDistrict);
+            electoralDistrictsMap.put(electoralDistrict.getCodeValue(), electoralDistrict);
         }
 
         return electoralDistrictsMap;
@@ -207,7 +211,7 @@ public class ParserUtils {
         final Map<String, BusinessServiceSubRegion> businessServiceSubRegionsMap = new HashMap<>();
 
         for (final BusinessServiceSubRegion businessServiceSubRegion : businessServiceSubregions) {
-            businessServiceSubRegionsMap.put(businessServiceSubRegion.getCode(), businessServiceSubRegion);
+            businessServiceSubRegionsMap.put(businessServiceSubRegion.getCodeValue(), businessServiceSubRegion);
         }
 
         return businessServiceSubRegionsMap;
@@ -222,7 +226,7 @@ public class ParserUtils {
         final Map<String, PostManagementDistrict> postManagementDistrictsMap = new HashMap<>();
 
         for (final PostManagementDistrict postManagementDistrict : postManagementDistricts) {
-            postManagementDistrictsMap.put(postManagementDistrict.getCode(), postManagementDistrict);
+            postManagementDistrictsMap.put(postManagementDistrict.getCodeValue(), postManagementDistrict);
         }
 
         return postManagementDistrictsMap;
@@ -237,7 +241,7 @@ public class ParserUtils {
         final Map<String, StreetAddress> streetAddressesMap = new HashMap<>();
 
         for (final StreetAddress streetAddress : streetAddresses) {
-            streetAddressesMap.put(streetAddress.getMunicipality().getCode() + streetAddress.getNameFinnish(), streetAddress);
+            streetAddressesMap.put(streetAddress.getMunicipality().getCodeValue() + streetAddress.getPrefLabelFi(), streetAddress);
         }
 
         return streetAddressesMap;
@@ -245,32 +249,47 @@ public class ParserUtils {
     }
 
 
-    public Map<String, Register> getRegistersMap() {
+    public Map<String, CodeRegistry> getCodeRegistriesMap() {
 
-        final List<Register> registers = m_registerRepository.findAll();
+        final List<CodeRegistry> codeRegistries = m_codeRegistryRepository.findAll();
 
-        final Map<String, Register> registersMap = new HashMap<>();
+        final Map<String, CodeRegistry> codeRegistriesMap = new HashMap<>();
 
-        for (final Register register : registers) {
-            registersMap.put(register.getCode(), register);
+        for (final CodeRegistry codeRegistry : codeRegistries) {
+            codeRegistriesMap.put(codeRegistry.getCodeValue(), codeRegistry);
         }
 
-        return registersMap;
+        return codeRegistriesMap;
 
     }
 
 
-    public Map<String, RegisterItem> getRegisterItemsMap(final String register) {
+    public Map<String, CodeScheme> getCodeSchemesMap() {
 
-        final List<RegisterItem> registerItems = m_registerItemRepository.findByRegister(register);
+        final List<CodeScheme> codeSchemes = m_codeSchemeRepository.findAll();
 
-        final Map<String, RegisterItem> registerItemsMap = new HashMap<>();
+        final Map<String, CodeScheme> codeSchemesMap = new HashMap<>();
 
-        for (final RegisterItem registerItem : registerItems) {
-            registerItemsMap.put(registerItem.getCode(), registerItem);
+        for (final CodeScheme codeScheme : codeSchemes) {
+            codeSchemesMap.put(codeScheme.getCodeValue(), codeScheme);
         }
 
-        return registerItemsMap;
+        return codeSchemesMap;
+
+    }
+
+
+    public Map<String, Code> getCodesMap(final CodeScheme codeScheme) {
+
+        final List<Code> codes = m_codeRepository.findByCodeScheme(codeScheme);
+
+        final Map<String, Code> codesMap = new HashMap<>();
+
+        for (final Code code : codes) {
+            codesMap.put(code.getCodeValue(), code);
+        }
+
+        return codesMap;
 
     }
 

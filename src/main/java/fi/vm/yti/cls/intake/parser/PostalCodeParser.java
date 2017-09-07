@@ -78,10 +78,10 @@ public class PostalCodeParser {
             final List<CSVRecord> records = csvParser.getRecords();
 
             records.forEach(record -> {
-                final String code = Utils.ensurePostalCodeIdPadding(record.get("CODE"));
-                final String finnishName = record.get("NAME_FI");
-                final String swedishName = record.get("NAME_SE");
-                final String englishName = record.get("NAME_EN");
+                final String code = Utils.ensurePostalCodeIdPadding(record.get("CODEVALUE"));
+                final String finnishName = record.get("PREFLABEL_FI");
+                final String swedishName = record.get("PREFLABEL_SE");
+                final String englishName = record.get("PREFLABEL_EN");
                 final Status status = Status.valueOf(record.get("STATUS"));
                 final String finnishAbbr = record.get("ABBR_FI");
                 final String swedishAbbr = record.get("ABBR_SE");
@@ -202,24 +202,24 @@ public class PostalCodeParser {
                 postalCode.setStatus(status.toString());
                 hasChanges = true;
             }
-            if (!Objects.equals(postalCode.getUrl(), url)) {
-                postalCode.setUrl(url);
+            if (!Objects.equals(postalCode.getUri(), url)) {
+                postalCode.setUri(url);
                 hasChanges = true;
             }
             if (!Objects.equals(postalCode.getSource(), source)) {
                 postalCode.setSource(source);
                 hasChanges = true;
             }
-            if (!Objects.equals(postalCode.getNameFinnish(), finnishName)) {
-                postalCode.setNameFinnish(finnishName);
+            if (!Objects.equals(postalCode.getPrefLabelFi(), finnishName)) {
+                postalCode.setPrefLabelFi(finnishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(postalCode.getNameSwedish(), swedishName)) {
-                postalCode.setNameSwedish(swedishName);
+            if (!Objects.equals(postalCode.getPrefLabelSe(), swedishName)) {
+                postalCode.setPrefLabelSe(swedishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(postalCode.getNameEnglish(), englishName)) {
-                postalCode.setNameEnglish(englishName);
+            if (!Objects.equals(postalCode.getPrefLabelEn(), englishName)) {
+                postalCode.setPrefLabelEn(englishName);
                 hasChanges = true;
             }
             if (!Objects.equals(postalCode.getNameAbbrFinnish(), finnishAbbr)) {
@@ -264,13 +264,13 @@ public class PostalCodeParser {
             postalCode = new PostalCode();
             postalCode.setId(UUID.randomUUID().toString());
             postalCode.setStatus(status.toString());
-            postalCode.setUrl(url);
+            postalCode.setUri(url);
             postalCode.setSource(source);
             postalCode.setCreated(timeStamp);
-            postalCode.setCode(code);
-            postalCode.setNameFinnish(finnishName);
-            postalCode.setNameSwedish(swedishName);
-            postalCode.setNameEnglish(englishName);
+            postalCode.setCodeValue(code);
+            postalCode.setPrefLabelFi(finnishName);
+            postalCode.setPrefLabelSe(swedishName);
+            postalCode.setPrefLabelEn(englishName);
             postalCode.setNameAbbrFinnish(finnishAbbr);
             postalCode.setNameAbbrSwedish(swedishAbbr);
             postalCode.setNameAbbrEnglish(englishAbbr);

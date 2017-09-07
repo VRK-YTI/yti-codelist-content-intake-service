@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface RegionRepository extends CrudRepository<Region, String> {
 
-    Region findByCode(final String code);
+    Region findByCodeValue(final String codeValue);
 
     List<Region> findAll();
 

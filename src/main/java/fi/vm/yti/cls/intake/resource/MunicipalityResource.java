@@ -78,7 +78,7 @@ public class MunicipalityResource {
         final List<Municipality> municipalities = m_municipalityParser.parseMunicipalitiesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final Municipality municipality : municipalities) {
-            LOG.info("Municipality parsed from input: " + municipality.getCode());
+            LOG.info("Municipality parsed from input: " + municipality.getCodeValue());
         }
 
         if (!municipalities.isEmpty()) {
@@ -95,19 +95,19 @@ public class MunicipalityResource {
 
 
     @DELETE
-    @Path("{code}")
+    @Path("{codeValue}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single municipality. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response retireMunicipality(@ApiParam(value = "Municipality code.") @PathParam("code") final String code) {
+    public Response retireMunicipality(@ApiParam(value = "Municipality code.") @PathParam("codeValue") final String codeValue) {
 
-        LOG.info("/v1/municipalities/" + code + " DELETE request.");
+        LOG.info("/v1/municipalities/" + codeValue + " DELETE request.");
 
         final Meta meta = new Meta();
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final Municipality municipality = m_municipalityRepository.findByCode(code);
+        final Municipality municipality = m_municipalityRepository.findByCodeValue(codeValue);
 
         if (municipality != null) {
             municipality.setStatus(Status.RETIRED.toString());

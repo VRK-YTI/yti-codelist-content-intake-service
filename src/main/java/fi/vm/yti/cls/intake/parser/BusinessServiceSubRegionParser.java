@@ -110,7 +110,7 @@ public class BusinessServiceSubRegionParser {
                         if (municipalities != null) {
                             boolean skip = false;
                             for (final Municipality munic : municipalities) {
-                                if (municipality.getCode().equalsIgnoreCase(munic.getCode())) {
+                                if (municipality.getCodeValue().equalsIgnoreCase(munic.getCodeValue())) {
                                     skip = true;
                                 }
                             }
@@ -160,24 +160,24 @@ public class BusinessServiceSubRegionParser {
                 businessServiceSubRegion.setStatus(status.toString());
                 hasChanges = true;
             }
-            if (!Objects.equals(businessServiceSubRegion.getUrl(), url)) {
-                businessServiceSubRegion.setUrl(url);
+            if (!Objects.equals(businessServiceSubRegion.getUri(), url)) {
+                businessServiceSubRegion.setUri(url);
                 hasChanges = true;
             }
             if (!Objects.equals(businessServiceSubRegion.getSource(), source)) {
                 businessServiceSubRegion.setSource(source);
                 hasChanges = true;
             }
-            if (!Objects.equals(businessServiceSubRegion.getNameFinnish(), finnishName)) {
-                businessServiceSubRegion.setNameFinnish(finnishName);
+            if (!Objects.equals(businessServiceSubRegion.getPrefLabelFi(), finnishName)) {
+                businessServiceSubRegion.setPrefLabelFi(finnishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(businessServiceSubRegion.getNameSwedish(), swedishName)) {
-                businessServiceSubRegion.setNameSwedish(swedishName);
+            if (!Objects.equals(businessServiceSubRegion.getPrefLabelSe(), swedishName)) {
+                businessServiceSubRegion.setPrefLabelSe(swedishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(businessServiceSubRegion.getNameEnglish(), englishName)) {
-                businessServiceSubRegion.setNameEnglish(englishName);
+            if (!Objects.equals(businessServiceSubRegion.getPrefLabelEn(), englishName)) {
+                businessServiceSubRegion.setPrefLabelEn(englishName);
                 hasChanges = true;
             }
             if (hasChanges) {
@@ -188,14 +188,14 @@ public class BusinessServiceSubRegionParser {
         } else {
             businessServiceSubRegion = new BusinessServiceSubRegion();
             businessServiceSubRegion.setId(UUID.randomUUID().toString());
-            businessServiceSubRegion.setUrl(url);
+            businessServiceSubRegion.setUri(url);
             businessServiceSubRegion.setSource(source);
             businessServiceSubRegion.setStatus(status.toString());
             businessServiceSubRegion.setCreated(timeStamp);
-            businessServiceSubRegion.setCode(code);
-            businessServiceSubRegion.setNameFinnish(finnishName);
-            businessServiceSubRegion.setNameSwedish(swedishName);
-            businessServiceSubRegion.setNameEnglish(englishName);
+            businessServiceSubRegion.setCodeValue(code);
+            businessServiceSubRegion.setPrefLabelFi(finnishName);
+            businessServiceSubRegion.setPrefLabelSe(swedishName);
+            businessServiceSubRegion.setPrefLabelEn(englishName);
         }
 
         return businessServiceSubRegion;

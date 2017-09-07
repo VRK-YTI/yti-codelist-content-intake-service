@@ -33,7 +33,11 @@ public final class DomainConstants {
 
     public static final String DATA_ELECTORALDISTRICTS = "electoraldistricts";
 
-    public static final String DATA_REGISTERS = "registers";
+    public static final String DATA_CODEREGISTRIES = "coderegistries";
+
+    public static final String DATA_CODESCHEMES = "codeschemes";
+
+    public static final String DATA_CODES = "codes";
 
     public static final String DATA_MUNICIPALITIES = "municipalities";
 
@@ -49,14 +53,17 @@ public final class DomainConstants {
 
     public static final String DATA_BUSINESSIDS = "businessids";
 
+    public static final String ELASTIC_INDEX_CODEREGISTRIES = "coderegistries";
 
-    public static final String ELASTIC_INDEX_REGISTERS = "registers";
-
-    public static final String ELASTIC_INDEX_REGISTER_ITEMS = "registeritems";
+    public static final String ELASTIC_INDEX_CODESCHEMES = "codeschemes";
 
     public static final String ELASTIC_INDEX_CODES = "codes";
 
-    public static final String ELASTIC_TYPE_REGISTER = "register";
+    public static final String ELASTIC_INDEX_CUSTOMCODES = "customcodes";
+
+    public static final String ELASTIC_TYPE_CODEREGISTRY = "coderegistry";
+
+    public static final String ELASTIC_TYPE_CODESCHEME = "codescheme";
 
     public static final String ELASTIC_TYPE_MUNICIPALITY = "municipality";
 

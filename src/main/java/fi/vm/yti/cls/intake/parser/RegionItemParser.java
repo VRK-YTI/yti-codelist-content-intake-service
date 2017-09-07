@@ -75,10 +75,10 @@ public class RegionItemParser {
             final List<CSVRecord> records = csvParser.getRecords();
 
             records.forEach(record -> {
-                final String code = Utils.ensureRegionIdPadding(record.get("CODE"));
-                final String finnishName = record.get("NAME_FI");
-                final String swedishName = record.get("NAME_SE");
-                final String englishName = record.get("NAME_EN");
+                final String code = Utils.ensureRegionIdPadding(record.get("CODEVALUE"));
+                final String finnishName = record.get("PREFLABEL_FI");
+                final String swedishName = record.get("PREFLABEL_SE");
+                final String englishName = record.get("PREFLABEL_EN");
                 final Status status = Status.valueOf(record.get("STATUS"));
 
                 final Region region = createOrUpdateRegion(existingRegionsMap, code, status, source, finnishName, swedishName, englishName);
@@ -164,24 +164,24 @@ public class RegionItemParser {
                 region.setStatus(status.toString());
                 hasChanges = true;
             }
-            if (!Objects.equals(region.getUrl(), url)) {
-                region.setUrl(url);
+            if (!Objects.equals(region.getUri(), url)) {
+                region.setUri(url);
                 hasChanges = true;
             }
             if (!Objects.equals(region.getSource(), source)) {
                 region.setSource(source);
                 hasChanges = true;
             }
-            if (!Objects.equals(region.getNameFinnish(), finnishName)) {
-                region.setNameFinnish(finnishName);
+            if (!Objects.equals(region.getPrefLabelFi(), finnishName)) {
+                region.setPrefLabelFi(finnishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(region.getNameSwedish(), swedishName)) {
-                region.setNameSwedish(swedishName);
+            if (!Objects.equals(region.getPrefLabelSe(), swedishName)) {
+                region.setPrefLabelSe(swedishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(region.getNameEnglish(), englishName)) {
-                region.setNameEnglish(englishName);
+            if (!Objects.equals(region.getPrefLabelEn(), englishName)) {
+                region.setPrefLabelEn(englishName);
                 hasChanges = true;
             }
             if (hasChanges) {
@@ -193,13 +193,13 @@ public class RegionItemParser {
             region = new Region();
             region.setId(UUID.randomUUID().toString());
             region.setStatus(status.toString());
-            region.setUrl(url);
-            region.setCode(code);
+            region.setUri(url);
+            region.setCodeValue(code);
             region.setSource(source);
             region.setCreated(timeStamp);
-            region.setNameFinnish(finnishName);
-            region.setNameSwedish(swedishName);
-            region.setNameEnglish(englishName);
+            region.setPrefLabelFi(finnishName);
+            region.setPrefLabelSe(swedishName);
+            region.setPrefLabelEn(englishName);
         }
 
         return region;

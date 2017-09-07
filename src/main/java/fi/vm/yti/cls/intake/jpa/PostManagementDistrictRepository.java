@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface PostManagementDistrictRepository extends CrudRepository<PostManagementDistrict, String> {
 
-    PostManagementDistrict findByCode(final String code);
+    PostManagementDistrict findByCodeValue(final String codeValue);
 
     List<PostManagementDistrict> findAll();
 

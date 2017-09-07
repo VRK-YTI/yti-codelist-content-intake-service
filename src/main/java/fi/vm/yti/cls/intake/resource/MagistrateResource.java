@@ -78,7 +78,7 @@ public class MagistrateResource {
         final List<Magistrate> magistrates = m_magistrateParser.parseMagistratesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final Magistrate magistrate : magistrates) {
-            LOG.info("Magistrate parsed from input: " + magistrate.getCode());
+            LOG.info("Magistrate parsed from input: " + magistrate.getCodeValue());
         }
 
         if (!magistrates.isEmpty()) {
@@ -95,19 +95,19 @@ public class MagistrateResource {
 
 
     @DELETE
-    @Path("{code}")
+    @Path("{codeValue}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single magistrate. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response retireMagistrate(@ApiParam(value = "Magistrate code.") @PathParam("code") final String code) {
+    public Response retireMagistrate(@ApiParam(value = "Magistrate code.") @PathParam("codeValue") final String codeValue) {
 
-        LOG.info("/v1/magistrates/" + code + " DELETE request.");
+        LOG.info("/v1/magistrates/" + codeValue + " DELETE request.");
 
         final Meta meta = new Meta();
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final Magistrate magistrate = m_magistrateRepository.findByCode(code);
+        final Magistrate magistrate = m_magistrateRepository.findByCodeValue(codeValue);
 
         if (magistrate != null) {
             magistrate.setStatus(Status.RETIRED.toString());

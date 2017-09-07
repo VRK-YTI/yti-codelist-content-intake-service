@@ -103,20 +103,20 @@ public class StreetAddressParser {
                         existingStreetAddress.setStatus(status.toString());
                         hasChanges = true;
                     }
-                    if (!Objects.equals(existingStreetAddress.getUrl(), url)) {
-                        existingStreetAddress.setUrl(url);
+                    if (!Objects.equals(existingStreetAddress.getUri(), url)) {
+                        existingStreetAddress.setUri(url);
                         hasChanges = true;
                     }
                     if (!Objects.equals(existingStreetAddress.getSource(), source)) {
                         existingStreetAddress.setSource(source);
                         hasChanges = true;
                     }
-                    if (!Objects.equals(existingStreetAddress.getNameFinnish(), finnishName)) {
-                        existingStreetAddress.setNameFinnish(finnishName);
+                    if (!Objects.equals(existingStreetAddress.getPrefLabelFi(), finnishName)) {
+                        existingStreetAddress.setPrefLabelFi(finnishName);
                         hasChanges = true;
                     }
-                    if (!Objects.equals(existingStreetAddress.getNameSwedish(), swedishName)) {
-                        existingStreetAddress.setNameSwedish(swedishName);
+                    if (!Objects.equals(existingStreetAddress.getPrefLabelSe(), swedishName)) {
+                        existingStreetAddress.setPrefLabelSe(swedishName);
                         hasChanges = true;
                     }
                     if (existingStreetAddress.getMunicipality() != municipality) {
@@ -126,23 +126,23 @@ public class StreetAddressParser {
 
                     if (hasChanges) {
                         existingStreetAddress.setModified(timeStamp);
-                        streetAddressesMap.put(municipality.getCode() + finnishName, existingStreetAddress);
+                        streetAddressesMap.put(municipality.getCodeValue() + finnishName, existingStreetAddress);
                     }
 
                 // Create
                 } else {
-                    if (!streetAddressesMap.containsKey(municipality.getCode() + finnishName)) {
+                    if (!streetAddressesMap.containsKey(municipality.getCodeValue() + finnishName)) {
                         final StreetAddress streetAddress = new StreetAddress();
                         streetAddress.setId(UUID.randomUUID().toString());
                         final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_STREETADDRESSES, streetAddress.getId());
-                        streetAddress.setUrl(url);
+                        streetAddress.setUri(url);
                         streetAddress.setStatus(status.toString());
                         streetAddress.setSource(source);
                         streetAddress.setCreated(timeStamp);
-                        streetAddress.setNameFinnish(finnishName);
-                        streetAddress.setNameSwedish(swedishName);
+                        streetAddress.setPrefLabelFi(finnishName);
+                        streetAddress.setPrefLabelSe(swedishName);
                         streetAddress.setMunicipality(municipality);
-                        streetAddressesMap.put(municipality.getCode() + finnishName, streetAddress);
+                        streetAddressesMap.put(municipality.getCodeValue() + finnishName, streetAddress);
                     }
                 }
             }
@@ -237,7 +237,7 @@ public class StreetAddressParser {
                     streetNumber.setId(UUID.randomUUID().toString());
                     final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_STREETADDRESSES + "/streetnumber", streetNumber.getId());
                     streetNumber.setStatus(status.toString());
-                    streetNumber.setUrl(url);
+                    streetNumber.setUri(url);
                     streetNumber.setCreated(timeStamp);
                     streetNumber.setSource(source);
                     streetNumber.setPostalCode(postalCode);

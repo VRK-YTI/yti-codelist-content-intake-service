@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface HealthCareDistrictRepository extends CrudRepository<HealthCareDistrict, String> {
 
-    HealthCareDistrict findByCode(final String code);
+    HealthCareDistrict findByCodeValue(final String codeValue);
 
     List<HealthCareDistrict> findAll();
 

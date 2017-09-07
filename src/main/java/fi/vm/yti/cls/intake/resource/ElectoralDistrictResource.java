@@ -78,7 +78,7 @@ public class ElectoralDistrictResource {
         final List<ElectoralDistrict> electoralDistricts = m_electoralDistrictParser.parseElectoralDistrictsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final ElectoralDistrict electoralDistrict : electoralDistricts) {
-            LOG.info("Region parsed from input: " + electoralDistrict.getCode());
+            LOG.info("ElectoralDistrict parsed from input: " + electoralDistrict.getCodeValue());
         }
 
         if (!electoralDistricts.isEmpty()) {
@@ -95,19 +95,19 @@ public class ElectoralDistrictResource {
 
 
     @DELETE
-    @Path("{code}")
+    @Path("{codeValue}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single electoralDistrict. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response retireElectoralDistrict(@ApiParam(value = "ElectoralDistrict code.") @PathParam("code") final String code) {
+    public Response retireElectoralDistrict(@ApiParam(value = "ElectoralDistrict code.") @PathParam("codeValue") final String codeValue) {
 
-        LOG.info("/v1/electoraldistricts/" + code + " DELETE request.");
+        LOG.info("/v1/electoraldistricts/" + codeValue + " DELETE request.");
 
         final Meta meta = new Meta();
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final ElectoralDistrict electoralDistrict = m_electoralDistrictRepository.findByCode(code);
+        final ElectoralDistrict electoralDistrict = m_electoralDistrictRepository.findByCodeValue(codeValue);
 
         if (electoralDistrict != null) {
             electoralDistrict.setStatus(Status.RETIRED.toString());

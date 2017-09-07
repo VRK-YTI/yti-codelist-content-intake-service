@@ -1,43 +1,87 @@
 ---
 
---- Generic register
+--- Generic YTI data model
 
--- Register
+-- CodeRegistry
 
-CREATE TABLE register (
+CREATE TABLE coderegistry (
   id character varying(255) UNIQUE NOT NULL,
+  codevalue character varying(255) NOT NULL,
+  status character varying(255) NULL,
+  uri character varying(2048) NULL,
+  definition character varying(4096) NULL,
+  source character varying(255) NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
+  modified timestamp without time zone NULL,
+  CONSTRAINT coderegistry_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE coderegistry_preflabel (
+  coderegistry_id character varying(255) NOT NULL,
+  language character varying(255) NOT NULL,
+  preflabel character varying(255) NOT NULL,
+  CONSTRAINT fk_coderegistry_preflabel FOREIGN KEY (coderegistry_id) REFERENCES coderegistry (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+
+-- CodeScheme
+
+CREATE TABLE codescheme (
+  id character varying(255) UNIQUE NOT NULL,
+  codevalue character varying(255) NOT NULL,
   status character varying(255) NOT NULL,
   type character varying(255) NOT NULL,
   version character varying(255) NOT NULL,
-  code character varying(255) NOT NULL,
-  url character varying(2048) NULL,
+  uri character varying(2048) NULL,
+  description character varying(4096) NULL,
+  definition character varying(4096) NULL,
+  changenote character varying(4096) NULL,
   source character varying(255) NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
   created timestamp without time zone NOT NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
-  CONSTRAINT register_pkey PRIMARY KEY (id)
+  coderegistry_id character varying(255) NULL,
+  CONSTRAINT codescheme_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_codescheme_coderegistry FOREIGN KEY (coderegistry_id) REFERENCES coderegistry (id) ON DELETE CASCADE
 );
 
--- Single RegisterItem
+CREATE TABLE codescheme_preflabel (
+  codescheme_id character varying(255) NOT NULL,
+  language character varying(255) NOT NULL,
+  preflabel character varying(255) NOT NULL,
+  CONSTRAINT fk_codescheme_preflabel FOREIGN KEY (codescheme_id) REFERENCES codescheme (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+);
 
-CREATE TABLE registeritem (
+
+-- Single Code
+
+CREATE TABLE code (
   id character varying(255) UNIQUE NOT NULL,
+  codevalue character varying(255) NOT NULL,
   status character varying(255) NOT NULL,
-  register character varying(255) NOT NULL,
-  code character varying(255) NOT NULL,
-  url character varying(2048) NULL,
+  uri character varying(2048) NULL,
+  description character varying(4096) NULL,
+  definition character varying(4096) NULL,
   source character varying(255) NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
   created timestamp without time zone NOT NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
-  register_id character varying(255) NULL,
-  CONSTRAINT registeritem_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_registeritem_register FOREIGN KEY (register_id) REFERENCES register(id) ON DELETE CASCADE
+  codescheme_id character varying(255) NULL,
+  CONSTRAINT code_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_code_codescheme FOREIGN KEY (codescheme_id) REFERENCES codescheme (id) ON DELETE CASCADE
 );
+
+CREATE TABLE code_preflabel (
+  code_id character varying(255) NOT NULL,
+  language character varying(255) NOT NULL,
+  preflabel character varying(255) NOT NULL,
+  CONSTRAINT fk_code_preflabel FOREIGN KEY (code_id) REFERENCES code (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
 
 -- Data update handling and bookkeeping
 
@@ -48,26 +92,30 @@ CREATE TABLE updatestatus (
   status character varying(255) NOT NULL,
   version character varying(255) NOT NULL,
   nextVersion character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
   CONSTRAINT updatestatus_pkey PRIMARY KEY (id)
 );
 
---- Custom Registers
+--- Custom legacy "CodeSchemes"
 
 -- HealthCareDistrict
 
 CREATE TABLE healthcaredistrict (
   id character varying(255) UNIQUE NOT NULL,
   status character varying(255) NOT NULL,
-  code character varying(255) UNIQUE NOT NULL,
-  url character varying(2048) NULL,
+  codevalue character varying(255) UNIQUE NOT NULL,
+  uri character varying(2048) NULL,
   source character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
+  preflabel_fi character varying(255) NULL,
+  preflabel_se character varying(255) NULL,
+  preflabel_en character varying(255) NULL,
   specialareaofresponsibility character varying(255) NULL,
   abbreviation character varying(255) NULL,
   CONSTRAINT healthcaredistrict_pkey PRIMARY KEY (id)
@@ -78,14 +126,16 @@ CREATE TABLE healthcaredistrict (
 CREATE TABLE magistrate (
   id character varying(255) UNIQUE NOT NULL,
   status character varying(255) NOT NULL,
-  code character varying(255) UNIQUE NOT NULL,
-  url character varying(2048) NULL,
+  codevalue character varying(255) UNIQUE NOT NULL,
+  uri character varying(2048) NULL,
   source character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
+  preflabel_fi character varying(255) NULL,
+  preflabel_se character varying(255) NULL,
+  preflabel_en character varying(255) NULL,
   CONSTRAINT magistrate_pkey PRIMARY KEY (id)
 );
 
@@ -94,14 +144,16 @@ CREATE TABLE magistrate (
 CREATE TABLE region (
   id character varying(255) UNIQUE NOT NULL,
   status character varying(255) NOT NULL,
-  code character varying(255) UNIQUE NOT NULL,
-  url character varying(2048) NULL,
+  codevalue character varying(255) UNIQUE NOT NULL,
+  uri character varying(2048) NULL,
   source character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
+  preflabel_fi character varying(255) NULL,
+  preflabel_se character varying(255) NULL,
+  preflabel_en character varying(255) NULL,
   CONSTRAINT region_pkey PRIMARY KEY (id)
 );
 
@@ -110,14 +162,16 @@ CREATE TABLE region (
 CREATE TABLE electoraldistrict (
   id character varying(255) UNIQUE NOT NULL,
   status character varying(255) NOT NULL,
-  code character varying(255) UNIQUE NOT NULL,
-  url character varying(2048) NULL,
+  codevalue character varying(255) UNIQUE NOT NULL,
+  uri character varying(2048) NULL,
   source character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
+  preflabel_fi character varying(255) NULL,
+  preflabel_se character varying(255) NULL,
+  preflabel_en character varying(255) NULL,
   CONSTRAINT electoraldistrict_pkey PRIMARY KEY (id)
 );
 
@@ -126,14 +180,16 @@ CREATE TABLE electoraldistrict (
 CREATE TABLE businessservicesubregion (
   id character varying(255) UNIQUE NOT NULL,
   status character varying(255) NOT NULL,
-  code character varying(255) UNIQUE NOT NULL,
-  url character varying(2048) NULL,
+  codevalue character varying(255) UNIQUE NOT NULL,
+  uri character varying(2048) NULL,
   source character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
+  preflabel_fi character varying(255) NULL,
+  preflabel_se character varying(255) NULL,
+  preflabel_en character varying(255) NULL,
   CONSTRAINT businessservicesubregion_pkey PRIMARY KEY (id)
 );
 
@@ -142,14 +198,16 @@ CREATE TABLE businessservicesubregion (
 CREATE TABLE postmanagementdistrict (
   id character varying(255) UNIQUE NOT NULL,
   status character varying(255) NOT NULL,
-  code character varying(255) UNIQUE NOT NULL,
-  url character varying(2048) NULL,
+  codevalue character varying(255) UNIQUE NOT NULL,
+  uri character varying(2048) NULL,
   source character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
+  preflabel_fi character varying(255) NULL,
+  preflabel_se character varying(255) NULL,
+  preflabel_en character varying(255) NULL,
   CONSTRAINT postmanagementdistrict_pkey PRIMARY KEY (id)
 );
 
@@ -158,14 +216,16 @@ CREATE TABLE postmanagementdistrict (
 CREATE TABLE magistrateserviceunit (
   id character varying(255) UNIQUE NOT NULL,
   status character varying(255) NOT NULL,
-  code character varying(255) UNIQUE NOT NULL,
-  url character varying(2048) NULL,
+  codevalue character varying(255) UNIQUE NOT NULL,
+  uri character varying(2048) NULL,
   source character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
+  preflabel_fi character varying(255) NULL,
+  preflabel_se character varying(255) NULL,
+  preflabel_en character varying(255) NULL,
   CONSTRAINT magistrateserviceunit_pkey PRIMARY KEY (id)
 );
 
@@ -174,14 +234,16 @@ CREATE TABLE magistrateserviceunit (
 CREATE TABLE municipality (
   id character varying(255) UNIQUE NOT NULL,
   status character varying(255) NOT NULL,
-  code character varying(255) UNIQUE NOT NULL,
-  url character varying(2048) NULL,
+  codevalue character varying(255) UNIQUE NOT NULL,
+  uri character varying(2048) NULL,
   source character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
+  preflabel_fi character varying(255) NULL,
+  preflabel_se character varying(255) NULL,
+  preflabel_en character varying(255) NULL,
   language character varying(255) NULL,
   type character varying(255) NULL,
   region_id character varying(255) NULL,
@@ -209,14 +271,16 @@ CREATE TABLE municipality_language (
 CREATE TABLE postalcode (
   id character varying(255) UNIQUE NOT NULL,
   status character varying(255) NOT NULL,
-  code character varying(255) UNIQUE NOT NULL,
-  url character varying(255) NULL,
+  codevalue character varying(255) UNIQUE NOT NULL,
+  uri character varying(255) NULL,
   source character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
+  preflabel_fi character varying(255) NULL,
+  preflabel_se character varying(255) NULL,
+  preflabel_en character varying(255) NULL,
   nameabbr_fi character varying(255) NULL,
   nameabbr_se character varying(255) NULL,
   nameabbr_en character varying(255) NULL,
@@ -234,13 +298,15 @@ CREATE TABLE postalcode (
 CREATE TABLE streetaddress (
   id character varying(255) UNIQUE NOT NULL,
   status character varying(255) NOT NULL,
-  url character varying(2048) NULL,
+  uri character varying(2048) NULL,
   source character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
+  preflabel_fi character varying(255) NULL,
+  preflabel_se character varying(255) NULL,
+  preflabel_en character varying(255) NULL,
   municipality_id character varying(255) NULL,
   CONSTRAINT streetaddress_pkey PRIMARY KEY (id),
   CONSTRAINT fk_streetaddress_municipality FOREIGN KEY (municipality_id) REFERENCES municipality(id) ON DELETE CASCADE
@@ -249,9 +315,11 @@ CREATE TABLE streetaddress (
 CREATE TABLE streetnumber (
   id character varying(255) UNIQUE NOT NULL,
   status character varying(255) NOT NULL,
-  url character varying(2048) NULL,
+  uri character varying(2048) NULL,
   source character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
   iseven boolean NULL,
   streetaddress_id character varying(255) NULL,
@@ -274,15 +342,17 @@ CREATE TABLE streetnumber (
 CREATE TABLE businessid (
   id character varying(255) UNIQUE NOT NULL,
   status character varying(255) NOT NULL,
-  code character varying(255) UNIQUE NOT NULL,
-  url character varying(2048) NULL,
-  detailsurl character varying(2048) NULL,
+  codevalue character varying(255) UNIQUE NOT NULL,
+  uri character varying(2048) NULL,
+  detailsuri character varying(2048) NULL,
   source character varying(255) NULL,
-  created timestamp without time zone NOT NULL,
+  startdate timestamp without time zone NULL,
+  enddate timestamp without time zone NULL,
+  created timestamp without time zone NULL,
   modified timestamp without time zone NULL,
-  name_fi character varying(255) NULL,
-  name_se character varying(255) NULL,
-  name_en character varying(255) NULL,
+  preflabel_fi character varying(255) NULL,
+  preflabel_se character varying(255) NULL,
+  preflabel_en character varying(255) NULL,
   companyform character varying(255) NULL,
   CONSTRAINT businessid_pkey PRIMARY KEY (id)
 );

@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface BusinessServiceSubRegionRepository extends CrudRepository<BusinessServiceSubRegion, String> {
 
-    BusinessServiceSubRegion findByCode(final String code);
+    BusinessServiceSubRegion findByCodeValue(final String codeValue);
 
     List<BusinessServiceSubRegion> findAll();
 

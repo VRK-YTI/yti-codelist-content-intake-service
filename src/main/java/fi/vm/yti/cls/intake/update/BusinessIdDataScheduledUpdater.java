@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 
-import static fi.vm.yti.cls.intake.domain.DomainConstants.ELASTIC_INDEX_CODES;
+import static fi.vm.yti.cls.intake.domain.DomainConstants.ELASTIC_INDEX_CUSTOMCODES;
 import static fi.vm.yti.cls.intake.domain.DomainConstants.ELASTIC_TYPE_BUSINESSID;
 
 
@@ -50,8 +50,8 @@ public class BusinessIdDataScheduledUpdater implements DataUpdate {
         final boolean reIndex = m_ytjDataAccess.checkForNewData();
 
         if (reIndex) {
-            m_domain.deleteTypeFromIndex(ELASTIC_INDEX_CODES, ELASTIC_TYPE_BUSINESSID);
-            m_domain.ensureNestedNamesMapping(ELASTIC_INDEX_CODES, ELASTIC_TYPE_BUSINESSID);
+            m_domain.deleteTypeFromIndex(ELASTIC_INDEX_CUSTOMCODES, ELASTIC_TYPE_BUSINESSID);
+            m_domain.ensureNestedPrefLabelsMapping(ELASTIC_INDEX_CUSTOMCODES, ELASTIC_TYPE_BUSINESSID);
             m_domain.indexBusinessIds();
         }
 

@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface PostalCodeRepository extends CrudRepository<PostalCode, String> {
 
-    PostalCode findByCode(final String code);
+    PostalCode findByCodeValue(final String codeValue);
 
     List<PostalCode> findAll();
 

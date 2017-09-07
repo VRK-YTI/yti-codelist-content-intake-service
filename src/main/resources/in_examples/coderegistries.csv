@@ -1,0 +1,5 @@
+CODEVALUE,VERSION,STATUS,PREFLABEL_FI,PREFLABEL_SE,PREFLABEL_EN
+testregistry1,v1,VALID,Testirekisteri 1,TestCodeScheme 1,TestCodeScheme 1
+testregistry2,v1,VALID,Testirekisteri 2,TestCodeScheme 2,TestCodeScheme 2
+testregistry3,v1,VALID,Testirekisteri 3,TestCodeScheme 3,TestCodeScheme 3
+testregistry4,v1,VALID,Testirekisteri 4,TestCodeScheme 4,TestCodeScheme 4

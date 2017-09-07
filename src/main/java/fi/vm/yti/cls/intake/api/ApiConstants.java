@@ -8,7 +8,7 @@ public class ApiConstants {
 
     public static final String API_BASE_PATH = "/api";
 
-    public static final String API_CONTEXT_PATH = "/cls-api";
+    public static final String API_CONTEXT_PATH = "/";
 
     public static final String API_PATH_HEALTHCAREDISTRICTS = "/healthcaredistricts";
 
@@ -32,6 +32,6 @@ public class ApiConstants {
 
     public static final String API_PATH_BUSINESSIDS = "/businessids";
 
-    public static final String API_PATH_REGISTERS = "/registers";
+    public static final String API_PATH_CODEREGISTRIES = "/coderegistries";
 
 }

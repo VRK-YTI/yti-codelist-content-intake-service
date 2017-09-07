@@ -75,10 +75,10 @@ public class MagistrateParser {
 
             records.forEach(record -> {
 
-                final String code = Utils.ensureMagistrateIdPadding(record.get("CODE"));
-                final String finnishName = record.get("NAME_FI");
-                final String swedishName = record.get("NAME_SE");
-                final String englishName = record.get("NAME_EN");
+                final String code = Utils.ensureMagistrateIdPadding(record.get("CODEVALUE"));
+                final String finnishName = record.get("PREFLABEL_FI");
+                final String swedishName = record.get("PREFLABEL_SE");
+                final String englishName = record.get("PREFLABEL_EN");
                 final Status status = Status.valueOf(record.get("STATUS"));
 
                 final Magistrate magistrate = createOrUpdateMagistrate(code, status, source, finnishName, swedishName, englishName);
@@ -140,16 +140,16 @@ public class MagistrateParser {
     }
 
 
-    private Magistrate createOrUpdateMagistrate(final String code,
+    private Magistrate createOrUpdateMagistrate(final String codeValue,
                                                 final Status status,
                                                 final String source,
                                                 final String finnishName,
                                                 final String swedishName,
                                                 final String englishName) {
 
-        Magistrate magistrate = m_magistrateRepository.findByCode(code);
+        Magistrate magistrate = m_magistrateRepository.findByCodeValue(codeValue);
 
-        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_MAGISTRATES, code);
+        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_MAGISTRATES, codeValue);
         final Date timeStamp = new Date(System.currentTimeMillis());
 
         // Update
@@ -159,24 +159,24 @@ public class MagistrateParser {
                 magistrate.setStatus(status.toString());
                 hasChanges = true;
             }
-            if (!Objects.equals(magistrate.getUrl(), url)) {
-                magistrate.setUrl(url);
+            if (!Objects.equals(magistrate.getUri(), url)) {
+                magistrate.setUri(url);
                 hasChanges = true;
             }
             if (!Objects.equals(magistrate.getSource(), source)) {
                 magistrate.setSource(source);
                 hasChanges = true;
             }
-            if (!Objects.equals(magistrate.getNameFinnish(), finnishName)) {
-                magistrate.setNameFinnish(finnishName);
+            if (!Objects.equals(magistrate.getPrefLabelFi(), finnishName)) {
+                magistrate.setPrefLabelFi(finnishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(magistrate.getNameSwedish(), swedishName)) {
-                magistrate.setNameSwedish(swedishName);
+            if (!Objects.equals(magistrate.getPrefLabelSe(), swedishName)) {
+                magistrate.setPrefLabelSe(swedishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(magistrate.getNameEnglish(), englishName)) {
-                magistrate.setNameEnglish(englishName);
+            if (!Objects.equals(magistrate.getPrefLabelEn(), englishName)) {
+                magistrate.setPrefLabelEn(englishName);
                 hasChanges = true;
             }
             if (hasChanges) {
@@ -187,14 +187,14 @@ public class MagistrateParser {
         } else {
             magistrate = new Magistrate();
             magistrate.setId(UUID.randomUUID().toString());
-            magistrate.setUrl(url);
+            magistrate.setUri(url);
             magistrate.setStatus(status.toString());
             magistrate.setSource(source);
             magistrate.setCreated(timeStamp);
-            magistrate.setCode(code);
-            magistrate.setNameFinnish(finnishName);
-            magistrate.setNameSwedish(swedishName);
-            magistrate.setNameEnglish(englishName);
+            magistrate.setCodeValue(codeValue);
+            magistrate.setPrefLabelFi(finnishName);
+            magistrate.setPrefLabelSe(swedishName);
+            magistrate.setPrefLabelEn(englishName);
         }
 
         return magistrate;

@@ -62,10 +62,10 @@ public class BusinessIdParser {
                     for (final JsonNode resultNode : resultsArray) {
                         final String code = resultNode.path("businessId").asText();
                         final String companyFrom = resultNode.path("companyForm").asText();
-                        final String detailsUrl = resultNode.get("detailsUri").asText();
+                        final String detailsUri = resultNode.get("detailsUri").asText();
                         final String name = resultNode.get("name").asText();
 
-                        final BusinessId businessId = createOrUpdateBusinessId(code, source, Status.VALID, name, companyFrom, detailsUrl);
+                        final BusinessId businessId = createOrUpdateBusinessId(code, source, Status.VALID, name, companyFrom, detailsUri);
 
                         list.add(businessId);
                     }
@@ -80,17 +80,17 @@ public class BusinessIdParser {
 
     }
 
-    public BusinessId createOrUpdateBusinessId(final String code,
+    public BusinessId createOrUpdateBusinessId(final String codeValue,
                                                final String source,
                                                final Status status,
                                                final String name,
                                                final String companyFrom,
-                                               final String detailsUrl) {
+                                               final String detailsUri) {
 
         final Date timeStamp = new Date(System.currentTimeMillis());
-        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_BUSINESSIDS, code);
+        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_BUSINESSIDS, codeValue);
 
-        BusinessId businessId = m_businessIdRepository.findByCode(code);
+        BusinessId businessId = m_businessIdRepository.findByCodeValue(codeValue);
 
         // Update
         if (businessId != null) {
@@ -99,16 +99,16 @@ public class BusinessIdParser {
                 businessId.setStatus(status.toString());
                 hasChanges = true;
             }
-            if (!Objects.equals(businessId.getDetailsUrl(), detailsUrl)) {
-                businessId.setDetailsUrl(detailsUrl);
+            if (!Objects.equals(businessId.getDetailsUri(), detailsUri)) {
+                businessId.setDetailsUri(detailsUri);
                 hasChanges = true;
             }
-            if (!Objects.equals(businessId.getUrl(), url)) {
-                businessId.setUrl(url);
+            if (!Objects.equals(businessId.getUri(), url)) {
+                businessId.setUri(url);
                 hasChanges = true;
             }
-            if (!Objects.equals(businessId.getNameFinnish(), name)) {
-                businessId.setNameFinnish(name);
+            if (!Objects.equals(businessId.getPrefLabelFi(), name)) {
+                businessId.setPrefLabelFi(name);
                 hasChanges = true;
             }
             if (!Objects.equals(businessId.getCompanyForm(), companyFrom)) {
@@ -127,14 +127,14 @@ public class BusinessIdParser {
         } else {
             businessId = new BusinessId();
             businessId.setId(UUID.randomUUID().toString());
-            businessId.setCode(code);
+            businessId.setCodeValue(codeValue);
             businessId.setStatus(status.toString());
             businessId.setSource(source);
             businessId.setCreated(timeStamp);
-            businessId.setNameFinnish(name);
+            businessId.setPrefLabelFi(name);
             businessId.setCompanyForm(companyFrom);
-            businessId.setUrl(url);
-            businessId.setDetailsUrl(detailsUrl);
+            businessId.setUri(url);
+            businessId.setDetailsUri(detailsUri);
         }
 
         return businessId;

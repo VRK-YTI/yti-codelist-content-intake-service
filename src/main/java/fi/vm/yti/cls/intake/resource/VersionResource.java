@@ -12,8 +12,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import static fi.vm.yti.cls.intake.ContentIntakeServiceApplication.APP_VERSION;
-
 
 @Component
 @Path("/version")

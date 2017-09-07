@@ -2,6 +2,7 @@ package fi.vm.yti.cls.intake.domain;
 
 import fi.vm.yti.cls.common.model.BusinessId;
 import fi.vm.yti.cls.common.model.BusinessServiceSubRegion;
+import fi.vm.yti.cls.common.model.CodeRegistry;
 import fi.vm.yti.cls.common.model.ElectoralDistrict;
 import fi.vm.yti.cls.common.model.HealthCareDistrict;
 import fi.vm.yti.cls.common.model.Magistrate;
@@ -10,8 +11,8 @@ import fi.vm.yti.cls.common.model.Municipality;
 import fi.vm.yti.cls.common.model.PostManagementDistrict;
 import fi.vm.yti.cls.common.model.PostalCode;
 import fi.vm.yti.cls.common.model.Region;
-import fi.vm.yti.cls.common.model.Register;
-import fi.vm.yti.cls.common.model.RegisterItem;
+import fi.vm.yti.cls.common.model.CodeScheme;
+import fi.vm.yti.cls.common.model.Code;
 import fi.vm.yti.cls.common.model.StreetAddress;
 import fi.vm.yti.cls.common.model.StreetNumber;
 
@@ -23,9 +24,11 @@ public interface Domain {
      * Methods for persisting data to PostgreSQL.
      */
 
-    void persistRegisters(final List<Register> registers);
+    void persistCodeRegistries(final List<CodeRegistry> codeRegistries);
 
-    void persistRegisterItems(final List<RegisterItem> registerItems);
+    void persistCodeSchemes(final List<CodeScheme> codeSchemes);
+
+    void persistCodes(final List<Code> codes);
 
     void persistMunicipalities(final List<Municipality> municipalities);
 
@@ -62,7 +65,7 @@ public interface Domain {
 
     void deleteTypeFromIndex(final String indexName, final String type);
 
-    void ensureNestedNamesMapping(final String indexName, final String indexType);
+    void ensureNestedPrefLabelsMapping(final String indexName, final String indexType);
 
     void refreshIndex(final String indexName);
 
@@ -88,12 +91,16 @@ public interface Domain {
 
     void indexBusinessIds();
 
-    void indexRegisters();
+    void indexCodeSchemes();
 
-    void reIndexRegisters();
+    void reIndexCodeRegistries();
 
-    void reIndexRegisterItems(final String register);
+    void reIndexCodeSchemes();
+
+    void reIndexCodes(final String codeRegistryCodeValue, final String codeSchemeCodeValue);
 
     void reIndexEverything();
+
+    void reIndexYti();
 
 }

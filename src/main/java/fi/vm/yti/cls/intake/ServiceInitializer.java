@@ -11,6 +11,7 @@ import fi.vm.yti.cls.intake.configuration.PublicApiServiceProperties;
 import fi.vm.yti.cls.intake.configuration.VersionInformation;
 import fi.vm.yti.cls.intake.data.GenericDataAccess;
 import fi.vm.yti.cls.intake.data.PostiDataAccess;
+import fi.vm.yti.cls.intake.data.YtiDataAccess;
 import fi.vm.yti.cls.intake.data.YtjDataAccess;
 import fi.vm.yti.cls.intake.domain.Domain;
 import fi.vm.yti.cls.intake.util.FileUtils;
@@ -47,6 +48,8 @@ public class ServiceInitializer {
 
     private final PostiDataAccess m_postiDataAccess;
 
+    private final YtiDataAccess m_ytiDataAccess;
+
     private final Domain m_domain;
 
     private final ApiUtils m_apiUtils;
@@ -63,6 +66,7 @@ public class ServiceInitializer {
                               final GenericDataAccess genericDataAccess,
                               final YtjDataAccess ytjDataAccess,
                               final PostiDataAccess postiDataAccess,
+                              final YtiDataAccess ytiDataAccess,
                               final PublicApiServiceProperties publicApiServiceProperties) {
 
         m_versionInformation = versionInformation;
@@ -77,6 +81,8 @@ public class ServiceInitializer {
 
         m_postiDataAccess = postiDataAccess;
 
+        m_ytiDataAccess = ytiDataAccess;
+
         m_publicApiServiceProperties = publicApiServiceProperties;
 
     }
@@ -85,7 +91,8 @@ public class ServiceInitializer {
     /**
      * Initialize the application, load data for services.
      */
-    public void initialize(final boolean indexOnly) {
+    public void initialize(final boolean ytiOnly,
+                           final boolean indexOnly) {
 
         updateSwaggerHost();
 
@@ -93,29 +100,45 @@ public class ServiceInitializer {
 
         final Stopwatch watch = Stopwatch.createStarted();
 
-        if (!indexOnly) {
+        if (ytiOnly) {
 
-            // PostgreSQL persistance
-
-            m_ytjDataAccess.initializeOrRefresh();
-
-            m_genericDataAccess.initializeOrRefresh();
-
-            m_postiDataAccess.initializeOrRefresh();
+            m_ytiDataAccess.initializeOrRefresh();
 
             LOG.info("*** Database population took: " + watch + ". ***");
 
+            final Stopwatch indexWatch = Stopwatch.createStarted();
+
+            m_domain.reIndexYti();
+
+            LOG.info("*** Elastic indexing took: " + indexWatch + ". ***");
+
         } else {
-            LOG.info("*** Only indexing selected, not populating database. ***");
+            if (!indexOnly) {
+
+                // PostgreSQL persistance
+
+                m_ytjDataAccess.initializeOrRefresh();
+
+                m_genericDataAccess.initializeOrRefresh();
+
+                m_ytiDataAccess.initializeOrRefresh();
+
+                m_postiDataAccess.initializeOrRefresh();
+
+                LOG.info("*** Database population took: " + watch + ". ***");
+
+            } else {
+                LOG.info("*** Only indexing selected, not populating database. ***");
+            }
+            final Stopwatch indexWatch = Stopwatch.createStarted();
+
+            // ElasticSearch indexing
+
+            m_domain.reIndexEverything();
+
+            LOG.info("*** Elastic indexing took: " + indexWatch + ". ***");
+
         }
-
-        final Stopwatch indexWatch = Stopwatch.createStarted();
-
-        // ElasticSearch indexing
-
-        m_domain.reIndexEverything();
-
-        LOG.info("*** Elastic indexing took: " + indexWatch + ". ***");
 
         // Timing of initialization.
 

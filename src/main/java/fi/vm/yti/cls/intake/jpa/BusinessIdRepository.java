@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface BusinessIdRepository extends CrudRepository<BusinessId, String> {
 
-    BusinessId findByCode(final String code);
+    BusinessId findByCodeValue(final String codeValue);
 
     List<BusinessId> findAll();
 

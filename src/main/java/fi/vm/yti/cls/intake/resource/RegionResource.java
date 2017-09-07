@@ -78,7 +78,7 @@ public class RegionResource {
         final List<Region> regions = m_regionParser.parseRegionsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final Region region : regions) {
-            LOG.info("Region parsed from input: " + region.getCode());
+            LOG.info("Region parsed from input: " + region.getCodeValue());
         }
 
         if (!regions.isEmpty()) {
@@ -95,19 +95,19 @@ public class RegionResource {
 
 
     @DELETE
-    @Path("{code}")
+    @Path("{codeValue}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single region. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response retireRegion(@ApiParam(value = "Region code.") @PathParam("code") final String code) {
+    public Response retireRegion(@ApiParam(value = "Region code.") @PathParam("code") final String codeValue) {
 
-        LOG.info("/v1/regions/" + code + " DELETE request.");
+        LOG.info("/v1/regions/" + codeValue + " DELETE request.");
 
         final Meta meta = new Meta();
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final Region region = m_regionRepository.findByCode(code);
+        final Region region = m_regionRepository.findByCodeValue(codeValue);
 
         if (region != null) {
             region.setStatus(Status.RETIRED.toString());

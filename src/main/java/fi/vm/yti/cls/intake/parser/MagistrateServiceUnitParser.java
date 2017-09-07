@@ -79,15 +79,15 @@ public class MagistrateServiceUnitParser {
 
             records.forEach(record -> {
 
-                final String code = Utils.ensureMagistrateServiceUnitIdPadding(record.get("CODE"));
+                final String code = Utils.ensureMagistrateServiceUnitIdPadding(record.get("CODEVALUE"));
 
                 MagistrateServiceUnit magistrateServiceUnit = null;
 
                 if (!magistrateServiceUnitMap.containsKey(code)) {
 
-                    final String finnishName = record.get("NAME_FI");
-                    final String swedishName = record.get("NAME_SE");
-                    final String englishName = record.get("NAME_EN");
+                    final String finnishName = record.get("PREFLABEL_FI");
+                    final String swedishName = record.get("PREFLABEL_SE");
+                    final String englishName = record.get("PREFLABEL_EN");
                     final Status status = Status.valueOf(record.get("STATUS"));
 
                     magistrateServiceUnit = createOrUpdateMagistrateServiceUnit(existingMagistrateServiceUnitsMap, code, status, source, finnishName, swedishName, englishName);
@@ -107,7 +107,7 @@ public class MagistrateServiceUnitParser {
                     if (municipalities != null) {
                         boolean skip = false;
                         for (final Municipality munic : municipalities) {
-                            if (municipality.getCode().equalsIgnoreCase(munic.getCode())) {
+                            if (municipality.getCodeValue().equalsIgnoreCase(munic.getCodeValue())) {
                                 skip = true;
                             }
                         }
@@ -195,7 +195,7 @@ public class MagistrateServiceUnitParser {
                         if (municipalities != null) {
                             boolean skip = false;
                             for (final Municipality munic : municipalities) {
-                                if (municipality.getCode().equalsIgnoreCase(munic.getCode())) {
+                                if (municipality.getCodeValue().equalsIgnoreCase(munic.getCodeValue())) {
                                     skip = true;
                                 }
                             }
@@ -244,41 +244,41 @@ public class MagistrateServiceUnitParser {
                 magistrateServiceUnit.setStatus(status.toString());
                 hasChanges = true;
             }
-            if (!Objects.equals(magistrateServiceUnit.getUrl(), url)) {
-                magistrateServiceUnit.setUrl(url);
+            if (!Objects.equals(magistrateServiceUnit.getUri(), url)) {
+                magistrateServiceUnit.setUri(url);
                 hasChanges = true;
             }
             if (!Objects.equals(magistrateServiceUnit.getSource(), source)) {
                 magistrateServiceUnit.setSource(source);
                 hasChanges = true;
             }
-            if (!Objects.equals(magistrateServiceUnit.getNameFinnish(), finnishName)) {
-                magistrateServiceUnit.setNameFinnish(finnishName);
+            if (!Objects.equals(magistrateServiceUnit.getPrefLabelFi(), finnishName)) {
+                magistrateServiceUnit.setPrefLabelFi(finnishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(magistrateServiceUnit.getNameSwedish(), swedishName)) {
-                magistrateServiceUnit.setNameSwedish(swedishName);
+            if (!Objects.equals(magistrateServiceUnit.getPrefLabelSe(), swedishName)) {
+                magistrateServiceUnit.setPrefLabelSe(swedishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(magistrateServiceUnit.getNameEnglish(), englishName)) {
-                magistrateServiceUnit.setNameEnglish(englishName);
+            if (!Objects.equals(magistrateServiceUnit.getPrefLabelEn(), englishName)) {
+                magistrateServiceUnit.setPrefLabelEn(englishName);
                 hasChanges = true;
             }
             if (hasChanges) {
                 magistrateServiceUnit.setModified(timeStamp);
             }
-            // Create
+        // Create
         } else {
             magistrateServiceUnit = new MagistrateServiceUnit();
             magistrateServiceUnit.setId(UUID.randomUUID().toString());
             magistrateServiceUnit.setStatus(status.toString());
-            magistrateServiceUnit.setUrl(url);
+            magistrateServiceUnit.setUri(url);
             magistrateServiceUnit.setSource(source);
             magistrateServiceUnit.setCreated(timeStamp);
-            magistrateServiceUnit.setCode(code);
-            magistrateServiceUnit.setNameFinnish(finnishName);
-            magistrateServiceUnit.setNameSwedish(swedishName);
-            magistrateServiceUnit.setNameEnglish(englishName);
+            magistrateServiceUnit.setCodeValue(code);
+            magistrateServiceUnit.setPrefLabelFi(finnishName);
+            magistrateServiceUnit.setPrefLabelSe(swedishName);
+            magistrateServiceUnit.setPrefLabelEn(englishName);
         }
 
         return magistrateServiceUnit;

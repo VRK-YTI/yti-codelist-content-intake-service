@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface MunicipalityRepository extends CrudRepository<Municipality, String> {
 
-    Municipality findByCode(final String code);
+    Municipality findByCodeValue(final String codeValue);
 
     List<Municipality> findAll();
 

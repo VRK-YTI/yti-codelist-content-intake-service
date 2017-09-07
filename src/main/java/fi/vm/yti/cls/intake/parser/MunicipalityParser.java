@@ -103,10 +103,10 @@ public class MunicipalityParser {
             final List<CSVRecord> records = csvParser.getRecords();
 
             records.forEach(record -> {
-                final String code = Utils.ensureMunicipalityIdPadding(record.get("CODE"));
-                final String finnishName = record.get("NAME_FI");
-                final String swedishName = record.get("NAME_SE");
-                final String englishName = record.get("NAME_EN");
+                final String code = Utils.ensureMunicipalityIdPadding(record.get("CODEVALUE"));
+                final String finnishName = record.get("PREFLABEL_FI");
+                final String swedishName = record.get("PREFLABEL_SE");
+                final String englishName = record.get("PREFLABEL_EN");
                 final Status status = Status.valueOf(record.get("STATUS"));
                 final String type = resolveType(record.get("TYPE"));
                 final Set<String> languages = new HashSet<>(Arrays.asList(record.get("LANGUAGES").toLowerCase().split("-")));
@@ -253,24 +253,24 @@ public class MunicipalityParser {
                 municipality.setStatus(status.toString());
                 hasChanges = true;
             }
-            if (!Objects.equals(municipality.getUrl(), url)) {
-                municipality.setUrl(url);
+            if (!Objects.equals(municipality.getUri(), url)) {
+                municipality.setUri(url);
                 hasChanges = true;
             }
             if (!Objects.equals(municipality.getSource(), source)) {
                 municipality.setSource(source);
                 hasChanges = true;
             }
-            if (!Objects.equals(municipality.getNameFinnish(), finnishName)) {
-                municipality.setNameFinnish(finnishName);
+            if (!Objects.equals(municipality.getPrefLabelFi(), finnishName)) {
+                municipality.setPrefLabelFi(finnishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(municipality.getNameSwedish(), swedishName)) {
-                municipality.setNameSwedish(swedishName);
+            if (!Objects.equals(municipality.getPrefLabelSe(), swedishName)) {
+                municipality.setPrefLabelSe(swedishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(municipality.getNameEnglish(), englishName)) {
-                municipality.setNameEnglish(englishName);
+            if (!Objects.equals(municipality.getPrefLabelEn(), englishName)) {
+                municipality.setPrefLabelEn(englishName);
                 hasChanges = true;
             }
             if (!Objects.equals(municipality.getType(), type)) {
@@ -281,27 +281,27 @@ public class MunicipalityParser {
                 municipality.setLanguages(languages);
                 hasChanges = true;
             }
-            if (existingRegionsMap != null && !Objects.equals(municipality.getRegion() != null ? municipality.getRegion().getCode() : null, region != null ? region.getCode() : null)) {
+            if (existingRegionsMap != null && !Objects.equals(municipality.getRegion() != null ? municipality.getRegion().getCodeValue() : null, region != null ? region.getCodeValue() : null)) {
                 municipality.setRegion(region);
                 hasChanges = true;
             }
-            if (existingMagistratesMap != null && !Objects.equals(municipality.getMagistrate() != null ? municipality.getMagistrate().getCode() : null, magistrate != null ? magistrate.getCode() : null)) {
+            if (existingMagistratesMap != null && !Objects.equals(municipality.getMagistrate() != null ? municipality.getMagistrate().getCodeValue() : null, magistrate != null ? magistrate.getCodeValue() : null)) {
                 municipality.setMagistrate(magistrate);
                 hasChanges = true;
             }
-            if (existingMagistrateServiceUnitsMap != null && !Objects.equals(municipality.getMagistrateServiceUnit() != null ? municipality.getMagistrateServiceUnit().getCode() : null, magistrateServiceUnit != null ? magistrateServiceUnit.getCode() : null)) {
+            if (existingMagistrateServiceUnitsMap != null && !Objects.equals(municipality.getMagistrateServiceUnit() != null ? municipality.getMagistrateServiceUnit().getCodeValue() : null, magistrateServiceUnit != null ? magistrateServiceUnit.getCodeValue() : null)) {
                 municipality.setMagistrateServiceUnit(magistrateServiceUnit);
                 hasChanges = true;
             }
-            if (existingHealthCareDistrictsMap != null && !Objects.equals(municipality.getHealthCareDistrict() != null ? municipality.getHealthCareDistrict().getCode() : null, healthCareDistrict != null ? healthCareDistrict.getCode() : null)) {
+            if (existingHealthCareDistrictsMap != null && !Objects.equals(municipality.getHealthCareDistrict() != null ? municipality.getHealthCareDistrict().getCodeValue() : null, healthCareDistrict != null ? healthCareDistrict.getCodeValue() : null)) {
                 municipality.setHealthCareDistrict(healthCareDistrict);
                 hasChanges = true;
             }
-            if (existingElectoralDistrictsMap != null && !Objects.equals(municipality.getElectoralDistrict() != null ? municipality.getElectoralDistrict().getCode() : null, electoralDistrict != null ? electoralDistrict.getCode() : null)) {
+            if (existingElectoralDistrictsMap != null && !Objects.equals(municipality.getElectoralDistrict() != null ? municipality.getElectoralDistrict().getCodeValue() : null, electoralDistrict != null ? electoralDistrict.getCodeValue() : null)) {
                 municipality.setElectoralDistrict(electoralDistrict);
                 hasChanges = true;
             }
-            if (existingBusinessServiceSubRegionsMap != null && !Objects.equals(municipality.getBusinessServiceSubRegion() != null ? municipality.getBusinessServiceSubRegion().getCode() : null, businessServiceSubRegion != null ? businessServiceSubRegion.getCode() : null)) {
+            if (existingBusinessServiceSubRegionsMap != null && !Objects.equals(municipality.getBusinessServiceSubRegion() != null ? municipality.getBusinessServiceSubRegion().getCodeValue() : null, businessServiceSubRegion != null ? businessServiceSubRegion.getCodeValue() : null)) {
                 municipality.setBusinessServiceSubRegion(businessServiceSubRegion);
                 hasChanges = true;
             }
@@ -314,13 +314,13 @@ public class MunicipalityParser {
             municipality = new Municipality();
             municipality.setId(UUID.randomUUID().toString());
             municipality.setStatus(status.toString());
-            municipality.setUrl(url);
+            municipality.setUri(url);
             municipality.setSource(source);
             municipality.setCreated(timeStamp);
-            municipality.setCode(code);
-            municipality.setNameFinnish(finnishName);
-            municipality.setNameSwedish(swedishName);
-            municipality.setNameEnglish(englishName);
+            municipality.setCodeValue(code);
+            municipality.setPrefLabelFi(finnishName);
+            municipality.setPrefLabelSe(swedishName);
+            municipality.setPrefLabelEn(englishName);
             municipality.setType(type);
             municipality.setLanguages(languages);
             if (existingRegionsMap != null) {

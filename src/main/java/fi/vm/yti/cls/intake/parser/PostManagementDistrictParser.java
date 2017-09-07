@@ -83,12 +83,12 @@ public class PostManagementDistrictParser {
 
             records.forEach(record -> {
 
-                final String code = Utils.ensurePostManagementDistrictIdPadding(record.get("CODE"));
+                final String code = Utils.ensurePostManagementDistrictIdPadding(record.get("CODEVALUE"));
 
                 if (!postManagementDistrictMap.containsKey(code)) {
-                    final String finnishName = record.get("NAME_FI");
-                    final String swedishName = record.get("NAME_SE");
-                    final String englishName = record.get("NAME_EN");
+                    final String finnishName = record.get("PREFLABEL_FI");
+                    final String swedishName = record.get("PREFLABEL_SE");
+                    final String englishName = record.get("PREFLABEL_EN");
                     final Status status = Status.valueOf(record.get("STATUS"));
 
                     final PostManagementDistrict postManagementDistrict = createOrUpdatePostManagementDistrict(existingPostManagementDistrictsMap, code, status, source, finnishName, swedishName, englishName);
@@ -174,24 +174,24 @@ public class PostManagementDistrictParser {
                 postManagementDistrict.setStatus(status.toString());
                 hasChanges = true;
             }
-            if (!Objects.equals(postManagementDistrict.getUrl(), url)) {
-                postManagementDistrict.setUrl(url);
+            if (!Objects.equals(postManagementDistrict.getUri(), url)) {
+                postManagementDistrict.setUri(url);
                 hasChanges = true;
             }
             if (!Objects.equals(postManagementDistrict.getSource(), source)) {
                 postManagementDistrict.setSource(source);
                 hasChanges = true;
             }
-            if (!Objects.equals(postManagementDistrict.getNameFinnish(), finnishName)) {
-                postManagementDistrict.setNameFinnish(finnishName);
+            if (!Objects.equals(postManagementDistrict.getPrefLabelFi(), finnishName)) {
+                postManagementDistrict.setPrefLabelFi(finnishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(postManagementDistrict.getNameSwedish(), swedishName)) {
-                postManagementDistrict.setNameSwedish(swedishName);
+            if (!Objects.equals(postManagementDistrict.getPrefLabelSe(), swedishName)) {
+                postManagementDistrict.setPrefLabelSe(swedishName);
                 hasChanges = true;
             }
-            if (!Objects.equals(postManagementDistrict.getNameEnglish(), englishName)) {
-                postManagementDistrict.setNameEnglish(englishName);
+            if (!Objects.equals(postManagementDistrict.getPrefLabelEn(), englishName)) {
+                postManagementDistrict.setPrefLabelEn(englishName);
                 hasChanges = true;
             }
             if (hasChanges) {
@@ -203,13 +203,13 @@ public class PostManagementDistrictParser {
             postManagementDistrict = new PostManagementDistrict();
             postManagementDistrict.setId(UUID.randomUUID().toString());
             postManagementDistrict.setStatus(status.toString());
-            postManagementDistrict.setUrl(url);
+            postManagementDistrict.setUri(url);
             postManagementDistrict.setSource(source);
             postManagementDistrict.setCreated(timeStamp);
-            postManagementDistrict.setCode(code);
-            postManagementDistrict.setNameFinnish(finnishName);
-            postManagementDistrict.setNameSwedish(swedishName);
-            postManagementDistrict.setNameEnglish(englishName);
+            postManagementDistrict.setCodeValue(code);
+            postManagementDistrict.setPrefLabelFi(finnishName);
+            postManagementDistrict.setPrefLabelSe(swedishName);
+            postManagementDistrict.setPrefLabelEn(englishName);
         }
 
         return postManagementDistrict;
