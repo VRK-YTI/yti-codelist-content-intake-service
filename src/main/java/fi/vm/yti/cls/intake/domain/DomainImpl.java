@@ -755,8 +755,8 @@ public class DomainImpl implements Domain {
     public void reIndexCodes(final String codeRegistryCodeValue,
                              final String codeSchemeCodeValue) {
         // Clears earlier index for this codeRegistry and codeScheme.
-        deleteTypeFromIndex(DomainConstants.ELASTIC_INDEX_CODES, codeRegistryCodeValue + "_" + codeSchemeCodeValue);
-        createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODES, codeRegistryCodeValue + "_" + codeSchemeCodeValue);
+        deleteTypeFromIndex(DomainConstants.ELASTIC_INDEX_CODES, DomainConstants.ELASTIC_TYPE_CODE);
+        createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODES, DomainConstants.ELASTIC_TYPE_CODE);
 
         // Indexing of data to ElasticSearch.
         indexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
@@ -776,7 +776,7 @@ public class DomainImpl implements Domain {
                     final BulkRequestBuilder bulkRequest = client.prepareBulk();
                     codes.forEach(code -> {
                         try {
-                            bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODES, codeRegistryCodeValue + "_" + codeSchemeCodeValue).setSource(mapper.writeValueAsString(code)));
+                            bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODES, DomainConstants.ELASTIC_TYPE_CODE).setSource(mapper.writeValueAsString(code)));
                         } catch (JsonProcessingException e) {
                             LOG.error("Indexing codes failed: " + e.getMessage());
                         }
