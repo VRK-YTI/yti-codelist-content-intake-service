@@ -12,7 +12,6 @@ import javax.inject.Inject;
 import static fi.vm.yti.cls.intake.domain.DomainConstants.ELASTIC_INDEX_CUSTOMCODES;
 import static fi.vm.yti.cls.intake.domain.DomainConstants.ELASTIC_TYPE_BUSINESSID;
 
-
 /**
  * Class that handles triggering of scheduled for YTJ / PRH Business ID data fetching and processing.
  */
@@ -20,22 +19,15 @@ import static fi.vm.yti.cls.intake.domain.DomainConstants.ELASTIC_TYPE_BUSINESSI
 public class BusinessIdDataScheduledUpdater implements DataUpdate {
 
     private static final Logger LOG = LoggerFactory.getLogger(BusinessIdDataScheduledUpdater.class);
-
-    private YtjDataAccess m_ytjDataAccess;
-
-    private Domain m_domain;
-
+    private YtjDataAccess ytjDataAccess;
+    private Domain domain;
 
     @Inject
     public BusinessIdDataScheduledUpdater(final YtjDataAccess ytjDataAccess,
                                           final Domain domain) {
-
-        m_ytjDataAccess = ytjDataAccess;
-
-        m_domain = domain;
-
+        this.ytjDataAccess = ytjDataAccess;
+        this.domain = domain;
     }
-
 
     /**
      * Fetches yesterdays new business id registrations on a daily basis at 02:00 am.
@@ -44,17 +36,13 @@ public class BusinessIdDataScheduledUpdater implements DataUpdate {
      */
     @Scheduled(cron = "0 0 2 * * *")
     public void updateData() {
-
         LOG.info("Scheduled business ID update starting...");
-
-        final boolean reIndex = m_ytjDataAccess.checkForNewData();
-
+        final boolean reIndex = ytjDataAccess.checkForNewData();
         if (reIndex) {
-            m_domain.deleteTypeFromIndex(ELASTIC_INDEX_CUSTOMCODES, ELASTIC_TYPE_BUSINESSID);
-            m_domain.ensureNestedPrefLabelsMapping(ELASTIC_INDEX_CUSTOMCODES, ELASTIC_TYPE_BUSINESSID);
-            m_domain.indexBusinessIds();
+            domain.deleteTypeFromIndex(ELASTIC_INDEX_CUSTOMCODES, ELASTIC_TYPE_BUSINESSID);
+            domain.ensureNestedPrefLabelsMapping(ELASTIC_INDEX_CUSTOMCODES, ELASTIC_TYPE_BUSINESSID);
+            domain.indexBusinessIds();
         }
-
     }
 
 }

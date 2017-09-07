@@ -10,7 +10,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-
 @SpringBootApplication
 @EnableAutoConfiguration
 @EnableJpaRepositories("fi.vm.yti.cls.*")
@@ -19,18 +18,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class ContentIntakeServiceApplication {
 
     private static final Logger LOG = LoggerFactory.getLogger(ContentIntakeServiceApplication.class);
-
     public static final String APP_VERSION = ContentIntakeServiceApplication.class.getPackage().getImplementationVersion();
-
     private static boolean INITIALIZE_ON_STARTUP = true;
-
     private static boolean ONLY_INDEX = false;
-
     private static boolean YTI_ONLY = true;
 
-
     public static void main(final String[] args) {
-
         final ApplicationContext context = SpringApplication.run(ContentIntakeServiceApplication.class, args);
 
         final ServiceInitializer serviceInitializer = (ServiceInitializer) context.getBean(ServiceInitializer.class);
@@ -40,7 +33,6 @@ public class ContentIntakeServiceApplication {
         if (INITIALIZE_ON_STARTUP) {
             serviceInitializer.initialize(YTI_ONLY, ONLY_INDEX);
         }
-
     }
 
 }

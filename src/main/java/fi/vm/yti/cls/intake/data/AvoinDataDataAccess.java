@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * Class that contains methods for accessing AvoinData data resources.
  */
@@ -22,14 +21,11 @@ public class AvoinDataDataAccess {
 
     private static final Logger LOG = LoggerFactory.getLogger(AvoinDataDataAccess.class);
 
-
     /**
      * URL getter for avoindata.fi data by package name and resource name.
      */
     public String getAvoinDataPackageUrl(final String packageId, final String resourceName) {
-
         final String packageShowApiPath = "https://www.avoindata.fi/data/fi/api/3/action/package_show?id={packageId}";
-
         final HttpClient httpClient = HttpClientBuilder.create().build();
         final HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
         requestFactory.setConnectTimeout(1000);
@@ -41,9 +37,7 @@ public class AvoinDataDataAccess {
 
         try {
             final String response = restTemplate.getForObject(packageShowApiPath, String.class, vars);
-
             final ObjectMapper mapper = new ObjectMapper();
-
             if (response != null && !response.isEmpty()) {
                 try {
                     final JsonNode node = mapper.readTree(response);
@@ -64,9 +58,7 @@ public class AvoinDataDataAccess {
         } catch (Exception e) {
             LOG.error("Avoin data package url generation failed: " + e.getMessage());
         }
-
         return null;
-
     }
 
 }

@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
 
-
 @ConfigurationProperties("public_api")
 @Component
 public class PublicApiServiceProperties {
@@ -22,7 +21,6 @@ public class PublicApiServiceProperties {
     @NotNull
     private String contextPath;
 
-
     public String getHost() {
         return host;
     }
@@ -30,7 +28,6 @@ public class PublicApiServiceProperties {
     public void setHost(final String host) {
         this.host = host;
     }
-
 
     public String getPort() {
         return port;
@@ -40,7 +37,6 @@ public class PublicApiServiceProperties {
         this.port = port;
     }
 
-
     public String getScheme() {
         return scheme;
     }
@@ -48,7 +44,6 @@ public class PublicApiServiceProperties {
     public void setScheme(final String scheme) {
         this.scheme = scheme;
     }
-
 
     public String getContextPath() {
         return contextPath;

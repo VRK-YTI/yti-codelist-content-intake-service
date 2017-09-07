@@ -18,7 +18,6 @@ public final class DomainConstants {
 
     public static final String SOURCE_YTJ = "ytj";
 
-
     public static final String DATA_POSTALCODES = "postalcodes";
 
     public static final String DATA_STREETADDRESSES = "streetaddresses";

@@ -36,73 +36,48 @@ import java.util.Map;
 public class YtjDataAccess implements DataAccess {
 
     private static final Logger LOG = LoggerFactory.getLogger(YtjDataAccess.class);
-
     private static final int YTJ_PAGESIZE = 1000;
-
     private static final int MAX_RETRIES = 5;
-
     // TODO: Consider refactoring, get base dump elsewhere and play catchup afterwards with setting this date accordingly.
     private static final String HISTORY_START_FROM = "2017-01-01";
-
     private static final String YTJ_API = "http://avoindata.prh.fi/bis/v1?totalResults={totalResults}&maxResults={pageSize}&resultsFrom={resultsFrom}&companyRegistrationFrom={companyRegistrationFrom}";
-
-    private final Domain m_domain;
-
-    private final UpdateManager m_updateManager;
-
-    private final BusinessIdParser m_businessIdParser;
-
+    private final Domain domain;
+    private final UpdateManager updateManager;
+    private final BusinessIdParser businessIdParser;
 
     @Inject
     public YtjDataAccess(final Domain domain,
                          final UpdateManager updateManager,
                          final BusinessIdParser businessIdParser) {
-
-        m_domain = domain;
-
-        m_updateManager = updateManager;
-
-        m_businessIdParser = businessIdParser;
-
+        this.domain = domain;
+        this.updateManager = updateManager;
+        this.businessIdParser = businessIdParser;
     }
-
 
     /**
      * Loads Business Id information from PRH YTJ API and persists them to database.
      */
     private void loadBusinessIds(final String companyRegistrationFrom) {
-
         final Stopwatch watch = Stopwatch.createStarted();
-
-        final UpdateStatus updateStatus = m_updateManager.createStatus(DomainConstants.DATA_BUSINESSIDS, DomainConstants.SOURCE_YTJ, companyRegistrationFrom, Utils.todayInIso8601(), UpdateManager.UPDATE_RUNNING);
-
+        final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_BUSINESSIDS, DomainConstants.SOURCE_YTJ, companyRegistrationFrom, Utils.todayInIso8601(), UpdateManager.UPDATE_RUNNING);
         LOG.info("Loading businessids...");
-
         fetchBusinessIds(YTJ_PAGESIZE, 0, companyRegistrationFrom, updateStatus);
-
         LOG.info("BusinessId data loaded in " + watch);
-
     }
-
 
     private void fetchBusinessIds(final int pageSize,
                                   final int resultsFrom,
                                   final String companyRegistrationFrom,
                                   final UpdateStatus updateStatus) {
-
         fetchBusinessIds(pageSize, resultsFrom, companyRegistrationFrom, 0, updateStatus);
-
     }
-
 
     private void fetchBusinessIds(final int pageSize,
                                   final int resultsFrom,
                                   final String companyRegistrationFrom,
                                   final int retryCount,
                                   final UpdateStatus updateStatus) {
-
         LOG.info("Loading businessids with pageSize: " + pageSize + " from: " + resultsFrom + " with company registration date from: " + companyRegistrationFrom);
-
         final Stopwatch watch = Stopwatch.createStarted();
         boolean retry = false;
 
@@ -121,24 +96,18 @@ public class YtjDataAccess implements DataAccess {
             vars.put("companyRegistrationFrom", companyRegistrationFrom);
 
             final String response = restTemplate.getForObject(YTJ_API, String.class, vars);
-
             parseBusinessResponse(watch, response, pageSize, resultsFrom, companyRegistrationFrom, updateStatus);
-
         } catch (HttpClientErrorException e) {
-
             if (resultsFrom == 0 && e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
                 LOG.error("Business Id API responded with with status: " + e.getStatusCode() + " to initial request, marking result as failed, moving on.");
-                m_updateManager.updateFailedStatus(updateStatus);
+                updateManager.updateFailedStatus(updateStatus);
             } else {
                 LOG.error("Business Id API responded with with status: " + e.getStatusCode() + ", retrying after 10 seconds.");
                 retry = true;
             }
-
         } catch (Exception e) {
-
             LOG.error("Business Id API connect exception occurred with message: " + e.getMessage());
             retry = true;
-
         }
 
         if (retry) {
@@ -152,12 +121,10 @@ public class YtjDataAccess implements DataAccess {
 
             } else {
                 LOG.error("Business Id API requesting is failing, moving on...");
-                m_updateManager.updateFailedStatus(updateStatus);
+                updateManager.updateFailedStatus(updateStatus);
             }
         }
-
     }
-
 
     private void parseBusinessResponse(final Stopwatch watch, final String response, final int pageSize, final int resultsFrom, final String companyRegistrationFrom, final UpdateStatus updateStatus) {
 
@@ -167,10 +134,10 @@ public class YtjDataAccess implements DataAccess {
             final JsonNode node = mapper.readTree(response);
 
             if (response != null && !response.isEmpty()) {
-                final List<BusinessId> businessIds = m_businessIdParser.parseBusinessIdsFromJsonArray(DomainConstants.SOURCE_YTJ, response);
+                final List<BusinessId> businessIds = businessIdParser.parseBusinessIdsFromJsonArray(DomainConstants.SOURCE_YTJ, response);
                 LOG.info("BusinessId data loaded: " + businessIds.size() + " businessids found in " + watch);
                 watch.reset().start();
-                m_domain.persistBusinessIds(businessIds);
+                domain.persistBusinessIds(businessIds);
                 LOG.info("BusinessId data persisted in " + watch);
 
                 final String nextResultUri = node.path("nextResultsUri").asText();
@@ -178,66 +145,47 @@ public class YtjDataAccess implements DataAccess {
                 if (!businessIds.isEmpty() && businessIds.size() == YTJ_PAGESIZE && resultsFrom+pageSize < totalResults && nextResultUri != null && !nextResultUri.isEmpty()) {
                     fetchBusinessIds(pageSize, resultsFrom+pageSize, companyRegistrationFrom, updateStatus);
                 } else {
-                    m_updateManager.updateSuccessStatus(updateStatus);
+                    updateManager.updateSuccessStatus(updateStatus);
                     LOG.info("Total business ID results loaded: " + totalResults);
                 }
             }
         } catch (IOException e) {
             LOG.error("Business ID fetching has failed with response: " + response + ", message: " + e.getMessage());
         }
-
     }
 
-
     public void initializeOrRefresh() {
-
         // Initialize from the start.
-        if (m_updateManager.shouldInitialize(DomainConstants.DATA_BUSINESSIDS)) {
+        if (updateManager.shouldInitialize(DomainConstants.DATA_BUSINESSIDS)) {
             loadBusinessIds(HISTORY_START_FROM);
 
         // Load latest Business Id data starting from last successful update.
         } else {
-
-            String nextVersion = m_updateManager.getNextUpdateVersion(DomainConstants.DATA_BUSINESSIDS);
-
+            String nextVersion = updateManager.getNextUpdateVersion(DomainConstants.DATA_BUSINESSIDS);
             if (nextVersion != null) {
                 nextVersion = Utils.yesterdayInIso8601();
             }
-
-            if (m_updateManager.shouldUpdateData(DomainConstants.DATA_BUSINESSIDS, nextVersion)) {
+            if (updateManager.shouldUpdateData(DomainConstants.DATA_BUSINESSIDS, nextVersion)) {
                 checkForNewData(nextVersion);
             }
-
         }
-
     }
-
 
     public boolean checkForNewData() {
-
         final String registrationFrom = Utils.yesterdayInIso8601();
-
         return checkForNewData(registrationFrom);
-
     }
 
-
     private boolean checkForNewData(final String registrationFrom) {
-
         boolean reIndex = false;
-
         LOG.info("Loading Business ID data from PRH using registrationFrom: " + registrationFrom);
-
-        if (m_updateManager.shouldUpdateData(DomainConstants.DATA_BUSINESSIDS, registrationFrom)) {
+        if (updateManager.shouldUpdateData(DomainConstants.DATA_BUSINESSIDS, registrationFrom)) {
             loadBusinessIds(registrationFrom);
             reIndex = true;
-
         } else {
             LOG.info("Business IDs already up to date, skipping...");
         }
-
         return reIndex;
-
     }
 
 }

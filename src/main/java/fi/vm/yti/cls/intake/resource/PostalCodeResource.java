@@ -40,25 +40,17 @@ import java.util.List;
 public class PostalCodeResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostalCodeResource.class);
-
-    private final Domain m_domain;
-
-    private final PostalCodeParser m_postalCodeParser;
-
-    private final PostalCodeRepository m_postalCodeRepository;
-
+    private final Domain domain;
+    private final PostalCodeParser postalCodeParser;
+    private final PostalCodeRepository postalCodeRepository;
 
     @Inject
     public PostalCodeResource(final Domain domain,
                               final PostalCodeParser postalCodeParser,
                               final PostalCodeRepository postalCodeRepository) {
-
-        m_domain = domain;
-
-        m_postalCodeParser = postalCodeParser;
-
-        m_postalCodeRepository = postalCodeRepository;
-
+        this.domain = domain;
+        this.postalCodeParser = postalCodeParser;
+        this.postalCodeRepository = postalCodeRepository;
     }
 
 
@@ -75,15 +67,15 @@ public class PostalCodeResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final List<PostalCode> postalCodes = m_postalCodeParser.parsePostalCodesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
+        final List<PostalCode> postalCodes = postalCodeParser.parsePostalCodesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final PostalCode postalCode : postalCodes) {
             LOG.info("Postal code parsed from input: " + postalCode.getCodeValue());
         }
 
         if (!postalCodes.isEmpty()) {
-            m_domain.persistPostalCodes(postalCodes);
-            m_domain.reIndexEverything();
+            domain.persistPostalCodes(postalCodes);
+            domain.reIndexEverything();
         }
 
         meta.setMessage("Postal codes added or modified: " + postalCodes.size());
@@ -107,12 +99,12 @@ public class PostalCodeResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final PostalCode postalCode = m_postalCodeRepository.findByCodeValue(codeValue);
+        final PostalCode postalCode = postalCodeRepository.findByCodeValue(codeValue);
 
         if (postalCode != null) {
             postalCode.setStatus(Status.RETIRED.toString());
-            m_postalCodeRepository.save(postalCode);
-            m_domain.reIndexEverything();
+            postalCodeRepository.save(postalCode);
+            domain.reIndexEverything();
         }
 
         meta.setMessage("PostalCode marked as RETIRED!");

@@ -2,26 +2,23 @@ package fi.vm.yti.cls.intake.api;
 
 import fi.vm.yti.cls.common.model.Meta;
 
-
 public class MetaResponseWrapper {
 
-    private Meta m_meta;
-
+    private Meta meta;
 
     public MetaResponseWrapper() {
     }
 
     public MetaResponseWrapper(final Meta meta) {
-        m_meta = meta;
+        this.meta = meta;
     }
 
-
     public Meta getMeta() {
-        return m_meta;
+        return meta;
     }
 
     public void setMeta(final Meta meta) {
-        m_meta = meta;
+        this.meta = meta;
     }
 
 }

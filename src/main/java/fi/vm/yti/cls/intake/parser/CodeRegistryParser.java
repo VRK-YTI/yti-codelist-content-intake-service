@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-
 /**
  * Class that handles parsing of coderegistries from source data.
  */
@@ -32,22 +31,15 @@ import java.util.UUID;
 public class CodeRegistryParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryParser.class);
-
-    private final ApiUtils m_apiUtils;
-
-    private final ParserUtils m_parserUtils;
-
+    private final ApiUtils apiUtils;
+    private final ParserUtils parserUtils;
 
     @Inject
     public CodeRegistryParser(final ApiUtils apiUtils,
                             final ParserUtils parserUtils) {
-
-        m_apiUtils = apiUtils;
-
-        m_parserUtils = parserUtils;
-
+        this.apiUtils = apiUtils;
+        this.parserUtils = parserUtils;
     }
-
 
     /**
      * Parses the .csv CodeRegistry-file and returns the coderegistries as an arrayList.
@@ -58,17 +50,13 @@ public class CodeRegistryParser {
      */
     public List<CodeRegistry> parseCodeRegistriesFromClsInputStream(final String source,
                                                                     final InputStream inputStream) {
-
         final List<CodeRegistry> codeRegistries = new ArrayList<>();
-
-        final Map<String, CodeRegistry> existingCodeRegistriesMap = m_parserUtils.getCodeRegistriesMap();
+        final Map<String, CodeRegistry> existingCodeRegistriesMap = parserUtils.getCodeRegistriesMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
-
             FileUtils.skipBom(in);
-
             final List<CSVRecord> records = csvParser.getRecords();
 
             records.forEach(record -> {
@@ -80,15 +68,11 @@ public class CodeRegistryParser {
                 final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(existingCodeRegistriesMap, code, nameFinnish, nameSwedish, nameEnglish, source);
                 codeRegistries.add(codeRegistry);
             });
-
         } catch (IOException e) {
             LOG.error("Parsing codeschemes failed: " + e.getMessage());
         }
-
         return codeRegistries;
-
     }
-
 
     private CodeRegistry createOrUpdateCodeRegistry(final Map<String, CodeRegistry> codeRegistriesMap,
                                                     final String code,
@@ -98,10 +82,8 @@ public class CodeRegistryParser {
                                                     final String source) {
 
         String url = null;
-        url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES, code);
-
+        url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES, code);
         final Date timeStamp = new Date(System.currentTimeMillis());
-
         CodeRegistry codeRegistry = codeRegistriesMap.get(code);
 
         // Update
@@ -130,7 +112,6 @@ public class CodeRegistryParser {
             if (hasChanges) {
                 codeRegistry.setModified(timeStamp);
             }
-
         // Create
         } else {
             codeRegistry = new CodeRegistry();
@@ -145,6 +126,6 @@ public class CodeRegistryParser {
         }
 
         return codeRegistry;
-
     }
+
 }

@@ -1,6 +1,5 @@
 package fi.vm.yti.cls.intake.data;
 
-
 /**
  * Generic Data Access interface.
  */

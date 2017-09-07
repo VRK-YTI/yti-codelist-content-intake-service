@@ -35,23 +35,16 @@ import java.util.UUID;
 @Service
 public class ElectoralDistrictParser {
 
-    private final ApiUtils m_apiUtils;
-
-    private final ParserUtils m_parserUtils;
-
+    private final ApiUtils apiUtils;
+    private final ParserUtils parserUtils;
     private static final Logger LOG = LoggerFactory.getLogger(ElectoralDistrictParser.class);
-
 
     @Inject
     public ElectoralDistrictParser(final ApiUtils apiUtils,
                                    final ParserUtils parserUtils) {
-
-        m_apiUtils = apiUtils;
-
-        m_parserUtils = parserUtils;
-
+        this.apiUtils = apiUtils;
+        this.parserUtils = parserUtils;
     }
-
 
     /**
      * Parses the .csv data file and returns the ElectoralDistricts as an arrayList.
@@ -64,34 +57,24 @@ public class ElectoralDistrictParser {
                                                                              final InputStream inputStream) {
 
         final Map<String, ElectoralDistrict> electoralDistrictsMap = new HashMap<>();
-
-        final Map<String, ElectoralDistrict> existingElectoralDistrictsMap = m_parserUtils.getElectoralDistrictsMap();
-
-        final Map<String, Municipality> existingMunicipalitiesMap = m_parserUtils.getMunicipalitiesMap();
+        final Map<String, ElectoralDistrict> existingElectoralDistrictsMap = parserUtils.getElectoralDistrictsMap();
+        final Map<String, Municipality> existingMunicipalitiesMap = parserUtils.getMunicipalitiesMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
-
             FileUtils.skipBom(in);
-
             final List<CSVRecord> records = csvParser.getRecords();
 
             for (final CSVRecord record : records) {
-
                 final String code = Utils.ensureElectoralDistrictIdPadding(record.get("CODEVALUE"));
-
                 ElectoralDistrict electoralDistrict = null;
-
                 if (!electoralDistrictsMap.containsKey(code)) {
-
                     final String finnishName = record.get("PREFLABEL_FI");
                     final String swedishName = record.get("PREFLABEL_SE");
                     final String englishName = record.get("PREFLABEL_EN");
                     final Status status = Status.valueOf(record.get("STATUS"));
-
                     electoralDistrict = createOrUpdateElectoralDistrict(existingElectoralDistrictsMap, code, status, source, finnishName, swedishName, englishName);
-
                     electoralDistrictsMap.put(code, electoralDistrict);
                 } else {
                     electoralDistrict = electoralDistrictsMap.get(code);
@@ -122,16 +105,12 @@ public class ElectoralDistrictParser {
                     LOG.error("ElectoralDistrictParser municipality not found for code: " + municipalityCode);
                 }
             }
-
         } catch (IOException e) {
             LOG.error("Parsing electoraldistricts failed. " + e.getMessage());
         }
-
         final List<ElectoralDistrict> electoralDistricts = new ArrayList<ElectoralDistrict>(electoralDistrictsMap.values());
         return electoralDistricts;
-
     }
-
 
     /**
      * Parses the .xls Excel-file and returns the ElectoralDistricts as an arrayList.
@@ -142,17 +121,13 @@ public class ElectoralDistrictParser {
      */
     public List<ElectoralDistrict> parseElectoralDistrictsFromInputStream(final String source,
                                                                           final InputStream inputStream) {
-
         final Map<String, ElectoralDistrict> electoralDistrictsMap = new HashMap<>();
-
-        final Map<String, ElectoralDistrict> existingElectoralDistrictsMap = m_parserUtils.getElectoralDistrictsMap();
-
-        final Map<String, Municipality> existingMunicipalitiesMap = m_parserUtils.getMunicipalitiesMap();
+        final Map<String, ElectoralDistrict> existingElectoralDistrictsMap = parserUtils.getElectoralDistrictsMap();
+        final Map<String, Municipality> existingMunicipalitiesMap = parserUtils.getMunicipalitiesMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.ISO_8859_1)) {
             final BufferedReader in = new BufferedReader(inputStreamReader);
             FileUtils.skipBom(in);
-
             String line = null;
             boolean skipFirstLine = true;
 
@@ -167,12 +142,9 @@ public class ElectoralDistrictParser {
                     ElectoralDistrict electoralDistrict = null;
 
                     if (!electoralDistrictsMap.containsKey(code)) {
-
                         final String finnishName = parts[7];
                         final String swedishName = parts[8];
-
                         electoralDistrict = createOrUpdateElectoralDistrict(existingElectoralDistrictsMap, code, Status.VALID, source, finnishName, swedishName, null);
-
                         electoralDistrictsMap.put(code, electoralDistrict);
                     } else {
                         electoralDistrict = electoralDistrictsMap.get(code);
@@ -202,17 +174,14 @@ public class ElectoralDistrictParser {
                     } else {
                         LOG.error("ElectoralDistrictParser municipality not found for code: " + municipalityCode);
                     }
-
                 }
             }
-
         } catch (IOException e) {
             LOG.error("Parsing electoraldistricts failed. " + e.getMessage());
         }
 
         final List<ElectoralDistrict> electoralDistricts = new ArrayList<ElectoralDistrict>(electoralDistrictsMap.values());
         return electoralDistricts;
-
     }
 
     private ElectoralDistrict createOrUpdateElectoralDistrict(final Map<String, ElectoralDistrict> electoralDistrictsMap,
@@ -222,8 +191,7 @@ public class ElectoralDistrictParser {
                                                               final String finnishName,
                                                               final String swedishName,
                                                               final String englishName) {
-
-        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_ELECTORALDISTRICTS, code);
+        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_ELECTORALDISTRICTS, code);
         final Date timeStamp = new Date(System.currentTimeMillis());
 
         ElectoralDistrict electoralDistrict = electoralDistrictsMap.get(code);
@@ -258,7 +226,6 @@ public class ElectoralDistrictParser {
             if (hasChanges) {
                 electoralDistrict.setModified(timeStamp);
             }
-
         // Create
         } else {
             electoralDistrict = new ElectoralDistrict();
@@ -274,7 +241,6 @@ public class ElectoralDistrictParser {
         }
 
         return electoralDistrict;
-
     }
 
 }

@@ -41,11 +41,11 @@ public class HealthCareDistrictResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(HealthCareDistrictResource.class);
 
-    private final Domain m_domain;
+    private final Domain domain;
 
-    private final HealthCareDistrictParser m_healthCareDistrictParser;
+    private final HealthCareDistrictParser healthCareDistrictParser;
 
-    private final HealthCareDistrictRepository m_healthCareDistrictRepository;
+    private final HealthCareDistrictRepository healthCareDistrictRepository;
 
 
     @Inject
@@ -53,11 +53,11 @@ public class HealthCareDistrictResource {
                                       final HealthCareDistrictParser healthCareDistrictParser,
                                       final HealthCareDistrictRepository healthCareDistrictRepository) {
 
-        m_domain = domain;
+        this.domain = domain;
 
-        m_healthCareDistrictParser = healthCareDistrictParser;
+        this.healthCareDistrictParser = healthCareDistrictParser;
 
-        m_healthCareDistrictRepository = healthCareDistrictRepository;
+        this.healthCareDistrictRepository = healthCareDistrictRepository;
 
     }
 
@@ -75,15 +75,15 @@ public class HealthCareDistrictResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final List<HealthCareDistrict> healthCareDistricts = m_healthCareDistrictParser.parseHealthCareDistrictsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
+        final List<HealthCareDistrict> healthCareDistricts = healthCareDistrictParser.parseHealthCareDistrictsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final HealthCareDistrict healthCareDistrict : healthCareDistricts) {
             LOG.info("Region parsed from input: " + healthCareDistrict.getCodeValue());
         }
 
         if (!healthCareDistricts.isEmpty()) {
-            m_domain.persistHealthCareDistricts(healthCareDistricts);
-            m_domain.reIndexEverything();
+            domain.persistHealthCareDistricts(healthCareDistricts);
+            domain.reIndexEverything();
         }
 
         meta.setMessage("HealthCareDistricts added or modified: " + healthCareDistricts.size());
@@ -107,12 +107,12 @@ public class HealthCareDistrictResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final HealthCareDistrict healthCareDistrict = m_healthCareDistrictRepository.findByCodeValue(codeValue);
+        final HealthCareDistrict healthCareDistrict = healthCareDistrictRepository.findByCodeValue(codeValue);
 
         if (healthCareDistrict != null) {
             healthCareDistrict.setStatus(Status.RETIRED.toString());
-            m_healthCareDistrictRepository.save(healthCareDistrict);
-            m_domain.reIndexEverything();
+            healthCareDistrictRepository.save(healthCareDistrict);
+            domain.reIndexEverything();
         }
 
         meta.setMessage("HealthCareDistrict marked as RETIRED.");

@@ -29,7 +29,6 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.List;
 
-
 /**
  * Content Intake Service: REST resources for municipalities.
  */
@@ -40,27 +39,18 @@ import java.util.List;
 public class PostManagementDistrictResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostManagementDistrictResource.class);
-
-    private final Domain m_domain;
-
-    private final PostManagementDistrictParser m_postManagementDistrictParser;
-
-    private final PostManagementDistrictRepository m_postManagementDistrictRepository;
-
+    private final Domain domain;
+    private final PostManagementDistrictParser postManagementDistrictParser;
+    private final PostManagementDistrictRepository postManagementDistrictRepository;
 
     @Inject
     public PostManagementDistrictResource(final Domain domain,
                                           final PostManagementDistrictParser postManagementDistrictParser,
                                           final PostManagementDistrictRepository postManagementDistrictRepository) {
-
-        m_domain = domain;
-
-        m_postManagementDistrictParser = postManagementDistrictParser;
-
-        m_postManagementDistrictRepository = postManagementDistrictRepository;
-
+        this.domain = domain;
+        this.postManagementDistrictParser = postManagementDistrictParser;
+        this.postManagementDistrictRepository = postManagementDistrictRepository;
     }
-
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -68,27 +58,18 @@ public class PostManagementDistrictResource {
     @ApiOperation(value = "Parses postmanagementdistricts from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response addOrUpdatePostManagementDistricts(@ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
-
         LOG.info("/v1/postmanagementdistricts/ POST request.");
-
         final Meta meta = new Meta();
-
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-
-        final List<PostManagementDistrict> postManagementDistricts = m_postManagementDistrictParser.parsePostManagementDistrictsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
-
+        final List<PostManagementDistrict> postManagementDistricts = postManagementDistrictParser.parsePostManagementDistrictsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
         if (!postManagementDistricts.isEmpty()) {
-            m_domain.persistPostManagementDistricts(postManagementDistricts);
-            m_domain.reIndexEverything();
+            domain.persistPostManagementDistricts(postManagementDistricts);
+            domain.reIndexEverything();
         }
-
         meta.setMessage("PostManagementDistricts added or modified: " + postManagementDistricts.size());
         meta.setCode(200);
-
         return Response.ok(responseWrapper).build();
-
     }
-
 
     @DELETE
     @Path("{codeValue}")
@@ -96,26 +77,18 @@ public class PostManagementDistrictResource {
     @ApiOperation(value = "Deletes a single postManagementDistrict. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response retirePostManagementDistrict(@ApiParam(value = "PostManagementDistrict code.") @PathParam("code") final String codeValue) {
-
         LOG.info("/v1/postmanagementdistricts/" + codeValue + " DELETE request.");
-
         final Meta meta = new Meta();
-
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-
-        final PostManagementDistrict postManagementDistrict = m_postManagementDistrictRepository.findByCodeValue(codeValue);
-
+        final PostManagementDistrict postManagementDistrict = postManagementDistrictRepository.findByCodeValue(codeValue);
         if (postManagementDistrict != null) {
             postManagementDistrict.setStatus(Status.RETIRED.toString());
-            m_postManagementDistrictRepository.save(postManagementDistrict);
-            m_domain.reIndexEverything();
+            postManagementDistrictRepository.save(postManagementDistrict);
+            domain.reIndexEverything();
         }
-
         meta.setMessage("PostManagementDistrict marked as RETIRED!");
         meta.setCode(200);
-
         return Response.ok(responseWrapper).build();
-
     }
 
 }

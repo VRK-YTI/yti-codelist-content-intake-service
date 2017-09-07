@@ -35,7 +35,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-
 /**
  * Class that handles parsing of municipalities from source data.
  */
@@ -43,30 +42,19 @@ import java.util.UUID;
 public class MunicipalityParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(MunicipalityParser.class);
-
     private static final String LANGUAGE_FI = "fi";
-
     private static final String LANGUAGE_SE = "se";
-
     private static final String TYPE_CITY = "city";
-
     private static final String TYPE_MUNICIPALITY = "municipality";
-
-    private final ApiUtils m_apiUtils;
-
-    private final ParserUtils m_parserUtils;
-
+    private final ApiUtils apiUtils;
+    private final ParserUtils parserUtils;
 
     @Inject
     public MunicipalityParser(final ApiUtils apiUtils,
                               final ParserUtils parserUtils) {
-
-        m_apiUtils = apiUtils;
-
-        m_parserUtils = parserUtils;
-
+        this.apiUtils = apiUtils;
+        this.parserUtils = parserUtils;
     }
-
 
     /**
      * Parses the .csv Municipality-file and returns the municipalities as an arrayList.
@@ -77,29 +65,19 @@ public class MunicipalityParser {
      */
     public List<Municipality> parseMunicipalitiesFromClsInputStream(final String source,
                                                                     final InputStream inputStream) {
-
-        final Map<String, Region> existingRegionsMap = m_parserUtils.getRegionsMap();
-
-        final Map<String, Magistrate> existingMagistratesMap = m_parserUtils.getMagistratesMap();
-
-        final Map<String, MagistrateServiceUnit> existingMagistrateServiceUnitsMap = m_parserUtils.getMagistrateServiceUnitsMap();
-
-        final Map<String, Municipality> existingMunicipalitiesMap = m_parserUtils.getMunicipalitiesMap();
-
-        final Map<String, BusinessServiceSubRegion> existingBusinessServiceSubRegionsMap = m_parserUtils.getBusinessServiceSubRegionsMap();
-
-        final Map<String, ElectoralDistrict> existingElectoralDistrictsMap = m_parserUtils.getElectoralDistrictsMap();
-
-        final Map<String, HealthCareDistrict> existingHealthCareDistrictsMap = m_parserUtils.getHealthCareDistrictsMap();
-
-        final List<Municipality> m_municipalities = new ArrayList<>();
+        final Map<String, Region> existingRegionsMap = parserUtils.getRegionsMap();
+        final Map<String, Magistrate> existingMagistratesMap = parserUtils.getMagistratesMap();
+        final Map<String, MagistrateServiceUnit> existingMagistrateServiceUnitsMap = parserUtils.getMagistrateServiceUnitsMap();
+        final Map<String, Municipality> existingMunicipalitiesMap = parserUtils.getMunicipalitiesMap();
+        final Map<String, BusinessServiceSubRegion> existingBusinessServiceSubRegionsMap = parserUtils.getBusinessServiceSubRegionsMap();
+        final Map<String, ElectoralDistrict> existingElectoralDistrictsMap = parserUtils.getElectoralDistrictsMap();
+        final Map<String, HealthCareDistrict> existingHealthCareDistrictsMap = parserUtils.getHealthCareDistrictsMap();
+        final List<Municipality> municipalities = new ArrayList<>();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                 final BufferedReader in = new BufferedReader(inputStreamReader);
                 final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
-
             FileUtils.skipBom(in);
-
             final List<CSVRecord> records = csvParser.getRecords();
 
             records.forEach(record -> {
@@ -116,22 +94,18 @@ public class MunicipalityParser {
                 final String healthCareDistrictCode = Utils.ensureHealthCareDistrictIdPadding(record.get("REF_HEALTHCAREDISTRICT"));
                 final String electoralDistrictCode = Utils.ensureElectoralDistrictIdPadding(record.get("REF_ELECTORALDISTRICT"));
                 final String businessServiceSubRegionCode = Utils.ensureBusinessServiceSubRegionIdPadding(record.get("REF_BUSINESSSERVICESUBREGION"));
-                final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_MUNICIPALITIES, code);
+                final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_MUNICIPALITIES, code);
                 final Date timeStamp = new Date(System.currentTimeMillis());
 
                 final Municipality municipality = createOrUpdateMunicipality(existingRegionsMap, existingMagistratesMap, existingMagistrateServiceUnitsMap, existingMunicipalitiesMap, existingHealthCareDistrictsMap, existingElectoralDistrictsMap, existingBusinessServiceSubRegionsMap, code, status, url, source, finnishName, swedishName, englishName, type, languages, regionCode, magistrateCode, magistrateServiceUnitCode, healthCareDistrictCode, electoralDistrictCode, businessServiceSubRegionCode, timeStamp);
 
-                m_municipalities.add(municipality);
+                municipalities.add(municipality);
             });
-
         } catch (IOException e) {
             LOG.error("Parsing magistrateserviceunits failed. " + e.getMessage());
         }
-
-        return m_municipalities;
-
+        return municipalities;
     }
-
 
     /**
      * Parses the .csv Municipality-file and returns the municipalities as an arrayList.
@@ -142,14 +116,10 @@ public class MunicipalityParser {
      */
     public List<Municipality> parseMunicipalitiesFromInputStream(final String source,
                                                                  final InputStream inputStream) {
-
-        final List<Municipality> m_municipalities = new ArrayList<>();
-
-        final Map<String, Region> existingRegionsMap = m_parserUtils.getRegionsMap();
-
-        final Map<String, Magistrate> existingMagistratesMap = m_parserUtils.getMagistratesMap();
-
-        final Map<String, Municipality> existingMunicipalitiesMap = m_parserUtils.getMunicipalitiesMap();
+        final List<Municipality> municipalities = new ArrayList<>();
+        final Map<String, Region> existingRegionsMap = parserUtils.getRegionsMap();
+        final Map<String, Magistrate> existingMagistratesMap = parserUtils.getMagistratesMap();
+        final Map<String, Municipality> existingMunicipalitiesMap = parserUtils.getMunicipalitiesMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.ISO_8859_1)) {
             final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -172,23 +142,19 @@ public class MunicipalityParser {
                     final String regionCode = Utils.ensureRegionIdPadding(parts[15]);
                     final String magistrateCode = Utils.ensureMagistrateIdPadding(parts[9]);
 
-                    final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_MUNICIPALITIES, code);
+                    final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_MUNICIPALITIES, code);
                     final Date timeStamp = new Date(System.currentTimeMillis());
 
                     final Municipality municipality = createOrUpdateMunicipality(existingRegionsMap, existingMagistratesMap, null, existingMunicipalitiesMap, null, null, null, code, Status.VALID, url, source, finnishName, swedishName, null, type, languages, regionCode, magistrateCode, null, null, null, null, timeStamp);
 
-                    m_municipalities.add(municipality);
+                    municipalities.add(municipality);
                 }
             }
-
         } catch (IOException e) {
             LOG.error("Parsing magistrateserviceunits failed. " + e.getMessage());
         }
-
-        return m_municipalities;
-
+        return municipalities;
     }
-
 
     private Municipality createOrUpdateMunicipality(final Map<String, Region> existingRegionsMap,
                                                     final Map<String, Magistrate> existingMagistratesMap,
@@ -213,7 +179,6 @@ public class MunicipalityParser {
                                                     final String healthCareDistrictCode,
                                                     final String businessServiceSubRegionCode,
                                                     final Date timeStamp) {
-
         Region region = null;
         if (regionCode != null) {
             region = existingRegionsMap.get(regionCode);
@@ -308,7 +273,6 @@ public class MunicipalityParser {
             if (hasChanges) {
                 municipality.setModified(timeStamp);
             }
-
         // Create
         } else {
             municipality = new Municipality();
@@ -342,17 +306,12 @@ public class MunicipalityParser {
                 municipality.setBusinessServiceSubRegion(businessServiceSubRegion);
             }
         }
-
         return municipality;
-
     }
 
-
     private Set<String> resolveLanguages(final String languagesString) {
-
         final List<String> parsedLanguages = Arrays.asList(languagesString.split(" - "));
         final Set<String> languages = new HashSet<>();
-
         for (final String language : parsedLanguages) {
             if (language.equalsIgnoreCase("suomi")) {
                 languages.add(LANGUAGE_FI);
@@ -360,23 +319,17 @@ public class MunicipalityParser {
                 languages.add(LANGUAGE_SE);
             }
         }
-
         return languages;
-
     }
 
-
     private String resolveType(final String type) {
-
         if (type.equalsIgnoreCase("kaupunki")) {
             return TYPE_CITY;
         } else if (type.equalsIgnoreCase("kunta")) {
             return TYPE_MUNICIPALITY;
         }
-
         LOG.error("Unknown type in municipality parser: " + type);
         return type;
-
     }
 
 }

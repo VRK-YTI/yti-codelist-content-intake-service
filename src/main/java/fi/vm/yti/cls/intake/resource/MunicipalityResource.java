@@ -41,11 +41,11 @@ public class MunicipalityResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(MunicipalityResource.class);
 
-    private final Domain m_domain;
+    private final Domain domain;
 
-    private final MunicipalityParser m_municipalityParser;
+    private final MunicipalityParser municipalityParser;
 
-    private final MunicipalityRepository m_municipalityRepository;
+    private final MunicipalityRepository municipalityRepository;
 
 
     @Inject
@@ -53,11 +53,11 @@ public class MunicipalityResource {
                                 final MunicipalityParser municipalityParser,
                                 final MunicipalityRepository municipalityRepository) {
 
-        m_domain = domain;
+        this.domain = domain;
 
-        m_municipalityParser = municipalityParser;
+        this.municipalityParser = municipalityParser;
 
-        m_municipalityRepository = municipalityRepository;
+        this.municipalityRepository = municipalityRepository;
 
     }
 
@@ -75,15 +75,15 @@ public class MunicipalityResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final List<Municipality> municipalities = m_municipalityParser.parseMunicipalitiesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
+        final List<Municipality> municipalities = municipalityParser.parseMunicipalitiesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final Municipality municipality : municipalities) {
             LOG.info("Municipality parsed from input: " + municipality.getCodeValue());
         }
 
         if (!municipalities.isEmpty()) {
-            m_domain.persistMunicipalities(municipalities);
-            m_domain.reIndexEverything();
+            domain.persistMunicipalities(municipalities);
+            domain.reIndexEverything();
         }
 
         meta.setMessage("Municipalities added or modified: " + municipalities.size());
@@ -107,12 +107,12 @@ public class MunicipalityResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final Municipality municipality = m_municipalityRepository.findByCodeValue(codeValue);
+        final Municipality municipality = municipalityRepository.findByCodeValue(codeValue);
 
         if (municipality != null) {
             municipality.setStatus(Status.RETIRED.toString());
-            m_municipalityRepository.save(municipality);
-            m_domain.reIndexEverything();
+            municipalityRepository.save(municipality);
+            domain.reIndexEverything();
         }
 
         meta.setMessage("Municipality marked as RETIRED!");

@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-
 /**
  * Class that handles parsing of magistrateserviceunits from source data.
  */
@@ -36,22 +35,15 @@ import java.util.UUID;
 public class MagistrateServiceUnitParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(MagistrateServiceUnitParser.class);
-
-    private final ApiUtils m_apiUtils;
-
-    private final ParserUtils m_parserUtils;
-
+    private final ApiUtils apiUtils;
+    private final ParserUtils parserUtils;
 
     @Inject
     public MagistrateServiceUnitParser(final ApiUtils apiUtils,
                                        final ParserUtils parserUtils) {
-
-        m_apiUtils = apiUtils;
-
-        m_parserUtils = parserUtils;
-
+        this.apiUtils = apiUtils;
+        this.parserUtils = parserUtils;
     }
-
 
     /**
      * Parses the CLS-spec .csv data-file and returns the MagistrateServiceUnits as an arrayList.
@@ -62,12 +54,9 @@ public class MagistrateServiceUnitParser {
      */
     public List<MagistrateServiceUnit> parseMagistrateServiceUnitsFromClsInputStream(final String source,
                                                                                      final InputStream inputStream) {
-
         final Map<String, MagistrateServiceUnit> magistrateServiceUnitMap = new HashMap<>();
-
-        final Map<String, MagistrateServiceUnit> existingMagistrateServiceUnitsMap = m_parserUtils.getMagistrateServiceUnitsMap();
-
-        final Map<String, Municipality> existingMunicipalitiesMap = m_parserUtils.getMunicipalitiesMap();
+        final Map<String, MagistrateServiceUnit> existingMagistrateServiceUnitsMap = parserUtils.getMagistrateServiceUnitsMap();
+        final Map<String, Municipality> existingMunicipalitiesMap = parserUtils.getMunicipalitiesMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                 final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -78,29 +67,21 @@ public class MagistrateServiceUnitParser {
             final List<CSVRecord> records = csvParser.getRecords();
 
             records.forEach(record -> {
-
                 final String code = Utils.ensureMagistrateServiceUnitIdPadding(record.get("CODEVALUE"));
-
                 MagistrateServiceUnit magistrateServiceUnit = null;
-
                 if (!magistrateServiceUnitMap.containsKey(code)) {
-
                     final String finnishName = record.get("PREFLABEL_FI");
                     final String swedishName = record.get("PREFLABEL_SE");
                     final String englishName = record.get("PREFLABEL_EN");
                     final Status status = Status.valueOf(record.get("STATUS"));
-
                     magistrateServiceUnit = createOrUpdateMagistrateServiceUnit(existingMagistrateServiceUnitsMap, code, status, source, finnishName, swedishName, englishName);
-
                     magistrateServiceUnitMap.put(code, magistrateServiceUnit);
-
                 } else {
                     magistrateServiceUnit = magistrateServiceUnitMap.get(code);
                 }
 
                 final String municipalityCode = Utils.ensureMunicipalityIdPadding(record.get("REF_MUNICIPALITY"));
                 final Municipality municipality = existingMunicipalitiesMap.get(municipalityCode);
-
                 List<Municipality> municipalities = magistrateServiceUnit.getMunicipalities();
 
                 if (municipality != null) {
@@ -122,18 +103,14 @@ public class MagistrateServiceUnitParser {
                 } else {
                     LOG.error("MagistrateServiceUnitParser municipality not found for code: " + municipalityCode);
                 }
-
             });
-
         } catch (IOException e) {
             LOG.error("Parsing magistrateserviceunits failed. " + e.getMessage());
         }
 
         final List<MagistrateServiceUnit> magistrateServiceUnits = new ArrayList<MagistrateServiceUnit>(magistrateServiceUnitMap.values());
         return magistrateServiceUnits;
-
     }
-
 
     /**
      * Parses the .xls Excel-file and returns the MagistrateServiceUnits as an arrayList.
@@ -144,17 +121,13 @@ public class MagistrateServiceUnitParser {
      */
     public List<MagistrateServiceUnit> parseMagistrateServiceUnitsFromInputStream(final String source,
                                                                                   final InputStream inputStream) {
-
         final Map<String, MagistrateServiceUnit> magistrateServiceUnitMap = new HashMap<>();
-
-        final Map<String, MagistrateServiceUnit> existingMagistrateServiceUnitsMap = m_parserUtils.getMagistrateServiceUnitsMap();
-
-        final Map<String, Municipality> existingMunicipalitiesMap = m_parserUtils.getMunicipalitiesMap();
+        final Map<String, MagistrateServiceUnit> existingMagistrateServiceUnitsMap = parserUtils.getMagistrateServiceUnitsMap();
+        final Map<String, Municipality> existingMunicipalitiesMap = parserUtils.getMunicipalitiesMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.ISO_8859_1)) {
             final BufferedReader in = new BufferedReader(inputStreamReader);
             FileUtils.skipBom(in);
-
             String line = null;
             boolean skipFirstLine = true;
 
@@ -162,7 +135,6 @@ public class MagistrateServiceUnitParser {
                 if (skipFirstLine) {
                     skipFirstLine = false;
                 } else {
-
                     final String[] parts = line.split(";");
                     final String code = Utils.ensureMagistrateServiceUnitIdPadding(parts[12]);
 
@@ -174,14 +146,10 @@ public class MagistrateServiceUnitParser {
                     MagistrateServiceUnit magistrateServiceUnit = null;
 
                     if (!magistrateServiceUnitMap.containsKey(code)) {
-
                         final String finnishName = parts[13];
                         final String swedishName = parts[14];
-
                         magistrateServiceUnit = createOrUpdateMagistrateServiceUnit(existingMagistrateServiceUnitsMap, code, Status.VALID, source, finnishName, swedishName, null);
-
                         magistrateServiceUnitMap.put(code, magistrateServiceUnit);
-
                     } else {
                         magistrateServiceUnit = magistrateServiceUnitMap.get(code);
                     }
@@ -213,16 +181,13 @@ public class MagistrateServiceUnitParser {
 
                 }
             }
-
         } catch (IOException e) {
             LOG.error("Parsing magistrateserviceunits failed. " + e.getMessage());
         }
 
         final List<MagistrateServiceUnit> magistrateServiceUnits = new ArrayList<MagistrateServiceUnit>(magistrateServiceUnitMap.values());
         return magistrateServiceUnits;
-
     }
-
 
     private MagistrateServiceUnit createOrUpdateMagistrateServiceUnit(final Map<String, MagistrateServiceUnit> magistrateServiceUnitsMap,
                                                                       final String code,
@@ -231,8 +196,7 @@ public class MagistrateServiceUnitParser {
                                                                       final String finnishName,
                                                                       final String swedishName,
                                                                       final String englishName) {
-
-        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_MAGISTRATESERVICEUNITS, code);
+        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_MAGISTRATESERVICEUNITS, code);
         final Date timeStamp = new Date(System.currentTimeMillis());
 
         MagistrateServiceUnit magistrateServiceUnit = magistrateServiceUnitsMap.get(code);
@@ -282,8 +246,6 @@ public class MagistrateServiceUnitParser {
         }
 
         return magistrateServiceUnit;
-
     }
-
 
 }

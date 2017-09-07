@@ -47,43 +47,43 @@ public class CodeRegistryResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryResource.class);
 
-    private final Domain m_domain;
+    private final Domain domain;
 
-    private final CodeRegistryParser m_codeRegistryParser;
+    private final CodeRegistryParser codeRegistryParser;
 
-    private final CodeRegistryRepository m_codeRegistryRepository;
+    private final CodeRegistryRepository codeRegistryRepository;
 
-    private final CodeSchemeParser m_codeSchemeParser;
+    private final CodeSchemeParser codeSchemeParser;
 
-    private final CodeSchemeRepository m_codeSchemeRepository;
+    private final CodeSchemeRepository codeSchemeRepository;
 
-    private final CodeParser m_codeParser;
+    private final CodeParser codeParser;
 
-    private final CodeRepository m_codeRepository;
+    private final CodeRepository codeRepository;
 
 
     @Inject
     public CodeRegistryResource(final Domain domain,
                                 final CodeRegistryParser codeRegistryParser,
                                 final CodeRegistryRepository codeRegistryRepository,
-                                final CodeSchemeParser registerParser,
+                                final CodeSchemeParser codeSchemeParser,
                                 final CodeSchemeRepository codeSchemeRepository,
                                 final CodeParser codeParser,
                                 final CodeRepository codeRepository) {
 
-        m_domain = domain;
+        this.domain = domain;
 
-        m_codeRegistryParser = codeRegistryParser;
+        this.codeRegistryParser = codeRegistryParser;
 
-        m_codeRegistryRepository = codeRegistryRepository;
+        this.codeRegistryRepository = codeRegistryRepository;
 
-        m_codeSchemeParser = registerParser;
+        this.codeSchemeParser = codeSchemeParser;
 
-        m_codeSchemeRepository = codeSchemeRepository;
+        this.codeSchemeRepository = codeSchemeRepository;
 
-        m_codeParser = codeParser;
+        this.codeParser = codeParser;
 
-        m_codeRepository = codeRepository;
+        this.codeRepository = codeRepository;
 
     }
 
@@ -101,15 +101,15 @@ public class CodeRegistryResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final List<CodeRegistry> codeRegistries = m_codeRegistryParser.parseCodeRegistriesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
+        final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final CodeRegistry register : codeRegistries) {
             LOG.info("CodeRegistry parsed from input: " + register.getCodeValue());
         }
 
         if (!codeRegistries.isEmpty()) {
-            m_domain.persistCodeRegistries(codeRegistries);
-            m_domain.reIndexCodeRegistries();
+            domain.persistCodeRegistries(codeRegistries);
+            domain.reIndexCodeRegistries();
         }
 
         meta.setMessage("CodeRegistries added or modified: " + codeRegistries.size());
@@ -135,19 +135,19 @@ public class CodeRegistryResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final CodeRegistry codeRegistry = m_codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
 
         if (codeRegistry != null) {
 
-            final List<CodeScheme> codeSchemes = m_codeSchemeParser.parseCodeSchemesFromClsInputStream(codeRegistry, DomainConstants.SOURCE_INTERNAL, inputStream);
+            final List<CodeScheme> codeSchemes = codeSchemeParser.parseCodeSchemesFromClsInputStream(codeRegistry, DomainConstants.SOURCE_INTERNAL, inputStream);
 
             for (final CodeScheme codeScheme : codeSchemes) {
                 LOG.info("CodeScheme parsed from input: " + codeScheme.getCodeValue());
             }
 
             if (!codeSchemes.isEmpty()) {
-                m_domain.persistCodeSchemes(codeSchemes);
-                m_domain.reIndexCodeSchemes();
+                domain.persistCodeSchemes(codeSchemes);
+                domain.reIndexCodeSchemes();
             }
 
             meta.setMessage("CodeSchemes added or modified: " + codeSchemes.size());
@@ -179,23 +179,23 @@ public class CodeRegistryResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final CodeRegistry codeRegistry = m_codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
 
         if (codeRegistry != null) {
 
-            final CodeScheme codeScheme = m_codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
 
             if (codeScheme != null) {
 
-                final List<Code> codes = m_codeParser.parseCodesFromClsInputStream(codeScheme, DomainConstants.SOURCE_INTERNAL, inputStream);
+                final List<Code> codes = codeParser.parseCodesFromClsInputStream(codeScheme, DomainConstants.SOURCE_INTERNAL, inputStream);
 
                 for (final Code code : codes) {
                     LOG.info("Code parsed from input: " + code.getCodeValue());
                 }
 
                 if (!codes.isEmpty()) {
-                    m_domain.persistCodes(codes);
-                    m_domain.reIndexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
+                    domain.persistCodes(codes);
+                    domain.reIndexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
                 }
 
                 meta.setMessage("Codes added or modified: " + codes.size());
@@ -232,19 +232,19 @@ public class CodeRegistryResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final CodeRegistry codeRegistry = m_codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
 
         if (codeRegistry != null) {
 
-            final CodeScheme codeScheme = m_codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
 
             if (codeScheme != null) {
-                final Code code = m_codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
+                final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
 
                 if (code != null) {
                     code.setStatus(Status.RETIRED.toString());
-                    m_codeRepository.save(code);
-                    m_domain.reIndexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
+                    codeRepository.save(code);
+                    domain.reIndexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
                     meta.setMessage("Code marked as RETIRED!");
                     meta.setCode(200);
                     return Response.ok(responseWrapper).build();

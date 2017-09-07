@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-
 /**
  * Class that handles parsing of healthcaredistricts from source data.
  */
@@ -42,53 +41,37 @@ import java.util.UUID;
 public class HealthCareDistrictParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(HealthCareDistrictParser.class);
-
-    private final ApiUtils m_apiUtils;
-
-    private final ParserUtils m_parserUtils;
-
+    private final ApiUtils apiUtils;
+    private final ParserUtils parserUtils;
 
     @Inject
     public HealthCareDistrictParser(final ApiUtils apiUtils,
                                     final ParserUtils parserUtils) {
-
-        m_apiUtils = apiUtils;
-
-        m_parserUtils = parserUtils;
-
+        this.apiUtils = apiUtils;
+        this.parserUtils = parserUtils;
     }
-
 
     /**
      * Parses the .csv data file and returns the HealthCareDistricts as an arrayList.
      *
-     * @param source source identifier for the data.
+     * @param source      source identifier for the data.
      * @param inputStream The HealthCareDistrict -file.
      * @return List of HealthCareDistrict objects.
      */
     public List<HealthCareDistrict> parseHealthCareDistrictsFromClsInputStream(final String source,
                                                                                final InputStream inputStream) {
-
-        final Map<String, HealthCareDistrict> existingHealthCareDistrictMap = m_parserUtils.getHealthCareDistrictsMap();
-
-        final Map<String, Municipality> existingMunicipalitiesMap = m_parserUtils.getMunicipalitiesMap();
-
+        final Map<String, HealthCareDistrict> existingHealthCareDistrictMap = parserUtils.getHealthCareDistrictsMap();
+        final Map<String, Municipality> existingMunicipalitiesMap = parserUtils.getMunicipalitiesMap();
         final Map<String, HealthCareDistrict> healthCareDistrictMap = new HashMap<>();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                final BufferedReader in = new BufferedReader(inputStreamReader);
-                final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
-
-               FileUtils.skipBom(in);
-
+             final BufferedReader in = new BufferedReader(inputStreamReader);
+             final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
+            FileUtils.skipBom(in);
             final List<CSVRecord> records = csvParser.getRecords();
-
             records.forEach(record -> {
-
                 final String code = Utils.ensureHealthCareDistrictIdPadding(record.get("CODEVALUE"));
-
                 if (code != null && !code.isEmpty()) {
-
                     HealthCareDistrict healthCareDistrict = null;
 
                     if (!healthCareDistrictMap.containsKey(code)) {
@@ -131,34 +114,27 @@ public class HealthCareDistrictParser {
                     } else {
                         LOG.error("HealthCareDistrictparser municipality not found for code: " + municipalityCode);
                     }
-
                 }
-
             });
-
         } catch (IOException e) {
             LOG.error("Parsing healthcaredistricts failed. " + e.getMessage());
         }
 
         final List<HealthCareDistrict> healthCareDistricts = new ArrayList<HealthCareDistrict>(healthCareDistrictMap.values());
         return healthCareDistricts;
-
     }
-
 
     /**
      * Parses the .txt file that contains health care districts names and returns the modified list of HealthCareDistrics as an arrayList.
      *
-     * @param source source identifier for the data.
+     * @param source      Source identifier for the data.
      * @param inputStream The HealthCareDistrict -file.
      * @return List of HealthCareDistrict objects.
      */
     public List<HealthCareDistrict> parseHealthCareDistrictNamesFromInputStream(final String source,
                                                                                 final InputStream inputStream) {
-
         final List<HealthCareDistrict> updatedHealthCareDistricts = new ArrayList<>();
-
-        final Map<String, HealthCareDistrict> existingHealthCareDistrictMap = m_parserUtils.getHealthCareDistrictsMap();
+        final Map<String, HealthCareDistrict> existingHealthCareDistrictMap = parserUtils.getHealthCareDistrictsMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.ISO_8859_1)) {
             final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -207,7 +183,6 @@ public class HealthCareDistrictParser {
                     }
                 }
             }
-
         } catch (IOException e) {
             LOG.error("Parsing health care district names failed: " + e.getMessage());
         }
@@ -216,31 +191,25 @@ public class HealthCareDistrictParser {
 
     }
 
-
     /**
      * Parses the .xls Excel-file and returns the HealthCareDistricts as an arrayList.
      *
-     * @param source source identifier for the data.
+     * @param source      Source identifier for the data.
      * @param inputStream The HealthCareDistrict -file.
      * @return List of HealthCareDistrict objects.
      */
     public List<HealthCareDistrict> parseHealthCareDistrictsFromExcelInputStream(final String source,
                                                                                  final InputStream inputStream) {
-
         final Map<String, HealthCareDistrict> healthCareDistrictMap = new HashMap<>();
-
         final Workbook workbook;
 
         try {
             workbook = new HSSFWorkbook(inputStream);
             final Sheet memberMunicipalities = workbook.getSheet("shp_jäsenkunnat_2017_lkm");
-
-            final Map<String, HealthCareDistrict> existingHealthCareDistrictMap = m_parserUtils.getHealthCareDistrictsMap();
-
-            final Map<String, Municipality> existingMunicipalitiesMap = m_parserUtils.getMunicipalitiesMap();
+            final Map<String, HealthCareDistrict> existingHealthCareDistrictMap = parserUtils.getHealthCareDistrictsMap();
+            final Map<String, Municipality> existingMunicipalitiesMap = parserUtils.getMunicipalitiesMap();
 
             for (int i = 5; i < 316; i++) {
-
                 final Row row = memberMunicipalities.getRow(i);
 
                 final Cell codeCell = row.getCell(2);
@@ -256,7 +225,7 @@ public class HealthCareDistrictParser {
                         final String specialAreaOfResponsibilityCode = row.getCell(4).getStringCellValue();
                         final String finnishName = row.getCell(3).getStringCellValue();
 
-                        healthCareDistrict = createOrUpdateHealthCareDistrict(existingHealthCareDistrictMap, code, Status.VALID, source, finnishName, null, null,null, specialAreaOfResponsibilityCode);
+                        healthCareDistrict = createOrUpdateHealthCareDistrict(existingHealthCareDistrictMap, code, Status.VALID, source, finnishName, null, null, null, specialAreaOfResponsibilityCode);
 
                         healthCareDistrictMap.put(code, healthCareDistrict);
                     } else {
@@ -293,16 +262,13 @@ public class HealthCareDistrictParser {
                 }
 
             }
-
         } catch (IOException e) {
             LOG.error("Parsing healthcaredistricts failed. " + e.getMessage());
         }
 
         final List<HealthCareDistrict> healthCareDistricts = new ArrayList<HealthCareDistrict>(healthCareDistrictMap.values());
         return healthCareDistricts;
-
     }
-
 
     private HealthCareDistrict createOrUpdateHealthCareDistrict(final Map<String, HealthCareDistrict> existingHealthCareDistrictMap,
                                                                 final String code,
@@ -313,10 +279,8 @@ public class HealthCareDistrictParser {
                                                                 final String englishName,
                                                                 final String abbr,
                                                                 final String specialAreaOfResponsibilityCode) {
-
         HealthCareDistrict healthCareDistrict = existingHealthCareDistrictMap.get(code);
-
-        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_HEALTHCAREDISTRICTS, code);
+        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_HEALTHCAREDISTRICTS, code);
         final Date timeStamp = new Date(System.currentTimeMillis());
 
         // Update
@@ -357,7 +321,6 @@ public class HealthCareDistrictParser {
             if (hasChanges) {
                 healthCareDistrict.setModified(timeStamp);
             }
-
         // Create
         } else {
             healthCareDistrict = new HealthCareDistrict();
@@ -375,7 +338,6 @@ public class HealthCareDistrictParser {
                 healthCareDistrict.setSpecialAreaOfResponsibility(specialAreaOfResponsibilityCode);
             }
         }
-
         return healthCareDistrict;
     }
 

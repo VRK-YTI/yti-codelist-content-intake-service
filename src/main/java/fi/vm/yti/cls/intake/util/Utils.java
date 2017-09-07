@@ -9,23 +9,14 @@ import java.util.Calendar;
 public abstract class Utils {
 
     private static final int REGION_ID_LENGTH = 2;
-
     private static final int ELECTORALDISTRICT_ID_LENGTH = 2;
-
     private static final int MUNICIPALITY_ID_LENGTH = 3;
-
     private static final int MAGISTRATE_ID_LENGTH = 3;
-
     private static final int MAGISTRATESERVICEUNIT_ID_LENGTH = 3;
-
     private static final int HEALTHCAREDISTRICT_ID_LENGTH = 2;
-
     private static final int POSTALCODE_ID_LENGTH = 5;
-
     private static final int POSTMANAGEMENTDISTRICT_ID_LENGTH = 5;
-
     private static final int BUSINESSERVICESUBREGION_ID_LENGTH = 5;
-
 
     /**
      * String charset conversion from ISO-8859-1 to UTF-8.
@@ -34,16 +25,11 @@ public abstract class Utils {
      * @return String in UTF-8 encoding.
      */
     public static String convertStringToUtf8(final String source) {
-
         final String utf8String;
-
         final byte[] isoBytes = source.getBytes(StandardCharsets.ISO_8859_1);
         utf8String = new String(isoBytes, StandardCharsets.UTF_8);
-
         return utf8String;
-
     }
-
 
     /**
      * String charset conversion from UTF-8 to ISO-8859-1.
@@ -52,16 +38,11 @@ public abstract class Utils {
      * @return String in ISO-8859-1 encoding.
      */
     public static String convertStringToIso88591(final String source) {
-
         final String isoString;
-
         final byte[] utf8Bytes = source.getBytes(StandardCharsets.UTF_8);
         isoString = new String(utf8Bytes, StandardCharsets.ISO_8859_1);
-
         return isoString;
-
     }
-
 
     /**
      * Trims leading zeroes from a String.
@@ -70,11 +51,8 @@ public abstract class Utils {
      * @return String without leading zeroes.
      */
     public static String trimLeadingZeroes(final String source) {
-
         return source.replaceFirst("^0+(?!$)", "");
-
     }
-
 
     /**
      * Utility that returns yesterdays date in ISO 8601 yyyy-MM-dd format.
@@ -98,7 +76,6 @@ public abstract class Utils {
         final Calendar cal = Calendar.getInstance();
         return simpleDateFormatter.format(cal.getTime());
     }
-
 
     public static String ensureRegionIdPadding(final String id) {
         return StringUtils.leftPad(id, REGION_ID_LENGTH, '0');

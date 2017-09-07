@@ -17,7 +17,6 @@ import java.io.IOException;
 
 import static fi.vm.yti.cls.intake.ServiceInitializer.LOCAL_SWAGGER_DATA_DIR;
 
-
 @Component
 @Path("/swagger.json")
 @Api(value = "swagger.json", description = "Operation that outputs environment specific dynamic swagger.json.")
@@ -31,14 +30,10 @@ public class SwaggerResource {
     @ApiResponse(code = 200, message = "Returns the swagger.json description for this service.")
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     public String getSwaggerJson() throws IOException {
-
         LOG.info("/swagger.json called.");
-
         final File file = new File(LOCAL_SWAGGER_DATA_DIR + "swagger.json");
         final String swaggerJson = FileUtils.readFileToString(file, "UTF-8");
-
         return swaggerJson;
-
     }
 
 }

@@ -60,49 +60,29 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-
 @Singleton
 @Service
 public class DomainImpl implements Domain {
 
     private static final Logger LOG = LoggerFactory.getLogger(DomainImpl.class);
-
     private static final String MAX_RESULT_WINDOW = "max_result_window";
-
     private static final int MAX_RESULT_WINDOW_SIZE = 500000;
-
-    private Client m_client;
-
-    private final MunicipalityRepository m_municipalityRepository;
-
-    private final MagistrateRepository m_magistrateRepository;
-
-    private final RegionRepository m_regionRepository;
-
-    private final StreetAddressRepository m_streetAddressRepository;
-
-    private final StreetNumberRepository m_streetNumberRepository;
-
-    private final HealthCareDistrictRepository m_healthCareDistrictRepository;
-
-    private final PostalCodeRepository m_postalCodeRepository;
-
-    private final ElectoralDistrictRepository m_electoralDistrictRepository;
-
-    private final MagistrateServiceUnitRepository m_magistrateServiceUnitRepository;
-
-    private final PostManagementDistrictRepository m_postManagementDistrictRepository;
-
-    private final BusinessServiceSubRegionRepository m_businessServiceSubRegionRepository;
-
-    private final BusinessIdRepository m_businessIdRepository;
-
-    private final CodeSchemeRepository m_codeSchemeRepository;
-
-    private final CodeRegistryRepository m_codeRegistryRepository;
-
-    private final CodeRepository m_codeRepository;
-
+    private final MunicipalityRepository municipalityRepository;
+    private final MagistrateRepository magistrateRepository;
+    private final RegionRepository regionRepository;
+    private final StreetAddressRepository streetAddressRepository;
+    private final StreetNumberRepository streetNumberRepository;
+    private final HealthCareDistrictRepository healthCareDistrictRepository;
+    private final PostalCodeRepository postalCodeRepository;
+    private final ElectoralDistrictRepository electoralDistrictRepository;
+    private final MagistrateServiceUnitRepository magistrateServiceUnitRepository;
+    private final PostManagementDistrictRepository postManagementDistrictRepository;
+    private final BusinessServiceSubRegionRepository businessServiceSubRegionRepository;
+    private final BusinessIdRepository businessIdRepository;
+    private final CodeSchemeRepository codeSchemeRepository;
+    private final CodeRegistryRepository codeRegistryRepository;
+    private final CodeRepository codeRepository;
+    private Client client;
 
     @Inject
     private DomainImpl(final Client client,
@@ -121,39 +101,31 @@ public class DomainImpl implements Domain {
                        final CodeRegistryRepository codeRegistryRepository,
                        final CodeSchemeRepository codeSchemeRepository,
                        final CodeRepository codeRepository) {
-
-        m_client = client;
-        m_municipalityRepository = municipalityRepository;
-        m_magistrateRepository = magistrateRepository;
-        m_regionRepository = regionRepository;
-        m_streetAddressRepository = streetAddressRepository;
-        m_streetNumberRepository = streetNumberRepository;
-        m_healthCareDistrictRepository = healthCareDistrictRepository;
-        m_postalCodeRepository = postalCodeRepository;
-        m_electoralDistrictRepository = electoralDistrictRepository;
-        m_magistrateServiceUnitRepository = magistrateServiceUnitRepository;
-        m_postManagementDistrictRepository = postManagementDistrictRepository;
-        m_businessServiceSubRegionRepository = businessServiceSubRegionRepository;
-        m_businessIdRepository = businessIdRepository;
-
-        m_codeRegistryRepository = codeRegistryRepository;
-        m_codeSchemeRepository = codeSchemeRepository;
-        m_codeRepository = codeRepository;
-
+        this.client = client;
+        this.municipalityRepository = municipalityRepository;
+        this.magistrateRepository = magistrateRepository;
+        this.regionRepository = regionRepository;
+        this.streetAddressRepository = streetAddressRepository;
+        this.streetNumberRepository = streetNumberRepository;
+        this.healthCareDistrictRepository = healthCareDistrictRepository;
+        this.postalCodeRepository = postalCodeRepository;
+        this.electoralDistrictRepository = electoralDistrictRepository;
+        this.magistrateServiceUnitRepository = magistrateServiceUnitRepository;
+        this.postManagementDistrictRepository = postManagementDistrictRepository;
+        this.businessServiceSubRegionRepository = businessServiceSubRegionRepository;
+        this.businessIdRepository = businessIdRepository;
+        this.codeRegistryRepository = codeRegistryRepository;
+        this.codeSchemeRepository = codeSchemeRepository;
+        this.codeRepository = codeRepository;
     }
-
 
     public void persistMagistrates(final List<Magistrate> magistrates) {
-
-        m_magistrateRepository.save(magistrates);
-
+        magistrateRepository.save(magistrates);
     }
-
 
     /**
      * Indexing
      */
-
 
     /**
      * Delete index with name.
@@ -161,14 +133,12 @@ public class DomainImpl implements Domain {
      * @param indexName The name of the index to be deleted.
      */
     public void deleteIndex(final String indexName) {
-
         final DeleteIndexRequest request = new DeleteIndexRequest(indexName);
-
-        final boolean exists = m_client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
+        final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
 
         if (exists) {
             try {
-                final DeleteIndexResponse response = m_client.admin().indices().delete(request).get();
+                final DeleteIndexResponse response = client.admin().indices().delete(request).get();
                 if (!response.isAcknowledged()) {
                     LOG.error("Deleting ElasticSearch index: " + indexName + " failed.");
                 } else {
@@ -180,9 +150,7 @@ public class DomainImpl implements Domain {
         } else {
             LOG.info("Index " + indexName + " did not exist in Elastic yet, so nothing to clear.");
         }
-
     }
-
 
     /**
      * Delete type from index.
@@ -192,18 +160,15 @@ public class DomainImpl implements Domain {
      */
     @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
     public void deleteTypeFromIndex(final String indexName, final String indexType) {
-
-        final boolean exists = m_client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
+        final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
 
         if (exists) {
             LOG.info("Clearing index " + indexName + " type " + indexType + ".");
-            DeleteByQueryAction.INSTANCE.newRequestBuilder(m_client).filter(QueryBuilders.boolQuery().must(QueryBuilders.termQuery("_type", indexType))).source(indexName).get();
+            DeleteByQueryAction.INSTANCE.newRequestBuilder(client).filter(QueryBuilders.boolQuery().must(QueryBuilders.termQuery("_type", indexType))).source(indexName).get();
         } else {
             LOG.info("Index " + indexName + " did not exist in Elastic yet, so nothing to clear.");
         }
-
     }
-
 
     /**
      * Delete type from index.
@@ -211,11 +176,10 @@ public class DomainImpl implements Domain {
      * @param indexName The name of the index to be deleted.
      */
     public void createIndex(final String indexName) {
-
-        final boolean exists = m_client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
+        final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
 
         if (!exists) {
-            final CreateIndexResponse response = m_client.admin().indices().prepareCreate(indexName).get();
+            final CreateIndexResponse response = client.admin().indices().prepareCreate(indexName).get();
             if (!response.isAcknowledged()) {
                 LOG.error("Creating ElasticSearch index: " + indexName + " failed.");
             } else {
@@ -224,9 +188,7 @@ public class DomainImpl implements Domain {
         } else {
             LOG.info("Index " + indexName + " already exists, nothing to create.");
         }
-
     }
-
 
     /**
      * Delete type from index.
@@ -235,7 +197,6 @@ public class DomainImpl implements Domain {
      * @param indexType The name of the type of index to be deleted.
      */
     public void ensureNestedPrefLabelsMapping(final String indexName, final String indexType) {
-
         final String nestedPrefLabelsMappingJson = "{\"properties\": {\n" +
                 "  \"prefLabels\": {\n" +
                 "    \"type\": \"nested\"\n" +
@@ -245,10 +206,8 @@ public class DomainImpl implements Domain {
         final PutMappingRequest mappingRequest = new PutMappingRequest(indexName);
         mappingRequest.type(indexType);
         mappingRequest.source(nestedPrefLabelsMappingJson);
-        m_client.admin().indices().putMapping(mappingRequest).actionGet();
-
+        client.admin().indices().putMapping(mappingRequest).actionGet();
     }
-
 
     /**
      * Creates index with name.
@@ -256,7 +215,6 @@ public class DomainImpl implements Domain {
      * @param indexName The name of the index to be deleted.
      */
     public void createIndexWithNestedPrefLabels(final String indexName) {
-
         final List<String> types = new ArrayList<>();
         types.add(DomainConstants.ELASTIC_TYPE_MUNICIPALITY);
         types.add(DomainConstants.ELASTIC_TYPE_MAGISTRATE);
@@ -270,8 +228,7 @@ public class DomainImpl implements Domain {
         types.add(DomainConstants.ELASTIC_TYPE_HEALTHCAREDISTRICT);
         types.add(DomainConstants.ELASTIC_TYPE_STREETADDRESS);
 
-        final boolean exists = m_client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
-
+        final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
         final String nestedPrefLabelsMappingJson = "{" +
                 "\"properties\": {\n" +
                 "  \"prefLabels\": {\n" +
@@ -279,9 +236,8 @@ public class DomainImpl implements Domain {
                 "  }\n" +
                 "}\n}";
 
-
         if (!exists) {
-            final CreateIndexRequestBuilder builder = m_client.admin().indices().prepareCreate(indexName);
+            final CreateIndexRequestBuilder builder = client.admin().indices().prepareCreate(indexName);
             builder.setSettings(Settings.builder().put(MAX_RESULT_WINDOW, MAX_RESULT_WINDOW_SIZE));
 
             for (final String type : types) {
@@ -293,25 +249,10 @@ public class DomainImpl implements Domain {
             } else {
                 LOG.info("ElasticSearch index: " + indexName + " created successfully.");
             }
-
         } else {
             LOG.info("Index " + indexName + " already exists, nothing to create.");
         }
-
     }
-
-
-    /**
-     if (client.admin().indices().prepareExists(Index).execute().actionGet().exists()) {
-     client.admin().indices().prepareClose(Index).execute().actionGet();
-     client.admin().indices().prepareUpdateSettings(Index).setSettings(settings.string()).execute().actionGet();
-     client.admin().indices().prepareOpen(Index).execute().actionGet();
-     client.admin().indices().prepareDeleteMapping(Index).setType(Type).execute().actionGet();
-     client.admin().indices().preparePutMapping(Index).setType(Type).setSource(mapping).execute().actionGet();
-     } else {
-       client.admin().indices().prepareCreate(Index).addMapping(Type, mapping).setSettings(settings).execute().actionGet();
-     }
-     */
 
     /**
      * Creates index with name.
@@ -319,10 +260,7 @@ public class DomainImpl implements Domain {
      * @param indexName The name of the index to be deleted.
      */
     public void createIndexWithNestedPrefLabels(final String indexName, final String type) {
-
-
-        final boolean exists = m_client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
-
+        final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
         final String nestedNamesMappingJson = "{" +
                 "\"properties\": {\n" +
                 "  \"prefLabels\": {\n" +
@@ -330,9 +268,8 @@ public class DomainImpl implements Domain {
                 "  }\n" +
                 "}\n}";
 
-
         if (!exists) {
-            final CreateIndexRequestBuilder builder = m_client.admin().indices().prepareCreate(indexName);
+            final CreateIndexRequestBuilder builder = client.admin().indices().prepareCreate(indexName);
             builder.setSettings(Settings.builder().put(MAX_RESULT_WINDOW, MAX_RESULT_WINDOW_SIZE));
 
             builder.addMapping(type, nestedNamesMappingJson);
@@ -342,15 +279,11 @@ public class DomainImpl implements Domain {
             } else {
                 LOG.info("ElasticSearch index: " + indexName + " created successfully.");
             }
-
         } else {
             LOG.info("Index " + indexName + " already exists, ensuring mapping.");
-
-            m_client.admin().indices().preparePutMapping(indexName).setType(type).setSource(nestedNamesMappingJson).execute().actionGet();
+            client.admin().indices().preparePutMapping(indexName).setType(type).setSource(nestedNamesMappingJson).execute().actionGet();
         }
-
     }
-
 
     /**
      * Refreshes index with name.
@@ -358,31 +291,27 @@ public class DomainImpl implements Domain {
      * @param indexName The name of the index to be refreshed.
      */
     public void refreshIndex(final String indexName) {
-
         final FlushRequest request = new FlushRequest(indexName);
-
         try {
-            m_client.admin().indices().flush(request).get();
+            client.admin().indices().flush(request).get();
             LOG.info("ElasticSearch index: " + indexName + " flushed.");
         } catch (InterruptedException | ExecutionException e) {
             LOG.error("Flushing ElasticSearch index: " + indexName + " failed with error: " + e.getMessage());
         }
-
     }
-
 
     public void indexMagistrates() {
 
-        final List<Magistrate> magistrates = m_magistrateRepository.findAll();
+        final List<Magistrate> magistrates = magistrateRepository.findAll();
 
         if (!magistrates.isEmpty()) {
 
-            final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
 
             magistrates.forEach(magistrate -> {
                 final ObjectMapper mapper = createObjectMapper();
                 try {
-                    bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_MAGISTRATE).setSource(mapper.writeValueAsString(magistrate)));
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_MAGISTRATE).setSource(mapper.writeValueAsString(magistrate)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing magistrates failed: " + e.getMessage());
                 }
@@ -405,22 +334,22 @@ public class DomainImpl implements Domain {
 
     public void persistMunicipalities(final List<Municipality> municipalities) {
 
-        m_municipalityRepository.save(municipalities);
+        municipalityRepository.save(municipalities);
 
     }
 
     public void indexMunicipalities() {
 
-        final List<Municipality> municipalities = m_municipalityRepository.findAll();
+        final List<Municipality> municipalities = municipalityRepository.findAll();
 
         if (!municipalities.isEmpty()) {
-            final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
 
             final ObjectMapper mapper = createObjectMapper();
 
             municipalities.stream().forEach(municipality -> {
                 try {
-                    bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_MUNICIPALITY).setSource(mapper.writeValueAsString(municipality)));
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_MUNICIPALITY).setSource(mapper.writeValueAsString(municipality)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing municipalities failed: " + e.getMessage());
                 }
@@ -443,21 +372,21 @@ public class DomainImpl implements Domain {
 
     public void persistRegions(final List<Region> regions) {
 
-        m_regionRepository.save(regions);
+        regionRepository.save(regions);
 
     }
 
     public void indexRegions() {
 
-        final List<Region> regions = m_regionRepository.findAll();
+        final List<Region> regions = regionRepository.findAll();
 
         if (!regions.isEmpty()) {
-            final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
 
             regions.forEach(region -> {
                 final ObjectMapper mapper = createObjectMapper();
                 try {
-                    bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_REGION).setSource(mapper.writeValueAsString(region)));
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_REGION).setSource(mapper.writeValueAsString(region)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing regions failed: " + e.getMessage());
                 }
@@ -482,7 +411,7 @@ public class DomainImpl implements Domain {
 
         final Stopwatch watch = Stopwatch.createStarted();
 
-        m_streetNumberRepository.save(streetNumbers);
+        streetNumberRepository.save(streetNumbers);
 
         LOG.info("Persisted " + streetNumbers.size() + " street numbers in " + watch + ".");
 
@@ -493,7 +422,7 @@ public class DomainImpl implements Domain {
 
         final Stopwatch watch = Stopwatch.createStarted();
 
-        m_streetAddressRepository.save(streetAddresses);
+        streetAddressRepository.save(streetAddresses);
 
         LOG.info("Persisted " + streetAddresses.size() + " street addresses in " + watch + ".");
 
@@ -503,7 +432,7 @@ public class DomainImpl implements Domain {
 
         final Stopwatch watch = Stopwatch.createStarted();
 
-        final Set<String> ids = m_streetAddressRepository.findAllIds();
+        final Set<String> ids = streetAddressRepository.findAllIds();
         final List<String> idList = new ArrayList<>();
         idList.addAll(ids);
         final List<List<String>> idsList = ListUtils.partition(idList, 10000);
@@ -517,7 +446,7 @@ public class DomainImpl implements Domain {
 
             for (int i = 0; i <= pageCount; i++) {
                 final List<String> subIds = idsList.get(i);
-                final Set<StreetAddress> streetAddresses = m_streetAddressRepository.findByIdIn(subIds);
+                final Set<StreetAddress> streetAddresses = streetAddressRepository.findByIdIn(subIds);
                 LOG.info("ElasticSearch " + streetAddresses.size() + " streetaddresses (page: " + (i + 1) + "/" + (pageCount + 1) + ") loaded from PostgreSQL database in " + watch);
                 watch.reset().start();
 
@@ -526,7 +455,7 @@ public class DomainImpl implements Domain {
 
                 final List<List<StreetAddress>> chunks = ListUtils.partition(addresses, 1000);
                 chunks.parallelStream().forEach(chunk -> {
-                    final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
+                    final BulkRequestBuilder bulkRequest = client.prepareBulk();
 
                     chunk.forEach(streetAddress -> {
                         final ObjectMapper mapper = createObjectMapper();
@@ -536,7 +465,7 @@ public class DomainImpl implements Domain {
                         filterProvider.setFailOnUnknownId(false);
                         mapper.setFilterProvider(filterProvider);
                         try {
-                            bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_STREETADDRESS).setSource(mapper.writeValueAsString(streetAddress)));
+                            bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_STREETADDRESS).setSource(mapper.writeValueAsString(streetAddress)));
                         } catch (JsonProcessingException e) {
                             LOG.error("Indexing streetaddress failed: " + e.getMessage());
                         }
@@ -565,23 +494,23 @@ public class DomainImpl implements Domain {
 
     public void persistPostalCodes(final List<PostalCode> postalCodes) {
 
-        m_postalCodeRepository.save(postalCodes);
+        postalCodeRepository.save(postalCodes);
 
     }
 
     public void indexPostalCodes() {
 
-        final List<PostalCode> postalCodes = m_postalCodeRepository.findAll();
+        final List<PostalCode> postalCodes = postalCodeRepository.findAll();
 
         if (!postalCodes.isEmpty()) {
 
             final ObjectMapper mapper = createObjectMapper();
 
-            final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
 
             postalCodes.forEach(postalCode -> {
                 try {
-                    bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_POSTALCODE).setSource(mapper.writeValueAsString(postalCode)));
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_POSTALCODE).setSource(mapper.writeValueAsString(postalCode)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing postalcodes failed: " + e.getMessage());
                 }
@@ -594,426 +523,303 @@ public class DomainImpl implements Domain {
             } else {
                 LOG.info("ElasticSearch bulk postalCode request successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
             }
-
         } else {
             LOG.info("ElasticSearch bulk postalCode request failed: no content to be indexed!");
         }
-
     }
 
-
     public void persistHealthCareDistricts(final List<HealthCareDistrict> healthCareDistricts) {
-
-        m_healthCareDistrictRepository.save(healthCareDistricts);
-
+        healthCareDistrictRepository.save(healthCareDistricts);
     }
 
     public void indexHealthCareDistricts() {
-
-        final List<HealthCareDistrict> healthCareDistricts = m_healthCareDistrictRepository.findAll();
-
+        final List<HealthCareDistrict> healthCareDistricts = healthCareDistrictRepository.findAll();
         if (!healthCareDistricts.isEmpty()) {
-
             final ObjectMapper mapper = createObjectMapper();
-
-            final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
-
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
             healthCareDistricts.forEach(healthCareDistrict -> {
                 try {
-                    bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_HEALTHCAREDISTRICT).setSource(mapper.writeValueAsString(healthCareDistrict)));
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_HEALTHCAREDISTRICT).setSource(mapper.writeValueAsString(healthCareDistrict)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing healthcaredistricts failed: " + e.getMessage());
                 }
             });
 
             final BulkResponse response = bulkRequest.get();
-
             if (response.hasFailures()) {
                 LOG.error("ElasticSearch bulk healthcaredistrict operation failed with errors: " + response.buildFailureMessage());
             } else {
                 LOG.info("ElasticSearch bulk healthcaredistrict request successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
             }
-
         } else {
             LOG.info("ElasticSearch bulk healthcaredistrict request failed: no content to be indexed!");
         }
-
     }
 
-
     public void persistElectoralDistricts(final List<ElectoralDistrict> electoralDistricts) {
-
-        m_electoralDistrictRepository.save(electoralDistricts);
-
+        electoralDistrictRepository.save(electoralDistricts);
     }
 
     public void indexElectoralDistricts() {
-
-        final List<ElectoralDistrict> electoralDistricts = m_electoralDistrictRepository.findAll();
-
+        final List<ElectoralDistrict> electoralDistricts = electoralDistrictRepository.findAll();
         if (!electoralDistricts.isEmpty()) {
-
             final ObjectMapper mapper = createObjectMapper();
-
-            final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
-
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
             electoralDistricts.forEach(electoralDistrict -> {
                 try {
-                    bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_ELECTORALDISTRICT).setSource(mapper.writeValueAsString(electoralDistrict)));
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_ELECTORALDISTRICT).setSource(mapper.writeValueAsString(electoralDistrict)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing electoraldistricts failed: " + e.getMessage());
                 }
             });
 
             final BulkResponse response = bulkRequest.get();
-
             if (response.hasFailures()) {
                 LOG.error("ElasticSearch bulk electoraldistrict operation failed with errors: " + response.buildFailureMessage());
             } else {
                 LOG.info("ElasticSearch bulk electoraldistrict request successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
             }
-
         } else {
             LOG.info("ElasticSearch bulk electoraldistrict request failed: no content to be indexed!");
         }
-
     }
 
-
     public void persistMagistrateServiceUnits(final List<MagistrateServiceUnit> magistrateServiceUnits) {
-
-        m_magistrateServiceUnitRepository.save(magistrateServiceUnits);
-
+        magistrateServiceUnitRepository.save(magistrateServiceUnits);
     }
 
     public void indexMagistrateServiceUnits() {
-
-        final List<MagistrateServiceUnit> magistrateServiceUnits = m_magistrateServiceUnitRepository.findAll();
-
+        final List<MagistrateServiceUnit> magistrateServiceUnits = magistrateServiceUnitRepository.findAll();
         if (!magistrateServiceUnits.isEmpty()) {
-
             final ObjectMapper mapper = createObjectMapper();
-
-            final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
-
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
             magistrateServiceUnits.forEach(magistrateServiceUnit -> {
                 try {
-                    bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_MAGISTRATESERVICEUNIT).setSource(mapper.writeValueAsString(magistrateServiceUnit)));
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_MAGISTRATESERVICEUNIT).setSource(mapper.writeValueAsString(magistrateServiceUnit)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing magistrateserviceunits failed: " + e.getMessage());
                 }
             });
 
             final BulkResponse response = bulkRequest.get();
-
             if (response.hasFailures()) {
                 LOG.error("ElasticSearch bulk magistrateserviceunit operation failed with errors: " + response.buildFailureMessage());
             } else {
                 LOG.info("ElasticSearch bulk magistrateserviceunit request successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
             }
-
         } else {
             LOG.info("ElasticSearch bulk magistrateserviceunit request failed: no content to be indexed!");
         }
-
     }
 
-
     public void persistPostManagementDistricts(final List<PostManagementDistrict> postManagementDistricts) {
-
-        m_postManagementDistrictRepository.save(postManagementDistricts);
-
+        postManagementDistrictRepository.save(postManagementDistricts);
     }
 
     public void indexPostManagementDistricts() {
-
-        final List<PostManagementDistrict> postManagementDistricts = m_postManagementDistrictRepository.findAll();
-
+        final List<PostManagementDistrict> postManagementDistricts = postManagementDistrictRepository.findAll();
         if (!postManagementDistricts.isEmpty()) {
-
             final ObjectMapper mapper = createObjectMapper();
-
-            final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
-
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
             postManagementDistricts.forEach(postManagementDistrict -> {
                 try {
-                    bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_POSTMANAGEMENTDISTRICT).setSource(mapper.writeValueAsString(postManagementDistrict)));
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_POSTMANAGEMENTDISTRICT).setSource(mapper.writeValueAsString(postManagementDistrict)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing postmanagementdistrict failed: " + e.getMessage());
                 }
             });
 
             final BulkResponse response = bulkRequest.get();
-
             if (response.hasFailures()) {
                 LOG.error("ElasticSearch bulk postmanagementdistrict operation failed with errors: " + response.buildFailureMessage());
             } else {
                 LOG.info("ElasticSearch bulk postmanagementdistrict request successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
             }
-
         } else {
             LOG.info("ElasticSearch bulk postmanagementdistrict request failed: no content to be indexed!");
         }
-
     }
 
-
     public void persistBusinessServiceSubRegions(final List<BusinessServiceSubRegion> businessServiceSubRegions) {
-
-        m_businessServiceSubRegionRepository.save(businessServiceSubRegions);
-
+        businessServiceSubRegionRepository.save(businessServiceSubRegions);
     }
 
     public void indexBusinessServiceSubRegions() {
-
-        final List<BusinessServiceSubRegion> businessServiceSubRegions = m_businessServiceSubRegionRepository.findAll();
-
+        final List<BusinessServiceSubRegion> businessServiceSubRegions = businessServiceSubRegionRepository.findAll();
         if (!businessServiceSubRegions.isEmpty()) {
-
             final ObjectMapper mapper = createObjectMapper();
-
-            final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
-
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
             businessServiceSubRegions.forEach(businessServiceSubRegion -> {
                 try {
-                    bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_BUSINESSSERVICESUBREGION).setSource(mapper.writeValueAsString(businessServiceSubRegion)));
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_BUSINESSSERVICESUBREGION).setSource(mapper.writeValueAsString(businessServiceSubRegion)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing businessservicesubregions failed: " + e.getMessage());
                 }
             });
 
             final BulkResponse response = bulkRequest.get();
-
             if (response.hasFailures()) {
                 LOG.error("ElasticSearch bulk businessservicesubregion operation failed with errors: " + response.buildFailureMessage());
             } else {
                 LOG.info("ElasticSearch bulk businessservicesubregion request successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
             }
-
         } else {
             LOG.info("ElasticSearch bulk businessservicesubregion request failed: no content to be indexed!");
         }
-
     }
-
 
     public void persistBusinessIds(final List<BusinessId> businessIds) {
-
-        m_businessIdRepository.save(businessIds);
-
+        businessIdRepository.save(businessIds);
     }
 
-
     public void indexBusinessIds() {
-
-        final List<BusinessId> businessIds = m_businessIdRepository.findAll();
-
+        final List<BusinessId> businessIds = businessIdRepository.findAll();
         if (!businessIds.isEmpty()) {
-
             final ObjectMapper mapper = createObjectMapper();
-
-            final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
-
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
             businessIds.forEach(businessId -> {
                 try {
-                    bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_BUSINESSID).setSource(mapper.writeValueAsString(businessId)));
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES, DomainConstants.ELASTIC_TYPE_BUSINESSID).setSource(mapper.writeValueAsString(businessId)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing businessids failed: " + e.getMessage());
                 }
             });
 
             final BulkResponse response = bulkRequest.get();
-
             if (response.hasFailures()) {
                 LOG.error("ElasticSearch bulk businessId operation failed with errors: " + response.buildFailureMessage());
             } else {
                 LOG.info("ElasticSearch bulk businessId request successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
             }
-
         } else {
             LOG.info("ElasticSearch bulk businessId request failed: no content to be indexed!");
         }
-
     }
 
-
-
     public void persistCodeRegistries(final List<CodeRegistry> codeRegistries) {
-
-        m_codeRegistryRepository.save(codeRegistries);
-
+        codeRegistryRepository.save(codeRegistries);
     }
 
     public void indexCodeRegistries() {
-
-        final List<CodeRegistry> codeRegistries = m_codeRegistryRepository.findAll();
-
+        final List<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
         if (!codeRegistries.isEmpty()) {
-            final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
-
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
             codeRegistries.forEach(codeRegistry -> {
                 final ObjectMapper mapper = createObjectMapper();
                 try {
-                    bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODEREGISTRIES, DomainConstants.ELASTIC_TYPE_CODEREGISTRY).setSource(mapper.writeValueAsString(codeRegistry)));
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODEREGISTRIES, DomainConstants.ELASTIC_TYPE_CODEREGISTRY).setSource(mapper.writeValueAsString(codeRegistry)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing coderegistries failed: " + e.getMessage());
                 }
             });
 
             final BulkResponse response = bulkRequest.get();
-
             if (response.hasFailures()) {
                 LOG.error("ElasticSearch bulk coderegistries operation failed with errors: " + response.buildFailureMessage());
             } else {
                 LOG.info("ElasticSearch bulk coderegistries request successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
             }
-
         } else {
             LOG.info("ElasticSearch bulk coderegistries request failed: no content to be indexed!");
         }
-
     }
 
-
     public void persistCodeSchemes(final List<CodeScheme> codeSchemes) {
-
-        m_codeSchemeRepository.save(codeSchemes);
-
+        codeSchemeRepository.save(codeSchemes);
     }
 
     public void indexCodeSchemes() {
-
-        final List<CodeScheme> codeSchemes = m_codeSchemeRepository.findAll();
-
+        final List<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
         if (!codeSchemes.isEmpty()) {
-            final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
-
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
             codeSchemes.forEach(codeScheme -> {
                 final ObjectMapper mapper = createObjectMapper();
                 try {
-                    bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODESCHEMES, DomainConstants.ELASTIC_TYPE_CODESCHEME).setSource(mapper.writeValueAsString(codeScheme)));
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODESCHEMES, DomainConstants.ELASTIC_TYPE_CODESCHEME).setSource(mapper.writeValueAsString(codeScheme)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing codeSchemes failed: " + e.getMessage());
                 }
             });
 
             final BulkResponse response = bulkRequest.get();
-
             if (response.hasFailures()) {
                 LOG.error("ElasticSearch bulk codeschemes operation failed with errors: " + response.buildFailureMessage());
             } else {
                 LOG.info("ElasticSearch bulk codeschemes request successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
             }
-
         } else {
             LOG.info("ElasticSearch bulk codeschemes request failed: no content to be indexed!");
         }
-
     }
-
 
     public void reIndexCodes(final String codeRegistryCodeValue,
                              final String codeSchemeCodeValue) {
-
         // Clears earlier index for this codeRegistry and codeScheme.
-
         deleteTypeFromIndex(DomainConstants.ELASTIC_INDEX_CODES, codeRegistryCodeValue + "_" + codeSchemeCodeValue);
-
         createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODES, codeRegistryCodeValue + "_" + codeSchemeCodeValue);
 
         // Indexing of data to ElasticSearch.
-
         indexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
-
         refreshIndex(DomainConstants.ELASTIC_INDEX_CODES);
-
     }
 
     public void indexCodes(final String codeRegistryCodeValue,
                            final String codeSchemeCodeValue) {
-
-        final CodeRegistry codeRegistry = m_codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
 
         if (codeRegistry != null) {
-
-            final CodeScheme codeScheme = m_codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
-
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             if (codeScheme != null) {
-
-                final List<Code> codes = m_codeRepository.findByCodeScheme(codeScheme);
-
+                final List<Code> codes = codeRepository.findByCodeScheme(codeScheme);
                 if (!codes.isEmpty()) {
-
                     final ObjectMapper mapper = createObjectMapper();
-
-                    final BulkRequestBuilder bulkRequest = m_client.prepareBulk();
-
+                    final BulkRequestBuilder bulkRequest = client.prepareBulk();
                     codes.forEach(code -> {
                         try {
-                            bulkRequest.add(m_client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODES, codeRegistryCodeValue + "_" + codeSchemeCodeValue).setSource(mapper.writeValueAsString(code)));
+                            bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODES, codeRegistryCodeValue + "_" + codeSchemeCodeValue).setSource(mapper.writeValueAsString(code)));
                         } catch (JsonProcessingException e) {
                             LOG.error("Indexing codes failed: " + e.getMessage());
                         }
                     });
 
                     final BulkResponse response = bulkRequest.get();
-
                     if (response.hasFailures()) {
                         LOG.error("ElasticSearch bulk codes operation failed with errors: " + response.buildFailureMessage());
                     } else {
                         LOG.info("ElasticSearch bulk codes request successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
                     }
-
                 } else {
                     LOG.info("ElasticSearch bulk codes request failed: no content to be indexed!");
                 }
-
             }
         }
-
     }
 
     public void persistCodes(final List<Code> codes) {
-
-        m_codeRepository.save(codes);
-
+        codeRepository.save(codes);
     }
 
-
     public void reIndexCodeRegistries() {
-
         deleteIndex(DomainConstants.ELASTIC_INDEX_CODEREGISTRIES);
-
-        final List<CodeRegistry> codeRegistry = m_codeRegistryRepository.findAll();
-
+        final List<CodeRegistry> codeRegistry = codeRegistryRepository.findAll();
         if (!codeRegistry.isEmpty()) {
             createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODEREGISTRIES, DomainConstants.ELASTIC_TYPE_CODEREGISTRY);
-
             indexCodeRegistries();
         }
     }
 
-
     public void reIndexCodeSchemes() {
-
         deleteIndex(DomainConstants.ELASTIC_INDEX_CODESCHEMES);
-
-        final List<CodeScheme> codeSchemes = m_codeSchemeRepository.findAll();
-
+        final List<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
         if (!codeSchemes.isEmpty()) {
             createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODESCHEMES, DomainConstants.ELASTIC_TYPE_CODESCHEME);
-
             indexCodeSchemes();
         }
     }
 
-
     public void reIndexCodes() {
-
         deleteIndex(DomainConstants.ELASTIC_INDEX_CODES);
-
-        final List<Code> codes = m_codeRepository.findAll();
-
+        final List<Code> codes = codeRepository.findAll();
         codes.forEach(code -> {
             final CodeScheme codeScheme = code.getCodeScheme();
             final String codeSchemeCodeValue = codeScheme.getCodeValue();
@@ -1021,69 +827,42 @@ public class DomainImpl implements Domain {
             createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODES, codeRegistryCodeValue + codeSchemeCodeValue);
             reIndexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
         });
-
     }
-
 
     public void reIndexYti() {
-
         // Generic: CodeRegistries, CodeSchemes, Codes
-
         reIndexCodeRegistries();
-
         reIndexCodeSchemes();
-
         reIndexCodes();
-
     }
 
-
     public void reIndexEverything() {
-
         reIndexYti();
 
         // Clears earlier custom codes index.
-
         deleteIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES);
-
         createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CUSTOMCODES);
 
         // Indexing of custom codelist data to ElasticSearch.
-
         indexMagistrates();
-
         indexRegions();
-
         indexMunicipalities();
-
         indexHealthCareDistricts();
-
         indexPostManagementDistricts();
-
         indexPostalCodes();
-
         indexElectoralDistricts();
-
         indexMagistrateServiceUnits();
-
         indexBusinessServiceSubRegions();
-
         indexBusinessIds();
-
         indexStreetAddresses();
 
         refreshIndex(DomainConstants.ELASTIC_INDEX_CUSTOMCODES);
-
     }
 
-
     private ObjectMapper createObjectMapper() {
-
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         return mapper;
-
     }
-
 
 }

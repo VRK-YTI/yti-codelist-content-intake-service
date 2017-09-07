@@ -41,11 +41,11 @@ public class ElectoralDistrictResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(ElectoralDistrictResource.class);
 
-    private final Domain m_domain;
+    private final Domain domain;
 
-    private final ElectoralDistrictParser m_electoralDistrictParser;
+    private final ElectoralDistrictParser electoralDistrictParser;
 
-    private final ElectoralDistrictRepository m_electoralDistrictRepository;
+    private final ElectoralDistrictRepository electoralDistrictRepository;
 
 
     @Inject
@@ -53,11 +53,11 @@ public class ElectoralDistrictResource {
                                      final ElectoralDistrictParser electoralDistrictParser,
                                      final ElectoralDistrictRepository electoralDistrictRepository) {
 
-        m_domain = domain;
+        this.domain = domain;
 
-        m_electoralDistrictParser = electoralDistrictParser;
+        this.electoralDistrictParser = electoralDistrictParser;
 
-        m_electoralDistrictRepository = electoralDistrictRepository;
+        this.electoralDistrictRepository = electoralDistrictRepository;
 
     }
 
@@ -75,15 +75,15 @@ public class ElectoralDistrictResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final List<ElectoralDistrict> electoralDistricts = m_electoralDistrictParser.parseElectoralDistrictsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
+        final List<ElectoralDistrict> electoralDistricts = electoralDistrictParser.parseElectoralDistrictsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final ElectoralDistrict electoralDistrict : electoralDistricts) {
             LOG.info("ElectoralDistrict parsed from input: " + electoralDistrict.getCodeValue());
         }
 
         if (!electoralDistricts.isEmpty()) {
-            m_domain.persistElectoralDistricts(electoralDistricts);
-            m_domain.reIndexEverything();
+            domain.persistElectoralDistricts(electoralDistricts);
+            domain.reIndexEverything();
         }
 
         meta.setMessage("ElectoralDistricts added or modified: " + electoralDistricts.size());
@@ -107,12 +107,12 @@ public class ElectoralDistrictResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final ElectoralDistrict electoralDistrict = m_electoralDistrictRepository.findByCodeValue(codeValue);
+        final ElectoralDistrict electoralDistrict = electoralDistrictRepository.findByCodeValue(codeValue);
 
         if (electoralDistrict != null) {
             electoralDistrict.setStatus(Status.RETIRED.toString());
-            m_electoralDistrictRepository.save(electoralDistrict);
-            m_domain.reIndexEverything();
+            electoralDistrictRepository.save(electoralDistrict);
+            domain.reIndexEverything();
         }
 
         meta.setMessage("ElectoralDistrict marked as RETIRED!");

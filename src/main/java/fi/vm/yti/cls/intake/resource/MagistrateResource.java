@@ -41,11 +41,11 @@ public class MagistrateResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(MagistrateResource.class);
 
-    private final Domain m_domain;
+    private final Domain domain;
 
-    private final MagistrateParser m_magistrateParser;
+    private final MagistrateParser magistrateParser;
 
-    private final MagistrateRepository m_magistrateRepository;
+    private final MagistrateRepository magistrateRepository;
 
 
     @Inject
@@ -53,11 +53,11 @@ public class MagistrateResource {
                               final MagistrateParser magistrateParser,
                               final MagistrateRepository magistrateRepository) {
 
-        m_domain = domain;
+        this.domain = domain;
 
-        m_magistrateParser = magistrateParser;
+        this.magistrateParser = magistrateParser;
 
-        m_magistrateRepository = magistrateRepository;
+        this.magistrateRepository = magistrateRepository;
 
     }
 
@@ -75,15 +75,15 @@ public class MagistrateResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final List<Magistrate> magistrates = m_magistrateParser.parseMagistratesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
+        final List<Magistrate> magistrates = magistrateParser.parseMagistratesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final Magistrate magistrate : magistrates) {
             LOG.info("Magistrate parsed from input: " + magistrate.getCodeValue());
         }
 
         if (!magistrates.isEmpty()) {
-            m_domain.persistMagistrates(magistrates);
-            m_domain.reIndexEverything();
+            domain.persistMagistrates(magistrates);
+            domain.reIndexEverything();
         }
 
         meta.setMessage("Magistrates added or modified: " + magistrates.size());
@@ -107,12 +107,12 @@ public class MagistrateResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final Magistrate magistrate = m_magistrateRepository.findByCodeValue(codeValue);
+        final Magistrate magistrate = magistrateRepository.findByCodeValue(codeValue);
 
         if (magistrate != null) {
             magistrate.setStatus(Status.RETIRED.toString());
-            m_magistrateRepository.save(magistrate);
-            m_domain.reIndexEverything();
+            magistrateRepository.save(magistrate);
+            domain.reIndexEverything();
         }
 
         meta.setMessage("Magistrate marked as RETIRED!");

@@ -29,7 +29,6 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.List;
 
-
 /**
  * Content Intake Service: REST resources for regions.
  */
@@ -40,27 +39,18 @@ import java.util.List;
 public class RegionResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(RegionResource.class);
-
-    private final Domain m_domain;
-
-    private final RegionItemParser m_regionParser;
-
-    private final RegionRepository m_regionRepository;
-
+    private final Domain domain;
+    private final RegionItemParser regionParser;
+    private final RegionRepository regionRepository;
 
     @Inject
     public RegionResource(final Domain domain,
                           final RegionItemParser regionParser,
                           final RegionRepository regionRepository) {
-
-        m_domain = domain;
-
-        m_regionParser = regionParser;
-
-        m_regionRepository = regionRepository;
-
+        this.domain = domain;
+        this.regionParser = regionParser;
+        this.regionRepository = regionRepository;
     }
-
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -68,31 +58,21 @@ public class RegionResource {
     @ApiOperation(value = "Parses regions from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response addOrUpdateRegions(@ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
-
         LOG.info("/v1/regions/ POST request.");
-
         final Meta meta = new Meta();
-
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-
-        final List<Region> regions = m_regionParser.parseRegionsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
-
+        final List<Region> regions = regionParser.parseRegionsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
         for (final Region region : regions) {
             LOG.info("Region parsed from input: " + region.getCodeValue());
         }
-
         if (!regions.isEmpty()) {
-            m_domain.persistRegions(regions);
-            m_domain.reIndexEverything();
+            domain.persistRegions(regions);
+            domain.reIndexEverything();
         }
-
         meta.setMessage("Regions added or modified: " + regions.size());
         meta.setCode(200);
-
         return Response.ok(responseWrapper).build();
-
     }
-
 
     @DELETE
     @Path("{codeValue}")
@@ -100,26 +80,18 @@ public class RegionResource {
     @ApiOperation(value = "Deletes a single region. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response retireRegion(@ApiParam(value = "Region code.") @PathParam("code") final String codeValue) {
-
         LOG.info("/v1/regions/" + codeValue + " DELETE request.");
-
         final Meta meta = new Meta();
-
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-
-        final Region region = m_regionRepository.findByCodeValue(codeValue);
-
+        final Region region = regionRepository.findByCodeValue(codeValue);
         if (region != null) {
             region.setStatus(Status.RETIRED.toString());
-            m_regionRepository.save(region);
-            m_domain.reIndexEverything();
+            regionRepository.save(region);
+            domain.reIndexEverything();
         }
-
         meta.setMessage("Region marked as RETIRED!");
         meta.setCode(200);
-
         return Response.ok(responseWrapper).build();
-
     }
 
 }

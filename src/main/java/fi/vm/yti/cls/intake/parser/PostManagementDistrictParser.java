@@ -38,11 +38,11 @@ public class PostManagementDistrictParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostManagementDistrictParser.class);
 
-    private final ApiUtils m_apiUtils;
+    private final ApiUtils apiUtils;
 
-    private final ParserUtils m_parserUtils;
+    private final ParserUtils parserUtils;
 
-    private final PostManagementDistrictRepository m_postManagementDistrictRepository;
+    private final PostManagementDistrictRepository postManagementDistrictRepository;
 
 
     @Inject
@@ -50,11 +50,11 @@ public class PostManagementDistrictParser {
                                         final ParserUtils parserUtils,
                                         final PostManagementDistrictRepository postManagementDistrictRepository) {
 
-        m_apiUtils = apiUtils;
+        this.apiUtils = apiUtils;
 
-        m_parserUtils = parserUtils;
+        this.parserUtils = parserUtils;
 
-        m_postManagementDistrictRepository = postManagementDistrictRepository;
+        this.postManagementDistrictRepository = postManagementDistrictRepository;
 
     }
 
@@ -71,7 +71,7 @@ public class PostManagementDistrictParser {
 
         final Map<String, PostManagementDistrict> postManagementDistrictMap = new HashMap<>();
 
-        final Map<String, PostManagementDistrict> existingPostManagementDistrictsMap = m_parserUtils.getPostManagementDistrictsMap();
+        final Map<String, PostManagementDistrict> existingPostManagementDistrictsMap = parserUtils.getPostManagementDistrictsMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                 final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -125,7 +125,7 @@ public class PostManagementDistrictParser {
             String line = null;
             boolean skipFirstLine = true;
 
-            final Map<String, PostManagementDistrict> existingPostManagementDistrictsMap = m_parserUtils.getPostManagementDistrictsMap();
+            final Map<String, PostManagementDistrict> existingPostManagementDistrictsMap = parserUtils.getPostManagementDistrictsMap();
 
             while ((line = in.readLine()) != null) {
                 if (skipFirstLine) {
@@ -164,7 +164,7 @@ public class PostManagementDistrictParser {
 
         PostManagementDistrict postManagementDistrict = existingPostManagementDistrictsMap.get(code);
 
-        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_POSTMANAGEMENTDISTRICTS, code);
+        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_POSTMANAGEMENTDISTRICTS, code);
         final Date timeStamp = new Date(System.currentTimeMillis());
 
         // Update
@@ -225,9 +225,9 @@ public class PostManagementDistrictParser {
      */
     public void ensurePostalCodePostManagementDistrictRelations(final InputStream inputStream) {
 
-        final Map<String, PostalCode> existingPostalCodesMap = m_parserUtils.getPostalCodesMap();
+        final Map<String, PostalCode> existingPostalCodesMap = parserUtils.getPostalCodesMap();
 
-        final Map<String, PostManagementDistrict> existingPostManagementDistrictsMap = m_parserUtils.getPostManagementDistrictsMap();
+        final Map<String, PostManagementDistrict> existingPostManagementDistrictsMap = parserUtils.getPostManagementDistrictsMap();
 
         // PostManagementDistrict and it's list of PostalCodes
         final Map<String, List<PostalCode>> map = new HashMap<>();
@@ -260,7 +260,7 @@ public class PostManagementDistrictParser {
         map.keySet().forEach(postManageMentDistrictCode -> {
             final PostManagementDistrict district = existingPostManagementDistrictsMap.get(postManageMentDistrictCode);
             district.setPostalCodes(map.get(postManageMentDistrictCode));
-            m_postManagementDistrictRepository.save(district);
+            postManagementDistrictRepository.save(district);
         });
 
     }

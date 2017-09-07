@@ -48,7 +48,6 @@ import javax.ws.rs.ApplicationPath;
 public class JerseyConfig extends ResourceConfig {
 
     public JerseyConfig() {
-
         // Generic resources.
         register(VersionResource.class);
         register(SwaggerResource.class);
@@ -67,7 +66,6 @@ public class JerseyConfig extends ResourceConfig {
         register(MagistrateServiceUnitResource.class);
         register(ElectoralDistrictResource.class);
         register(HealthCareDistrictResource.class);
-
     }
 
 }

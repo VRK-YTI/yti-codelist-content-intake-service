@@ -36,18 +36,18 @@ public class RegionItemParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(RegionItemParser.class);
 
-    private final ApiUtils m_apiUtils;
+    private final ApiUtils apiUtils;
 
-    private final ParserUtils m_parserUtils;
+    private final ParserUtils parserUtils;
 
 
     @Inject
     public RegionItemParser(final ApiUtils apiUtils,
                             final ParserUtils parserUtils) {
 
-        m_apiUtils = apiUtils;
+        this.apiUtils = apiUtils;
 
-        m_parserUtils = parserUtils;
+        this.parserUtils = parserUtils;
 
     }
 
@@ -64,7 +64,7 @@ public class RegionItemParser {
 
         final List<Region> regions = new ArrayList<>();
 
-        final Map<String, Region> existingRegionsMap = m_parserUtils.getRegionsMap();
+        final Map<String, Region> existingRegionsMap = parserUtils.getRegionsMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                 final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -106,7 +106,7 @@ public class RegionItemParser {
 
         final Map<String, Region> regionMap = new HashMap<>();
 
-        final Map<String, Region> existingRegionsMap = m_parserUtils.getRegionsMap();
+        final Map<String, Region> existingRegionsMap = parserUtils.getRegionsMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.ISO_8859_1)) {
             final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -152,7 +152,7 @@ public class RegionItemParser {
                                         final String swedishName,
                                         final String englishName) {
 
-        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_REGIONS, code);
+        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_REGIONS, code);
         final Date timeStamp = new Date(System.currentTimeMillis());
 
         Region region = regionsMap.get(code);

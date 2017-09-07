@@ -31,7 +31,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * Class that initializes and possibly refreshes domain data at application startup.
  */
@@ -39,25 +38,15 @@ import java.util.List;
 public class ServiceInitializer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceInitializer.class);
-
     public static final String LOCAL_SWAGGER_DATA_DIR = "/data/cls/cls-intake/swagger/";
-
-    private final GenericDataAccess m_genericDataAccess;
-
-    private final YtjDataAccess m_ytjDataAccess;
-
-    private final PostiDataAccess m_postiDataAccess;
-
-    private final YtiDataAccess m_ytiDataAccess;
-
-    private final Domain m_domain;
-
-    private final ApiUtils m_apiUtils;
-
-    private final PublicApiServiceProperties m_publicApiServiceProperties;
-
-    private final VersionInformation m_versionInformation;
-
+    private final GenericDataAccess genericDataAccess;
+    private final YtjDataAccess ytjDataAccess;
+    private final PostiDataAccess postiDataAccess;
+    private final YtiDataAccess ytiDataAccess;
+    private final Domain domain;
+    private final ApiUtils apiUtils;
+    private final PublicApiServiceProperties publicApiServiceProperties;
+    private final VersionInformation versionInformation;
 
     @Inject
     public ServiceInitializer(final VersionInformation versionInformation,
@@ -68,32 +57,21 @@ public class ServiceInitializer {
                               final PostiDataAccess postiDataAccess,
                               final YtiDataAccess ytiDataAccess,
                               final PublicApiServiceProperties publicApiServiceProperties) {
-
-        m_versionInformation = versionInformation;
-
-        m_domain = domain;
-
-        m_genericDataAccess = genericDataAccess;
-
-        m_apiUtils = apiUtils;
-
-        m_ytjDataAccess = ytjDataAccess;
-
-        m_postiDataAccess = postiDataAccess;
-
-        m_ytiDataAccess = ytiDataAccess;
-
-        m_publicApiServiceProperties = publicApiServiceProperties;
-
+        this.versionInformation = versionInformation;
+        this.domain = domain;
+        this.genericDataAccess = genericDataAccess;
+        this.apiUtils = apiUtils;
+        this.ytjDataAccess = ytjDataAccess;
+        this.postiDataAccess = postiDataAccess;
+        this.ytiDataAccess = ytiDataAccess;
+        this.publicApiServiceProperties = publicApiServiceProperties;
     }
-
 
     /**
      * Initialize the application, load data for services.
      */
     public void initialize(final boolean ytiOnly,
                            final boolean indexOnly) {
-
         updateSwaggerHost();
 
         LOG.info("*** Initializing data. ***");
@@ -101,51 +79,32 @@ public class ServiceInitializer {
         final Stopwatch watch = Stopwatch.createStarted();
 
         if (ytiOnly) {
-
-            m_ytiDataAccess.initializeOrRefresh();
-
+            ytiDataAccess.initializeOrRefresh();
             LOG.info("*** Database population took: " + watch + ". ***");
-
             final Stopwatch indexWatch = Stopwatch.createStarted();
-
-            m_domain.reIndexYti();
-
+            domain.reIndexYti();
             LOG.info("*** Elastic indexing took: " + indexWatch + ". ***");
-
         } else {
             if (!indexOnly) {
-
                 // PostgreSQL persistance
-
-                m_ytjDataAccess.initializeOrRefresh();
-
-                m_genericDataAccess.initializeOrRefresh();
-
-                m_ytiDataAccess.initializeOrRefresh();
-
-                m_postiDataAccess.initializeOrRefresh();
-
+                ytjDataAccess.initializeOrRefresh();
+                genericDataAccess.initializeOrRefresh();
+                ytiDataAccess.initializeOrRefresh();
+                postiDataAccess.initializeOrRefresh();
                 LOG.info("*** Database population took: " + watch + ". ***");
-
             } else {
                 LOG.info("*** Only indexing selected, not populating database. ***");
             }
             final Stopwatch indexWatch = Stopwatch.createStarted();
 
             // ElasticSearch indexing
-
-            m_domain.reIndexEverything();
-
+            domain.reIndexEverything();
             LOG.info("*** Elastic indexing took: " + indexWatch + ". ***");
-
         }
 
         // Timing of initialization.
-
         LOG.info("*** Data initialization complete, took " + watch + ". ***");
-
     }
-
 
     /**
      * Application logo printout to log.
@@ -166,12 +125,10 @@ public class ServiceInitializer {
         LOG.info("/____  >\\___  >__|    \\_/ |__|\\___  >___  >");
         LOG.info("     \\/     \\/                    \\/    \\/ ");
         LOG.info("");
-        LOG.info("                --- Version " + m_versionInformation.getVersion() + " starting up. --- ");
+        LOG.info("                --- Version " + versionInformation.getVersion() + " starting up. --- ");
         LOG.info("");
 
     }
-
-
 
     /**
      * Updates the compile time generated swagger.json with the hostname of the current environment.
@@ -180,7 +137,6 @@ public class ServiceInitializer {
      */
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private void updateSwaggerHost() {
-
         final ObjectMapper mapper = new ObjectMapper();
 
         FileOutputStream fos = null;
@@ -190,10 +146,10 @@ public class ServiceInitializer {
             final InputStream inputStream = FileUtils.loadFileFromClassPath("/swagger/swagger.json");
             final ObjectNode jsonObject = (ObjectNode) mapper.readTree(new InputStreamReader(inputStream, "UTF-8"));
 
-            final String hostname = m_apiUtils.getPublicApiServiceHostname();
+            final String hostname = apiUtils.getPublicApiServiceHostname();
             jsonObject.put("host", hostname);
 
-            final String scheme = m_publicApiServiceProperties.getScheme();
+            final String scheme = publicApiServiceProperties.getScheme();
             final List<String> schemes = new ArrayList<>();
             schemes.add(scheme);
             final ArrayNode schemeArray = mapper.valueToTree(schemes);
@@ -223,7 +179,6 @@ public class ServiceInitializer {
                 }
             }
         }
-
     }
 
 }

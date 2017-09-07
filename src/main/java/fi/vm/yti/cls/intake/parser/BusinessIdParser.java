@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-
 /**
  * Class that handles parsing of business ids from source data.
  */
@@ -28,26 +27,19 @@ import java.util.UUID;
 public class BusinessIdParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(BusinessIdParser.class);
-
-    private final BusinessIdRepository m_businessIdRepository;
-
-    private final ApiUtils m_apiUtils;
-
+    private final BusinessIdRepository businessIdRepository;
+    private final ApiUtils apiUtils;
 
     @Inject
     public BusinessIdParser(final ApiUtils apiUtils,
                             final BusinessIdRepository businessIdRepository) {
-
-        m_apiUtils = apiUtils;
-        m_businessIdRepository = businessIdRepository;
-
+        this.apiUtils = apiUtils;
+        this.businessIdRepository = businessIdRepository;
     }
 
     public List<BusinessId> parseBusinessIdsFromJsonArray(final String source,
                                                           final String data) {
-
         final List<BusinessId> list = new ArrayList<>();
-
         final ObjectMapper mapper = new ObjectMapper();
 
         if (data != null && !data.isEmpty()) {
@@ -75,9 +67,7 @@ public class BusinessIdParser {
                 LOG.error("Parsing businessids failed: " + e.getMessage());
             }
         }
-
         return list;
-
     }
 
     public BusinessId createOrUpdateBusinessId(final String codeValue,
@@ -86,11 +76,10 @@ public class BusinessIdParser {
                                                final String name,
                                                final String companyFrom,
                                                final String detailsUri) {
-
         final Date timeStamp = new Date(System.currentTimeMillis());
-        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_BUSINESSIDS, codeValue);
+        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_BUSINESSIDS, codeValue);
 
-        BusinessId businessId = m_businessIdRepository.findByCodeValue(codeValue);
+        BusinessId businessId = businessIdRepository.findByCodeValue(codeValue);
 
         // Update
         if (businessId != null) {
@@ -122,7 +111,6 @@ public class BusinessIdParser {
             if (hasChanges) {
                 businessId.setModified(timeStamp);
             }
-
         // Create
         } else {
             businessId = new BusinessId();
@@ -136,9 +124,7 @@ public class BusinessIdParser {
             businessId.setUri(url);
             businessId.setDetailsUri(detailsUri);
         }
-
         return businessId;
-
     }
 
 }

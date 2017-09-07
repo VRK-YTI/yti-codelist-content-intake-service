@@ -35,22 +35,15 @@ import java.util.UUID;
 public class CodeParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeParser.class);
-
-    private final ApiUtils m_apiUtils;
-
-    private final ParserUtils m_parserUtils;
-
+    private final ApiUtils apiUtils;
+    private final ParserUtils parserUtils;
 
     @Inject
     public CodeParser(final ApiUtils apiUtils,
                       final ParserUtils parserUtils) {
-
-        m_apiUtils = apiUtils;
-
-        m_parserUtils = parserUtils;
-
+        this.apiUtils = apiUtils;
+        this.parserUtils = parserUtils;
     }
-
 
     /**
      * Parses the .csv Code-file and returns the codes as an arrayList.
@@ -63,47 +56,34 @@ public class CodeParser {
     public List<Code> parseCodesFromClsInputStream(final CodeScheme codeScheme,
                                                    final String source,
                                                    final InputStream inputStream) {
-
         final List<Code> codes = new ArrayList<>();
-
-        final Map<String, CodeScheme> existingCodeSchemesMap = m_parserUtils.getCodeSchemesMap();
+        final Map<String, CodeScheme> existingCodeSchemesMap = parserUtils.getCodeSchemesMap();
 
         if (codeScheme != null) {
-
             try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                  final BufferedReader in = new BufferedReader(inputStreamReader);
                  final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
-
                 FileUtils.skipBom(in);
-
                 final List<CSVRecord> records = csvParser.getRecords();
 
                 records.forEach(record -> {
-
                     if (codeScheme != null) {
-                        final Map<String, Code> existingCodesMap = m_parserUtils.getCodesMap(codeScheme);
-
+                        final Map<String, Code> existingCodesMap = parserUtils.getCodesMap(codeScheme);
                         final String codeValue = Utils.ensureRegionIdPadding(record.get("CODEVALUE"));
                         final String finnishName = record.get("PREFLABEL_FI");
                         final String swedishName = record.get("PREFLABEL_SE");
                         final String englishName = record.get("PREFLABEL_EN");
                         final Status status = Status.valueOf(record.get("STATUS"));
-
                         final Code code = createOrUpdateCode(existingCodeSchemesMap, existingCodesMap, codeScheme, codeValue, status, source, finnishName, swedishName, englishName);
                         codes.add(code);
                     }
                 });
-
             } catch (IOException e) {
                 LOG.error("Parsing regions failed: " + e.getMessage());
             }
-
         }
-
         return codes;
-
     }
-
 
     private Code createOrUpdateCode(final Map<String, CodeScheme> codesSchemesMap,
                                     final Map<String, Code> codesMap,
@@ -114,10 +94,8 @@ public class CodeParser {
                                     final String finnishName,
                                     final String swedishName,
                                     final String englishName) {
-
-        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + "/" + codeScheme.getCodeValue(), codeValue);
+        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + "/" + codeScheme.getCodeValue(), codeValue);
         final Date timeStamp = new Date(System.currentTimeMillis());
-
         Code code = codesMap.get(codeValue);
 
         // Update
@@ -154,7 +132,6 @@ public class CodeParser {
             if (hasChanges) {
                 code.setModified(timeStamp);
             }
-
         // Create
         } else {
             code = new Code();
@@ -169,9 +146,7 @@ public class CodeParser {
             code.setPrefLabel("se", swedishName);
             code.setPrefLabel("en", englishName);
         }
-
         return code;
-
     }
 
 }

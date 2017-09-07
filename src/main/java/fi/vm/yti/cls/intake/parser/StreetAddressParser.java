@@ -38,18 +38,18 @@ public class StreetAddressParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(StreetAddressParser.class);
 
-    private final ApiUtils m_apiUtils;
+    private final ApiUtils apiUtils;
 
-    private final ParserUtils m_parserUtils;
+    private final ParserUtils parserUtils;
 
 
     @Inject
     public StreetAddressParser(final ApiUtils apiUtils,
                                final ParserUtils parserUtils) {
 
-        m_apiUtils = apiUtils;
+        this.apiUtils = apiUtils;
 
-        m_parserUtils = parserUtils;
+        this.parserUtils = parserUtils;
 
     }
 
@@ -72,9 +72,9 @@ public class StreetAddressParser {
 
             String line = null;
 
-            final Map<String, StreetAddress> existingStreetAddressesMap = m_parserUtils.getStreetAddressesMap();
+            final Map<String, StreetAddress> existingStreetAddressesMap = parserUtils.getStreetAddressesMap();
 
-            final Map<String, Municipality> municipalitiesMap = m_parserUtils.getMunicipalitiesMap();
+            final Map<String, Municipality> municipalitiesMap = parserUtils.getMunicipalitiesMap();
 
             final SimpleDateFormat simpleDateFormatter = new SimpleDateFormat("yyyyMMdd");
             simpleDateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -97,7 +97,7 @@ public class StreetAddressParser {
                 if (existingStreetAddress != null) {
 
                     boolean hasChanges = false;
-                    final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_STREETADDRESSES, existingStreetAddress.getId());
+                    final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_STREETADDRESSES, existingStreetAddress.getId());
 
                     if (!Objects.equals(existingStreetAddress.getStatus(), status.toString())) {
                         existingStreetAddress.setStatus(status.toString());
@@ -134,7 +134,7 @@ public class StreetAddressParser {
                     if (!streetAddressesMap.containsKey(municipality.getCodeValue() + finnishName)) {
                         final StreetAddress streetAddress = new StreetAddress();
                         streetAddress.setId(UUID.randomUUID().toString());
-                        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_STREETADDRESSES, streetAddress.getId());
+                        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_STREETADDRESSES, streetAddress.getId());
                         streetAddress.setUri(url);
                         streetAddress.setStatus(status.toString());
                         streetAddress.setSource(source);
@@ -175,9 +175,9 @@ public class StreetAddressParser {
 
             String line = null;
 
-            final Map<String, StreetAddress> existingStreetAddressesMap = m_parserUtils.getStreetAddressesMap();
+            final Map<String, StreetAddress> existingStreetAddressesMap = parserUtils.getStreetAddressesMap();
 
-            final Map<String, PostalCode> postalCodeMap = m_parserUtils.getPostalCodesMap();
+            final Map<String, PostalCode> postalCodeMap = parserUtils.getPostalCodesMap();
 
             final SimpleDateFormat simpleDateFormatter = new SimpleDateFormat("yyyyMMdd");
             simpleDateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -235,7 +235,7 @@ public class StreetAddressParser {
                 if (isEven != null) {
                     streetNumber = new StreetNumber();
                     streetNumber.setId(UUID.randomUUID().toString());
-                    final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_STREETADDRESSES + "/streetnumber", streetNumber.getId());
+                    final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_STREETADDRESSES + "/streetnumber", streetNumber.getId());
                     streetNumber.setStatus(status.toString());
                     streetNumber.setUri(url);
                     streetNumber.setCreated(timeStamp);

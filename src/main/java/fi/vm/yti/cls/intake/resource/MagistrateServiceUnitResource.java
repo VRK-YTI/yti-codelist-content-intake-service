@@ -41,11 +41,11 @@ public class MagistrateServiceUnitResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(MagistrateServiceUnitResource.class);
 
-    private final Domain m_domain;
+    private final Domain domain;
 
-    private final MagistrateServiceUnitParser m_magistrateServiceUnitParser;
+    private final MagistrateServiceUnitParser magistrateServiceUnitParser;
 
-    private final MagistrateServiceUnitRepository m_magistrateServiceUnitRepository;
+    private final MagistrateServiceUnitRepository magistrateServiceUnitRepository;
 
 
     @Inject
@@ -53,11 +53,11 @@ public class MagistrateServiceUnitResource {
                                          final MagistrateServiceUnitParser magistrateServiceUnitParser,
                                          final MagistrateServiceUnitRepository magistrateServiceUnitRepository) {
 
-        m_domain = domain;
+        this.domain = domain;
 
-        m_magistrateServiceUnitParser = magistrateServiceUnitParser;
+        this.magistrateServiceUnitParser = magistrateServiceUnitParser;
 
-        m_magistrateServiceUnitRepository = magistrateServiceUnitRepository;
+        this.magistrateServiceUnitRepository = magistrateServiceUnitRepository;
 
     }
 
@@ -75,15 +75,15 @@ public class MagistrateServiceUnitResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final List<MagistrateServiceUnit> magistrateServiceUnits = m_magistrateServiceUnitParser.parseMagistrateServiceUnitsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
+        final List<MagistrateServiceUnit> magistrateServiceUnits = magistrateServiceUnitParser.parseMagistrateServiceUnitsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
 
         for (final MagistrateServiceUnit magistrateServiceUnit : magistrateServiceUnits) {
             LOG.info("MagistrateServiceUnits parsed from input: " + magistrateServiceUnit.getCodeValue());
         }
 
         if (!magistrateServiceUnits.isEmpty()) {
-            m_domain.persistMagistrateServiceUnits(magistrateServiceUnits);
-            m_domain.reIndexEverything();
+            domain.persistMagistrateServiceUnits(magistrateServiceUnits);
+            domain.reIndexEverything();
         }
 
         meta.setMessage("MagistrateServiceUnits added or modified: " + magistrateServiceUnits.size());
@@ -107,12 +107,12 @@ public class MagistrateServiceUnitResource {
 
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
 
-        final MagistrateServiceUnit magistrateServiceUnit = m_magistrateServiceUnitRepository.findByCodeValue(codeValue);
+        final MagistrateServiceUnit magistrateServiceUnit = magistrateServiceUnitRepository.findByCodeValue(codeValue);
 
         if (magistrateServiceUnit != null) {
             magistrateServiceUnit.setStatus(Status.RETIRED.toString());
-            m_magistrateServiceUnitRepository.save(magistrateServiceUnit);
-            m_domain.reIndexEverything();
+            magistrateServiceUnitRepository.save(magistrateServiceUnit);
+            domain.reIndexEverything();
         }
 
         meta.setMessage("MagistrateServiceUnit marked as RETIRED!");

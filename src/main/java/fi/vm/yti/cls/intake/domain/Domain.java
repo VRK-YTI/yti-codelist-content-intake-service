@@ -54,7 +54,6 @@ public interface Domain {
 
     void persistBusinessIds(final List<BusinessId> businessIds);
 
-
     /**
      * Methods for indexing data to ElasticSearch.
      */

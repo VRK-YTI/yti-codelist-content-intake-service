@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-
 @Repository
 public interface MagistrateServiceUnitRepository extends CrudRepository<MagistrateServiceUnit, String> {
 

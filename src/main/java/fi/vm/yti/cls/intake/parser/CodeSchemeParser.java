@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-
 /**
  * Class that handles parsing of codeschemes from source data.
  */
@@ -35,22 +34,15 @@ import java.util.UUID;
 public class CodeSchemeParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParser.class);
-
-    private final ApiUtils m_apiUtils;
-
-    private final ParserUtils m_parserUtils;
-
+    private final ApiUtils apiUtils;
+    private final ParserUtils parserUtils;
 
     @Inject
     public CodeSchemeParser(final ApiUtils apiUtils,
-                              final ParserUtils parserUtils) {
-
-        m_apiUtils = apiUtils;
-
-        m_parserUtils = parserUtils;
-
+                            final ParserUtils parserUtils) {
+        this.apiUtils = apiUtils;
+        this.parserUtils = parserUtils;
     }
-
 
     /**
      * Parses the .csv CodeScheme-file and returns the codeschemes as an arrayList.
@@ -62,17 +54,13 @@ public class CodeSchemeParser {
     public List<CodeScheme> parseCodeSchemesFromClsInputStream(final CodeRegistry codeRegistry,
                                                                final String source,
                                                                final InputStream inputStream) {
-
         final List<CodeScheme> codeSchemes = new ArrayList<>();
-
-        final Map<String, CodeScheme> existingCodeSchemesMap = m_parserUtils.getCodeSchemesMap();
+        final Map<String, CodeScheme> existingCodeSchemesMap = parserUtils.getCodeSchemesMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                 final BufferedReader in = new BufferedReader(inputStreamReader);
                 final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
-
             FileUtils.skipBom(in);
-
             final List<CSVRecord> records = csvParser.getRecords();
 
             records.forEach(record -> {
@@ -87,15 +75,11 @@ public class CodeSchemeParser {
                 final CodeScheme register = createOrUpdateCodeScheme(existingCodeSchemesMap, codeRegistry, codeValue, nameFinnish, nameSwedish, nameEnglish, version, source, status, type);
                 codeSchemes.add(register);
             });
-
         } catch (IOException e) {
             LOG.error("Parsing codeschemes failed: " + e.getMessage());
         }
-
         return codeSchemes;
-
     }
-
     
     private CodeScheme createOrUpdateCodeScheme(final Map<String, CodeScheme> codeSchemesMap,
                                                 final CodeRegistry codeRegistry,
@@ -107,15 +91,13 @@ public class CodeSchemeParser {
                                                 final String source,
                                                 final Status status,
                                                 final CodeSchemeType type) {
-
         String url = null;
         if (type == CodeSchemeType.CODELIST) {
-            url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue(), codeValue);
+            url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue(), codeValue);
         } else {
-            url = m_apiUtils.createResourceUrl("/" + codeValue, null);
+            url = apiUtils.createResourceUrl("/" + codeValue, null);
         }
         final Date timeStamp = new Date(System.currentTimeMillis());
-
         CodeScheme codeScheme = codeSchemesMap.get(codeValue);
 
         // Update
@@ -160,7 +142,6 @@ public class CodeSchemeParser {
             if (hasChanges) {
                 codeScheme.setModified(timeStamp);
             }
-
         // Create
         } else {
             codeScheme = new CodeScheme();
@@ -177,8 +158,7 @@ public class CodeSchemeParser {
             codeScheme.setStatus(status.toString());
             codeScheme.setType(type.toString());
         }
-
         return codeScheme;
-
     }
+
 }

@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-
 /**
  * Class that provides access to Posti HTTP service for related PostalCode data.
  */
@@ -53,33 +52,19 @@ import java.util.zip.ZipInputStream;
 public class PostiDataAccess implements DataAccess {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostiDataAccess.class);
-
     private static final String POSTI_DATA_LISTING_URL = "http://www.posti.fi/webpcode/";
-
     private static final String LOCAL_POSTI_DATA_DIR = "/data/cls/cls-intake/posti/";
-
     private static final String POSTALCODE_FILE_PREFIX = "PCF_";
-
     private static final String STREETADDRESS_FILE_PREFIX = "BAF_";
-
     private static final String DEFAULT_POSTIDATAFILE_DIR = "/postalcodes";
-
     private static final String DEFAULT_POSTIADDRESSDATAFILE_DIR = "/streetaddresses";
-
     private static final String DEFAULT_POSTIDATAFILE_NAME = "PCF_20170427.dat";
-
     private static final String DEFAULT_POSTISTREETADDRESSDATAFILE_NAME = "BAF_20170610.dat";
-
-    private UpdateManager m_updateManager;
-
-    private Domain m_domain;
-
-    private PostalCodeParser m_postalCodeParser;
-
-    private StreetAddressParser m_streetAddressParser;
-
-    private PostManagementDistrictParser m_postManagementDistrictParser;
-
+    private UpdateManager updateManager;
+    private Domain domain;
+    private PostalCodeParser postalCodeParser;
+    private StreetAddressParser streetAddressParser;
+    private PostManagementDistrictParser postManagementDistrictParser;
 
     @Inject
     public PostiDataAccess(final UpdateManager updateManager,
@@ -87,29 +72,19 @@ public class PostiDataAccess implements DataAccess {
                            final StreetAddressParser streetAddressParser,
                            final PostalCodeParser postalCodeParser,
                            final PostManagementDistrictParser postManagementDistrictParser) {
-
-        m_updateManager = updateManager;
-
-        m_streetAddressParser = streetAddressParser;
-
-        m_postalCodeParser = postalCodeParser;
-
-        m_postManagementDistrictParser = postManagementDistrictParser;
-
-        m_domain = domain;
-
+        this.updateManager = updateManager;
+        this.streetAddressParser = streetAddressParser;
+        this.postalCodeParser = postalCodeParser;
+        this.postManagementDistrictParser = postManagementDistrictParser;
+        this.domain = domain;
     }
-
 
     /**
      * Method that ensures initialization and refreshing of Posti Data.
      */
     public void initializeOrRefresh() {
-
         checkForNewData();
-
     }
-
 
     /**
      * Checks Posti HTTP Service for new data.
@@ -117,51 +92,47 @@ public class PostiDataAccess implements DataAccess {
      * If new Data is found, it is fethched and processed.
      */
     public boolean checkForNewData() {
-
         boolean reIndex = false;
-
         checkForNewFile(POSTALCODE_FILE_PREFIX);
         checkForNewFile(STREETADDRESS_FILE_PREFIX);
-
         final String latestVersion = getLatestPostiDataFileName(POSTALCODE_FILE_PREFIX);
         final String latestStreetDataVersion = getLatestPostiDataFileName(STREETADDRESS_FILE_PREFIX);
 
-        if (m_updateManager.shouldUpdateData(DomainConstants.DATA_POSTALCODES, latestVersion)) {
+        if (updateManager.shouldUpdateData(DomainConstants.DATA_POSTALCODES, latestVersion)) {
             loadPostCodes(getCurrentPostiData());
             reIndex = true;
         } else {
             LOG.info("PostalCodes already up to date, skipping...");
         }
-        if (m_updateManager.shouldUpdateData(DomainConstants.DATA_POSTMANAGEMENTDISTRICTS, latestVersion)) {
+
+        if (updateManager.shouldUpdateData(DomainConstants.DATA_POSTMANAGEMENTDISTRICTS, latestVersion)) {
             loadPostManagementDistricts(getCurrentPostiData());
             reIndex = true;
         } else {
             LOG.info("PostManagementDistricts already up to date, skipping...");
         }
-        if (m_updateManager.shouldUpdateData(DomainConstants.DATA_POSTALCODE_POSTMANAGEMENTDISTRICT_RELATIONS, latestVersion)) {
+
+        if (updateManager.shouldUpdateData(DomainConstants.DATA_POSTALCODE_POSTMANAGEMENTDISTRICT_RELATIONS, latestVersion)) {
             ensurePostalCodePostManagementDistrictRelation(getCurrentPostiData());
             reIndex = true;
         } else {
             LOG.info("PostalCode and PostManagementDistrict relations already up to date, skipping...");
         }
-        if (m_updateManager.shouldUpdateData(DomainConstants.DATA_STREETADDRESSES, latestStreetDataVersion)) {
+
+        if (updateManager.shouldUpdateData(DomainConstants.DATA_STREETADDRESSES, latestStreetDataVersion)) {
             loadStreetAddresses(getCurrentStreetAddressData());
             loadStreetNumbers(getCurrentStreetAddressData());
             reIndex = true;
         } else {
             LOG.info("StreetAddresses already up to date, skipping...");
         }
-
         return reIndex;
-
     }
-
 
     /**
      * Checks Posti HTTP for the latest data file, and downloads it if it does not yet exist locally.
      */
     private void checkForNewFile(final String prefix) {
-
         final String latestFile = getLatestFile(prefix);
 
         if (latestFile != null) {
@@ -180,9 +151,7 @@ public class PostiDataAccess implements DataAccess {
                 }
             }
         }
-
     }
-
 
     /**
      * Resolves the latest Posti Data file and returns it as an InputStream.
@@ -190,9 +159,7 @@ public class PostiDataAccess implements DataAccess {
      * @return The latest Posti Data as an InputStream.
      */
     private InputStream getCurrentPostiData() {
-
         InputStream inputStream = null;
-
         // Try to use latest Posti Data file.
         try {
             final File file = getLatestPostiDataFile(POSTALCODE_FILE_PREFIX);
@@ -202,7 +169,6 @@ public class PostiDataAccess implements DataAccess {
         } catch (FileNotFoundException e) {
             LOG.info("No locally stored Posti files found, the default Postal Code file is latest, using it...");
         }
-
         // Use default posti data file as backup.
         if (inputStream == null) {
             try {
@@ -211,11 +177,8 @@ public class PostiDataAccess implements DataAccess {
                 LOG.error("Default Postal Code file fetching failed: " + e.getMessage());
             }
         }
-
         return inputStream;
-
     }
-
 
     /**
      * Resolves the latest Posti Data file and returns it as an InputStream.
@@ -223,7 +186,6 @@ public class PostiDataAccess implements DataAccess {
      * @return The latest Posti Data as an InputStream.
      */
     private InputStream getCurrentStreetAddressData() {
-
         InputStream inputStream = null;
 
         // Try to use latest Posti Street Address Data file.
@@ -244,11 +206,8 @@ public class PostiDataAccess implements DataAccess {
                 LOG.error("Default Street Address file fetching failed: " + e.getMessage());
             }
         }
-
         return inputStream;
-
     }
-
 
     /**
      * Get the latest HTTP address corresponding to the file prefix from the Posti HTTP Server.
@@ -257,17 +216,12 @@ public class PostiDataAccess implements DataAccess {
      * @return An HTTP URL that matches the prefix, null if no matching file is found.
      */
     private String getLatestFile(final String filePrefix) {
-
         final List<String> list = getZipFileListing(filePrefix);
-
         if (!list.isEmpty()) {
             return list.get(0);
         }
-
         return null;
-
     }
-
 
     /**
      * Download a file from the Posti HTTP Server and store it to disk.
@@ -276,14 +230,10 @@ public class PostiDataAccess implements DataAccess {
      * @return True if downloading is successful, false if it fails.
      */
     private boolean downloadFile(final String file) {
-
         final List<String> files = new ArrayList<>();
         files.add(file);
-
         return storeFilesToDisk(files);
-
     }
-
 
     /**
      * Get file listing from the Posti HTTP server.
@@ -291,13 +241,10 @@ public class PostiDataAccess implements DataAccess {
      * @return List of ZIP-files available from the server.
      */
     private List<String> getZipFileListing(final String prefix) {
-
         final List<String> list = new ArrayList<>();
-
         try {
             final Document doc = Jsoup.connect(POSTI_DATA_LISTING_URL).get();
             final Elements links = doc.select("a[href]");
-
             for (final Element link : links) {
                 final String href = link.attr("href");
                 final String fileName = resolveFileNameFromUrl(href);
@@ -305,15 +252,11 @@ public class PostiDataAccess implements DataAccess {
                     list.add(href);
                 }
             }
-
         } catch (IOException e) {
             LOG.error("Connnecting to Posti HTTP service failed: " + e.getMessage());
         }
-
         return list;
-
     }
-
 
     /**
      * Stores files to disk from an Posti HTTP Service.
@@ -323,18 +266,14 @@ public class PostiDataAccess implements DataAccess {
      */
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private boolean storeFilesToDisk(final List<String> files) {
-
         try {
             Files.createDirectories(Paths.get(LOCAL_POSTI_DATA_DIR));
-
             files.forEach(remoteFile -> {
                 final String localFilePath = LOCAL_POSTI_DATA_DIR + resolveFileNameFromUrl(remoteFile);
                 final File localFile = new File(localFilePath);
-
                 if (!localFile.exists()) {
                     LOG.info("Storing new Posti data file to: " + localFilePath);
                     OutputStream outputStream = null;
-
                     try {
                         outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
                         final InputStream inputStream = new URL(remoteFile).openStream();
@@ -351,23 +290,16 @@ public class PostiDataAccess implements DataAccess {
                     LOG.info("Local file already exists: " + localFilePath + ", no download.");
                 }
             });
-
         } catch (IOException e) {
             LOG.error("Error while storing files: " + e.getMessage());
             return false;
         }
-
         return true;
-
     }
-
 
     private String resolveFileNameFromUrl(final String url) {
-
         return url.substring(url.lastIndexOf('/') + 1);
-
     }
-
 
     /**
      * Unzips the file from the given path to a local folder.
@@ -375,15 +307,10 @@ public class PostiDataAccess implements DataAccess {
      * @param filePath The path of the zip-file.
      */
     private void unzipFile(final Path filePath) throws IOException {
-
         LOG.info("Unzipping file: " + filePath.toString());
-
         ZipEntry zipEntry;
-
         FileInputStream fileInputStream = null;
-
         ZipInputStream zipInputStream = null;
-
         FileOutputStream fileOutputStream = null;
 
         try {
@@ -405,7 +332,6 @@ public class PostiDataAccess implements DataAccess {
                 }
                 fileOutputStream.flush();
             }
-
         } catch (FileNotFoundException e) {
             LOG.error("File " + filePath.toString() + " not found: " + e.getMessage());
         } catch (IOException e) {
@@ -421,9 +347,7 @@ public class PostiDataAccess implements DataAccess {
                 zipInputStream.close();
             }
         }
-
     }
-
 
     /**
      * Returns the latest stored Posti data file name.
@@ -431,21 +355,16 @@ public class PostiDataAccess implements DataAccess {
      * @return Latest Posti data file filename.
      */
     private String getLatestPostiDataFileName(final String prefix) {
-
         final File latestLocalFile = getLatestPostiDataFile(prefix);
-
         if (latestLocalFile != null) {
             return latestLocalFile.getName();
         }
-
         if (prefix.equals(POSTALCODE_FILE_PREFIX)) {
             return DEFAULT_POSTIDATAFILE_NAME;
         } else {
             return DEFAULT_POSTISTREETADDRESSDATAFILE_NAME;
         }
-
     }
-
 
     /**
      * Does a lookup from the filesystem for postalcode DAT files files.
@@ -454,33 +373,24 @@ public class PostiDataAccess implements DataAccess {
      */
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private File getLatestPostiDataFile(final String prefix) {
-
         if (Files.isDirectory(Paths.get(LOCAL_POSTI_DATA_DIR))) {
-
             try {
                 final Iterator<Path> paths = Files.walk(Paths.get(LOCAL_POSTI_DATA_DIR)).sorted(Collections.reverseOrder()).iterator();
-
                 while (paths.hasNext()) {
                     final Path filePath = paths.next();
                     final String fileName = filePath.toFile().getName();
-
                     if (Files.isRegularFile(filePath) && fileName.startsWith(prefix) && fileName.endsWith(".dat")) {
                         return filePath.toFile();
                     }
                 }
-
             } catch (IOException e) {
                 LOG.error("Local file lookup failed: " + e.getMessage());
                 return null;
             }
-
         }
-
         LOG.error("No post code file found from disk, consider using jar embedded data.");
         return null;
-
     }
-
 
     /**
      * Parses and persists Street Addresses from data.
@@ -488,27 +398,19 @@ public class PostiDataAccess implements DataAccess {
      * @param inputStream Posti street address data as InputStream.
      */
     private void loadStreetAddresses(final InputStream inputStream) {
-
         LOG.info("Loading street addresses...");
-
-        final UpdateStatus updateStatus = m_updateManager.createStatus(DomainConstants.DATA_STREETADDRESSES, DomainConstants.SOURCE_POSTI, getLatestPostiDataFileName(STREETADDRESS_FILE_PREFIX), UpdateManager.UPDATE_RUNNING);
-
+        final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_STREETADDRESSES, DomainConstants.SOURCE_POSTI, getLatestPostiDataFileName(STREETADDRESS_FILE_PREFIX), UpdateManager.UPDATE_RUNNING);
         final Stopwatch watch = Stopwatch.createStarted();
-
-        final List<StreetAddress> streetAddresses = m_streetAddressParser.parseStreetAddressesFromInputStream(DomainConstants.SOURCE_POSTI, inputStream);
+        final List<StreetAddress> streetAddresses = streetAddressParser.parseStreetAddressesFromInputStream(DomainConstants.SOURCE_POSTI, inputStream);
         LOG.info("Street Address data loaded: " + streetAddresses.size() + " streetaddresses found in " + watch);
         watch.reset().start();
-
         final List<List<StreetAddress>> chunks = ListUtils.partition(streetAddresses, 10000);
-        chunks.parallelStream().forEach(chunk -> m_domain.persistStreetAddresses(chunk));
-
+        chunks.parallelStream().forEach(chunk -> domain.persistStreetAddresses(chunk));
         LOG.info("StreetAddress data persisted in: " + watch);
-
         if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
-            m_updateManager.updateSuccessStatus(updateStatus);
+            updateManager.updateSuccessStatus(updateStatus);
         }
     }
-
 
     /**
      * Parses, persists and associates Street Numbers from data.
@@ -516,27 +418,19 @@ public class PostiDataAccess implements DataAccess {
      * @param inputStream Posti street address data as InputStream.
      */
     private void loadStreetNumbers(final InputStream inputStream) {
-
         LOG.info("Loading street numbers...");
-
-        final UpdateStatus updateStatus = m_updateManager.createStatus(DomainConstants.DATA_STREETNUMBERS, DomainConstants.SOURCE_POSTI, getLatestPostiDataFileName(STREETADDRESS_FILE_PREFIX), UpdateManager.UPDATE_RUNNING);
-
+        final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_STREETNUMBERS, DomainConstants.SOURCE_POSTI, getLatestPostiDataFileName(STREETADDRESS_FILE_PREFIX), UpdateManager.UPDATE_RUNNING);
         final Stopwatch watch = Stopwatch.createStarted();
-
-        final List<StreetNumber> streetNumbers = m_streetAddressParser.parseStreetNumbersFromInputStream(DomainConstants.SOURCE_POSTI, inputStream);
+        final List<StreetNumber> streetNumbers = streetAddressParser.parseStreetNumbersFromInputStream(DomainConstants.SOURCE_POSTI, inputStream);
         LOG.info("Street Number data loaded: " + streetNumbers.size() + " streetnumbers found in " + watch);
         watch.reset().start();
-
         final List<List<StreetNumber>> chunks = ListUtils.partition(streetNumbers, 10000);
-        chunks.parallelStream().forEach(chunk -> m_domain.persistStreetNumbers(chunk));
-
+        chunks.parallelStream().forEach(chunk -> domain.persistStreetNumbers(chunk));
         LOG.info("StreetAddress data persisted in: " + watch);
-
         if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
-            m_updateManager.updateSuccessStatus(updateStatus);
+            updateManager.updateSuccessStatus(updateStatus);
         }
     }
-
 
     /**
      * Parses and persists Postal Codes from data.
@@ -544,24 +438,19 @@ public class PostiDataAccess implements DataAccess {
      * @param inputStream Posti data as InputStream.
      */
     private void loadPostCodes(final InputStream inputStream) {
-
         LOG.info("Loading postalcodes...");
-
-        final UpdateStatus updateStatus = m_updateManager.createStatus(DomainConstants.DATA_POSTALCODES, DomainConstants.SOURCE_POSTI, getLatestPostiDataFileName(POSTALCODE_FILE_PREFIX), UpdateManager.UPDATE_RUNNING);
-
+        final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_POSTALCODES, DomainConstants.SOURCE_POSTI, getLatestPostiDataFileName(POSTALCODE_FILE_PREFIX), UpdateManager.UPDATE_RUNNING);
         final Stopwatch watch = Stopwatch.createStarted();
-
-        final List<PostalCode> postalCodes = m_postalCodeParser.parsePostalCodesFromInputStream(DomainConstants.SOURCE_POSTI, inputStream);
+        final List<PostalCode> postalCodes = postalCodeParser.parsePostalCodesFromInputStream(DomainConstants.SOURCE_POSTI, inputStream);
         LOG.info("PostalCode data loaded: " + postalCodes.size() + " postalcodes found in " + watch);
         watch.reset().start();
-        m_domain.persistPostalCodes(postalCodes);
+        domain.persistPostalCodes(postalCodes);
         LOG.info("PostalCode data persisted in: " + watch);
 
         if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
-            m_updateManager.updateSuccessStatus(updateStatus);
+            updateManager.updateSuccessStatus(updateStatus);
         }
     }
-
 
     /**
      * Parses and persists PostManagementDistricts from data.
@@ -569,24 +458,19 @@ public class PostiDataAccess implements DataAccess {
      * @param inputStream Posti data as InputStream.
      */
     private void loadPostManagementDistricts(final InputStream inputStream) {
-
         LOG.info("Loading postmanagementdistricts...");
-
-        final UpdateStatus updateStatus = m_updateManager.createStatus(DomainConstants.DATA_POSTMANAGEMENTDISTRICTS, DomainConstants.SOURCE_POSTI, getLatestPostiDataFileName(POSTALCODE_FILE_PREFIX), UpdateManager.UPDATE_RUNNING);
-
+        final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_POSTMANAGEMENTDISTRICTS, DomainConstants.SOURCE_POSTI, getLatestPostiDataFileName(POSTALCODE_FILE_PREFIX), UpdateManager.UPDATE_RUNNING);
         final Stopwatch watch = Stopwatch.createStarted();
-
-        final List<PostManagementDistrict> postManagementDistricts = m_postManagementDistrictParser.parsePostManagementDistrictsFromInputStream(DomainConstants.SOURCE_POSTI, inputStream);
+        final List<PostManagementDistrict> postManagementDistricts = postManagementDistrictParser.parsePostManagementDistrictsFromInputStream(DomainConstants.SOURCE_POSTI, inputStream);
         LOG.info("PostManagementDistrict data loaded: " + postManagementDistricts.size() + " postmanagementdistricts found in " + watch);
         watch.reset().start();
-        m_domain.persistPostManagementDistricts(postManagementDistricts);
+        domain.persistPostManagementDistricts(postManagementDistricts);
         LOG.info("PostManagementDistrict data persisted in " + watch);
 
         if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
-            m_updateManager.updateSuccessStatus(updateStatus);
+            updateManager.updateSuccessStatus(updateStatus);
         }
     }
-
 
     /**
      * Ensures PostalCode and PostManagementDistrict relations.
@@ -594,18 +478,13 @@ public class PostiDataAccess implements DataAccess {
      * @param inputStream Posti data as InputStream.
      */
     private void ensurePostalCodePostManagementDistrictRelation(final InputStream inputStream) {
-
         LOG.info("Resolving PostalCode and PostManagementDistrict relations...");
-
-        final UpdateStatus updateStatus = m_updateManager.createStatus(DomainConstants.DATA_POSTALCODE_POSTMANAGEMENTDISTRICT_RELATIONS, DomainConstants.SOURCE_POSTI, getLatestPostiDataFileName(POSTALCODE_FILE_PREFIX), UpdateManager.UPDATE_RUNNING);
-
+        final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_POSTALCODE_POSTMANAGEMENTDISTRICT_RELATIONS, DomainConstants.SOURCE_POSTI, getLatestPostiDataFileName(POSTALCODE_FILE_PREFIX), UpdateManager.UPDATE_RUNNING);
         final Stopwatch watch = Stopwatch.createStarted();
-
-        m_postManagementDistrictParser.ensurePostalCodePostManagementDistrictRelations(inputStream);
+        postManagementDistrictParser.ensurePostalCodePostManagementDistrictRelations(inputStream);
         LOG.info("PostalCode and PostManagementDistrict relations resolved and stored in " + watch);
-
         if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
-            m_updateManager.updateSuccessStatus(updateStatus);
+            updateManager.updateSuccessStatus(updateStatus);
         }
     }
 

@@ -5,23 +5,20 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 
-
 /**
  * Generic utils for serving API population functionality.
  */
 @Component
 public class ApiUtils {
 
-    private PublicApiServiceProperties m_publicApiServiceProperties;
-
+    private PublicApiServiceProperties publicApiServiceProperties;
 
     @Inject
     public ApiUtils(final PublicApiServiceProperties publicApiServiceProperties) {
 
-        m_publicApiServiceProperties = publicApiServiceProperties;
+        this.publicApiServiceProperties = publicApiServiceProperties;
 
     }
-
 
     /**
      * Creates a resource URL for given resource id with dynamic hostname, port and API context path mapping.
@@ -31,19 +28,18 @@ public class ApiUtils {
      * @return Fully concatenated resource URL that can be used in API responses as a link to the resource.
      */
     public String createResourceUrl(final String apiPath, final String resourceId) {
-
-        final String port = m_publicApiServiceProperties.getPort();
+        final String port = publicApiServiceProperties.getPort();
 
         final StringBuilder builder = new StringBuilder();
 
-        builder.append(m_publicApiServiceProperties.getScheme());
+        builder.append(publicApiServiceProperties.getScheme());
         builder.append("://");
-        builder.append(m_publicApiServiceProperties.getHost());
+        builder.append(publicApiServiceProperties.getHost());
         if (port != null && port.length() > 0) {
             builder.append(":");
             builder.append(port);
         }
-        builder.append(m_publicApiServiceProperties.getContextPath());
+        builder.append(publicApiServiceProperties.getContextPath());
         builder.append(ApiConstants.API_BASE_PATH);
         builder.append("/");
         builder.append(ApiConstants.API_VERSION);
@@ -55,7 +51,6 @@ public class ApiUtils {
         }
 
         return builder.toString();
-
     }
 
 
@@ -65,19 +60,17 @@ public class ApiUtils {
      * @return Returns the Public API Service hostname mapped to the running environment.
      */
     public String getPublicApiServiceHostname() {
-
         final StringBuilder builder = new StringBuilder();
 
-        final String port = m_publicApiServiceProperties.getPort();
+        final String port = publicApiServiceProperties.getPort();
 
-        builder.append(m_publicApiServiceProperties.getHost());
+        builder.append(publicApiServiceProperties.getHost());
         if (port != null && port.length() > 0) {
             builder.append(":");
             builder.append(port);
         }
 
         return builder.toString();
-
     }
 
 }

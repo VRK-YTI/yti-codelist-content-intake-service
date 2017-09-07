@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-
 /**
  * Class that handles parsing of businesservicesubregions from source data.
  */
@@ -35,22 +34,15 @@ import java.util.UUID;
 public class BusinessServiceSubRegionParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(BusinessServiceSubRegionParser.class);
-
-    private final ApiUtils m_apiUtils;
-
-    private final ParserUtils m_parserUtils;
-
+    private final ApiUtils apiUtils;
+    private final ParserUtils parserUtils;
 
     @Inject
     public BusinessServiceSubRegionParser(final ApiUtils apiUtils,
                                           final ParserUtils parserUtils) {
-
-        m_apiUtils = apiUtils;
-
-        m_parserUtils = parserUtils;
-
+        this.apiUtils = apiUtils;
+        this.parserUtils = parserUtils;
     }
-
 
     /**
      * Parses the .xls Excel-file and returns the BusinessServiceSubRegions as an arrayList.
@@ -61,38 +53,29 @@ public class BusinessServiceSubRegionParser {
      */
     public List<BusinessServiceSubRegion> parseBusinessServiceSubRegionsFromInputStream(final String source,
                                                                                         final InputStream inputStream) {
-
         final Map<String, BusinessServiceSubRegion> map = new HashMap<>();
-
         final Workbook workbook;
 
         try {
             workbook = new XSSFWorkbook(inputStream);
             final Sheet memberMunicipalities = workbook.getSheet("Sheet1");
 
-            final Map<String, BusinessServiceSubRegion> existingBusinessServiceSubRegionsMap = m_parserUtils.getBusinessServiceSubRegionsMap();
+            final Map<String, BusinessServiceSubRegion> existingBusinessServiceSubRegionsMap = parserUtils.getBusinessServiceSubRegionsMap();
 
-            final Map<String, Municipality> existingMunicipalitiesMap = m_parserUtils.getMunicipalitiesMap();
+            final Map<String, Municipality> existingMunicipalitiesMap = parserUtils.getMunicipalitiesMap();
 
             for (int i = 2; i < 290; i++) {
-
                 final Row row = memberMunicipalities.getRow(i);
-
                 final Cell codeCell = row.getCell(0);
                 codeCell.setCellType(CellType.STRING);
                 final String code = Utils.ensureBusinessServiceSubRegionIdPadding(codeCell.getStringCellValue());
 
                 if (code != null && !code.isEmpty()) {
-
                     BusinessServiceSubRegion businessServiceSubRegion = null;
-
                     if (!map.containsKey(code)) {
-
                         final String finnishName = row.getCell(2).getStringCellValue().trim();
                         final String swedishName = row.getCell(4).getStringCellValue().trim();
-
                         businessServiceSubRegion = createOrUpdateBusinessServiceSubRegion(existingBusinessServiceSubRegionsMap, code, Status.VALID, source, finnishName, swedishName, null);
-
                         map.put(code, businessServiceSubRegion);
                     } else {
                         businessServiceSubRegion = map.get(code);
@@ -104,9 +87,7 @@ public class BusinessServiceSubRegionParser {
                     final Municipality municipality = existingMunicipalitiesMap.get(municipalityCode);
 
                     if (municipality != null) {
-
                         List<Municipality> municipalities = businessServiceSubRegion.getMunicipalities();
-
                         if (municipalities != null) {
                             boolean skip = false;
                             for (final Municipality munic : municipalities) {
@@ -125,20 +106,15 @@ public class BusinessServiceSubRegionParser {
                     } else {
                         LOG.error("BusinessServiceSubRegionParser municipality not found for code: " + municipalityCode);
                     }
-
                 }
-
             }
-
         } catch (IOException e) {
             LOG.error("Parsing business service subregions failed. " + e.getMessage());
         }
 
         final List<BusinessServiceSubRegion> businessServiceSubRegions = new ArrayList<BusinessServiceSubRegion>(map.values());
         return businessServiceSubRegions;
-
     }
-
 
     private BusinessServiceSubRegion createOrUpdateBusinessServiceSubRegion(final Map<String, BusinessServiceSubRegion> businessServiceSubRegionsMap,
                                                                             final String code,
@@ -148,7 +124,7 @@ public class BusinessServiceSubRegionParser {
                                                                             final String swedishName,
                                                                             final String englishName) {
 
-        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_BUSINESSSERVICESUBREGIONS, code);
+        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_BUSINESSSERVICESUBREGIONS, code);
         final Date timeStamp = new Date(System.currentTimeMillis());
 
         BusinessServiceSubRegion businessServiceSubRegion = businessServiceSubRegionsMap.get(code);
@@ -183,7 +159,6 @@ public class BusinessServiceSubRegionParser {
             if (hasChanges) {
                 businessServiceSubRegion.setModified(timeStamp);
             }
-
         // Create
         } else {
             businessServiceSubRegion = new BusinessServiceSubRegion();
@@ -197,9 +172,7 @@ public class BusinessServiceSubRegionParser {
             businessServiceSubRegion.setPrefLabelSe(swedishName);
             businessServiceSubRegion.setPrefLabelEn(englishName);
         }
-
         return businessServiceSubRegion;
-
     }
 
 }

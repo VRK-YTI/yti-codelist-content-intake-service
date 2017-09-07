@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-
 /**
  * Class that handles parsing of postal codes from source data.
  */
@@ -36,22 +35,15 @@ import java.util.UUID;
 public class PostalCodeParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostalCodeParser.class);
-
-    private final ApiUtils m_apiUtils;
-
-    private final ParserUtils m_parserUtils;
-
+    private final ApiUtils apiUtils;
+    private final ParserUtils parserUtils;
 
     @Inject
     public PostalCodeParser(final ApiUtils apiUtils,
                             final ParserUtils parserUtils) {
-
-        m_apiUtils = apiUtils;
-
-        m_parserUtils = parserUtils;
-
+        this.apiUtils = apiUtils;
+        this.parserUtils = parserUtils;
     }
-
 
     /**
      * Parses the .csv PostalCode-file and returns PostalCodes as an arrayList.
@@ -62,21 +54,15 @@ public class PostalCodeParser {
      */
     public List<PostalCode> parsePostalCodesFromClsInputStream(final String source,
                                                                final InputStream inputStream) {
-
         final List<PostalCode> postalCodes = new ArrayList<>();
-
-        final Map<String, PostalCode> existingPostalCodesMap = m_parserUtils.getPostalCodesMap();
-
-        final Map<String, Municipality> existingMunicipalitiesMap = m_parserUtils.getMunicipalitiesMap();
+        final Map<String, PostalCode> existingPostalCodesMap = parserUtils.getPostalCodesMap();
+        final Map<String, Municipality> existingMunicipalitiesMap = parserUtils.getMunicipalitiesMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                 final BufferedReader in = new BufferedReader(inputStreamReader);
                 final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
-
             FileUtils.skipBom(in);
-
             final List<CSVRecord> records = csvParser.getRecords();
-
             records.forEach(record -> {
                 final String code = Utils.ensurePostalCodeIdPadding(record.get("CODEVALUE"));
                 final String finnishName = record.get("PREFLABEL_FI");
@@ -89,20 +75,15 @@ public class PostalCodeParser {
                 final Integer typeCode = Integer.parseInt(record.get("TYPE"));
                 final String type = PostOfficeType.valueOf(typeCode - 1).getName();
                 final String municipalityCode = Utils.ensureMunicipalityIdPadding(record.get("REF_MUNICIPALITY"));
-
                 final PostalCode postalCode = createOrUpdatePostalCode(existingPostalCodesMap, existingMunicipalitiesMap, code, status, source, finnishName, swedishName, englishName, finnishAbbr, swedishAbbr, englishAbbr, type, municipalityCode);
-
                 postalCodes.add(postalCode);
-
             });
-
         } catch (IOException e) {
             LOG.error("Parsing postalcodes failed: " + e.getMessage());
         }
 
         return postalCodes;
     }
-
 
     /**
      * Parses the .DAT PostalCode-file and returns the PostalCodes as an arrayList.
@@ -113,22 +94,14 @@ public class PostalCodeParser {
      */
     public List<PostalCode> parsePostalCodesFromInputStream(final String source,
                                                             final InputStream inputStream) {
-
         final List<PostalCode> postalCodes = new ArrayList<>();
-
-        final Map<String, PostalCode> existingPostalCodesMap = m_parserUtils.getPostalCodesMap();
-
-        final Map<String, Municipality> existingMunicipalitiesMap = m_parserUtils.getMunicipalitiesMap();
+        final Map<String, PostalCode> existingPostalCodesMap = parserUtils.getPostalCodesMap();
+        final Map<String, Municipality> existingMunicipalitiesMap = parserUtils.getMunicipalitiesMap();
 
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.ISO_8859_1)) {
             final BufferedReader in = new BufferedReader(inputStreamReader);
             FileUtils.skipBom(in);
-
             String line = null;
-
-//            final SimpleDateFormat simpleDateFormatter = new SimpleDateFormat("yyyyMMdd");
-//            simpleDateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-
             while ((line = in.readLine()) != null) {
                 final String code = Utils.ensurePostalCodeIdPadding(line.substring(13, 18).trim());
                 final String finnishName = line.substring(18, 48).trim();
@@ -137,36 +110,15 @@ public class PostalCodeParser {
                 final String swedishAbbr = line.substring(90, 102).trim();
                 final Integer typeCode = Integer.parseInt(line.substring(110, 111).trim());
                 final String type = PostOfficeType.valueOf(typeCode - 1).getName();
-//                final String runDateString = line.substring(5, 13).trim();
-//                Date runDate = null;
-//                try {
-//                    runDate = simpleDateFormatter.parse(runDateString);
-//                } catch (ParseException e) {
-//                    LOG.error("Run date format parsing failed from: " + runDateString + ", message: " + e.getMessage());
-//                }
-//                final String validDateString = line.substring(102, 110).trim();
-//                Date validDate = null;
-//                try {
-//                    validDate = simpleDateFormatter.parse(validDateString);
-//                } catch (ParseException e) {
-//                    LOG.error("Valid date format parsing failed from: " + validDateString + ", message: " + e.getMessage());
-//                }
                 final String municipalityCode = Utils.ensureMunicipalityIdPadding(line.substring(176, 179).trim());
-
                 final PostalCode postalCode = createOrUpdatePostalCode(existingPostalCodesMap, existingMunicipalitiesMap, code, Status.VALID, source, finnishName, swedishName, null, finnishAbbr, swedishAbbr, null, type, municipalityCode);
-
                 postalCodes.add(postalCode);
-
             }
-
         } catch (IOException e) {
             LOG.error("Parsing postalcodes failed: " + e.getMessage());
         }
-
         return postalCodes;
-
     }
-
 
     private PostalCode createOrUpdatePostalCode(final Map<String, PostalCode> existingPostalCodesMap,
                                                 final Map<String, Municipality> existingMunicipalitiesMap,
@@ -181,16 +133,12 @@ public class PostalCodeParser {
                                                 final String englishAbbr,
                                                 final String type,
                                                 final String municipalityCode) {
-
         final Date timeStamp = new Date(System.currentTimeMillis());
-
-        final String url = m_apiUtils.createResourceUrl(ApiConstants.API_PATH_POSTALCODES, code);
-
+        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_POSTALCODES, code);
         Municipality municipality = null;
         if (municipalityCode != null && !municipalityCode.isEmpty()) {
             municipality = existingMunicipalitiesMap.get(municipalityCode);
         }
-
         PostalCode postalCode = existingPostalCodesMap.get(code);
 
         // Update
@@ -234,32 +182,18 @@ public class PostalCodeParser {
                 postalCode.setNameAbbrEnglish(englishAbbr);
                 hasChanges = true;
             }
-//            if (!postalCode.getTypeCode().equals(typeCode)) {
-//                postalCode.setTypeCode(typeCode);
-//                hasChanges = true;
-//            }
             if (!Objects.equals(postalCode.getTypeName(), type)) {
                 postalCode.setTypeName(type);
                 hasChanges = true;
             }
-//            if (postalCode.getRunDate() != runDate) {
-//                postalCode.setRunDate(runDate);
-//                hasChanges = true;
-//            }
-//            if (postalCode.getValidDate() != validDate) {
-//                postalCode.setValidDate(validDate);
-//                hasChanges = true;
-//            }
             if (postalCode.getMunicipality() != municipality) {
                 postalCode.setMunicipality(municipality);
                 hasChanges = true;
             }
-
             if (hasChanges) {
                 postalCode.setModified(timeStamp);
             }
-
-            // Create
+        // Create
         } else {
             postalCode = new PostalCode();
             postalCode.setId(UUID.randomUUID().toString());
@@ -274,15 +208,10 @@ public class PostalCodeParser {
             postalCode.setNameAbbrFinnish(finnishAbbr);
             postalCode.setNameAbbrSwedish(swedishAbbr);
             postalCode.setNameAbbrEnglish(englishAbbr);
-//            postalCode.setTypeCode(typeCode);
             postalCode.setTypeName(type);
-//            postalCode.setRunDate(runDate);
-//            postalCode.setValidDate(validDate);
             postalCode.setMunicipality(municipality);
         }
-
         return postalCode;
-
     }
 
 }
