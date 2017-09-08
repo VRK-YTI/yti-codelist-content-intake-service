@@ -4,6 +4,7 @@ import com.google.common.base.Stopwatch;
 import fi.vm.yti.cls.common.model.Code;
 import fi.vm.yti.cls.common.model.CodeRegistry;
 import fi.vm.yti.cls.common.model.CodeScheme;
+import fi.vm.yti.cls.common.model.UpdateStatus;
 import fi.vm.yti.cls.intake.domain.Domain;
 import fi.vm.yti.cls.intake.domain.DomainConstants;
 import fi.vm.yti.cls.intake.jpa.CodeRegistryRepository;
@@ -23,6 +24,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import static fi.vm.yti.cls.intake.domain.DomainConstants.SOURCE_INTERNAL;
+import static fi.vm.yti.cls.intake.update.UpdateManager.UPDATE_RUNNING;
 
 /**
  * Implementing class for DataAccess interface.
@@ -80,14 +82,19 @@ public class YtiDataAccess implements DataAccess {
         LOG.info("Loading default coderegistries...");
         final Stopwatch watch = Stopwatch.createStarted();
         if (updateManager.shouldUpdateData(DomainConstants.DATA_CODEREGISTRIES, DEFAULT_CODEREGISTRY_FILENAME)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_CODEREGISTRIES, DomainConstants.SOURCE_INTERNAL, DEFAULT_CODEREGISTRY_FILENAME, UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/coderegistries/" + DEFAULT_CODEREGISTRY_FILENAME);) {
                 final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromClsInputStream(SOURCE_INTERNAL, inputStream);
                 LOG.info("CodeRegistry data loaded: " + codeRegistries.size() + " coderegistries in " + watch);
                 watch.reset().start();
                 domain.persistCodeRegistries(codeRegistries);
                 LOG.info("CodeRegistry data persisted in: " + watch);
+                if (updateStatus.getStatus().equals(UPDATE_RUNNING)) {
+                    updateManager.updateSuccessStatus(updateStatus);
+                }
             } catch (IOException e) {
                 LOG.error("Issue with parsing CodeRegistry file. Message: " + e.getMessage());
+                updateManager.updateFailedStatus(updateStatus);
             }
         } else {
             LOG.info("CodeRegistries already up to date, skipping...");
@@ -98,6 +105,7 @@ public class YtiDataAccess implements DataAccess {
         LOG.info("Loading default codeschemes...");
         final Stopwatch watch = Stopwatch.createStarted();
         if (updateManager.shouldUpdateData(DomainConstants.DATA_CODESCHEMES, DEFAULT_CODESCHEME_FILENAME)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_CODESCHEMES, DomainConstants.SOURCE_INTERNAL, DEFAULT_CODESCHEME_FILENAME, UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/codeschemes/" + DEFAULT_CODESCHEME_FILENAME);) {
                 final CodeRegistry defaultCodeRegistry = codeRegistryRepository.findByCodeValue(DEFAULT_CODEREGISTRY_NAME);
                 if (defaultCodeRegistry != null) {
@@ -106,9 +114,13 @@ public class YtiDataAccess implements DataAccess {
                     watch.reset().start();
                     domain.persistCodeSchemes(codeSchemes);
                     LOG.info("CodeScheme data persisted in: " + watch);
+                    if (updateStatus.getStatus().equals(UPDATE_RUNNING)) {
+                        updateManager.updateSuccessStatus(updateStatus);
+                    }
                 }
             } catch (IOException e) {
                 LOG.error("Issue with parsing CodeScheme file. Message: " + e.getMessage());
+                updateManager.updateFailedStatus(updateStatus);
             }
         } else {
             LOG.info("CodeSchemes already up to date, skipping...");
@@ -119,6 +131,7 @@ public class YtiDataAccess implements DataAccess {
         LOG.info("Loading default codes...");
         final Stopwatch watch = Stopwatch.createStarted();
         if (updateManager.shouldUpdateData(DomainConstants.DATA_CODES, DEFAULT_CODE_FILENAME)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_CODESCHEMES, DomainConstants.SOURCE_INTERNAL, DEFAULT_CODESCHEME_FILENAME, UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/codes/" + DEFAULT_CODE_FILENAME);) {
                 final CodeRegistry defaultCodeRegistry = codeRegistryRepository.findByCodeValue(DEFAULT_CODEREGISTRY_NAME);
                 if (defaultCodeRegistry != null) {
@@ -129,14 +142,20 @@ public class YtiDataAccess implements DataAccess {
                         watch.reset().start();
                         domain.persistCodes(codes);
                         LOG.info("Code data persisted in: " + watch);
+                        if (updateStatus.getStatus().equals(UPDATE_RUNNING)) {
+                            updateManager.updateSuccessStatus(updateStatus);
+                        }
                     } else {
                         LOG.error("Loading default test scheme with name: " + DEFAULT_CODESCHEME_NAME + " failed!");
+                        updateManager.updateFailedStatus(updateStatus);
                     }
                 } else {
                     LOG.error("Loading default test registry with name: " + DEFAULT_CODEREGISTRY_NAME + " failed!");
+                    updateManager.updateFailedStatus(updateStatus);
                 }
             } catch (IOException e) {
                 LOG.error("Issue with parsing Code file. Message: " + e.getMessage());
+                updateManager.updateFailedStatus(updateStatus);
             }
         } else {
             LOG.info("Code already up to date, skipping...");

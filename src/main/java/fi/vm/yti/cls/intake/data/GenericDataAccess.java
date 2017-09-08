@@ -96,7 +96,6 @@ public class GenericDataAccess implements DataAccess {
      */
     private void loadDefaultMunicipalities() {
         LOG.info("Loading municipalities...");
-
         if (updateManager.shouldUpdateData(DomainConstants.DATA_MUNICIPALITIES, DEFAULT_MUNICIPALITY_FILENAME)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_MUNICIPALITIES, DomainConstants.SOURCE_AVOINDATA, DEFAULT_MUNICIPALITY_FILENAME, UPDATE_RUNNING);
             final Stopwatch watch = Stopwatch.createStarted();
@@ -132,7 +131,6 @@ public class GenericDataAccess implements DataAccess {
                 watch.reset().start();
                 domain.persistMagistrates(magistrates);
                 LOG.info("Magistrate data persisted in: " + watch);
-
                 if (updateStatus.getStatus().equals(UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
@@ -160,7 +158,6 @@ public class GenericDataAccess implements DataAccess {
                 watch.reset().start();
                 domain.persistRegions(regions);
                 LOG.info("Region data persisted in " + watch);
-
                 if (updateStatus.getStatus().equals(UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
@@ -181,14 +178,12 @@ public class GenericDataAccess implements DataAccess {
         if (updateManager.shouldUpdateData(DomainConstants.DATA_ELECTORALDISTRICTS, DEFAULT_MUNICIPALITY_FILENAME)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_ELECTORALDISTRICTS, DomainConstants.SOURCE_AVOINDATA, DEFAULT_MUNICIPALITY_FILENAME, UPDATE_RUNNING);
             final Stopwatch watch = Stopwatch.createStarted();
-
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/municipalities/" + DEFAULT_MUNICIPALITY_FILENAME)) {
                 final List<ElectoralDistrict> electoralDistricts = electoralDistrictParser.parseElectoralDistrictsFromInputStream(DomainConstants.SOURCE_AVOINDATA, inputStream);
                 LOG.info("ElectoralDistrict data loaded: " + electoralDistricts.size() + " electoraldistricts found in " + watch);
                 watch.reset().start();
                 domain.persistElectoralDistricts(electoralDistricts);
                 LOG.info("ElectoralDistrict persisted in " + watch);
-
                 if (updateStatus.getStatus().equals(UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
@@ -209,14 +204,12 @@ public class GenericDataAccess implements DataAccess {
         if (updateManager.shouldUpdateData(DomainConstants.DATA_MAGISTRATESERVICEUNITS, DEFAULT_MUNICIPALITY_FILENAME)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_MAGISTRATESERVICEUNITS, DomainConstants.SOURCE_AVOINDATA, DEFAULT_MUNICIPALITY_FILENAME, UPDATE_RUNNING);
             final Stopwatch watch = Stopwatch.createStarted();
-
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/municipalities/" + DEFAULT_MUNICIPALITY_FILENAME)) {
                 final List<MagistrateServiceUnit> magistrateServiceUnits = magistrateServiceUnitParser.parseMagistrateServiceUnitsFromInputStream(DomainConstants.SOURCE_AVOINDATA, inputStream);
                 LOG.info("MagistrateServiceUnit data loaded: " + magistrateServiceUnits.size() + " magistrateserviceunits found in " + watch);
                 watch.reset().start();
                 domain.persistMagistrateServiceUnits(magistrateServiceUnits);
                 LOG.info("MagistrateServiceUnit data persisted in " + watch);
-
                 if (updateStatus.getStatus().equals(UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
@@ -235,11 +228,9 @@ public class GenericDataAccess implements DataAccess {
     private void loadDefaultHealthCareDistricts() {
         LOG.info("Loading healthcaredistricts...");
         final String versionString = DEFAULT_HEALTHCAREDISTRICT_FILENAME + "_" + DEFAULT_HEALTHCAREDISTRICTNAME_FILENAME;
-
         if (updateManager.shouldUpdateData(DomainConstants.DATA_HEALTHCAREDISTRICTS, versionString)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_HEALTHCAREDISTRICTS, DomainConstants.SOURCE_KUNNAT_NET, versionString, UPDATE_RUNNING);
             final Stopwatch watch = Stopwatch.createStarted();
-
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/healthcaredistricts/" + DEFAULT_HEALTHCAREDISTRICT_FILENAME)) {
                 final List<HealthCareDistrict> healthCareDistricts = healthCareDistrictParser.parseHealthCareDistrictsFromExcelInputStream(DomainConstants.SOURCE_KUNNAT_NET, inputStream);
                 LOG.info("HealthCareDistrict data loaded: " + healthCareDistricts.size() + " healthcaredistricts found in " + watch);
@@ -247,7 +238,6 @@ public class GenericDataAccess implements DataAccess {
                 domain.persistHealthCareDistricts(healthCareDistricts);
                 LOG.info("HealthCareDistrict persisted in " + watch);
                 ensureDefaultHealthCareDistrictsNames();
-
                 if (updateStatus.getStatus().equals(UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
@@ -265,10 +255,8 @@ public class GenericDataAccess implements DataAccess {
      */
     private void ensureDefaultHealthCareDistrictsNames() {
         LOG.info("Updating healthcaredistrict names...");
-
         try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/healthcaredistricts/" + DEFAULT_HEALTHCAREDISTRICTNAME_FILENAME)) {
             final Stopwatch watch = Stopwatch.createStarted();
-
             final List<HealthCareDistrict> healthCareDistricts = healthCareDistrictParser.parseHealthCareDistrictNamesFromInputStream(DomainConstants.SOURCE_THL_CODESERVICE, inputStream);
             if (!healthCareDistricts.isEmpty()) {
                 LOG.info("HealthCareDistrict names updated for: " + healthCareDistricts.size() + " healthcaredistricts in " + watch);
@@ -291,14 +279,12 @@ public class GenericDataAccess implements DataAccess {
         if (updateManager.shouldUpdateData(DomainConstants.DATA_BUSINESSSERVICESUBREGIONS, DEFAULT_BUSINESSSERVICESUBREGION_FILENAME)) {
             final Stopwatch watch = Stopwatch.createStarted();
             final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_BUSINESSSERVICESUBREGIONS, DomainConstants.SOURCE_ELY_KESKUS, DEFAULT_BUSINESSSERVICESUBREGION_FILENAME, UPDATE_RUNNING);
-
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/businessservicesubregions/" + DEFAULT_BUSINESSSERVICESUBREGION_FILENAME)) {
                 final List<BusinessServiceSubRegion> businessServiceSubRegions = businessServiceSubRegionParser.parseBusinessServiceSubRegionsFromInputStream(DomainConstants.SOURCE_ELY_KESKUS, inputStream);
                 LOG.info("BusinessServiceSubRegion data loaded: " + businessServiceSubRegions.size() + " businessservicesubregions found in " + watch);
                 watch.reset().start();
                 domain.persistBusinessServiceSubRegions(businessServiceSubRegions);
                 LOG.info("BusinessServiceSubRegion data persisted in " + watch);
-
                 if (updateStatus.getStatus().equals(UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
