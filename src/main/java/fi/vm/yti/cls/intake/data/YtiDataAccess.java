@@ -79,7 +79,6 @@ public class YtiDataAccess implements DataAccess {
     private void loadDefaultCodeRegistries() {
         LOG.info("Loading default coderegistries...");
         final Stopwatch watch = Stopwatch.createStarted();
-
         if (updateManager.shouldUpdateData(DomainConstants.DATA_CODEREGISTRIES, DEFAULT_CODEREGISTRY_FILENAME)) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/coderegistries/" + DEFAULT_CODEREGISTRY_FILENAME);) {
                 final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromClsInputStream(SOURCE_INTERNAL, inputStream);
@@ -98,7 +97,6 @@ public class YtiDataAccess implements DataAccess {
     private void loadDefaultCodeSchemes() {
         LOG.info("Loading default codeschemes...");
         final Stopwatch watch = Stopwatch.createStarted();
-
         if (updateManager.shouldUpdateData(DomainConstants.DATA_CODESCHEMES, DEFAULT_CODESCHEME_FILENAME)) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/codeschemes/" + DEFAULT_CODESCHEME_FILENAME);) {
                 final CodeRegistry defaultCodeRegistry = codeRegistryRepository.findByCodeValue(DEFAULT_CODEREGISTRY_NAME);
@@ -120,7 +118,6 @@ public class YtiDataAccess implements DataAccess {
     private void loadDefaultCodes() {
         LOG.info("Loading default codes...");
         final Stopwatch watch = Stopwatch.createStarted();
-
         if (updateManager.shouldUpdateData(DomainConstants.DATA_CODES, DEFAULT_CODE_FILENAME)) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/codes/" + DEFAULT_CODE_FILENAME);) {
                 final CodeRegistry defaultCodeRegistry = codeRegistryRepository.findByCodeValue(DEFAULT_CODEREGISTRY_NAME);
@@ -132,7 +129,11 @@ public class YtiDataAccess implements DataAccess {
                         watch.reset().start();
                         domain.persistCodes(codes);
                         LOG.info("Code data persisted in: " + watch);
+                    } else {
+                        LOG.error("Loading default test scheme with name: " + DEFAULT_CODESCHEME_NAME + " failed!");
                     }
+                } else {
+                    LOG.error("Loading default test registry with name: " + DEFAULT_CODEREGISTRY_NAME + " failed!");
                 }
             } catch (IOException e) {
                 LOG.error("Issue with parsing Code file. Message: " + e.getMessage());

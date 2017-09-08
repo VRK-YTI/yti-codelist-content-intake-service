@@ -43,11 +43,6 @@ public class GenericDataAccess implements DataAccess {
     private static final String DEFAULT_HEALTHCAREDISTRICT_FILENAME = "Shp_jäsenkunnat_2017-modified.xls";
     private static final String DEFAULT_HEALTHCAREDISTRICTNAME_FILENAME = "2017-06-16-healthcaredistrict-names.txt";
     private static final String DEFAULT_BUSINESSSERVICESUBREGION_FILENAME = "seudut_ja_kunnat.xlsx";
-    private static final String DEFAULT_CODESCHEME_FILENAME = "v1_codeschemes.csv";
-    private static final String DEFAULT_CODEREGISTRY_FILENAME = "v1_coderegistries.csv";
-    private static final String DEFAULT_CODE_FILENAME = "v1_codes.csv";
-    private static final String DEFAULT_CODEREGISTRY_NAME = "testregistry";
-    private static final String DEFAULT_CODESCHEME_NAME = "testscheme";
 
     private final Domain domain;
     private final UpdateManager updateManager;

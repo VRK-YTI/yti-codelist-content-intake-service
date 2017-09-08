@@ -55,6 +55,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -824,7 +825,7 @@ public class DomainImpl implements Domain {
             final CodeScheme codeScheme = code.getCodeScheme();
             final String codeSchemeCodeValue = codeScheme.getCodeValue();
             final String codeRegistryCodeValue = codeScheme.getCodeRegistry().getCodeValue();
-            createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODES, codeRegistryCodeValue + codeSchemeCodeValue);
+            createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODES, DomainConstants.ELASTIC_TYPE_CODE);
             reIndexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
         });
     }

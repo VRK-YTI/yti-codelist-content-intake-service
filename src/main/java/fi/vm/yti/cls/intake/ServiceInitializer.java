@@ -73,11 +73,8 @@ public class ServiceInitializer {
     public void initialize(final boolean ytiOnly,
                            final boolean indexOnly) {
         updateSwaggerHost();
-
         LOG.info("*** Initializing data. ***");
-
         final Stopwatch watch = Stopwatch.createStarted();
-
         if (ytiOnly) {
             ytiDataAccess.initializeOrRefresh();
             LOG.info("*** Database population took: " + watch + ". ***");
@@ -96,12 +93,10 @@ public class ServiceInitializer {
                 LOG.info("*** Only indexing selected, not populating database. ***");
             }
             final Stopwatch indexWatch = Stopwatch.createStarted();
-
             // ElasticSearch indexing
             domain.reIndexEverything();
             LOG.info("*** Elastic indexing took: " + indexWatch + ". ***");
         }
-
         // Timing of initialization.
         LOG.info("*** Data initialization complete, took " + watch + ". ***");
     }
@@ -110,7 +105,6 @@ public class ServiceInitializer {
      * Application logo printout to log.
      */
     public void printLogo() {
-
         LOG.info("");
         LOG.info("       .__                     .__        __          __           ");
         LOG.info("  ____ |  |   ______           |__| _____/  |______  |  | __ ____  ");
@@ -127,7 +121,6 @@ public class ServiceInitializer {
         LOG.info("");
         LOG.info("                --- Version " + versionInformation.getVersion() + " starting up. --- ");
         LOG.info("");
-
     }
 
     /**
@@ -138,11 +131,8 @@ public class ServiceInitializer {
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private void updateSwaggerHost() {
         final ObjectMapper mapper = new ObjectMapper();
-
         FileOutputStream fos = null;
-
         try {
-
             final InputStream inputStream = FileUtils.loadFileFromClassPath("/swagger/swagger.json");
             final ObjectNode jsonObject = (ObjectNode) mapper.readTree(new InputStreamReader(inputStream, "UTF-8"));
 
@@ -166,10 +156,8 @@ public class ServiceInitializer {
             mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
             fos.write(mapper.writeValueAsString(jsonObject).getBytes(StandardCharsets.UTF_8));
             fos.close();
-
         } catch (IOException e) {
             LOG.error("Swagger JSON parsing failed: " + e.getMessage());
-
         } finally {
             if (fos != null) {
                 try {

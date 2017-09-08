@@ -18,7 +18,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class ContentIntakeServiceApplication {
 
     private static final Logger LOG = LoggerFactory.getLogger(ContentIntakeServiceApplication.class);
-    public static final String APP_VERSION = ContentIntakeServiceApplication.class.getPackage().getImplementationVersion();
     private static boolean INITIALIZE_ON_STARTUP = true;
     private static boolean ONLY_INDEX = false;
     private static boolean YTI_ONLY = true;

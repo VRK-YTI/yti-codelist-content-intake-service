@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
@@ -93,6 +94,7 @@ public class CodeRegistryResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses coderegistries from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
+    @Transactional
     public Response addOrUpdateCodeRegistries(@ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
 
         LOG.info("/v1/coderegistries/ POST request.");
@@ -126,6 +128,7 @@ public class CodeRegistryResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses codes from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
+    @Transactional
     public Response addOrUpdateCodeSchemes(@ApiParam(value = "CodeRegistry codeValue") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                            @ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
 
@@ -169,6 +172,7 @@ public class CodeRegistryResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses codes from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
+    @Transactional
     public Response addOrUpdateCodes(@ApiParam(value = "CodeRegistry codeValue") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue") @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                      @ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
@@ -222,6 +226,7 @@ public class CodeRegistryResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single code. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
+    @Transactional
     public Response retireCode(@ApiParam(value = "CodeRegistry codeValue.") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                @ApiParam(value = "CodeScheme codeValue.") @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                @ApiParam(value = "Code codeValue.") @PathParam("codeCodeValue") final String codeCodeValue) {
