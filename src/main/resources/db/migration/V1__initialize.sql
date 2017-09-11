@@ -65,7 +65,7 @@ CREATE TABLE code (
   uri character varying(2048) NULL,
   description character varying(4096) NULL,
   definition character varying(4096) NULL,
-  shortName character varying(1024) NULL,
+  shortname character varying(1024) NULL,
   source character varying(255) NULL,
   startdate timestamp without time zone NULL,
   enddate timestamp without time zone NULL,
