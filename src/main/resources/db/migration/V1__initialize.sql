@@ -10,7 +10,7 @@ CREATE TABLE coderegistry (
   status character varying(255) NULL,
   uri character varying(2048) NULL,
   definition character varying(4096) NULL,
-  source character varying(255) NULL,
+  source character varying(255) NOT NULL,
   startdate timestamp without time zone NULL,
   enddate timestamp without time zone NULL,
   created timestamp without time zone NULL,
@@ -21,7 +21,7 @@ CREATE TABLE coderegistry (
 CREATE TABLE coderegistry_preflabel (
   coderegistry_id character varying(255) NOT NULL,
   language character varying(255) NOT NULL,
-  preflabel character varying(255) NOT NULL,
+  preflabel character varying(2048) NOT NULL,
   CONSTRAINT fk_coderegistry_preflabel FOREIGN KEY (coderegistry_id) REFERENCES coderegistry (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
@@ -38,7 +38,7 @@ CREATE TABLE codescheme (
   description character varying(4096) NULL,
   definition character varying(4096) NULL,
   changenote character varying(4096) NULL,
-  source character varying(255) NULL,
+  source character varying(255) NOT NULL,
   startdate timestamp without time zone NULL,
   enddate timestamp without time zone NULL,
   created timestamp without time zone NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE codescheme (
 CREATE TABLE codescheme_preflabel (
   codescheme_id character varying(255) NOT NULL,
   language character varying(255) NOT NULL,
-  preflabel character varying(255) NOT NULL,
+  preflabel character varying(2048) NOT NULL,
   CONSTRAINT fk_codescheme_preflabel FOREIGN KEY (codescheme_id) REFERENCES codescheme (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
@@ -65,6 +65,7 @@ CREATE TABLE code (
   uri character varying(2048) NULL,
   description character varying(4096) NULL,
   definition character varying(4096) NULL,
+  shortName character varying(1024) NULL,
   source character varying(255) NULL,
   startdate timestamp without time zone NULL,
   enddate timestamp without time zone NULL,
@@ -78,7 +79,7 @@ CREATE TABLE code (
 CREATE TABLE code_preflabel (
   code_id character varying(255) NOT NULL,
   language character varying(255) NOT NULL,
-  preflabel character varying(255) NOT NULL,
+  preflabel character varying(2048) NOT NULL,
   CONSTRAINT fk_code_preflabel FOREIGN KEY (code_id) REFERENCES code (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 

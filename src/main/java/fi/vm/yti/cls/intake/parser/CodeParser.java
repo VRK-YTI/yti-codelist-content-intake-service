@@ -73,8 +73,11 @@ public class CodeParser {
                         final String finnishName = record.get("PREFLABEL_FI");
                         final String swedishName = record.get("PREFLABEL_SE");
                         final String englishName = record.get("PREFLABEL_EN");
+                        final String shortName = record.get("SHORTNAME");
+                        final String definition = record.get("DEFINITION");
+                        final String description = record.get("DESCRIPTION");
                         final Status status = Status.valueOf(record.get("STATUS"));
-                        final Code code = createOrUpdateCode(existingCodesMap, codeScheme, codeValue, status, source, finnishName, swedishName, englishName);
+                        final Code code = createOrUpdateCode(existingCodesMap, codeScheme, codeValue, status, source, shortName, definition, description, finnishName, swedishName, englishName);
                         codes.add(code);
                     }
                 });
@@ -90,6 +93,9 @@ public class CodeParser {
                                     final String codeValue,
                                     final Status status,
                                     final String source,
+                                    final String shortName,
+                                    final String definition,
+                                    final String description,
                                     final String finnishName,
                                     final String swedishName,
                                     final String englishName) {
@@ -116,6 +122,18 @@ public class CodeParser {
                 code.setSource(source);
                 hasChanges = true;
             }
+            if (!Objects.equals(code.getShortName(), shortName)) {
+                code.setShortName(shortName);
+                hasChanges = true;
+            }
+            if (!Objects.equals(code.getDefinition(), definition)) {
+                code.setDefinition(definition);
+                hasChanges = true;
+            }
+            if (!Objects.equals(code.getDescription(), description)) {
+                code.setDescription(description);
+                hasChanges = true;
+            }
             if (!Objects.equals(code.getPrefLabel("fi"), finnishName)) {
                 code.setPrefLabel("fi", finnishName);
                 hasChanges = true;
@@ -140,6 +158,9 @@ public class CodeParser {
             code.setCodeScheme(codeScheme);
             code.setCodeValue(codeValue);
             code.setSource(source);
+            code.setShortName(shortName);
+            code.setDefinition(definition);
+            code.setDescription(description);
             code.setCreated(timeStamp);
             code.setPrefLabel("fi", finnishName);
             code.setPrefLabel("se", swedishName);

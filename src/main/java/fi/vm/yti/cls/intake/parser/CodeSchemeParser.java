@@ -69,10 +69,13 @@ public class CodeSchemeParser {
                 final String nameSwedish = record.get("PREFLABEL_SE");
                 final String nameEnglish = record.get("PREFLABEL_EN");
                 final String version = record.get("VERSION");
+                final String definition = record.get("DEFINITION");
+                final String description = record.get("DESCRIPTION");
+                final String changeNote = record.get("CHANGENOTE");
                 final Status status = Status.valueOf(record.get("STATUS"));
                 final CodeSchemeType type = CodeSchemeType.valueOf(record.get("TYPE"));
 
-                final CodeScheme register = createOrUpdateCodeScheme(existingCodeSchemesMap, codeRegistry, codeValue, nameFinnish, nameSwedish, nameEnglish, version, source, status, type);
+                final CodeScheme register = createOrUpdateCodeScheme(existingCodeSchemesMap, codeRegistry, codeValue, nameFinnish, nameSwedish, nameEnglish, version, source, definition, description, changeNote, status, type);
                 codeSchemes.add(register);
             });
         } catch (IOException e) {
@@ -89,6 +92,9 @@ public class CodeSchemeParser {
                                                 final String englishName,
                                                 final String version,
                                                 final String source,
+                                                final String definition,
+                                                final String description,
+                                                final String changeNote,
                                                 final Status status,
                                                 final CodeSchemeType type) {
         String url = null;
@@ -117,6 +123,18 @@ public class CodeSchemeParser {
             }
             if (!Objects.equals(codeScheme.getSource(), source)) {
                 codeScheme.setSource(source);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getDefinition(), definition)) {
+                codeScheme.setDefinition(definition);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getDescription(), description)) {
+                codeScheme.setDescription(description);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getChangeNote(), changeNote)) {
+                codeScheme.setChangeNote(changeNote);
                 hasChanges = true;
             }
             if (!Objects.equals(codeScheme.getPrefLabel("fi"), finnishName)) {
@@ -150,6 +168,9 @@ public class CodeSchemeParser {
             codeScheme.setUri(url);
             codeScheme.setCodeValue(codeValue);
             codeScheme.setSource(source);
+            codeScheme.setDefinition(definition);
+            codeScheme.setDescription(description);
+            codeScheme.setChangeNote(changeNote);
             codeScheme.setCreated(timeStamp);
             codeScheme.setPrefLabel("fi", finnishName);
             codeScheme.setPrefLabel("se", swedishName);
