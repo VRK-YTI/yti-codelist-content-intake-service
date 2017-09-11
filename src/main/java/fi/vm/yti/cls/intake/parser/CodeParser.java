@@ -74,7 +74,7 @@ public class CodeParser {
                         final String swedishName = record.get("PREFLABEL_SE");
                         final String englishName = record.get("PREFLABEL_EN");
                         final Status status = Status.valueOf(record.get("STATUS"));
-                        final Code code = createOrUpdateCode(existingCodeSchemesMap, existingCodesMap, codeScheme, codeValue, status, source, finnishName, swedishName, englishName);
+                        final Code code = createOrUpdateCode(existingCodesMap, codeScheme, codeValue, status, source, finnishName, swedishName, englishName);
                         codes.add(code);
                     }
                 });
@@ -85,8 +85,7 @@ public class CodeParser {
         return codes;
     }
 
-    private Code createOrUpdateCode(final Map<String, CodeScheme> codesSchemesMap,
-                                    final Map<String, Code> codesMap,
+    private Code createOrUpdateCode(final Map<String, Code> codesMap,
                                     final CodeScheme codeScheme,
                                     final String codeValue,
                                     final Status status,
