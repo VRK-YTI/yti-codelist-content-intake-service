@@ -93,7 +93,7 @@ public class CodeSchemeParser {
                                                 final CodeSchemeType type) {
         String url = null;
         if (type == CodeSchemeType.CODELIST) {
-            url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue(), codeValue);
+            url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + ApiConstants.API_PATH_CODESCHEMES, codeValue);
         } else {
             url = apiUtils.createResourceUrl("/" + codeValue, null);
         }

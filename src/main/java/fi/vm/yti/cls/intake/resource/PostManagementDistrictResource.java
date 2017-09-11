@@ -76,7 +76,7 @@ public class PostManagementDistrictResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single postManagementDistrict. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response retirePostManagementDistrict(@ApiParam(value = "PostManagementDistrict code.") @PathParam("code") final String codeValue) {
+    public Response retirePostManagementDistrict(@ApiParam(value = "PostManagementDistrict code.") @PathParam("codeValue") final String codeValue) {
         LOG.info("/v1/postmanagementdistricts/" + codeValue + " DELETE request.");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);

@@ -79,7 +79,7 @@ public class RegionResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single region. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response retireRegion(@ApiParam(value = "Region code.") @PathParam("code") final String codeValue) {
+    public Response retireRegion(@ApiParam(value = "Region code.") @PathParam("codeValue") final String codeValue) {
         LOG.info("/v1/regions/" + codeValue + " DELETE request.");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);

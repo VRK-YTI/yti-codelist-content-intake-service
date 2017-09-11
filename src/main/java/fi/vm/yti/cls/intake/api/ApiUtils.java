@@ -15,9 +15,7 @@ public class ApiUtils {
 
     @Inject
     public ApiUtils(final PublicApiServiceProperties publicApiServiceProperties) {
-
         this.publicApiServiceProperties = publicApiServiceProperties;
-
     }
 
     /**
@@ -29,9 +27,7 @@ public class ApiUtils {
      */
     public String createResourceUrl(final String apiPath, final String resourceId) {
         final String port = publicApiServiceProperties.getPort();
-
         final StringBuilder builder = new StringBuilder();
-
         builder.append(publicApiServiceProperties.getScheme());
         builder.append("://");
         builder.append(publicApiServiceProperties.getHost());
@@ -49,10 +45,8 @@ public class ApiUtils {
             builder.append(resourceId);
             builder.append("/");
         }
-
         return builder.toString();
     }
-
 
     /**
      *
@@ -61,15 +55,12 @@ public class ApiUtils {
      */
     public String getPublicApiServiceHostname() {
         final StringBuilder builder = new StringBuilder();
-
         final String port = publicApiServiceProperties.getPort();
-
         builder.append(publicApiServiceProperties.getHost());
         if (port != null && port.length() > 0) {
             builder.append(":");
             builder.append(port);
         }
-
         return builder.toString();
     }
 

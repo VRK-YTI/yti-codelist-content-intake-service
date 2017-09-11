@@ -29,7 +29,6 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.List;
 
-
 /**
  * Content Intake Service: REST resources for magistrateServiceUnits.
  */
@@ -40,27 +39,18 @@ import java.util.List;
 public class MagistrateServiceUnitResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(MagistrateServiceUnitResource.class);
-
     private final Domain domain;
-
     private final MagistrateServiceUnitParser magistrateServiceUnitParser;
-
     private final MagistrateServiceUnitRepository magistrateServiceUnitRepository;
-
 
     @Inject
     public MagistrateServiceUnitResource(final Domain domain,
                                          final MagistrateServiceUnitParser magistrateServiceUnitParser,
                                          final MagistrateServiceUnitRepository magistrateServiceUnitRepository) {
-
         this.domain = domain;
-
         this.magistrateServiceUnitParser = magistrateServiceUnitParser;
-
         this.magistrateServiceUnitRepository = magistrateServiceUnitRepository;
-
     }
-
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -68,31 +58,21 @@ public class MagistrateServiceUnitResource {
     @ApiOperation(value = "Parses magistrateserviceunits from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response addOrUpdateMagistrateServiceUnits(@ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
-
         LOG.info("/v1/magistrateserviceunits/ POST request.");
-
         final Meta meta = new Meta();
-
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-
         final List<MagistrateServiceUnit> magistrateServiceUnits = magistrateServiceUnitParser.parseMagistrateServiceUnitsFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
-
         for (final MagistrateServiceUnit magistrateServiceUnit : magistrateServiceUnits) {
             LOG.info("MagistrateServiceUnits parsed from input: " + magistrateServiceUnit.getCodeValue());
         }
-
         if (!magistrateServiceUnits.isEmpty()) {
             domain.persistMagistrateServiceUnits(magistrateServiceUnits);
             domain.reIndexEverything();
         }
-
         meta.setMessage("MagistrateServiceUnits added or modified: " + magistrateServiceUnits.size());
         meta.setCode(200);
-
         return Response.ok(responseWrapper).build();
-
     }
-
 
     @DELETE
     @Path("{codeValue}")
@@ -100,26 +80,18 @@ public class MagistrateServiceUnitResource {
     @ApiOperation(value = "Deletes a single magistrateServiceUnit. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response retireMagistrateServiceUnit(@ApiParam(value = "MagistrateServiceUnit code.") @PathParam("codeValue") final String codeValue) {
-
         LOG.info("/v1/magistrateserviceunits/" + codeValue + " DELETE request.");
-
         final Meta meta = new Meta();
-
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-
         final MagistrateServiceUnit magistrateServiceUnit = magistrateServiceUnitRepository.findByCodeValue(codeValue);
-
         if (magistrateServiceUnit != null) {
             magistrateServiceUnit.setStatus(Status.RETIRED.toString());
             magistrateServiceUnitRepository.save(magistrateServiceUnit);
             domain.reIndexEverything();
         }
-
         meta.setMessage("MagistrateServiceUnit marked as RETIRED!");
         meta.setCode(200);
-
         return Response.ok(responseWrapper).build();
-
     }
 
 }

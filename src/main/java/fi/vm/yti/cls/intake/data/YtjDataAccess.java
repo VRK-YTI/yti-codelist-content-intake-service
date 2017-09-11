@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * Implementing class for YTJDataAccess interface.
  *
@@ -80,7 +79,6 @@ public class YtjDataAccess implements DataAccess {
         LOG.info("Loading businessids with pageSize: " + pageSize + " from: " + resultsFrom + " with company registration date from: " + companyRegistrationFrom);
         final Stopwatch watch = Stopwatch.createStarted();
         boolean retry = false;
-
         try {
 
             final HttpClient httpClient = HttpClientBuilder.create().build();
@@ -127,9 +125,7 @@ public class YtjDataAccess implements DataAccess {
     }
 
     private void parseBusinessResponse(final Stopwatch watch, final String response, final int pageSize, final int resultsFrom, final String companyRegistrationFrom, final UpdateStatus updateStatus) {
-
         final ObjectMapper mapper = new ObjectMapper();
-
         try {
             final JsonNode node = mapper.readTree(response);
 

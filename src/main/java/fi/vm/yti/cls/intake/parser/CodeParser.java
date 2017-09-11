@@ -93,7 +93,7 @@ public class CodeParser {
                                     final String finnishName,
                                     final String swedishName,
                                     final String englishName) {
-        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + "/" + codeScheme.getCodeValue(), codeValue);
+        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + ApiConstants.API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + ApiConstants.API_PATH_CODES, codeValue);
         final Date timeStamp = new Date(System.currentTimeMillis());
         Code code = codesMap.get(codeValue);
 

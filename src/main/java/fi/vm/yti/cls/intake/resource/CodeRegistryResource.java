@@ -47,21 +47,13 @@ import java.util.List;
 public class CodeRegistryResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryResource.class);
-
     private final Domain domain;
-
     private final CodeRegistryParser codeRegistryParser;
-
     private final CodeRegistryRepository codeRegistryRepository;
-
     private final CodeSchemeParser codeSchemeParser;
-
     private final CodeSchemeRepository codeSchemeRepository;
-
     private final CodeParser codeParser;
-
     private final CodeRepository codeRepository;
-
 
     @Inject
     public CodeRegistryResource(final Domain domain,
@@ -71,23 +63,14 @@ public class CodeRegistryResource {
                                 final CodeSchemeRepository codeSchemeRepository,
                                 final CodeParser codeParser,
                                 final CodeRepository codeRepository) {
-
         this.domain = domain;
-
         this.codeRegistryParser = codeRegistryParser;
-
         this.codeRegistryRepository = codeRegistryRepository;
-
         this.codeSchemeParser = codeSchemeParser;
-
         this.codeSchemeRepository = codeSchemeRepository;
-
         this.codeParser = codeParser;
-
         this.codeRepository = codeRepository;
-
     }
-
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -96,31 +79,21 @@ public class CodeRegistryResource {
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
     public Response addOrUpdateCodeRegistries(@ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
-
         LOG.info("/v1/coderegistries/ POST request.");
-
         final Meta meta = new Meta();
-
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-
         final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
-
         for (final CodeRegistry register : codeRegistries) {
             LOG.info("CodeRegistry parsed from input: " + register.getCodeValue());
         }
-
         if (!codeRegistries.isEmpty()) {
             domain.persistCodeRegistries(codeRegistries);
             domain.reIndexCodeRegistries();
         }
-
         meta.setMessage("CodeRegistries added or modified: " + codeRegistries.size());
         meta.setCode(200);
-
         return Response.ok(responseWrapper).build();
-
     }
-
 
     @POST
     @Path("{codeRegistryCodeValue}")
@@ -131,40 +104,27 @@ public class CodeRegistryResource {
     @Transactional
     public Response addOrUpdateCodeSchemes(@ApiParam(value = "CodeRegistry codeValue") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                            @ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
-
         LOG.info("/v1/coderegistries/" + codeRegistryCodeValue + "/ POST request!");
-
         final Meta meta = new Meta();
-
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
-
         if (codeRegistry != null) {
-
             final List<CodeScheme> codeSchemes = codeSchemeParser.parseCodeSchemesFromClsInputStream(codeRegistry, DomainConstants.SOURCE_INTERNAL, inputStream);
-
             for (final CodeScheme codeScheme : codeSchemes) {
                 LOG.info("CodeScheme parsed from input: " + codeScheme.getCodeValue());
             }
-
             if (!codeSchemes.isEmpty()) {
                 domain.persistCodeSchemes(codeSchemes);
                 domain.reIndexCodeSchemes();
             }
-
             meta.setMessage("CodeSchemes added or modified: " + codeSchemes.size());
             meta.setCode(200);
             return Response.ok(responseWrapper).build();
         }
-
         meta.setMessage("CodeScheme with code: " + codeRegistryCodeValue + " does not exist yet, please creater register first.");
         meta.setCode(404);
-
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
-
     }
-
 
     @POST
     @Path("{codeRegistryCodeValue}/{codeSchemeCodeValue}")
@@ -178,48 +138,33 @@ public class CodeRegistryResource {
                                      @ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
 
         LOG.info("/v1/coderegistries/" + codeRegistryCodeValue + "/" + codeSchemeCodeValue + "/ POST request!");
-
         final Meta meta = new Meta();
-
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
-
         if (codeRegistry != null) {
-
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
-
             if (codeScheme != null) {
-
                 final List<Code> codes = codeParser.parseCodesFromClsInputStream(codeScheme, DomainConstants.SOURCE_INTERNAL, inputStream);
-
                 for (final Code code : codes) {
                     LOG.info("Code parsed from input: " + code.getCodeValue());
                 }
-
                 if (!codes.isEmpty()) {
                     domain.persistCodes(codes);
                     domain.reIndexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
                 }
-
                 meta.setMessage("Codes added or modified: " + codes.size());
                 meta.setCode(200);
                 return Response.ok(responseWrapper).build();
-
             } else {
                 meta.setMessage("CodeScheme with code: " + codeSchemeCodeValue + " does not exist yet, please create codeScheme first.");
                 meta.setCode(406);
             }
-
         } else {
             meta.setMessage("CodeRegistry with code: " + codeRegistryCodeValue + " does not exist yet, please create registry first.");
             meta.setCode(406);
         }
-
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
-
     }
-
 
     @DELETE
     @Path("{codeRegistryCodeValue}/{codeSchemeCodeValue}/{codeCodeValue}")
@@ -232,20 +177,13 @@ public class CodeRegistryResource {
                                @ApiParam(value = "Code codeValue.") @PathParam("codeCodeValue") final String codeCodeValue) {
 
         LOG.info("/v1/coderegistries/" + codeRegistryCodeValue + "/" + codeSchemeCodeValue + "/" + codeCodeValue + " DELETE request.");
-
         final Meta meta = new Meta();
-
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
-
         if (codeRegistry != null) {
-
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
-
             if (codeScheme != null) {
                 final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
-
                 if (code != null) {
                     code.setStatus(Status.RETIRED.toString());
                     codeRepository.save(code);
@@ -257,19 +195,15 @@ public class CodeRegistryResource {
                     meta.setMessage("Code " + codeCodeValue + " not found!");
                     meta.setCode(404);
                 }
-
             } else {
                 meta.setMessage("CodeScheme " + codeSchemeCodeValue + " not found!");
                 meta.setCode(404);
             }
-
         } else {
             meta.setMessage("CodeRegistry " + codeRegistryCodeValue + " not found!");
             meta.setCode(404);
         }
-
         return Response.status(Response.Status.NOT_FOUND).entity(responseWrapper).build();
-
     }
 
 }

@@ -38,7 +38,6 @@ public class MagistrateParser {
     private final MagistrateRepository magistrateRepository;
     private final ApiUtils apiUtils;
 
-
     @Inject
     private MagistrateParser(final ApiUtils apiUtils,
                              final MagistrateRepository magistrateRepository) {

@@ -34,4 +34,8 @@ public class ApiConstants {
 
     public static final String API_PATH_CODEREGISTRIES = "/coderegistries";
 
+    public static final String API_PATH_CODESCHEMES = "/codeschemes";
+
+    public static final String API_PATH_CODES = "/codes";
+
 }

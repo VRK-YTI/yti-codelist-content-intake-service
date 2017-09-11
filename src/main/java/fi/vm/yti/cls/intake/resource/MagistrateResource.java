@@ -29,7 +29,6 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.List;
 
-
 /**
  * Content Intake Service: REST resources for magistrates.
  */
@@ -40,27 +39,18 @@ import java.util.List;
 public class MagistrateResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(MagistrateResource.class);
-
     private final Domain domain;
-
     private final MagistrateParser magistrateParser;
-
     private final MagistrateRepository magistrateRepository;
-
 
     @Inject
     public MagistrateResource(final Domain domain,
                               final MagistrateParser magistrateParser,
                               final MagistrateRepository magistrateRepository) {
-
         this.domain = domain;
-
         this.magistrateParser = magistrateParser;
-
         this.magistrateRepository = magistrateRepository;
-
     }
-
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -68,31 +58,21 @@ public class MagistrateResource {
     @ApiOperation(value = "Parses magistrates from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response addOrUpdateMagistrates(@ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
-
         LOG.info("/v1/magistrates/ POST request.");
-
         final Meta meta = new Meta();
-
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-
         final List<Magistrate> magistrates = magistrateParser.parseMagistratesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
-
         for (final Magistrate magistrate : magistrates) {
             LOG.info("Magistrate parsed from input: " + magistrate.getCodeValue());
         }
-
         if (!magistrates.isEmpty()) {
             domain.persistMagistrates(magistrates);
             domain.reIndexEverything();
         }
-
         meta.setMessage("Magistrates added or modified: " + magistrates.size());
         meta.setCode(200);
-
         return Response.ok(responseWrapper).build();
-
     }
-
 
     @DELETE
     @Path("{codeValue}")
@@ -100,27 +80,18 @@ public class MagistrateResource {
     @ApiOperation(value = "Deletes a single magistrate. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response retireMagistrate(@ApiParam(value = "Magistrate code.") @PathParam("codeValue") final String codeValue) {
-
         LOG.info("/v1/magistrates/" + codeValue + " DELETE request.");
-
         final Meta meta = new Meta();
-
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-
         final Magistrate magistrate = magistrateRepository.findByCodeValue(codeValue);
-
         if (magistrate != null) {
             magistrate.setStatus(Status.RETIRED.toString());
             magistrateRepository.save(magistrate);
             domain.reIndexEverything();
         }
-
         meta.setMessage("Magistrate marked as RETIRED!");
         meta.setCode(200);
-
         return Response.ok(responseWrapper).build();
-
     }
-
 
 }
