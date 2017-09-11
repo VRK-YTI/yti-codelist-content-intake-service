@@ -138,7 +138,7 @@ public class StreetAddressParser {
                         streetAddress.setUri(url);
                         streetAddress.setStatus(status.toString());
                         streetAddress.setSource(source);
-                        streetAddress.setCreated(timeStamp);
+                        streetAddress.setModified(timeStamp);
                         streetAddress.setPrefLabelFi(finnishName);
                         streetAddress.setPrefLabelSe(swedishName);
                         streetAddress.setMunicipality(municipality);
@@ -238,7 +238,7 @@ public class StreetAddressParser {
                     final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_STREETADDRESSES + "/streetnumber", streetNumber.getId());
                     streetNumber.setStatus(status.toString());
                     streetNumber.setUri(url);
-                    streetNumber.setCreated(timeStamp);
+                    streetNumber.setModified(timeStamp);
                     streetNumber.setSource(source);
                     streetNumber.setPostalCode(postalCode);
                     streetNumber.setIsEven(isEven);

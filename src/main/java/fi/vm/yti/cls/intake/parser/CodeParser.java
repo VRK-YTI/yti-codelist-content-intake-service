@@ -1,5 +1,6 @@
 package fi.vm.yti.cls.intake.parser;
 
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import fi.vm.yti.cls.common.model.Code;
 import fi.vm.yti.cls.common.model.CodeScheme;
 import fi.vm.yti.cls.common.model.Status;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -57,8 +59,6 @@ public class CodeParser {
                                                    final String source,
                                                    final InputStream inputStream) {
         final List<Code> codes = new ArrayList<>();
-        final Map<String, CodeScheme> existingCodeSchemesMap = parserUtils.getCodeSchemesMap();
-
         if (codeScheme != null) {
             try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                  final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -77,7 +77,26 @@ public class CodeParser {
                         final String definition = record.get("DEFINITION");
                         final String description = record.get("DESCRIPTION");
                         final Status status = Status.valueOf(record.get("STATUS"));
-                        final Code code = createOrUpdateCode(existingCodesMap, codeScheme, codeValue, status, source, shortName, definition, description, finnishName, swedishName, englishName);
+                        final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
+                        Date startDate = null;
+                        final String startDateString = record.get("STARTDATE");
+                        if (!startDateString.isEmpty()) {
+                            try {
+                                startDate = dateFormat.parse(startDateString);
+                            } catch (ParseException e) {
+                                LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
+                            }
+                        }
+                        Date endDate = null;
+                        final String endDateString = record.get("STARTDATE");
+                        if (!endDateString.isEmpty()) {
+                            try {
+                                endDate = dateFormat.parse(endDateString);
+                            } catch (ParseException e) {
+                                LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
+                            }
+                        }
+                        final Code code = createOrUpdateCode(existingCodesMap, codeScheme, codeValue, status, source, shortName, definition, description, finnishName, swedishName, englishName, startDate, endDate);
                         codes.add(code);
                     }
                 });
@@ -98,7 +117,9 @@ public class CodeParser {
                                     final String description,
                                     final String finnishName,
                                     final String swedishName,
-                                    final String englishName) {
+                                    final String englishName,
+                                    final Date startDate,
+                                    final Date endDate) {
         final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + ApiConstants.API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + ApiConstants.API_PATH_CODES, codeValue);
         final Date timeStamp = new Date(System.currentTimeMillis());
         Code code = codesMap.get(codeValue);
@@ -146,6 +167,14 @@ public class CodeParser {
                 code.setPrefLabel("en", englishName);
                 hasChanges = true;
             }
+            if (!Objects.equals(code.getStartDate(), startDate)) {
+                code.setStartDate(startDate);
+                hasChanges = true;
+            }
+            if (!Objects.equals(code.getEndDate(), endDate)) {
+                code.setEndDate(endDate);
+                hasChanges = true;
+            }
             if (hasChanges) {
                 code.setModified(timeStamp);
             }
@@ -161,10 +190,12 @@ public class CodeParser {
             code.setShortName(shortName);
             code.setDefinition(definition);
             code.setDescription(description);
-            code.setCreated(timeStamp);
+            code.setModified(timeStamp);
             code.setPrefLabel("fi", finnishName);
             code.setPrefLabel("se", swedishName);
             code.setPrefLabel("en", englishName);
+            code.setStartDate(startDate);
+            code.setEndDate(endDate);
         }
         return code;
     }

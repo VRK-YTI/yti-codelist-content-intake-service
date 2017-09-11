@@ -1,5 +1,6 @@
 package fi.vm.yti.cls.intake.parser;
 
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import fi.vm.yti.cls.common.model.CodeRegistry;
 import fi.vm.yti.cls.common.model.CodeScheme;
 import fi.vm.yti.cls.common.model.CodeSchemeType;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -74,9 +76,27 @@ public class CodeSchemeParser {
                 final String changeNote = record.get("CHANGENOTE");
                 final Status status = Status.valueOf(record.get("STATUS"));
                 final CodeSchemeType type = CodeSchemeType.valueOf(record.get("TYPE"));
-
-                final CodeScheme register = createOrUpdateCodeScheme(existingCodeSchemesMap, codeRegistry, codeValue, nameFinnish, nameSwedish, nameEnglish, version, source, definition, description, changeNote, status, type);
-                codeSchemes.add(register);
+                final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
+                Date startDate = null;
+                final String startDateString = record.get("STARTDATE");
+                if (!startDateString.isEmpty()) {
+                    try {
+                        startDate = dateFormat.parse(startDateString);
+                    } catch (ParseException e) {
+                        LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
+                    }
+                }
+                Date endDate = null;
+                final String endDateString = record.get("STARTDATE");
+                if (!endDateString.isEmpty()) {
+                    try {
+                        endDate = dateFormat.parse(endDateString);
+                    } catch (ParseException e) {
+                        LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
+                    }
+                }
+                final CodeScheme codeScheme = createOrUpdateCodeScheme(existingCodeSchemesMap, codeRegistry, codeValue, nameFinnish, nameSwedish, nameEnglish, version, source, definition, description, changeNote, status, type, startDate, endDate);
+                codeSchemes.add(codeScheme);
             });
         } catch (IOException e) {
             LOG.error("Parsing codeschemes failed: " + e.getMessage());
@@ -96,7 +116,9 @@ public class CodeSchemeParser {
                                                 final String description,
                                                 final String changeNote,
                                                 final Status status,
-                                                final CodeSchemeType type) {
+                                                final CodeSchemeType type,
+                                                final Date startDate,
+                                                final Date endDate) {
         String url = null;
         if (type == CodeSchemeType.CODELIST) {
             url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + ApiConstants.API_PATH_CODESCHEMES, codeValue);
@@ -157,6 +179,14 @@ public class CodeSchemeParser {
                 codeScheme.setType(type.toString());
                 hasChanges = true;
             }
+            if (!Objects.equals(codeScheme.getStartDate(), startDate)) {
+                codeScheme.setStartDate(startDate);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getEndDate(), endDate)) {
+                codeScheme.setEndDate(endDate);
+                hasChanges = true;
+            }
             if (hasChanges) {
                 codeScheme.setModified(timeStamp);
             }
@@ -171,13 +201,15 @@ public class CodeSchemeParser {
             codeScheme.setDefinition(definition);
             codeScheme.setDescription(description);
             codeScheme.setChangeNote(changeNote);
-            codeScheme.setCreated(timeStamp);
+            codeScheme.setModified(timeStamp);
             codeScheme.setPrefLabel("fi", finnishName);
             codeScheme.setPrefLabel("se", swedishName);
             codeScheme.setPrefLabel("en", englishName);
             codeScheme.setVersion(version);
             codeScheme.setStatus(status.toString());
             codeScheme.setType(type.toString());
+            codeScheme.setStartDate(startDate);
+            codeScheme.setEndDate(endDate);
         }
         return codeScheme;
     }

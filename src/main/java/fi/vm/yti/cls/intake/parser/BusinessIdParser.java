@@ -118,7 +118,7 @@ public class BusinessIdParser {
             businessId.setCodeValue(codeValue);
             businessId.setStatus(status.toString());
             businessId.setSource(source);
-            businessId.setCreated(timeStamp);
+            businessId.setModified(timeStamp);
             businessId.setPrefLabelFi(name);
             businessId.setCompanyForm(companyFrom);
             businessId.setUri(url);

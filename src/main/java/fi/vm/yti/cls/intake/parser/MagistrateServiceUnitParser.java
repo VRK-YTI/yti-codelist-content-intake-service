@@ -238,7 +238,7 @@ public class MagistrateServiceUnitParser {
             magistrateServiceUnit.setStatus(status.toString());
             magistrateServiceUnit.setUri(url);
             magistrateServiceUnit.setSource(source);
-            magistrateServiceUnit.setCreated(timeStamp);
+            magistrateServiceUnit.setModified(timeStamp);
             magistrateServiceUnit.setCodeValue(code);
             magistrateServiceUnit.setPrefLabelFi(finnishName);
             magistrateServiceUnit.setPrefLabelSe(swedishName);

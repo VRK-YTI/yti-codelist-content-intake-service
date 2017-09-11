@@ -160,7 +160,7 @@ public class RegionItemParser {
             region.setUri(url);
             region.setCodeValue(code);
             region.setSource(source);
-            region.setCreated(timeStamp);
+            region.setModified(timeStamp);
             region.setPrefLabelFi(finnishName);
             region.setPrefLabelSe(swedishName);
             region.setPrefLabelEn(englishName);

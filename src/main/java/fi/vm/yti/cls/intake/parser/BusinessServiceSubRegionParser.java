@@ -166,7 +166,7 @@ public class BusinessServiceSubRegionParser {
             businessServiceSubRegion.setUri(url);
             businessServiceSubRegion.setSource(source);
             businessServiceSubRegion.setStatus(status.toString());
-            businessServiceSubRegion.setCreated(timeStamp);
+            businessServiceSubRegion.setModified(timeStamp);
             businessServiceSubRegion.setCodeValue(code);
             businessServiceSubRegion.setPrefLabelFi(finnishName);
             businessServiceSubRegion.setPrefLabelSe(swedishName);

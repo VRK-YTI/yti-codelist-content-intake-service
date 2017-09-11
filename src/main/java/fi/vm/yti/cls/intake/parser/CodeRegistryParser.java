@@ -119,7 +119,7 @@ public class CodeRegistryParser {
             codeRegistry.setUri(url);
             codeRegistry.setCodeValue(code);
             codeRegistry.setSource(source);
-            codeRegistry.setCreated(timeStamp);
+            codeRegistry.setModified(timeStamp);
             codeRegistry.setPrefLabel("fi", finnishName);
             codeRegistry.setPrefLabel("se", swedishName);
             codeRegistry.setPrefLabel("en", englishName);

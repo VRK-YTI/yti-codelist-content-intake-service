@@ -163,7 +163,7 @@ public class PostManagementDistrictParser {
             postManagementDistrict.setStatus(status.toString());
             postManagementDistrict.setUri(url);
             postManagementDistrict.setSource(source);
-            postManagementDistrict.setCreated(timeStamp);
+            postManagementDistrict.setModified(timeStamp);
             postManagementDistrict.setCodeValue(code);
             postManagementDistrict.setPrefLabelFi(finnishName);
             postManagementDistrict.setPrefLabelSe(swedishName);

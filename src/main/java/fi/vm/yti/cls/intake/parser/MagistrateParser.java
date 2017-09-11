@@ -161,7 +161,7 @@ public class MagistrateParser {
             magistrate.setUri(url);
             magistrate.setStatus(status.toString());
             magistrate.setSource(source);
-            magistrate.setCreated(timeStamp);
+            magistrate.setModified(timeStamp);
             magistrate.setCodeValue(codeValue);
             magistrate.setPrefLabelFi(finnishName);
             magistrate.setPrefLabelSe(swedishName);

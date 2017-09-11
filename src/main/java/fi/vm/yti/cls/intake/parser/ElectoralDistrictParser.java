@@ -233,7 +233,7 @@ public class ElectoralDistrictParser {
             electoralDistrict.setUri(url);
             electoralDistrict.setSource(source);
             electoralDistrict.setStatus(status.toString());
-            electoralDistrict.setCreated(timeStamp);
+            electoralDistrict.setModified(timeStamp);
             electoralDistrict.setCodeValue(code);
             electoralDistrict.setPrefLabelFi(finnishName);
             electoralDistrict.setPrefLabelSe(swedishName);

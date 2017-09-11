@@ -280,7 +280,7 @@ public class MunicipalityParser {
             municipality.setStatus(status.toString());
             municipality.setUri(url);
             municipality.setSource(source);
-            municipality.setCreated(timeStamp);
+            municipality.setModified(timeStamp);
             municipality.setCodeValue(code);
             municipality.setPrefLabelFi(finnishName);
             municipality.setPrefLabelSe(swedishName);

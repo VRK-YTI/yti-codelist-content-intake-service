@@ -328,7 +328,7 @@ public class HealthCareDistrictParser {
             healthCareDistrict.setUri(url);
             healthCareDistrict.setStatus(status.toString());
             healthCareDistrict.setSource(source);
-            healthCareDistrict.setCreated(timeStamp);
+            healthCareDistrict.setModified(timeStamp);
             healthCareDistrict.setCodeValue(code);
             healthCareDistrict.setPrefLabelFi(finnishName);
             healthCareDistrict.setPrefLabelSe(swedishName);

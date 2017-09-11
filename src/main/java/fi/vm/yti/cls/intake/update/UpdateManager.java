@@ -76,7 +76,7 @@ public class UpdateManager {
         updateStatus.setVersion(version);
         updateStatus.setNextVersion(nextVersion);
         updateStatus.setStatus(status);
-        updateStatus.setCreated(new Date(System.currentTimeMillis()));
+        updateStatus.setModified(new Date(System.currentTimeMillis()));
         updateStatusRepository.save(updateStatus);
         return updateStatus;
     }

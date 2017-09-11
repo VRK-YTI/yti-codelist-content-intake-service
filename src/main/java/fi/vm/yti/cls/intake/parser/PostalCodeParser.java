@@ -200,7 +200,7 @@ public class PostalCodeParser {
             postalCode.setStatus(status.toString());
             postalCode.setUri(url);
             postalCode.setSource(source);
-            postalCode.setCreated(timeStamp);
+            postalCode.setModified(timeStamp);
             postalCode.setCodeValue(code);
             postalCode.setPrefLabelFi(finnishName);
             postalCode.setPrefLabelSe(swedishName);
