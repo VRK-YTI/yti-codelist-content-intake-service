@@ -752,46 +752,28 @@ public class DomainImpl implements Domain {
         }
     }
 
-    public void reIndexCodes(final String codeRegistryCodeValue,
-                             final String codeSchemeCodeValue) {
-        // Clears earlier index for this codeRegistry and codeScheme.
-        deleteTypeFromIndex(DomainConstants.ELASTIC_INDEX_CODES, DomainConstants.ELASTIC_TYPE_CODE);
-        createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODES, DomainConstants.ELASTIC_TYPE_CODE);
+    public void indexCodes() {
+        final List<Code> codes = codeRepository.findAll();
 
-        // Indexing of data to ElasticSearch.
-        indexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
-        refreshIndex(DomainConstants.ELASTIC_INDEX_CODES);
-    }
-
-    public void indexCodes(final String codeRegistryCodeValue,
-                           final String codeSchemeCodeValue) {
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
-
-        if (codeRegistry != null) {
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
-            if (codeScheme != null) {
-                final List<Code> codes = codeRepository.findByCodeScheme(codeScheme);
-                if (!codes.isEmpty()) {
-                    final ObjectMapper mapper = createObjectMapper();
-                    final BulkRequestBuilder bulkRequest = client.prepareBulk();
-                    codes.forEach(code -> {
-                        try {
-                            bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODES, DomainConstants.ELASTIC_TYPE_CODE).setSource(mapper.writeValueAsString(code)));
-                        } catch (JsonProcessingException e) {
-                            LOG.error("Indexing codes failed: " + e.getMessage());
-                        }
-                    });
-
-                    final BulkResponse response = bulkRequest.get();
-                    if (response.hasFailures()) {
-                        LOG.error("ElasticSearch bulk codes operation failed with errors: " + response.buildFailureMessage());
-                    } else {
-                        LOG.info("ElasticSearch bulk codes request successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
-                    }
-                } else {
-                    LOG.info("ElasticSearch bulk codes request failed: no content to be indexed!");
+        if (!codes.isEmpty()) {
+            final ObjectMapper mapper = createObjectMapper();
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
+            codes.forEach(code -> {
+                try {
+                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODES, DomainConstants.ELASTIC_TYPE_CODE).setSource(mapper.writeValueAsString(code)));
+                } catch (JsonProcessingException e) {
+                    LOG.error("Indexing codes failed: " + e.getMessage());
                 }
+            });
+
+            final BulkResponse response = bulkRequest.get();
+            if (response.hasFailures()) {
+                LOG.error("ElasticSearch bulk codes operation failed with errors: " + response.buildFailureMessage());
+            } else {
+                LOG.info("ElasticSearch bulk codes request successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
             }
+        } else {
+            LOG.info("ElasticSearch bulk codes request failed: no content to be indexed!");
         }
     }
 
@@ -820,13 +802,10 @@ public class DomainImpl implements Domain {
     public void reIndexCodes() {
         deleteIndex(DomainConstants.ELASTIC_INDEX_CODES);
         final List<Code> codes = codeRepository.findAll();
-        codes.forEach(code -> {
-            final CodeScheme codeScheme = code.getCodeScheme();
-            final String codeSchemeCodeValue = codeScheme.getCodeValue();
-            final String codeRegistryCodeValue = codeScheme.getCodeRegistry().getCodeValue();
+        if (!codes.isEmpty()) {
             createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODES, DomainConstants.ELASTIC_TYPE_CODE);
-            reIndexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
-        });
+            indexCodes();
+        }
     }
 
     public void reIndexYti() {

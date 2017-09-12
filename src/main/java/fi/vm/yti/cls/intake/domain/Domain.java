@@ -96,7 +96,7 @@ public interface Domain {
 
     void reIndexCodeSchemes();
 
-    void reIndexCodes(final String codeRegistryCodeValue, final String codeSchemeCodeValue);
+    void reIndexCodes();
 
     void reIndexEverything();
 

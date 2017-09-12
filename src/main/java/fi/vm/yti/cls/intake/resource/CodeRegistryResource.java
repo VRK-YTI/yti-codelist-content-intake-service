@@ -150,7 +150,7 @@ public class CodeRegistryResource {
                 }
                 if (!codes.isEmpty()) {
                     domain.persistCodes(codes);
-                    domain.reIndexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
+                    domain.reIndexCodes();
                 }
                 meta.setMessage("Codes added or modified: " + codes.size());
                 meta.setCode(200);
@@ -187,7 +187,7 @@ public class CodeRegistryResource {
                 if (code != null) {
                     code.setStatus(Status.RETIRED.toString());
                     codeRepository.save(code);
-                    domain.reIndexCodes(codeRegistryCodeValue, codeSchemeCodeValue);
+                    domain.reIndexCodes();
                     meta.setMessage("Code marked as RETIRED!");
                     meta.setCode(200);
                     return Response.ok(responseWrapper).build();

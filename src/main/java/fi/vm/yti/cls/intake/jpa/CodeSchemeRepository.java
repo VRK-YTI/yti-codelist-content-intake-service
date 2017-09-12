@@ -12,6 +12,8 @@ public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String>
 
     CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry, final String codeValue);
 
+    List<CodeScheme> findByCodeRegistry(final CodeRegistry codeRegistry);
+
     List<CodeScheme> findAll();
 
 }

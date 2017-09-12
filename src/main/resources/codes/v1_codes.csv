@@ -1,3 +1,9 @@
 CODEVALUE,STATUS,PREFLABEL_FI,PREFLABEL_SE,PREFLABEL_EN,DEFINITION,DESCRIPTION,SHORTNAME,STARTDATE,ENDDATE
 01,VALID,Testi elementti 1,Test elementen 1,Test Element 1,test definition 1,test description 1,test shortname 1,2017-01-01,2022-12-31
 02,VALID,Testi elementti 2,Test elementen 2,Test Element 2,test definition 2,test description 2,test shortname 2,2017-01-01,2022-12-31
+03,VALID,Testi elementti 3,Test elementen 3,Test Element 3,test definition 3,test description 3,test shortname 3,2017-01-01,2022-12-31
+04,VALID,Testi elementti 4,Test elementen 4,Test Element 4,test definition 4,test description 4,test shortname 4,2017-01-01,2022-12-31
+05,VALID,Testi elementti 5,Test elementen 5,Test Element 5,test definition 5,test description 5,test shortname 5,2017-01-01,2022-12-31
+06,VALID,Testi elementti 6,Test elementen 6,Test Element 6,test definition 6,test description 6,test shortname 6,2017-01-01,2022-12-31
+07,VALID,Testi elementti 7,Test elementen 7,Test Element 7,test definition 7,test description 7,test shortname 7,2017-01-01,2022-12-31
+08,VALID,Testi elementti 8,Test elementen 8,Test Element 8,test definition 8,test description 8,test shortname 8,2017-01-01,2022-12-31

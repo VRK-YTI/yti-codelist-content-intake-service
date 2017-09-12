@@ -1,2 +1,9 @@
 CODEVALUE,VERSION,STATUS,TYPE,PREFLABEL_FI,PREFLABEL_SE,PREFLABEL_EN,DEFINITION,DESCRIPTION,CHANGENOTE,STARTDATE,ENDDATE
-testscheme,v1,VALID,CODELIST,Testikoodisto,TestKoder,TestScheme,test definition,test description,test changenote,2017-01-01,2022-12-31
+testscheme1,v1,VALID,CODELIST,Testikoodisto 1,TestKoder 1,TestScheme 1,test definition 1,test description 1,test changenote 1,2017-01-01,2022-12-31
+testscheme2,v1,VALID,CODELIST,Testikoodisto 2,TestKoder 2,TestScheme 2,test definition 2,test description 2,test changenote 2,2017-01-01,2022-12-31
+testscheme3,v1,VALID,CODELIST,Testikoodisto 3,TestKoder 3,TestScheme 3,test definition 3,test description 3,test changenote 3,2017-01-01,2022-12-31
+testscheme4,v1,VALID,CODELIST,Testikoodisto 4,TestKoder 4,TestScheme 4,test definition 4,test description 4,test changenote 4,2017-01-01,2022-12-31
+testscheme5,v1,VALID,CODELIST,Testikoodisto 5,TestKoder 5,TestScheme 5,test definition 5,test description 5,test changenote 5,2017-01-01,2022-12-31
+testscheme6,v1,VALID,CODELIST,Testikoodisto 6,TestKoder 6,TestScheme 6,test definition 6,test description 6,test changenote 6,2017-01-01,2022-12-31
+testscheme7,v1,VALID,CODELIST,Testikoodisto 7,TestKoder 7,TestScheme 7,test definition 7,test description 7,test changenote 7,2017-01-01,2022-12-31
+testscheme8,v1,VALID,CODELIST,Testikoodisto 8,TestKoder 8,TestScheme 8,test definition 8,test description 8,test changenote 8,2017-01-01,2022-12-31
