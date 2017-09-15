@@ -15,17 +15,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ComponentScan({ "fi.vm.yti.cls.*" })
 public class ContentIntakeServiceApplication {
 
-    private static boolean INITIALIZE_ON_STARTUP = true;
-    private static boolean ONLY_INDEX = false;
-    private static boolean YTI_ONLY = true;
-
     public static void main(final String[] args) {
         final ApplicationContext context = SpringApplication.run(ContentIntakeServiceApplication.class, args);
         final ServiceInitializer serviceInitializer = (ServiceInitializer) context.getBean(ServiceInitializer.class);
         serviceInitializer.printLogo();
-        if (INITIALIZE_ON_STARTUP) {
-            serviceInitializer.initialize(YTI_ONLY, ONLY_INDEX);
-        }
+        serviceInitializer.initialize();
     }
 
 }

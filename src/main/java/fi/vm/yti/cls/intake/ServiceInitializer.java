@@ -9,10 +9,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.cls.intake.api.ApiUtils;
 import fi.vm.yti.cls.intake.configuration.PublicApiServiceProperties;
 import fi.vm.yti.cls.intake.configuration.VersionInformation;
-import fi.vm.yti.cls.intake.data.GenericDataAccess;
-import fi.vm.yti.cls.intake.data.PostiDataAccess;
 import fi.vm.yti.cls.intake.data.YtiDataAccess;
-import fi.vm.yti.cls.intake.data.YtjDataAccess;
 import fi.vm.yti.cls.intake.domain.Domain;
 import fi.vm.yti.cls.intake.util.FileUtils;
 import org.slf4j.Logger;
@@ -39,9 +36,6 @@ public class ServiceInitializer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceInitializer.class);
     public static final String LOCAL_SWAGGER_DATA_DIR = "/data/cls/cls-intake/swagger/";
-    private final GenericDataAccess genericDataAccess;
-    private final YtjDataAccess ytjDataAccess;
-    private final PostiDataAccess postiDataAccess;
     private final YtiDataAccess ytiDataAccess;
     private final Domain domain;
     private final ApiUtils apiUtils;
@@ -52,17 +46,11 @@ public class ServiceInitializer {
     public ServiceInitializer(final VersionInformation versionInformation,
                               final Domain domain,
                               final ApiUtils apiUtils,
-                              final GenericDataAccess genericDataAccess,
-                              final YtjDataAccess ytjDataAccess,
-                              final PostiDataAccess postiDataAccess,
                               final YtiDataAccess ytiDataAccess,
                               final PublicApiServiceProperties publicApiServiceProperties) {
         this.versionInformation = versionInformation;
         this.domain = domain;
-        this.genericDataAccess = genericDataAccess;
         this.apiUtils = apiUtils;
-        this.ytjDataAccess = ytjDataAccess;
-        this.postiDataAccess = postiDataAccess;
         this.ytiDataAccess = ytiDataAccess;
         this.publicApiServiceProperties = publicApiServiceProperties;
     }
@@ -70,33 +58,15 @@ public class ServiceInitializer {
     /**
      * Initialize the application, load data for services.
      */
-    public void initialize(final boolean ytiOnly,
-                           final boolean indexOnly) {
+    public void initialize() {
         updateSwaggerHost();
         LOG.info("*** Initializing data. ***");
         final Stopwatch watch = Stopwatch.createStarted();
-        if (ytiOnly) {
-            ytiDataAccess.initializeOrRefresh();
-            LOG.info("*** Database population took: " + watch + ". ***");
-            final Stopwatch indexWatch = Stopwatch.createStarted();
-            domain.reIndexYti();
-            LOG.info("*** Elastic indexing took: " + indexWatch + ". ***");
-        } else {
-            if (!indexOnly) {
-                // PostgreSQL persistance
-                ytjDataAccess.initializeOrRefresh();
-                genericDataAccess.initializeOrRefresh();
-                ytiDataAccess.initializeOrRefresh();
-                postiDataAccess.initializeOrRefresh();
-                LOG.info("*** Database population took: " + watch + ". ***");
-            } else {
-                LOG.info("*** Only indexing selected, not populating database. ***");
-            }
-            final Stopwatch indexWatch = Stopwatch.createStarted();
-            // ElasticSearch indexing
-            domain.reIndexEverything();
-            LOG.info("*** Elastic indexing took: " + indexWatch + ". ***");
-        }
+        ytiDataAccess.initializeOrRefresh();
+        LOG.info("*** Database population took: " + watch + ". ***");
+        final Stopwatch indexWatch = Stopwatch.createStarted();
+        domain.reIndexEverything();
+        LOG.info("*** Elastic indexing took: " + indexWatch + ". ***");
         // Timing of initialization.
         LOG.info("*** Data initialization complete, took " + watch + ". ***");
     }

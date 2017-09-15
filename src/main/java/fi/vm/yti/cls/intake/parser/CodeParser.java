@@ -70,12 +70,16 @@ public class CodeParser {
                     if (codeScheme != null) {
                         final Map<String, Code> existingCodesMap = parserUtils.getCodesMap(codeScheme);
                         final String codeValue = Utils.ensureRegionIdPadding(record.get("CODEVALUE"));
-                        final String finnishName = record.get("PREFLABEL_FI");
-                        final String swedishName = record.get("PREFLABEL_SE");
-                        final String englishName = record.get("PREFLABEL_EN");
+                        final String prefLabelFinnish = record.get("PREFLABEL_FI");
+                        final String prefLabelSwedish = record.get("PREFLABEL_SE");
+                        final String prefLabelEnglish = record.get("PREFLABEL_EN");
+                        final String descriptionFinnish = record.get("DESCRIPTION_FI");
+                        final String descriptionSwedish = record.get("DESCRIPTION_SE");
+                        final String descriptionEnglish = record.get("DESCRIPTION_EN");
+                        final String definitionFinnish = record.get("DEFINITION_FI");
+                        final String definitionSwedish = record.get("DEFINITION_SE");
+                        final String definitionEnglish = record.get("DEFINITION_EN");
                         final String shortName = record.get("SHORTNAME");
-                        final String definition = record.get("DEFINITION");
-                        final String description = record.get("DESCRIPTION");
                         final Status status = Status.valueOf(record.get("STATUS"));
                         final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
                         Date startDate = null;
@@ -96,7 +100,10 @@ public class CodeParser {
                                 LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                             }
                         }
-                        final Code code = createOrUpdateCode(existingCodesMap, codeScheme, codeValue, status, source, shortName, definition, description, finnishName, swedishName, englishName, startDate, endDate);
+                        final Code code = createOrUpdateCode(existingCodesMap, codeScheme, codeValue, status, source, shortName, startDate, endDate,
+                                prefLabelFinnish, prefLabelSwedish, prefLabelEnglish,
+                                descriptionFinnish, descriptionSwedish, descriptionEnglish,
+                                definitionFinnish, definitionSwedish, definitionEnglish);
                         codes.add(code);
                     }
                 });
@@ -113,13 +120,17 @@ public class CodeParser {
                                     final Status status,
                                     final String source,
                                     final String shortName,
-                                    final String definition,
-                                    final String description,
-                                    final String finnishName,
-                                    final String swedishName,
-                                    final String englishName,
                                     final Date startDate,
-                                    final Date endDate) {
+                                    final Date endDate,
+                                    final String finnishPrefLabel,
+                                    final String swedishPrefLabel,
+                                    final String englishPrefLabel,
+                                    final String finnishDescription,
+                                    final String swedishDescription,
+                                    final String englishDescription,
+                                    final String finnishDefinition,
+                                    final String swedishDefinition,
+                                    final String englishDefinition) {
         final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + ApiConstants.API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + ApiConstants.API_PATH_CODES, codeValue);
         final Date timeStamp = new Date(System.currentTimeMillis());
         Code code = codesMap.get(codeValue);
@@ -147,24 +158,40 @@ public class CodeParser {
                 code.setShortName(shortName);
                 hasChanges = true;
             }
-            if (!Objects.equals(code.getDefinition(), definition)) {
-                code.setDefinition(definition);
+            if (!Objects.equals(code.getPrefLabel("fi"), finnishPrefLabel)) {
+                code.setPrefLabel("fi", finnishPrefLabel);
                 hasChanges = true;
             }
-            if (!Objects.equals(code.getDescription(), description)) {
-                code.setDescription(description);
+            if (!Objects.equals(code.getPrefLabel("se"), swedishPrefLabel)) {
+                code.setPrefLabel("se", swedishPrefLabel);
                 hasChanges = true;
             }
-            if (!Objects.equals(code.getPrefLabel("fi"), finnishName)) {
-                code.setPrefLabel("fi", finnishName);
+            if (!Objects.equals(code.getPrefLabel("en"), englishPrefLabel)) {
+                code.setPrefLabel("en", englishPrefLabel);
                 hasChanges = true;
             }
-            if (!Objects.equals(code.getPrefLabel("se"), swedishName)) {
-                code.setPrefLabel("se", swedishName);
+            if (!Objects.equals(codeScheme.getDefinition("fi"), finnishDefinition)) {
+                codeScheme.setDefinition("fi", finnishDefinition);
                 hasChanges = true;
             }
-            if (!Objects.equals(code.getPrefLabel("en"), englishName)) {
-                code.setPrefLabel("en", englishName);
+            if (!Objects.equals(codeScheme.getDefinition("se"), swedishDefinition)) {
+                codeScheme.setDefinition("se", swedishDefinition);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getDefinition("en"), englishDefinition)) {
+                codeScheme.setDefinition("en", englishDefinition);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getDescription("fi"), finnishDescription)) {
+                codeScheme.setDescription("fi", finnishDescription);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getDescription("se"), swedishDescription)) {
+                codeScheme.setDescription("se", swedishDescription);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getDescription("en"), englishDescription)) {
+                codeScheme.setDescription("en", englishDescription);
                 hasChanges = true;
             }
             if (!Objects.equals(code.getStartDate(), startDate)) {
@@ -188,12 +215,16 @@ public class CodeParser {
             code.setCodeValue(codeValue);
             code.setSource(source);
             code.setShortName(shortName);
-            code.setDefinition(definition);
-            code.setDescription(description);
             code.setModified(timeStamp);
-            code.setPrefLabel("fi", finnishName);
-            code.setPrefLabel("se", swedishName);
-            code.setPrefLabel("en", englishName);
+            code.setPrefLabel("fi", finnishPrefLabel);
+            code.setPrefLabel("se", swedishPrefLabel);
+            code.setPrefLabel("en", englishPrefLabel);
+            code.setDefinition("fi", finnishDefinition);
+            code.setDefinition("se", swedishDefinition);
+            code.setDefinition("en", englishDefinition);
+            code.setDescription("fi", finnishDescription);
+            code.setDescription("se", swedishDescription);
+            code.setDescription("en", englishDescription);
             code.setStartDate(startDate);
             code.setEndDate(endDate);
         }

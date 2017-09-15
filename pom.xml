@@ -7,7 +7,7 @@
     <groupId>fi.vm.yti.cls</groupId>
     <artifactId>cls-content-intake-service</artifactId>
     <packaging>jar</packaging>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3-SNAPSHOT</version>
     <name>cls-content-intake-service</name>
     <description>Content Intake Service for CLS (Code List Service)</description>
 
@@ -55,7 +55,7 @@
         <dependency>
             <groupId>fi.vm.yti.cls</groupId>
             <artifactId>cls-common-model</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.3-SNAPSHOT</version>
         </dependency>
 
         <!-- Spring boot -->

@@ -2,12 +2,6 @@ package fi.vm.yti.cls.intake.configuration;
 
 import fi.vm.yti.cls.intake.api.ApiConstants;
 import fi.vm.yti.cls.intake.resource.CodeRegistryResource;
-import fi.vm.yti.cls.intake.resource.ElectoralDistrictResource;
-import fi.vm.yti.cls.intake.resource.HealthCareDistrictResource;
-import fi.vm.yti.cls.intake.resource.MagistrateResource;
-import fi.vm.yti.cls.intake.resource.MagistrateServiceUnitResource;
-import fi.vm.yti.cls.intake.resource.PostManagementDistrictResource;
-import fi.vm.yti.cls.intake.resource.PostalCodeResource;
 import fi.vm.yti.cls.intake.resource.SwaggerResource;
 import fi.vm.yti.cls.intake.resource.VersionResource;
 import io.swagger.annotations.Api;
@@ -58,14 +52,6 @@ public class JerseyConfig extends ResourceConfig {
         // Admin APIs for YTI model.
         register(CodeRegistryResource.class);
 
-        // Admin APIs for Content Intake.
-        register(PostalCodeResource.class);
-        register(PostManagementDistrictResource.class);
-        register(MagistrateServiceUnitResource.class);
-        register(MagistrateResource.class);
-        register(MagistrateServiceUnitResource.class);
-        register(ElectoralDistrictResource.class);
-        register(HealthCareDistrictResource.class);
     }
 
 }

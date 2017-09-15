@@ -3,7 +3,6 @@ package fi.vm.yti.cls.intake.parser;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import fi.vm.yti.cls.common.model.CodeRegistry;
 import fi.vm.yti.cls.common.model.CodeScheme;
-import fi.vm.yti.cls.common.model.CodeSchemeType;
 import fi.vm.yti.cls.common.model.Status;
 import fi.vm.yti.cls.intake.api.ApiConstants;
 import fi.vm.yti.cls.intake.api.ApiUtils;
@@ -67,15 +66,20 @@ public class CodeSchemeParser {
 
             records.forEach(record -> {
                 final String codeValue = record.get("CODEVALUE");
-                final String nameFinnish = record.get("PREFLABEL_FI");
-                final String nameSwedish = record.get("PREFLABEL_SE");
-                final String nameEnglish = record.get("PREFLABEL_EN");
+                final String prefLabelFinnish = record.get("PREFLABEL_FI");
+                final String prefLabelSwedish = record.get("PREFLABEL_SE");
+                final String prefLabelEnglish = record.get("PREFLABEL_EN");
+                final String descriptionFinnish = record.get("DESCRIPTION_FI");
+                final String descriptionSwedish = record.get("DESCRIPTION_SE");
+                final String descriptionEnglish = record.get("DESCRIPTION_EN");
+                final String definitionFinnish = record.get("DEFINITION_FI");
+                final String definitionSwedish = record.get("DEFINITION_SE");
+                final String definitionEnglish = record.get("DEFINITION_EN");
+                final String changeNoteFinnish = record.get("CHANGENOTE_FI");
+                final String changeNoteSwedish = record.get("CHANGENOTE_SE");
+                final String changeNoteEnglish = record.get("CHANGENOTE_EN");
                 final String version = record.get("VERSION");
-                final String definition = record.get("DEFINITION");
-                final String description = record.get("DESCRIPTION");
-                final String changeNote = record.get("CHANGENOTE");
                 final Status status = Status.valueOf(record.get("STATUS"));
-                final CodeSchemeType type = CodeSchemeType.valueOf(record.get("TYPE"));
                 final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
                 Date startDate = null;
                 final String startDateString = record.get("STARTDATE");
@@ -95,7 +99,12 @@ public class CodeSchemeParser {
                         LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                     }
                 }
-                final CodeScheme codeScheme = createOrUpdateCodeScheme(existingCodeSchemesMap, codeRegistry, codeValue, nameFinnish, nameSwedish, nameEnglish, version, source, definition, description, changeNote, status, type, startDate, endDate);
+                final CodeScheme codeScheme = createOrUpdateCodeScheme(existingCodeSchemesMap, codeRegistry, codeValue,
+                        version, source, status, startDate, endDate,
+                        prefLabelFinnish, prefLabelSwedish, prefLabelEnglish,
+                        descriptionFinnish, descriptionSwedish, descriptionEnglish,
+                        definitionFinnish, definitionSwedish, definitionEnglish,
+                        changeNoteFinnish, changeNoteSwedish, changeNoteEnglish);
                 codeSchemes.add(codeScheme);
             });
         } catch (IOException e) {
@@ -107,24 +116,24 @@ public class CodeSchemeParser {
     private CodeScheme createOrUpdateCodeScheme(final Map<String, CodeScheme> codeSchemesMap,
                                                 final CodeRegistry codeRegistry,
                                                 final String codeValue,
-                                                final String finnishName,
-                                                final String swedishName,
-                                                final String englishName,
                                                 final String version,
                                                 final String source,
-                                                final String definition,
-                                                final String description,
-                                                final String changeNote,
                                                 final Status status,
-                                                final CodeSchemeType type,
                                                 final Date startDate,
-                                                final Date endDate) {
-        String url = null;
-        if (type == CodeSchemeType.CODELIST) {
-            url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + ApiConstants.API_PATH_CODESCHEMES, codeValue);
-        } else {
-            url = apiUtils.createResourceUrl("/" + codeValue, null);
-        }
+                                                final Date endDate,
+                                                final String finnishPrefLabel,
+                                                final String swedishPrefLabel,
+                                                final String englishPrefLabel,
+                                                final String finnishDescription,
+                                                final String swedishDescription,
+                                                final String englishDescription,
+                                                final String finnishDefinition,
+                                                final String swedishDefinition,
+                                                final String englishDefinition,
+                                                final String finnishChangeNote,
+                                                final String swedishChangeNote,
+                                                final String englishChangeNote) {
+        final String uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + ApiConstants.API_PATH_CODESCHEMES, codeValue);
         final Date timeStamp = new Date(System.currentTimeMillis());
         CodeScheme codeScheme = codeSchemesMap.get(codeValue);
 
@@ -139,44 +148,64 @@ public class CodeSchemeParser {
                 codeScheme.setCodeRegistry(codeRegistry);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getUri(), url)) {
-                codeScheme.setUri(url);
+            if (!Objects.equals(codeScheme.getUri(), uri)) {
+                codeScheme.setUri(uri);
                 hasChanges = true;
             }
             if (!Objects.equals(codeScheme.getSource(), source)) {
                 codeScheme.setSource(source);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getDefinition(), definition)) {
-                codeScheme.setDefinition(definition);
+            if (!Objects.equals(codeScheme.getPrefLabel("fi"), finnishPrefLabel)) {
+                codeScheme.setPrefLabel("fi", finnishPrefLabel);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getDescription(), description)) {
-                codeScheme.setDescription(description);
+            if (!Objects.equals(codeScheme.getPrefLabel("se"), swedishPrefLabel)) {
+                codeScheme.setPrefLabel("se", swedishPrefLabel);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getChangeNote(), changeNote)) {
-                codeScheme.setChangeNote(changeNote);
+            if (!Objects.equals(codeScheme.getPrefLabel("en"), englishPrefLabel)) {
+                codeScheme.setPrefLabel("en", englishPrefLabel);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getPrefLabel("fi"), finnishName)) {
-                codeScheme.setPrefLabel("fi", finnishName);
+            if (!Objects.equals(codeScheme.getDefinition("fi"), finnishDefinition)) {
+                codeScheme.setDefinition("fi", finnishDefinition);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getPrefLabel("se"), swedishName)) {
-                codeScheme.setPrefLabel("se", swedishName);
+            if (!Objects.equals(codeScheme.getDefinition("se"), swedishDefinition)) {
+                codeScheme.setDefinition("se", swedishDefinition);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getPrefLabel("en"), englishName)) {
-                codeScheme.setPrefLabel("en", englishName);
+            if (!Objects.equals(codeScheme.getDefinition("en"), englishDefinition)) {
+                codeScheme.setDefinition("en", englishDefinition);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getDescription("fi"), finnishDescription)) {
+                codeScheme.setDescription("fi", finnishDescription);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getDescription("se"), swedishDescription)) {
+                codeScheme.setDescription("se", swedishDescription);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getDescription("en"), englishDescription)) {
+                codeScheme.setDescription("en", englishDescription);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getChangeNote("fi"), finnishChangeNote)) {
+                codeScheme.setChangeNote("fi", finnishChangeNote);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getChangeNote("se"), swedishChangeNote)) {
+                codeScheme.setChangeNote("se", swedishChangeNote);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getChangeNote("en"), englishChangeNote)) {
+                codeScheme.setChangeNote("en", englishChangeNote);
                 hasChanges = true;
             }
             if (!Objects.equals(codeScheme.getVersion(), version)) {
                 codeScheme.setVersion(version);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getType(), type.toString())) {
-                codeScheme.setType(type.toString());
                 hasChanges = true;
             }
             if (!Objects.equals(codeScheme.getStartDate(), startDate)) {
@@ -195,19 +224,24 @@ public class CodeSchemeParser {
             codeScheme = new CodeScheme();
             codeScheme.setId(UUID.randomUUID().toString());
             codeScheme.setCodeRegistry(codeRegistry);
-            codeScheme.setUri(url);
+            codeScheme.setUri(uri);
             codeScheme.setCodeValue(codeValue);
             codeScheme.setSource(source);
-            codeScheme.setDefinition(definition);
-            codeScheme.setDescription(description);
-            codeScheme.setChangeNote(changeNote);
             codeScheme.setModified(timeStamp);
-            codeScheme.setPrefLabel("fi", finnishName);
-            codeScheme.setPrefLabel("se", swedishName);
-            codeScheme.setPrefLabel("en", englishName);
+            codeScheme.setPrefLabel("fi", finnishPrefLabel);
+            codeScheme.setPrefLabel("se", swedishPrefLabel);
+            codeScheme.setPrefLabel("en", englishPrefLabel);
+            codeScheme.setDefinition("fi", finnishDefinition);
+            codeScheme.setDefinition("se", swedishDefinition);
+            codeScheme.setDefinition("en", englishDefinition);
+            codeScheme.setDescription("fi", finnishDescription);
+            codeScheme.setDescription("se", swedishDescription);
+            codeScheme.setDescription("en", englishDescription);
+            codeScheme.setChangeNote("fi", finnishChangeNote);
+            codeScheme.setChangeNote("se", swedishChangeNote);
+            codeScheme.setChangeNote("en", englishChangeNote);
             codeScheme.setVersion(version);
             codeScheme.setStatus(status.toString());
-            codeScheme.setType(type.toString());
             codeScheme.setStartDate(startDate);
             codeScheme.setEndDate(endDate);
         }
