@@ -11,6 +11,8 @@ public interface CodeRegistryRepository extends CrudRepository<CodeRegistry, Str
 
     CodeRegistry findByCodeValue(final String codeValue);
 
+    CodeRegistry findById(final String id);
+
     List<CodeRegistry> findAll();
 
 }

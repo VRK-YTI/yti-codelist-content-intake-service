@@ -31,6 +31,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -109,7 +110,12 @@ public class CodeRegistryResource {
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            final List<CodeScheme> codeSchemes = codeSchemeParser.parseCodeSchemesFromClsInputStream(codeRegistry, DomainConstants.SOURCE_INTERNAL, inputStream);
+            final List<CodeScheme> codeSchemes;
+            try {
+                codeSchemes = codeSchemeParser.parseCodeSchemesFromClsInputStream(codeRegistry, DomainConstants.SOURCE_INTERNAL, inputStream);
+            } catch (final Exception e) {
+                throw new WebApplicationException(e.getMessage());
+            }
             for (final CodeScheme codeScheme : codeSchemes) {
                 LOG.info("CodeScheme parsed from input: " + codeScheme.getCodeValue());
             }
@@ -144,7 +150,12 @@ public class CodeRegistryResource {
         if (codeRegistry != null) {
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             if (codeScheme != null) {
-                final List<Code> codes = codeParser.parseCodesFromClsInputStream(codeScheme, DomainConstants.SOURCE_INTERNAL, inputStream);
+                final List<Code> codes;
+                try {
+                    codes = codeParser.parseCodesFromClsInputStream(codeScheme, DomainConstants.SOURCE_INTERNAL, inputStream);
+                } catch (Exception e) {
+                    throw new WebApplicationException(e.getMessage());
+                }
                 for (final Code code : codes) {
                     LOG.info("Code parsed from input: " + code.getCodeValue());
                 }

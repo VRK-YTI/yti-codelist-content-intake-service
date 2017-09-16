@@ -51,14 +51,11 @@ public class CodeRegistryParser {
     public List<CodeRegistry> parseCodeRegistriesFromClsInputStream(final String source,
                                                                     final InputStream inputStream) {
         final List<CodeRegistry> codeRegistries = new ArrayList<>();
-        final Map<String, CodeRegistry> existingCodeRegistriesMap = parserUtils.getCodeRegistriesMap();
-
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
             FileUtils.skipBom(in);
             final List<CSVRecord> records = csvParser.getRecords();
-
             records.forEach(record -> {
                 final String code = record.get("CODEVALUE");
                 final String prefLabelFinnish = record.get("PREFLABEL_FI");
@@ -67,18 +64,18 @@ public class CodeRegistryParser {
                 final String definitionFinnish = record.get("DEFINITION_FI");
                 final String definitionSwedish = record.get("DEFINITION_SE");
                 final String definitionEnglish = record.get("DEFINITION_EN");
-
-                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(existingCodeRegistriesMap, code, source, prefLabelFinnish, prefLabelSwedish, prefLabelEnglish, definitionFinnish, definitionSwedish, definitionEnglish);
-                codeRegistries.add(codeRegistry);
+                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(code, source, prefLabelFinnish, prefLabelSwedish, prefLabelEnglish, definitionFinnish, definitionSwedish, definitionEnglish);
+                if (codeRegistry != null) {
+                    codeRegistries.add(codeRegistry);
+                }
             });
         } catch (IOException e) {
-            LOG.error("Parsing codeschemes failed: " + e.getMessage());
+            LOG.error("Parsing coderegistries failed: " + e.getMessage());
         }
         return codeRegistries;
     }
 
-    private CodeRegistry createOrUpdateCodeRegistry(final Map<String, CodeRegistry> codeRegistriesMap,
-                                                    final String code,
+    private CodeRegistry createOrUpdateCodeRegistry(final String code,
                                                     final String prefLabelFinnish,
                                                     final String prefLabelSwedish,
                                                     final String prefLabelEnglish,
@@ -86,17 +83,15 @@ public class CodeRegistryParser {
                                                     final String definitionSwedish,
                                                     final String definitionEnglish,
                                                     final String source) {
-
-        String url = null;
-        url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES, code);
+        final Map<String, CodeRegistry> existingCodeRegistriesMap = parserUtils.getCodeRegistriesMap();
+        String uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES, code);
         final Date timeStamp = new Date(System.currentTimeMillis());
-        CodeRegistry codeRegistry = codeRegistriesMap.get(code);
-
+        CodeRegistry codeRegistry = existingCodeRegistriesMap.get(code);
         // Update
         if (codeRegistry != null) {
             boolean hasChanges = false;
-            if (!Objects.equals(codeRegistry.getUri(), url)) {
-                codeRegistry.setUri(url);
+            if (!Objects.equals(codeRegistry.getUri(), uri)) {
+                codeRegistry.setUri(uri);
                 hasChanges = true;
             }
             if (!Objects.equals(codeRegistry.getSource(), source)) {
@@ -134,7 +129,7 @@ public class CodeRegistryParser {
         } else {
             codeRegistry = new CodeRegistry();
             codeRegistry.setId(UUID.randomUUID().toString());
-            codeRegistry.setUri(url);
+            codeRegistry.setUri(uri);
             codeRegistry.setCodeValue(code);
             codeRegistry.setSource(source);
             codeRegistry.setModified(timeStamp);
@@ -145,7 +140,6 @@ public class CodeRegistryParser {
             codeRegistry.setDefinition("se", definitionSwedish);
             codeRegistry.setDefinition("en", definitionEnglish);
         }
-
         return codeRegistry;
     }
 

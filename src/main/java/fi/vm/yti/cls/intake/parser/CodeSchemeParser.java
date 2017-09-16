@@ -6,6 +6,7 @@ import fi.vm.yti.cls.common.model.CodeScheme;
 import fi.vm.yti.cls.common.model.Status;
 import fi.vm.yti.cls.intake.api.ApiConstants;
 import fi.vm.yti.cls.intake.api.ApiUtils;
+import fi.vm.yti.cls.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.cls.intake.util.FileUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -24,7 +25,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -36,13 +36,13 @@ public class CodeSchemeParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParser.class);
     private final ApiUtils apiUtils;
-    private final ParserUtils parserUtils;
+    private final CodeSchemeRepository codeSchemeRepository;
 
     @Inject
     public CodeSchemeParser(final ApiUtils apiUtils,
-                            final ParserUtils parserUtils) {
+                            final CodeSchemeRepository codeSchemeRepository) {
         this.apiUtils = apiUtils;
-        this.parserUtils = parserUtils;
+        this.codeSchemeRepository = codeSchemeRepository;
     }
 
     /**
@@ -54,17 +54,15 @@ public class CodeSchemeParser {
      */
     public List<CodeScheme> parseCodeSchemesFromClsInputStream(final CodeRegistry codeRegistry,
                                                                final String source,
-                                                               final InputStream inputStream) {
+                                                               final InputStream inputStream) throws Exception {
         final List<CodeScheme> codeSchemes = new ArrayList<>();
-        final Map<String, CodeScheme> existingCodeSchemesMap = parserUtils.getCodeSchemesMap();
-
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                 final BufferedReader in = new BufferedReader(inputStreamReader);
                 final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
             FileUtils.skipBom(in);
             final List<CSVRecord> records = csvParser.getRecords();
-
-            records.forEach(record -> {
+            for (final CSVRecord record : records) {
+                final String id = record.get("ID");
                 final String codeValue = record.get("CODEVALUE");
                 final String prefLabelFinnish = record.get("PREFLABEL_FI");
                 final String prefLabelSwedish = record.get("PREFLABEL_SE");
@@ -99,22 +97,22 @@ public class CodeSchemeParser {
                         LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                     }
                 }
-                final CodeScheme codeScheme = createOrUpdateCodeScheme(existingCodeSchemesMap, codeRegistry, codeValue,
+                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, id, codeValue,
                         version, source, status, startDate, endDate,
                         prefLabelFinnish, prefLabelSwedish, prefLabelEnglish,
                         descriptionFinnish, descriptionSwedish, descriptionEnglish,
                         definitionFinnish, definitionSwedish, definitionEnglish,
                         changeNoteFinnish, changeNoteSwedish, changeNoteEnglish);
                 codeSchemes.add(codeScheme);
-            });
+            }
         } catch (IOException e) {
             LOG.error("Parsing codeschemes failed: " + e.getMessage());
         }
         return codeSchemes;
     }
     
-    private CodeScheme createOrUpdateCodeScheme(final Map<String, CodeScheme> codeSchemesMap,
-                                                final CodeRegistry codeRegistry,
+    private CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
+                                                final String id,
                                                 final String codeValue,
                                                 final String version,
                                                 final String source,
@@ -132,11 +130,23 @@ public class CodeSchemeParser {
                                                 final String englishDefinition,
                                                 final String finnishChangeNote,
                                                 final String swedishChangeNote,
-                                                final String englishChangeNote) {
-        final String uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + ApiConstants.API_PATH_CODESCHEMES, codeValue);
+                                                final String englishChangeNote) throws Exception {
         final Date timeStamp = new Date(System.currentTimeMillis());
-        CodeScheme codeScheme = codeSchemesMap.get(codeValue);
-
+        CodeScheme codeScheme = null;
+        if (id != null) {
+            codeScheme = codeSchemeRepository.findById(id);
+        }
+        String uri = null;
+        if (Status.VALID == status) {
+            uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + ApiConstants.API_PATH_CODESCHEMES, codeValue);
+            final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueAndStatus(codeRegistry, codeValue, status.toString());
+            if (existingCodeScheme != null) {
+                LOG.error("Existing value already found, cancel update!");
+                throw new Exception("Existing value already found with status VALID for code scheme with code value: " + codeValue + ", cancel update!");
+            }
+        } else {
+            uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + ApiConstants.API_PATH_CODESCHEMES, id);
+        }
         // Update
         if (codeScheme != null) {
             boolean hasChanges = false;

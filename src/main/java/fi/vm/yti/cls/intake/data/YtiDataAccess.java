@@ -116,6 +116,9 @@ public class YtiDataAccess implements DataAccess {
                     } catch (IOException e) {
                         LOG.error("Issue with parsing CodeScheme file. Message: " + e.getMessage());
                         updateManager.updateFailedStatus(updateStatus);
+                    } catch (Exception e) {
+                        LOG.error("Issue with existing code found. Message: " + e.getMessage());
+                        updateManager.updateFailedStatus(updateStatus);
                     }
                 }
             });
@@ -136,7 +139,7 @@ public class YtiDataAccess implements DataAccess {
         final Stopwatch watch = Stopwatch.createStarted();
         if (updateManager.shouldUpdateData(DomainConstants.DATA_CODES, DEFAULT_CODE_FILENAME)) {
             final List<Code> codes = new ArrayList<>();
-            final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_CODESCHEMES, DomainConstants.SOURCE_INTERNAL, DEFAULT_CODESCHEME_FILENAME, UPDATE_RUNNING);
+            final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_CODESCHEMES, DomainConstants.SOURCE_INTERNAL, DEFAULT_CODE_FILENAME, UPDATE_RUNNING);
             final List<CodeRegistry> defaultCodeRegistries = codeRegistryRepository.findAll();
             defaultCodeRegistries.forEach(codeRegistry -> {
                 if (codeRegistry.getCodeValue().startsWith(DEFAULT_CODEREGISTRY_NAME_PREFIX)) {
@@ -146,6 +149,9 @@ public class YtiDataAccess implements DataAccess {
                             codes.addAll(codeParser.parseCodesFromClsInputStream(codeScheme, SOURCE_INTERNAL, inputStream));
                         } catch (IOException e) {
                             LOG.error("Issue with parsing Code file. Message: " + e.getMessage());
+                            updateManager.updateFailedStatus(updateStatus);
+                        } catch (Exception e) {
+                            LOG.error("Issue with existing code found. Message: " + e.getMessage());
                             updateManager.updateFailedStatus(updateStatus);
                         }
                     });

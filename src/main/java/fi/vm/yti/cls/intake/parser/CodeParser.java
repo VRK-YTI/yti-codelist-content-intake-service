@@ -6,6 +6,7 @@ import fi.vm.yti.cls.common.model.CodeScheme;
 import fi.vm.yti.cls.common.model.Status;
 import fi.vm.yti.cls.intake.api.ApiConstants;
 import fi.vm.yti.cls.intake.api.ApiUtils;
+import fi.vm.yti.cls.intake.jpa.CodeRepository;
 import fi.vm.yti.cls.intake.util.FileUtils;
 import fi.vm.yti.cls.intake.util.Utils;
 import org.apache.commons.csv.CSVFormat;
@@ -25,10 +26,8 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-
 
 /**
  * Class that handles parsing of codes from source data.
@@ -38,13 +37,13 @@ public class CodeParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeParser.class);
     private final ApiUtils apiUtils;
-    private final ParserUtils parserUtils;
+    private final CodeRepository codeRepository;
 
     @Inject
     public CodeParser(final ApiUtils apiUtils,
-                      final ParserUtils parserUtils) {
+                      final CodeRepository codeRepository) {
         this.apiUtils = apiUtils;
-        this.parserUtils = parserUtils;
+        this.codeRepository = codeRepository;
     }
 
     /**
@@ -57,7 +56,7 @@ public class CodeParser {
      */
     public List<Code> parseCodesFromClsInputStream(final CodeScheme codeScheme,
                                                    final String source,
-                                                   final InputStream inputStream) {
+                                                   final InputStream inputStream) throws Exception {
         final List<Code> codes = new ArrayList<>();
         if (codeScheme != null) {
             try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
@@ -66,56 +65,56 @@ public class CodeParser {
                 FileUtils.skipBom(in);
                 final List<CSVRecord> records = csvParser.getRecords();
 
-                records.forEach(record -> {
-                    if (codeScheme != null) {
-                        final Map<String, Code> existingCodesMap = parserUtils.getCodesMap(codeScheme);
-                        final String codeValue = Utils.ensureRegionIdPadding(record.get("CODEVALUE"));
-                        final String prefLabelFinnish = record.get("PREFLABEL_FI");
-                        final String prefLabelSwedish = record.get("PREFLABEL_SE");
-                        final String prefLabelEnglish = record.get("PREFLABEL_EN");
-                        final String descriptionFinnish = record.get("DESCRIPTION_FI");
-                        final String descriptionSwedish = record.get("DESCRIPTION_SE");
-                        final String descriptionEnglish = record.get("DESCRIPTION_EN");
-                        final String definitionFinnish = record.get("DEFINITION_FI");
-                        final String definitionSwedish = record.get("DEFINITION_SE");
-                        final String definitionEnglish = record.get("DEFINITION_EN");
-                        final String shortName = record.get("SHORTNAME");
-                        final Status status = Status.valueOf(record.get("STATUS"));
-                        final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
-                        Date startDate = null;
-                        final String startDateString = record.get("STARTDATE");
-                        if (!startDateString.isEmpty()) {
-                            try {
-                                startDate = dateFormat.parse(startDateString);
-                            } catch (ParseException e) {
-                                LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
-                            }
+                for (final CSVRecord record : records) {
+                    final String id = record.get("ID");
+                    final String codeValue = Utils.ensureRegionIdPadding(record.get("CODEVALUE"));
+                    final String prefLabelFinnish = record.get("PREFLABEL_FI");
+                    final String prefLabelSwedish = record.get("PREFLABEL_SE");
+                    final String prefLabelEnglish = record.get("PREFLABEL_EN");
+                    final String descriptionFinnish = record.get("DESCRIPTION_FI");
+                    final String descriptionSwedish = record.get("DESCRIPTION_SE");
+                    final String descriptionEnglish = record.get("DESCRIPTION_EN");
+                    final String definitionFinnish = record.get("DEFINITION_FI");
+                    final String definitionSwedish = record.get("DEFINITION_SE");
+                    final String definitionEnglish = record.get("DEFINITION_EN");
+                    final String shortName = record.get("SHORTNAME");
+                    final Status status = Status.valueOf(record.get("STATUS"));
+                    final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
+                    Date startDate = null;
+                    final String startDateString = record.get("STARTDATE");
+                    if (!startDateString.isEmpty()) {
+                        try {
+                            startDate = dateFormat.parse(startDateString);
+                        } catch (ParseException e) {
+                            LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
                         }
-                        Date endDate = null;
-                        final String endDateString = record.get("STARTDATE");
-                        if (!endDateString.isEmpty()) {
-                            try {
-                                endDate = dateFormat.parse(endDateString);
-                            } catch (ParseException e) {
-                                LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
-                            }
+                    }
+                    Date endDate = null;
+                    final String endDateString = record.get("STARTDATE");
+                    if (!endDateString.isEmpty()) {
+                        try {
+                            endDate = dateFormat.parse(endDateString);
+                        } catch (ParseException e) {
+                            LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                         }
-                        final Code code = createOrUpdateCode(existingCodesMap, codeScheme, codeValue, status, source, shortName, startDate, endDate,
+                    }
+                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, source, shortName, startDate, endDate,
                                 prefLabelFinnish, prefLabelSwedish, prefLabelEnglish,
                                 descriptionFinnish, descriptionSwedish, descriptionEnglish,
                                 definitionFinnish, definitionSwedish, definitionEnglish);
+                    if (code != null) {
                         codes.add(code);
                     }
-                });
-            } catch (IOException e) {
-                LOG.error("Parsing regions failed: " + e.getMessage());
+                }
+            } catch (final IOException e) {
+                LOG.error("Parsing codes failed: " + e.getMessage());
             }
         }
         return codes;
     }
 
-    private Code createOrUpdateCode(final Map<String, Code> codesMap,
-                                    final CodeScheme codeScheme,
+    private Code createOrUpdateCode(final CodeScheme codeScheme,
+                                    final String id,
                                     final String codeValue,
                                     final Status status,
                                     final String source,
@@ -130,11 +129,23 @@ public class CodeParser {
                                     final String englishDescription,
                                     final String finnishDefinition,
                                     final String swedishDefinition,
-                                    final String englishDefinition) {
-        final String url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + ApiConstants.API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + ApiConstants.API_PATH_CODES, codeValue);
+                                    final String englishDefinition) throws Exception {
         final Date timeStamp = new Date(System.currentTimeMillis());
-        Code code = codesMap.get(codeValue);
-
+        Code code = null;
+        if (id != null) {
+            code = codeRepository.findById(id);
+        }
+        String url = null;
+        if (Status.VALID == status) {
+            url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + ApiConstants.API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + ApiConstants.API_PATH_CODES, codeValue);
+            final Code existingCode = codeRepository.findByCodeSchemeAndCodeValueAndStatus(codeScheme, codeValue, status.toString());
+            if (existingCode != null) {
+                LOG.error("Existing value already found, cancel update!");
+                throw new Exception("Existing value already found with status VALID for code: " + codeValue + ", cancel update!");
+            }
+        } else {
+            url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + ApiConstants.API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + ApiConstants.API_PATH_CODES, id);
+        }
         // Update
         if (code != null) {
             boolean hasChanges = false;
