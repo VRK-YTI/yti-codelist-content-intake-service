@@ -135,16 +135,16 @@ public class CodeParser {
         if (id != null) {
             code = codeRepository.findById(id);
         }
-        String url = null;
+        String uri = null;
         if (Status.VALID == status) {
-            url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + ApiConstants.API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + ApiConstants.API_PATH_CODES, codeValue);
+            uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + ApiConstants.API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + ApiConstants.API_PATH_CODES, codeValue);
             final Code existingCode = codeRepository.findByCodeSchemeAndCodeValueAndStatus(codeScheme, codeValue, status.toString());
             if (existingCode != null) {
                 LOG.error("Existing value already found, cancel update!");
                 throw new Exception("Existing value already found with status VALID for code: " + codeValue + ", cancel update!");
             }
-        } else {
-            url = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + ApiConstants.API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + ApiConstants.API_PATH_CODES, id);
+        } else if (id != null && !id.isEmpty()) {
+            uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + ApiConstants.API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + ApiConstants.API_PATH_CODES, id);
         }
         // Update
         if (code != null) {
@@ -157,8 +157,8 @@ public class CodeParser {
                 code.setCodeScheme(codeScheme);
                 hasChanges = true;
             }
-            if (!Objects.equals(code.getUri(), url)) {
-                code.setUri(url);
+            if (!Objects.equals(code.getUri(), uri)) {
+                code.setUri(uri);
                 hasChanges = true;
             }
             if (!Objects.equals(code.getSource(), source)) {
@@ -219,9 +219,17 @@ public class CodeParser {
         // Create
         } else {
             code = new Code();
-            code.setId(UUID.randomUUID().toString());
+            if (id != null && !id.isEmpty()) {
+                code.setId(id);
+            } else {
+                final String uuid = UUID.randomUUID().toString();
+                if (status != Status.VALID) {
+                    uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + ApiConstants.API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + ApiConstants.API_PATH_CODES, uuid);
+                }
+                code.setId(uuid);
+            }
             code.setStatus(status.toString());
-            code.setUri(url);
+            code.setUri(uri);
             code.setCodeScheme(codeScheme);
             code.setCodeValue(codeValue);
             code.setSource(source);

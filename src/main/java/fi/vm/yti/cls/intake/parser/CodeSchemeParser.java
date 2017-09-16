@@ -144,7 +144,7 @@ public class CodeSchemeParser {
                 LOG.error("Existing value already found, cancel update!");
                 throw new Exception("Existing value already found with status VALID for code scheme with code value: " + codeValue + ", cancel update!");
             }
-        } else {
+        } else if (id != null && !id.isEmpty()) {
             uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + ApiConstants.API_PATH_CODESCHEMES, id);
         }
         // Update
@@ -234,6 +234,15 @@ public class CodeSchemeParser {
             codeScheme = new CodeScheme();
             codeScheme.setId(UUID.randomUUID().toString());
             codeScheme.setCodeRegistry(codeRegistry);
+            if (id != null && !id.isEmpty()) {
+                codeScheme.setId(id);
+            } else {
+                final String uuid = UUID.randomUUID().toString();
+                if (status != Status.VALID) {
+                    uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + ApiConstants.API_PATH_CODESCHEMES, id);
+                }
+                codeScheme.setId(uuid);
+            }
             codeScheme.setUri(uri);
             codeScheme.setCodeValue(codeValue);
             codeScheme.setSource(source);
