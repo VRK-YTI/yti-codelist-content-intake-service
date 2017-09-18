@@ -337,12 +337,12 @@
                     <pullOnBuild>false</pullOnBuild>
                     <resources>
                         <resource>
-                            <targetPath>/</targetPath>
+                            <targetPath>/target</targetPath>
                             <directory>${project.build.directory}</directory>
                             <include>${project.build.finalName}.jar</include>
                         </resource>
                         <resource>
-                            <targetPath>/</targetPath>
+                            <targetPath>/target</targetPath>
                             <directory>${project.build.outputDirectory}</directory>
                             <include>${git.properties}</include>
                         </resource>

@@ -2,7 +2,7 @@
 FROM cls-docker-java-base:alpine
 
 # Deploy project
-ADD cls-content-intake-service.jar ${deploy_dir}/cls-content-intake-service.jar
+ADD target/cls-content-intake-service.jar ${deploy_dir}/cls-content-intake-service.jar
 
 # If you want to serve static content (e.g. /cls-intake-service/swagger/index.html)
 # from spring boot application that is running inside docker container you shall run into
