@@ -1,4 +1,4 @@
 #!/bin/bash
 #
 #
-mvn clean verify package docker:build
+mvn clean package docker:build

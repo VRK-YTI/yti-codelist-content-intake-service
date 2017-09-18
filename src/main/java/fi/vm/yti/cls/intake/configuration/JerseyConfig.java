@@ -42,6 +42,9 @@ import javax.ws.rs.ApplicationPath;
 public class JerseyConfig extends ResourceConfig {
 
     public JerseyConfig() {
+        // CORS filtering.
+        register(CorsFilter.class);
+
         // Generic resources.
         register(VersionResource.class);
         register(SwaggerResource.class);
@@ -51,7 +54,6 @@ public class JerseyConfig extends ResourceConfig {
 
         // Admin APIs for YTI model.
         register(CodeRegistryResource.class);
-
     }
 
 }
