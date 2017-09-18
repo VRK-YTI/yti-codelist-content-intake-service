@@ -101,9 +101,7 @@ public class ServiceInitializer {
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private void updateSwaggerHost() {
         final ObjectMapper mapper = new ObjectMapper();
-        FileOutputStream fos = null;
-        try {
-            final InputStream inputStream = FileUtils.loadFileFromClassPath("/swagger/swagger.json");
+        try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/swagger/swagger.json")) { 
             final ObjectNode jsonObject = (ObjectNode) mapper.readTree(new InputStreamReader(inputStream, "UTF-8"));
 
             final String hostname = apiUtils.getPublicApiServiceHostname();
@@ -121,21 +119,12 @@ public class ServiceInitializer {
             final String fileLocation = file.toString();
             LOG.info("Storing modified swagger.json description with hostname: " + hostname + " to: " + fileLocation);
 
-            fos = new FileOutputStream(fileLocation, false);
-
-            mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-            fos.write(mapper.writeValueAsString(jsonObject).getBytes(StandardCharsets.UTF_8));
-            fos.close();
+            try (FileOutputStream fos = new FileOutputStream(fileLocation, false)) {
+                mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+                fos.write(mapper.writeValueAsString(jsonObject).getBytes(StandardCharsets.UTF_8));
+            }
         } catch (IOException e) {
             LOG.error("Swagger JSON parsing failed: " + e.getMessage());
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    LOG.error("Closing output stream failed: " + e.getMessage());
-                }
-            }
         }
     }
 
