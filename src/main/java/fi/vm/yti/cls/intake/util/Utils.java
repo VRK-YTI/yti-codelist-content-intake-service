@@ -1,10 +1,10 @@
 package fi.vm.yti.cls.intake.util;
 
-import org.apache.commons.lang.StringUtils;
-
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import org.apache.commons.lang.StringUtils;
 
 public abstract class Utils {
 

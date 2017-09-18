@@ -1,6 +1,18 @@
 package fi.vm.yti.cls.intake.data;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
 import com.google.common.base.Stopwatch;
+
 import fi.vm.yti.cls.common.model.Code;
 import fi.vm.yti.cls.common.model.CodeRegistry;
 import fi.vm.yti.cls.common.model.CodeScheme;
@@ -14,16 +26,6 @@ import fi.vm.yti.cls.intake.parser.CodeRegistryParser;
 import fi.vm.yti.cls.intake.parser.CodeSchemeParser;
 import fi.vm.yti.cls.intake.update.UpdateManager;
 import fi.vm.yti.cls.intake.util.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import javax.inject.Inject;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import static fi.vm.yti.cls.intake.domain.DomainConstants.SOURCE_INTERNAL;
 import static fi.vm.yti.cls.intake.update.UpdateManager.UPDATE_RUNNING;
 

@@ -1,6 +1,10 @@
 package fi.vm.yti.cls.intake.configuration;
 
-import com.zaxxer.hikari.HikariDataSource;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import javax.sql.DataSource;
+
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -18,9 +22,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import javax.sql.DataSource;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import com.zaxxer.hikari.HikariDataSource;
 
 @Component
 @Configuration

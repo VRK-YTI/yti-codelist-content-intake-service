@@ -1,20 +1,21 @@
 package fi.vm.yti.cls.intake.resource;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
+import java.io.File;
+import java.io.IOException;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import java.io.File;
-import java.io.IOException;
-
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.cls.intake.ServiceInitializer.LOCAL_SWAGGER_DATA_DIR;
 
 @Component

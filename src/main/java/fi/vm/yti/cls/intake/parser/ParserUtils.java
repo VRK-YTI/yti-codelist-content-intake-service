@@ -1,17 +1,19 @@
 package fi.vm.yti.cls.intake.parser;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Component;
+
 import fi.vm.yti.cls.common.model.Code;
 import fi.vm.yti.cls.common.model.CodeRegistry;
 import fi.vm.yti.cls.common.model.CodeScheme;
 import fi.vm.yti.cls.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.cls.intake.jpa.CodeRepository;
 import fi.vm.yti.cls.intake.jpa.CodeSchemeRepository;
-import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Utility class for code parsers that contains helper methods to minimize repetition.

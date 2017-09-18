@@ -1,10 +1,11 @@
 package fi.vm.yti.cls.intake.jpa;
 
-import fi.vm.yti.cls.common.model.CodeRegistry;
+import java.util.List;
+
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import fi.vm.yti.cls.common.model.CodeRegistry;
 
 @Repository
 public interface CodeRegistryRepository extends CrudRepository<CodeRegistry, String> {

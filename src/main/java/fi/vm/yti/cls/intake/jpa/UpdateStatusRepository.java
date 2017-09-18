@@ -1,12 +1,13 @@
 package fi.vm.yti.cls.intake.jpa;
 
-import fi.vm.yti.cls.common.model.UpdateStatus;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import fi.vm.yti.cls.common.model.UpdateStatus;
 
 @Repository
 public interface UpdateStatusRepository extends CrudRepository<UpdateStatus, String> {

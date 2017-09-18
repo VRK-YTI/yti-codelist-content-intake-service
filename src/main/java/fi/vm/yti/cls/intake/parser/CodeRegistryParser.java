@@ -1,17 +1,5 @@
 package fi.vm.yti.cls.intake.parser;
 
-import fi.vm.yti.cls.common.model.CodeRegistry;
-import fi.vm.yti.cls.intake.api.ApiConstants;
-import fi.vm.yti.cls.intake.api.ApiUtils;
-import fi.vm.yti.cls.intake.util.FileUtils;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import javax.inject.Inject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +11,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+
+import javax.inject.Inject;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import fi.vm.yti.cls.common.model.CodeRegistry;
+import fi.vm.yti.cls.intake.api.ApiConstants;
+import fi.vm.yti.cls.intake.api.ApiUtils;
+import fi.vm.yti.cls.intake.util.FileUtils;
 
 /**
  * Class that handles parsing of coderegistries from source data.

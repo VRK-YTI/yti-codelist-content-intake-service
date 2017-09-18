@@ -1,9 +1,10 @@
 package fi.vm.yti.cls.intake.api;
 
-import fi.vm.yti.cls.intake.configuration.PublicApiServiceProperties;
+import javax.inject.Inject;
+
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
+import fi.vm.yti.cls.intake.configuration.PublicApiServiceProperties;
 
 /**
  * Generic utils for serving API population functionality.

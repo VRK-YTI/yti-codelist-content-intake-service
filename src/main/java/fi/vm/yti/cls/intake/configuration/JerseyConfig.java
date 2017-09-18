@@ -1,5 +1,11 @@
 package fi.vm.yti.cls.intake.configuration;
 
+import javax.ws.rs.ApplicationPath;
+
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.springframework.stereotype.Component;
+
 import fi.vm.yti.cls.intake.api.ApiConstants;
 import fi.vm.yti.cls.intake.resource.CodeRegistryResource;
 import fi.vm.yti.cls.intake.resource.SwaggerResource;
@@ -9,11 +15,6 @@ import io.swagger.annotations.Contact;
 import io.swagger.annotations.Info;
 import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.springframework.stereotype.Component;
-
-import javax.ws.rs.ApplicationPath;
 
 @Component
 @SwaggerDefinition(

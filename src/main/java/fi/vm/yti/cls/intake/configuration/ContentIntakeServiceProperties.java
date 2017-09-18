@@ -1,9 +1,9 @@
 package fi.vm.yti.cls.intake.configuration;
 
+import javax.validation.constraints.NotNull;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
-import javax.validation.constraints.NotNull;
 
 @ConfigurationProperties("application")
 @Component

@@ -1,10 +1,10 @@
 package fi.vm.yti.cls.intake.domain;
 
+import java.util.List;
+
 import fi.vm.yti.cls.common.model.Code;
 import fi.vm.yti.cls.common.model.CodeRegistry;
 import fi.vm.yti.cls.common.model.CodeScheme;
-
-import java.util.List;
 
 public interface Domain {
 

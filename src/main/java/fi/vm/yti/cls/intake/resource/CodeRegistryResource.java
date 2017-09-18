@@ -1,9 +1,29 @@
 package fi.vm.yti.cls.intake.resource;
 
-import fi.vm.yti.cls.common.model.CodeRegistry;
-import fi.vm.yti.cls.common.model.Meta;
-import fi.vm.yti.cls.common.model.CodeScheme;
+import java.io.InputStream;
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
 import fi.vm.yti.cls.common.model.Code;
+import fi.vm.yti.cls.common.model.CodeRegistry;
+import fi.vm.yti.cls.common.model.CodeScheme;
+import fi.vm.yti.cls.common.model.Meta;
 import fi.vm.yti.cls.common.model.Status;
 import fi.vm.yti.cls.intake.api.MetaResponseWrapper;
 import fi.vm.yti.cls.intake.domain.Domain;
@@ -18,25 +38,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
-import javax.transaction.Transactional;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.util.List;
-
 
 /**
  * Content Intake Service: REST resources for registryItems.

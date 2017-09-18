@@ -1,22 +1,5 @@
 package fi.vm.yti.cls.intake;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Stopwatch;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import fi.vm.yti.cls.intake.api.ApiUtils;
-import fi.vm.yti.cls.intake.configuration.PublicApiServiceProperties;
-import fi.vm.yti.cls.intake.configuration.VersionInformation;
-import fi.vm.yti.cls.intake.data.YtiDataAccess;
-import fi.vm.yti.cls.intake.domain.Domain;
-import fi.vm.yti.cls.intake.util.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,6 +10,26 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Stopwatch;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import fi.vm.yti.cls.intake.api.ApiUtils;
+import fi.vm.yti.cls.intake.configuration.PublicApiServiceProperties;
+import fi.vm.yti.cls.intake.configuration.VersionInformation;
+import fi.vm.yti.cls.intake.data.YtiDataAccess;
+import fi.vm.yti.cls.intake.domain.Domain;
+import fi.vm.yti.cls.intake.util.FileUtils;
 
 /**
  * Class that initializes and possibly refreshes domain data at application startup.

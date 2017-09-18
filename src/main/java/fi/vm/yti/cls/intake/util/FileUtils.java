@@ -1,11 +1,12 @@
 package fi.vm.yti.cls.intake.util;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.springframework.core.io.ClassPathResource;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+
+import org.springframework.core.io.ClassPathResource;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public abstract class FileUtils {
 

@@ -1,15 +1,12 @@
 package fi.vm.yti.cls.intake.domain;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import fi.vm.yti.cls.common.model.Code;
-import fi.vm.yti.cls.common.model.CodeRegistry;
-import fi.vm.yti.cls.common.model.CodeScheme;
-import fi.vm.yti.cls.intake.jpa.CodeRegistryRepository;
-import fi.vm.yti.cls.intake.jpa.CodeRepository;
-import fi.vm.yti.cls.intake.jpa.CodeSchemeRepository;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
@@ -26,11 +23,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import fi.vm.yti.cls.common.model.Code;
+import fi.vm.yti.cls.common.model.CodeRegistry;
+import fi.vm.yti.cls.common.model.CodeScheme;
+import fi.vm.yti.cls.intake.jpa.CodeRegistryRepository;
+import fi.vm.yti.cls.intake.jpa.CodeRepository;
+import fi.vm.yti.cls.intake.jpa.CodeSchemeRepository;
 
 @Singleton
 @Service
