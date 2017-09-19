@@ -23,10 +23,10 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
+import fi.vm.yti.cls.common.constants.ApiConstants;
 import fi.vm.yti.cls.common.model.CodeRegistry;
 import fi.vm.yti.cls.common.model.CodeScheme;
 import fi.vm.yti.cls.common.model.Status;
-import fi.vm.yti.cls.intake.api.ApiConstants;
 import fi.vm.yti.cls.intake.api.ApiUtils;
 import fi.vm.yti.cls.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.cls.intake.util.FileUtils;

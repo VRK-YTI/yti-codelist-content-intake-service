@@ -6,7 +6,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
 
-import fi.vm.yti.cls.intake.api.ApiConstants;
+import fi.vm.yti.cls.common.constants.ApiConstants;
 import fi.vm.yti.cls.intake.resource.CodeRegistryResource;
 import fi.vm.yti.cls.intake.resource.SwaggerResource;
 import fi.vm.yti.cls.intake.resource.VersionResource;
@@ -33,7 +33,7 @@ import io.swagger.annotations.SwaggerDefinition;
         )
     ),
     host = "localhost:9601",
-    basePath = ApiConstants.API_CONTEXT_PATH + ApiConstants.API_BASE_PATH,
+    basePath = ApiConstants.API_CONTEXT_PATH_INTAKE + ApiConstants.API_BASE_PATH,
     consumes = {"application/json", "application/xml"},
     produces = {"application/json", "application/xml"},
     schemes = {SwaggerDefinition.Scheme.HTTP, SwaggerDefinition.Scheme.HTTPS}

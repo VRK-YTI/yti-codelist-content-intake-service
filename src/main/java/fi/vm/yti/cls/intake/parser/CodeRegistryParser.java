@@ -21,8 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import fi.vm.yti.cls.common.constants.ApiConstants;
 import fi.vm.yti.cls.common.model.CodeRegistry;
-import fi.vm.yti.cls.intake.api.ApiConstants;
 import fi.vm.yti.cls.intake.api.ApiUtils;
 import fi.vm.yti.cls.intake.util.FileUtils;
 

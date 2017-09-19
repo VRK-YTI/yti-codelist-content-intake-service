@@ -4,6 +4,7 @@ import javax.inject.Inject;
 
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.cls.common.constants.ApiConstants;
 import fi.vm.yti.cls.intake.configuration.PublicApiServiceProperties;
 
 /**
