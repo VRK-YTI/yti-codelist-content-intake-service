@@ -2,6 +2,8 @@ package fi.vm.yti.cls.intake.jpa;
 
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,6 +11,7 @@ import fi.vm.yti.cls.common.model.Code;
 import fi.vm.yti.cls.common.model.CodeScheme;
 
 @Repository
+@Transactional
 public interface CodeRepository extends CrudRepository<Code, String> {
 
     Code findByCodeSchemeAndCodeValueAndStatus(final CodeScheme codeScheme, final String codeValue, final String status);
