@@ -106,22 +106,17 @@ public class ServiceInitializer {
         final ObjectMapper mapper = new ObjectMapper();
         try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/swagger/swagger.json")) { 
             final ObjectNode jsonObject = (ObjectNode) mapper.readTree(new InputStreamReader(inputStream, "UTF-8"));
-
             final String hostname = apiUtils.getPublicApiServiceHostname();
             jsonObject.put("host", hostname);
-
             final String scheme = publicApiServiceProperties.getScheme();
             final List<String> schemes = new ArrayList<>();
             schemes.add(scheme);
             final ArrayNode schemeArray = mapper.valueToTree(schemes);
             jsonObject.putArray("schemes").addAll(schemeArray);
-
             final File file = new File(LOCAL_SWAGGER_DATA_DIR + "swagger.json");
             Files.createDirectories(Paths.get(file.getParentFile().getPath()));
-
             final String fileLocation = file.toString();
             LOG.info("Storing modified swagger.json description with hostname: " + hostname + " to: " + fileLocation);
-
             try (FileOutputStream fos = new FileOutputStream(fileLocation, false)) {
                 mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
                 fos.write(mapper.writeValueAsString(jsonObject).getBytes(StandardCharsets.UTF_8));
