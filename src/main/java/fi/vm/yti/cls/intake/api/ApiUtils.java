@@ -33,10 +33,7 @@ public class ApiUtils {
         builder.append(publicApiServiceProperties.getScheme());
         builder.append("://");
         builder.append(publicApiServiceProperties.getHost());
-        if (port != null && port.length() > 0) {
-            builder.append(":");
-            builder.append(port);
-        }
+        appendPortToUrlIfNotEmpty(port, builder);
         builder.append(publicApiServiceProperties.getContextPath());
         builder.append(ApiConstants.API_BASE_PATH);
         builder.append("/");
@@ -50,6 +47,13 @@ public class ApiUtils {
         return builder.toString();
     }
 
+    private void appendPortToUrlIfNotEmpty(final String port, final StringBuilder builder) {
+        if (port != null && !port.isEmpty()) {
+            builder.append(":");
+            builder.append(port);
+        }
+    }
+
     /**
      *
      *
@@ -59,10 +63,7 @@ public class ApiUtils {
         final StringBuilder builder = new StringBuilder();
         final String port = publicApiServiceProperties.getPort();
         builder.append(publicApiServiceProperties.getHost());
-        if (port != null && port.length() > 0) {
-            builder.append(":");
-            builder.append(port);
-        }
+        appendPortToUrlIfNotEmpty(port, builder);
         return builder.toString();
     }
 
