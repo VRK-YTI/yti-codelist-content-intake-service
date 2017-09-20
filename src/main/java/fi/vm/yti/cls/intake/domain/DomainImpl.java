@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import fi.vm.yti.cls.common.constants.ApiConstants;
 import fi.vm.yti.cls.common.model.Code;
 import fi.vm.yti.cls.common.model.CodeRegistry;
 import fi.vm.yti.cls.common.model.CodeScheme;
@@ -235,7 +236,7 @@ public class DomainImpl implements Domain {
             codeRegistries.forEach(codeRegistry -> {
                 final ObjectMapper mapper = createObjectMapper();
                 try {
-                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODEREGISTRIES, DomainConstants.ELASTIC_TYPE_CODEREGISTRY).setSource(mapper.writeValueAsString(codeRegistry)));
+                    bulkRequest.add(client.prepareIndex(ApiConstants.ELASTIC_INDEX_CODEREGISTRIES, ApiConstants.ELASTIC_TYPE_CODEREGISTRY).setSource(mapper.writeValueAsString(codeRegistry)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing coderegistries failed: " + e.getMessage());
                 }
@@ -263,7 +264,7 @@ public class DomainImpl implements Domain {
             codeSchemes.forEach(codeScheme -> {
                 final ObjectMapper mapper = createObjectMapper();
                 try {
-                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODESCHEMES, DomainConstants.ELASTIC_TYPE_CODESCHEME).setSource(mapper.writeValueAsString(codeScheme)));
+                    bulkRequest.add(client.prepareIndex(ApiConstants.ELASTIC_INDEX_CODESCHEMES, ApiConstants.ELASTIC_TYPE_CODESCHEME).setSource(mapper.writeValueAsString(codeScheme)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing codeSchemes failed: " + e.getMessage());
                 }
@@ -288,7 +289,7 @@ public class DomainImpl implements Domain {
             final BulkRequestBuilder bulkRequest = client.prepareBulk();
             codes.forEach(code -> {
                 try {
-                    bulkRequest.add(client.prepareIndex(DomainConstants.ELASTIC_INDEX_CODES, DomainConstants.ELASTIC_TYPE_CODE).setSource(mapper.writeValueAsString(code)));
+                    bulkRequest.add(client.prepareIndex(ApiConstants.ELASTIC_INDEX_CODES, ApiConstants.ELASTIC_TYPE_CODE).setSource(mapper.writeValueAsString(code)));
                 } catch (JsonProcessingException e) {
                     LOG.error("Indexing codes failed: " + e.getMessage());
                 }
@@ -310,28 +311,28 @@ public class DomainImpl implements Domain {
     }
 
     public void reIndexCodeRegistries() {
-        deleteIndex(DomainConstants.ELASTIC_INDEX_CODEREGISTRIES);
+        deleteIndex(ApiConstants.ELASTIC_INDEX_CODEREGISTRIES);
         final List<CodeRegistry> codeRegistry = codeRegistryRepository.findAll();
         if (!codeRegistry.isEmpty()) {
-            createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODEREGISTRIES, DomainConstants.ELASTIC_TYPE_CODEREGISTRY);
+            createIndexWithNestedPrefLabels(ApiConstants.ELASTIC_INDEX_CODEREGISTRIES, ApiConstants.ELASTIC_TYPE_CODEREGISTRY);
             indexCodeRegistries();
         }
     }
 
     public void reIndexCodeSchemes() {
-        deleteIndex(DomainConstants.ELASTIC_INDEX_CODESCHEMES);
+        deleteIndex(ApiConstants.ELASTIC_INDEX_CODESCHEMES);
         final List<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
         if (!codeSchemes.isEmpty()) {
-            createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODESCHEMES, DomainConstants.ELASTIC_TYPE_CODESCHEME);
+            createIndexWithNestedPrefLabels(ApiConstants.ELASTIC_INDEX_CODESCHEMES, ApiConstants.ELASTIC_TYPE_CODESCHEME);
             indexCodeSchemes();
         }
     }
 
     public void reIndexCodes() {
-        deleteIndex(DomainConstants.ELASTIC_INDEX_CODES);
+        deleteIndex(ApiConstants.ELASTIC_INDEX_CODES);
         final List<Code> codes = codeRepository.findAll();
         if (!codes.isEmpty()) {
-            createIndexWithNestedPrefLabels(DomainConstants.ELASTIC_INDEX_CODES, DomainConstants.ELASTIC_TYPE_CODE);
+            createIndexWithNestedPrefLabels(ApiConstants.ELASTIC_INDEX_CODES, ApiConstants.ELASTIC_TYPE_CODE);
             indexCodes();
         }
     }

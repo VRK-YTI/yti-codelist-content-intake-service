@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.cls.common.constants.ApiConstants;
 import fi.vm.yti.cls.common.model.Code;
 import fi.vm.yti.cls.common.model.CodeRegistry;
 import fi.vm.yti.cls.common.model.CodeScheme;
@@ -27,7 +28,6 @@ import fi.vm.yti.cls.common.model.Meta;
 import fi.vm.yti.cls.common.model.Status;
 import fi.vm.yti.cls.intake.api.MetaResponseWrapper;
 import fi.vm.yti.cls.intake.domain.Domain;
-import fi.vm.yti.cls.intake.domain.DomainConstants;
 import fi.vm.yti.cls.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.cls.intake.jpa.CodeRepository;
 import fi.vm.yti.cls.intake.jpa.CodeSchemeRepository;
@@ -84,7 +84,7 @@ public class CodeRegistryResource {
         LOG.info("/v1/coderegistries/ POST request.");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-        final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromClsInputStream(DomainConstants.SOURCE_INTERNAL, inputStream);
+        final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromClsInputStream(ApiConstants.SOURCE_INTERNAL, inputStream);
         for (final CodeRegistry register : codeRegistries) {
             LOG.info("CodeRegistry parsed from input: " + register.getCodeValue());
         }
@@ -113,7 +113,7 @@ public class CodeRegistryResource {
         if (codeRegistry != null) {
             final List<CodeScheme> codeSchemes;
             try {
-                codeSchemes = codeSchemeParser.parseCodeSchemesFromClsInputStream(codeRegistry, DomainConstants.SOURCE_INTERNAL, inputStream);
+                codeSchemes = codeSchemeParser.parseCodeSchemesFromClsInputStream(codeRegistry, ApiConstants.SOURCE_INTERNAL, inputStream);
             } catch (final Exception e) {
                 throw new WebApplicationException(e.getMessage());
             }
@@ -153,7 +153,7 @@ public class CodeRegistryResource {
             if (codeScheme != null) {
                 final List<Code> codes;
                 try {
-                    codes = codeParser.parseCodesFromClsInputStream(codeScheme, DomainConstants.SOURCE_INTERNAL, inputStream);
+                    codes = codeParser.parseCodesFromClsInputStream(codeScheme, ApiConstants.SOURCE_INTERNAL, inputStream);
                 } catch (Exception e) {
                     throw new WebApplicationException(e.getMessage());
                 }

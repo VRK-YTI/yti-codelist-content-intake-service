@@ -1,5 +1,16 @@
 package fi.vm.yti.cls.intake.data;
 
+import static fi.vm.yti.cls.common.constants.ApiConstants.DATA_CODEREGISTRIES;
+import static fi.vm.yti.cls.common.constants.ApiConstants.DATA_CODES;
+import static fi.vm.yti.cls.common.constants.ApiConstants.DATA_CODESCHEMES;
+import static fi.vm.yti.cls.common.constants.ApiConstants.DEFAULT_CODEREGISTRY_FILENAME;
+import static fi.vm.yti.cls.common.constants.ApiConstants.DEFAULT_CODEREGISTRY_NAME_PREFIX;
+import static fi.vm.yti.cls.common.constants.ApiConstants.DEFAULT_CODESCHEME_FILENAME;
+import static fi.vm.yti.cls.common.constants.ApiConstants.DEFAULT_CODESCHEME_NAME;
+import static fi.vm.yti.cls.common.constants.ApiConstants.DEFAULT_CODE_FILENAME;
+import static fi.vm.yti.cls.common.constants.ApiConstants.SOURCE_INTERNAL;
+import static fi.vm.yti.cls.intake.update.UpdateManager.UPDATE_RUNNING;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -18,7 +29,6 @@ import fi.vm.yti.cls.common.model.CodeRegistry;
 import fi.vm.yti.cls.common.model.CodeScheme;
 import fi.vm.yti.cls.common.model.UpdateStatus;
 import fi.vm.yti.cls.intake.domain.Domain;
-import fi.vm.yti.cls.intake.domain.DomainConstants;
 import fi.vm.yti.cls.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.cls.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.cls.intake.parser.CodeParser;
@@ -26,8 +36,6 @@ import fi.vm.yti.cls.intake.parser.CodeRegistryParser;
 import fi.vm.yti.cls.intake.parser.CodeSchemeParser;
 import fi.vm.yti.cls.intake.update.UpdateManager;
 import fi.vm.yti.cls.intake.util.FileUtils;
-import static fi.vm.yti.cls.intake.domain.DomainConstants.SOURCE_INTERNAL;
-import static fi.vm.yti.cls.intake.update.UpdateManager.UPDATE_RUNNING;
 
 /**
  * Implementing class for DataAccess interface.
@@ -38,11 +46,6 @@ import static fi.vm.yti.cls.intake.update.UpdateManager.UPDATE_RUNNING;
 public class YtiDataAccess implements DataAccess {
 
     private static final Logger LOG = LoggerFactory.getLogger(YtiDataAccess.class);
-    private static final String DEFAULT_CODESCHEME_FILENAME = "v1_codeschemes.csv";
-    private static final String DEFAULT_CODEREGISTRY_FILENAME = "v1_coderegistries.csv";
-    private static final String DEFAULT_CODE_FILENAME = "v1_codes.csv";
-    private static final String DEFAULT_CODEREGISTRY_NAME_PREFIX = "testregistry";
-    private static final String DEFAULT_CODESCHEME_NAME = "testscheme";
 
     private final Domain domain;
     private final UpdateManager updateManager;
@@ -84,8 +87,8 @@ public class YtiDataAccess implements DataAccess {
     private void loadDefaultCodeRegistries() {
         LOG.info("Loading default coderegistries...");
         final Stopwatch watch = Stopwatch.createStarted();
-        if (updateManager.shouldUpdateData(DomainConstants.DATA_CODEREGISTRIES, DEFAULT_CODEREGISTRY_FILENAME)) {
-            final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_CODEREGISTRIES, DomainConstants.SOURCE_INTERNAL, DEFAULT_CODEREGISTRY_FILENAME, UPDATE_RUNNING);
+        if (updateManager.shouldUpdateData(DATA_CODEREGISTRIES, DEFAULT_CODEREGISTRY_FILENAME)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODEREGISTRIES, SOURCE_INTERNAL, DEFAULT_CODEREGISTRY_FILENAME, UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/coderegistries/" + DEFAULT_CODEREGISTRY_FILENAME);) {
                 final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromClsInputStream(SOURCE_INTERNAL, inputStream);
                 LOG.info("CodeRegistry data loaded: " + codeRegistries.size() + " coderegistries in " + watch);
@@ -107,9 +110,9 @@ public class YtiDataAccess implements DataAccess {
     private void loadDefaultCodeSchemes() {
         LOG.info("Loading default codeschemes...");
         final Stopwatch watch = Stopwatch.createStarted();
-        if (updateManager.shouldUpdateData(DomainConstants.DATA_CODESCHEMES, DEFAULT_CODESCHEME_FILENAME)) {
+        if (updateManager.shouldUpdateData(DATA_CODESCHEMES, DEFAULT_CODESCHEME_FILENAME)) {
             final List<CodeScheme> codeSchemes = new ArrayList<>();
-            final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_CODESCHEMES, DomainConstants.SOURCE_INTERNAL, DEFAULT_CODESCHEME_FILENAME, UPDATE_RUNNING);
+            final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, SOURCE_INTERNAL, DEFAULT_CODESCHEME_FILENAME, UPDATE_RUNNING);
             final List<CodeRegistry> defaultCodeRegistries = codeRegistryRepository.findAll();
             defaultCodeRegistries.forEach(codeRegistry -> {
                 if (codeRegistry.getCodeValue().startsWith(DEFAULT_CODEREGISTRY_NAME_PREFIX)) {
@@ -139,9 +142,9 @@ public class YtiDataAccess implements DataAccess {
     private void loadDefaultCodes() {
         LOG.info("Loading default codes...");
         final Stopwatch watch = Stopwatch.createStarted();
-        if (updateManager.shouldUpdateData(DomainConstants.DATA_CODES, DEFAULT_CODE_FILENAME)) {
+        if (updateManager.shouldUpdateData(DATA_CODES, DEFAULT_CODE_FILENAME)) {
             final List<Code> codes = new ArrayList<>();
-            final UpdateStatus updateStatus = updateManager.createStatus(DomainConstants.DATA_CODESCHEMES, DomainConstants.SOURCE_INTERNAL, DEFAULT_CODE_FILENAME, UPDATE_RUNNING);
+            final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, SOURCE_INTERNAL, DEFAULT_CODE_FILENAME, UPDATE_RUNNING);
             final List<CodeRegistry> defaultCodeRegistries = codeRegistryRepository.findAll();
             defaultCodeRegistries.forEach(codeRegistry -> {
                 if (codeRegistry.getCodeValue().startsWith(DEFAULT_CODEREGISTRY_NAME_PREFIX)) {
