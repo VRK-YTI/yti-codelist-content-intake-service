@@ -7,10 +7,12 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
 @EnableAutoConfiguration
 @EnableJpaRepositories("fi.vm.yti.cls.*")
+@EnableTransactionManagement
 @EntityScan("fi.vm.yti.cls.*")
 @ComponentScan({ "fi.vm.yti.cls.*" })
 public class ContentIntakeServiceApplication {
