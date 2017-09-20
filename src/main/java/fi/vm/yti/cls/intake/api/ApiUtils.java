@@ -47,13 +47,6 @@ public class ApiUtils {
         return builder.toString();
     }
 
-    private void appendPortToUrlIfNotEmpty(final String port, final StringBuilder builder) {
-        if (port != null && !port.isEmpty()) {
-            builder.append(":");
-            builder.append(port);
-        }
-    }
-
     /**
      *
      *
@@ -65,6 +58,13 @@ public class ApiUtils {
         builder.append(publicApiServiceProperties.getHost());
         appendPortToUrlIfNotEmpty(port, builder);
         return builder.toString();
+    }
+    
+    private void appendPortToUrlIfNotEmpty(final String port, final StringBuilder builder) {
+        if (port != null && !port.isEmpty()) {
+            builder.append(":");
+            builder.append(port);
+        }
     }
 
 }
