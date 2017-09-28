@@ -13,8 +13,8 @@ This is the implementation of the Content Intake Service microservice for the YT
 ## Interface Documentation
 
 When the microservice is running, you can get the Swagger REST API documentation from:
-- [http://localhost:9601/api/swagger.json](http://localhost:9601/api/swagger.json)
-- [http://localhost:9601/swagger/index.html](http://localhost:9601/swagger/index.html)
+- [http://localhost:9602/api/swagger.json](http://localhost:9602/api/swagger.json)
+- [http://localhost:9602/swagger/index.html](http://localhost:9602/swagger/index.html)
 
 ## Prerequisities
 
@@ -51,7 +51,7 @@ $ mvn clean package docker:build
 ### Running the Docker Image
 
 ```bash
-$ docker run --rm -p 9601:9601 -p 19601:19601 -v /path/to/yti-codelist-config:/config --name=yti-codelist-content-intake-service yti-codelist-content-intake-service -a --spring.config.location=/config/application.yml,/config/yti-codelist-content-intake-service.ym
+$ docker run --rm -p 9602:9602 -p 19602:19602 -v /path/to/yti-codelist-config:/config --name=yti-codelist-content-intake-service yti-codelist-content-intake-service -a --spring.config.location=/config/application.yml,/config/yti-codelist-content-intake-service.ym
 ```
 
 .. or in [yti-codelist-compose](https://github.com/vrk-yti/yti-codelist-compose/) run
