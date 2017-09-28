@@ -1,10 +1,10 @@
-# CLS (Code List Service) - Content Intake Service microservice  
+# YTI CodeList - Content Intake Service microservice  
 
 This application is part of the [Joint metadata and information management programme](https://wiki.julkict.fi/julkict/yti).
 
 ## Description
 
-This is the implementation of the Content Intake Service microservice for the Code List Service (CLS) with:
+This is the implementation of the Content Intake Service microservice for the YTI CodeList (yti-codelist) with:
 
 * [Spring boot] For getting things up and running
 * Embedded [Jetty] to serve
@@ -13,8 +13,8 @@ This is the implementation of the Content Intake Service microservice for the Co
 ## Interface Documentation
 
 When the microservice is running, you can get the Swagger REST API documentation from:
-- [http://localhost:9601/cls-intake/api/swagger.json](http://localhost:9601/cls-intake/api/swagger.json)
-- [http://localhost:9601/cls-intake/swagger/index.html](http://localhost:9601/cls-intake/swagger/index.html)
+- [http://localhost:9601/api/swagger.json](http://localhost:9601/api/swagger.json)
+- [http://localhost:9601/swagger/index.html](http://localhost:9601/swagger/index.html)
 
 ## Prerequisities
 
@@ -25,7 +25,7 @@ When the microservice is running, you can get the Swagger REST API documentation
 
 ## Running
 
-- [cls-config](https://github.com/vrk-yti/cls-config/) - Default configuration for development use.
+- [yti-codelist-config](https://github.com/vrk-yti/yti-codelist-config/) - Default configuration for development use.
 
 ## Starting service on local development environment
 
@@ -33,13 +33,13 @@ When the microservice is running, you can get the Swagger REST API documentation
 
 Add the following Run configurations options:
 
-- Program arguments: `--spring.profiles.active=default --spring.config.location=../cls-config/application.yml,../cls-config/cls-content-intake-service.yml`
+- Program arguments: `--spring.profiles.active=default --spring.config.location=../yti-codelist-config/application.yml,../yti-codelist-config/yti-codelist-content-intake-service.yml`
 - Workdir: `$MODULE_DIR$`
 
-Add folder for cls-project, application writes modified files there:
+Add folder for yti-codelist -project, application writes modified files there:
 
 ```bash
-$ mkdir /data/cls
+$ mkdir /data/yti
 ```
 
 ### Building the Docker Image
@@ -51,13 +51,13 @@ $ mvn clean package docker:build
 ### Running the Docker Image
 
 ```bash
-$ docker run --rm -p 9601:9601 -p 19601:19601 -v /path/to/cls-config:/config --name=cls-content-intake-service cls-content-intake-service -a --spring.config.location=/config/application.yml,/config/cls-content-intake-service.ym
+$ docker run --rm -p 9601:9601 -p 19601:19601 -v /path/to/yti-codelist-config:/config --name=yti-codelist-content-intake-service yti-codelist-content-intake-service -a --spring.config.location=/config/application.yml,/config/yti-codelist-content-intake-service.ym
 ```
 
-.. or in [cls-compose](https://github.com/vrk-yti/cls-compose/) run
+.. or in [yti-codelist-compose](https://github.com/vrk-yti/yti-codelist-compose/) run
 
 ```bash
-$ docker-compose up cls-content-intake-service
+$ docker-compose up yti-codelist-content-intake-service
 ```
 
 [Spring boot]:http://projects.spring.io/spring-boot/

@@ -4,17 +4,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fi.vm.yti.cls</groupId>
-    <artifactId>cls-content-intake-service</artifactId>
+    <groupId>fi.vm.yti.codelist</groupId>
+    <artifactId>yti-codelist-content-intake-service</artifactId>
     <packaging>jar</packaging>
-    <version>0.3-SNAPSHOT</version>
-    <name>cls-content-intake-service</name>
-    <description>Content Intake Service for CLS (Code List Service)</description>
+    <version>0.1-SNAPSHOT</version>
+    <name>yti-codelist-content-intake-service</name>
+    <description>Content Intake Service for YTI CodeList</description>
 
     <licenses>
         <license>
             <name>European Union Public Licence 1.2</name>
-            <url>https://github.com/vrk-yti/cls-content-intake-service/blob/master/LICENSE</url>
+            <url>https://github.com/vrk-yti/yti-codelist-content-intake-service/blob/master/LICENSE</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -51,11 +51,11 @@
 
     <dependencies>
 
-        <!-- CLS Common Model -->
+        <!-- YTI CodeList Common Model -->
         <dependency>
-            <groupId>fi.vm.yti.cls</groupId>
-            <artifactId>cls-common-model</artifactId>
-            <version>0.3-SNAPSHOT</version>
+            <groupId>fi.vm.yti.codelist</groupId>
+            <artifactId>yti-codelist-common-model</artifactId>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
 
         <!-- Spring boot -->
@@ -331,7 +331,7 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${spotify-docker.version}</version>
                 <configuration>
-                    <imageName>cls-content-intake-service</imageName>
+                    <imageName>yti-codelist-content-intake-service</imageName>
                     <dockerDirectory>docker</dockerDirectory>
                     <useConfigFile>true</useConfigFile>
                     <pullOnBuild>false</pullOnBuild>
@@ -359,7 +359,7 @@
                     <apiSources>
                         <apiSource>
                             <springmvc>false</springmvc>
-                            <locations>fi.vm.yti.cls.intake</locations>
+                            <locations>fi.vm.yti.codelist.intake</locations>
                             <swaggerDirectory>${project.build.outputDirectory}/swagger/</swaggerDirectory>
                             <attachSwaggerArtifact>true</attachSwaggerArtifact>
                         </apiSource>
@@ -527,7 +527,7 @@
         <flyway.version>4.1.1</flyway.version>
         <psql.host>localhost</psql.host>
         <psql.port>5432</psql.port>
-        <project.db.name>cls-content</project.db.name>
+        <project.db.name>yti-codelist</project.db.name>
     </properties>
 
 </project>

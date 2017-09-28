@@ -18,7 +18,7 @@ ADD target/cls-content-intake-service.jar ${deploy_dir}/cls-content-intake-servi
 RUN bash -c 'touch ${deploy_dir}/cls-content-intake-service.jar'
 
 # Expose port
-EXPOSE 9601
+EXPOSE 9602
 
 # Set default command on run
 ENTRYPOINT ["/bootstrap.sh", "cls-content-intake-service.jar"]
