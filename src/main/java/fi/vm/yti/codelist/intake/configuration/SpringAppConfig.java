@@ -29,13 +29,13 @@ import com.zaxxer.hikari.HikariDataSource;
 @PropertySource(value = "classpath", ignoreResourceNotFound = true)
 public class SpringAppConfig {
 
-    @Value("${cls_content_intake_service_elastic_host}")
+    @Value("${yti_codelist_content_intake_service_elastic_host}")
     private String elasticsearchHost;
 
-    @Value("${cls_content_intake_service_elastic_port}")
+    @Value("${yti_codelist_content_intake_service_elastic_port}")
     private Integer elasticsearchPort;
 
-    @Value("${cls_content_intake_service_elastic_cluster}")
+    @Value("${yti_codelist_content_intake_service_elastic_cluster}")
     private String clusterName;
 
     @Value(value = "${application.contextPath}")

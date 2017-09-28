@@ -50,8 +50,8 @@ public class CodeRegistryParser {
      * @param inputStream The CodeRegistry-file.
      * @return List of CodeRegistry objects.
      */
-    public List<CodeRegistry> parseCodeRegistriesFromClsInputStream(final String source,
-                                                                    final InputStream inputStream) {
+    public List<CodeRegistry> parseCodeRegistriesFromInputStream(final String source,
+                                                                 final InputStream inputStream) {
         final List<CodeRegistry> codeRegistries = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);

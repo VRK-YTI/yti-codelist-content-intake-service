@@ -60,5 +60,4 @@ public class ParserUtils {
         }
         return codesMap;
     }
-
 }

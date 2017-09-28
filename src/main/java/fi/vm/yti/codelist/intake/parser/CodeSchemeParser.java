@@ -55,9 +55,9 @@ public class CodeSchemeParser {
      * @param inputStream The CodeScheme -file.
      * @return List of CodeScheme objects.
      */
-    public List<CodeScheme> parseCodeSchemesFromClsInputStream(final CodeRegistry codeRegistry,
-                                                               final String source,
-                                                               final InputStream inputStream) throws Exception {
+    public List<CodeScheme> parseCodeSchemesFromInputStream(final CodeRegistry codeRegistry,
+                                                            final String source,
+                                                            final InputStream inputStream) throws Exception {
         final List<CodeScheme> codeSchemes = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                 final BufferedReader in = new BufferedReader(inputStreamReader);

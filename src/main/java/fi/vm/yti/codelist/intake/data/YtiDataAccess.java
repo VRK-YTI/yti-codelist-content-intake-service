@@ -89,7 +89,7 @@ public class YtiDataAccess implements DataAccess {
         if (updateManager.shouldUpdateData(DATA_CODEREGISTRIES, DEFAULT_CODEREGISTRY_FILENAME)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODEREGISTRIES, SOURCE_INTERNAL, DEFAULT_CODEREGISTRY_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/coderegistries/" + DEFAULT_CODEREGISTRY_FILENAME);) {
-                final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromClsInputStream(SOURCE_INTERNAL, inputStream);
+                final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromInputStream(SOURCE_INTERNAL, inputStream);
                 LOG.info("CodeRegistry data loaded: " + codeRegistries.size() + " coderegistries in " + watch);
                 watch.reset().start();
                 domain.persistCodeRegistries(codeRegistries);
@@ -116,7 +116,7 @@ public class YtiDataAccess implements DataAccess {
             defaultCodeRegistries.forEach(codeRegistry -> {
                 if (codeRegistry.getCodeValue().startsWith(DEFAULT_CODEREGISTRY_NAME_PREFIX)) {
                     try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/codeschemes/" + DEFAULT_CODESCHEME_FILENAME);) {
-                        codeSchemes.addAll(codeSchemeParser.parseCodeSchemesFromClsInputStream(codeRegistry, SOURCE_INTERNAL, inputStream));
+                        codeSchemes.addAll(codeSchemeParser.parseCodeSchemesFromInputStream(codeRegistry, SOURCE_INTERNAL, inputStream));
                     } catch (IOException e) {
                         LOG.error("Issue with parsing CodeScheme file. Message: " + e.getMessage());
                         updateManager.updateFailedStatus(updateStatus);
@@ -150,7 +150,7 @@ public class YtiDataAccess implements DataAccess {
                     final List<CodeScheme> defaultCodeSchemes = codeSchemeRepository.findByCodeRegistry(codeRegistry);
                     defaultCodeSchemes.forEach(codeScheme -> {
                         try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/codes/" + DEFAULT_CODE_FILENAME);) {
-                            codes.addAll(codeParser.parseCodesFromClsInputStream(codeScheme, SOURCE_INTERNAL, inputStream));
+                            codes.addAll(codeParser.parseCodesFromInputStream(codeScheme, SOURCE_INTERNAL, inputStream));
                         } catch (IOException e) {
                             LOG.error("Issue with parsing Code file. Message: " + e.getMessage());
                             updateManager.updateFailedStatus(updateStatus);

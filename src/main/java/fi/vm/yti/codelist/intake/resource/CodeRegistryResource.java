@@ -84,7 +84,7 @@ public class CodeRegistryResource {
         LOG.info("/v1/coderegistries/ POST request.");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-        final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromClsInputStream(ApiConstants.SOURCE_INTERNAL, inputStream);
+        final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromInputStream(ApiConstants.SOURCE_INTERNAL, inputStream);
         for (final CodeRegistry register : codeRegistries) {
             LOG.info("CodeRegistry parsed from input: " + register.getCodeValue());
         }
@@ -113,7 +113,7 @@ public class CodeRegistryResource {
         if (codeRegistry != null) {
             final List<CodeScheme> codeSchemes;
             try {
-                codeSchemes = codeSchemeParser.parseCodeSchemesFromClsInputStream(codeRegistry, ApiConstants.SOURCE_INTERNAL, inputStream);
+                codeSchemes = codeSchemeParser.parseCodeSchemesFromInputStream(codeRegistry, ApiConstants.SOURCE_INTERNAL, inputStream);
             } catch (final Exception e) {
                 throw new WebApplicationException(e.getMessage());
             }
@@ -153,7 +153,7 @@ public class CodeRegistryResource {
             if (codeScheme != null) {
                 final List<Code> codes;
                 try {
-                    codes = codeParser.parseCodesFromClsInputStream(codeScheme, ApiConstants.SOURCE_INTERNAL, inputStream);
+                    codes = codeParser.parseCodesFromInputStream(codeScheme, ApiConstants.SOURCE_INTERNAL, inputStream);
                 } catch (Exception e) {
                     throw new WebApplicationException(e.getMessage());
                 }

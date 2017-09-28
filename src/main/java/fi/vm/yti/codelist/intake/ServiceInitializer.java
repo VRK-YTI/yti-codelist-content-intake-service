@@ -38,7 +38,7 @@ import fi.vm.yti.codelist.intake.util.FileUtils;
 public class ServiceInitializer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceInitializer.class);
-    public static final String LOCAL_SWAGGER_DATA_DIR = "/data/cls/cls-intake/swagger/";
+    public static final String LOCAL_SWAGGER_DATA_DIR = "/data/yti/yti-codelist-intake/swagger/";
     private final YtiDataAccess ytiDataAccess;
     private final Domain domain;
     private final ApiUtils apiUtils;

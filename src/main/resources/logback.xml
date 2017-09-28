@@ -3,7 +3,7 @@
 
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
     <property name="LOG_PATH" value="/data/logs"/>
-    <property name="SERVICE_NAME" value="cls-content-intake-service"/>
+    <property name="SERVICE_NAME" value="yti-codelist-content-intake-service"/>
 
     <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_PATH}/${SERVICE_NAME}.log</file>

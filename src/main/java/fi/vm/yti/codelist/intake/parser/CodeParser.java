@@ -57,9 +57,9 @@ public class CodeParser {
      * @param inputStream The Code -file.
      * @return List of Code objects.
      */
-    public List<Code> parseCodesFromClsInputStream(final CodeScheme codeScheme,
-                                                   final String source,
-                                                   final InputStream inputStream) throws Exception {
+    public List<Code> parseCodesFromInputStream(final CodeScheme codeScheme,
+                                                final String source,
+                                                final InputStream inputStream) throws Exception {
         final List<Code> codes = new ArrayList<>();
         if (codeScheme != null) {
             try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
