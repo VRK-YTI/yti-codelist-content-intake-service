@@ -410,7 +410,8 @@
                             <outputDirectory>${project.build.directory}/classes/static/swagger/</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.build.directory}/swagger-ui-${swagger-ui.version}/dist/</directory>
+                                    <directory>${project.build.directory}/swagger-ui-${swagger-ui.version}/dist/
+                                    </directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
