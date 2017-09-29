@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.jpa;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.transaction.Transactional;
 
@@ -20,8 +21,8 @@ public interface CodeRepository extends CrudRepository<Code, String> {
 
     Code findById(final String id);
 
-    List<Code> findByCodeScheme(final CodeScheme codeScheme);
+    Set<Code> findByCodeScheme(final CodeScheme codeScheme);
 
-    List<Code> findAll();
+    Set<Code> findAll();
 
 }

@@ -16,5 +16,5 @@ public interface IndexStatusRepository extends CrudRepository<IndexStatus, Strin
     List<IndexStatus> getLatestSuccessfulIndexStatusForIndexAlias(@Param("aliasName") final String aliasName);
 
     @Query(value = "SELECT i FROM IndexStatus as i WHERE i.indexAlias = :aliasName AND i.status = 'running' ORDER BY i.modified DESC")
-    List<IndexStatus> getLatestRunningIndexStatus(@Param("aliasName") final String aliasName);
+    List<IndexStatus> getLatestRunningIndexStatusForIndexAlias(@Param("aliasName") final String aliasName);
 }

@@ -8,17 +8,22 @@ import javax.inject.Singleton;
 
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesResponse;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.cluster.metadata.AliasMetaData;
+import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
@@ -47,15 +52,23 @@ public class IndexingToolsImpl implements IndexingTools {
     }
 
     /**
-     * Alias index to alias name.
+     * Alias index to alias name. Removes possible earlier indexes from this same alias.
      *
      * @param indexName The name of the index to be deleted.
+     * @param aliasName The name of the alias.
      */
     public void aliasIndex(final String indexName,
                            final String aliasName) {
         final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
         if (exists) {
             final IndicesAliasesRequest request = new IndicesAliasesRequest();
+            final GetAliasesResponse aliasesResponse = client.admin().indices().getAliases(new GetAliasesRequest(aliasName)).actionGet();
+            final ImmutableOpenMap<String, List<AliasMetaData>> aliases = aliasesResponse.getAliases();
+            for (final ObjectCursor cursor : aliases.keys()) {
+                final String oldIndex = cursor.value.toString();
+                LOG.info("ElasticSearch alias: " + aliasName + " for index: " + oldIndex + " removed.");
+                request.addAliasAction(IndicesAliasesRequest.AliasActions.remove().alias(aliasName).index(oldIndex));
+            }
             request.addAliasAction(IndicesAliasesRequest.AliasActions.add().alias(aliasName).index(indexName));
             final IndicesAliasesResponse response = client.admin().indices().aliases(request).actionGet();
             if (!response.isAcknowledged()) {

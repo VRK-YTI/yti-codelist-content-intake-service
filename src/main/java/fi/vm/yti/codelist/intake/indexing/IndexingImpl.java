@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.indexing;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Singleton;
@@ -63,29 +64,29 @@ public class IndexingImpl implements Indexing {
     }
 
     private boolean indexCodeRegistries(final String indexName) {
-        final List<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
+        final Set<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
         return indexType(codeRegistries, indexName, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES);
     }
 
     private boolean indexCodeSchemes(final String indexName) {
-        final List<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
+        final Set<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
         return indexType(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
     }
 
     private boolean indexCodes(final String indexName) {
-        final List<Code> regions = codeRepository.findAll();
+        final Set<Code> regions = codeRepository.findAll();
         return indexType(regions, indexName, ELASTIC_TYPE_CODE, NAME_CODES);
     }
 
-    private <T> boolean indexType(final List<T> list,
+    private <T> boolean indexType(final Set<T> set,
                                   final String elasticIndex,
                                   final String elasticType,
                                   final String name) {
         boolean success;
-        if (!list.isEmpty()) {
+        if (!set.isEmpty()) {
             final ObjectMapper mapper = indexingTools.createObjectMapper();
             final BulkRequestBuilder bulkRequest = client.prepareBulk();
-            for (final T item : list) {
+            for (final T item : set) {
                 try {
                     bulkRequest.add(client.prepareIndex(elasticIndex, elasticType).setSource(mapper.writeValueAsString(item)));
                 } catch (JsonProcessingException e) {
@@ -122,6 +123,15 @@ public class IndexingImpl implements Indexing {
     }
 
     public void reIndexEverything() {
+        final List<IndexStatus> list = indexStatusRepository.getLatestRunningIndexStatusForIndexAlias(ELASTIC_INDEX_CODELIST);
+        if (list.isEmpty()) {
+            reIndexCodelist();
+        } else {
+            LOG.info("Indexing is already running for index: " + ELASTIC_INDEX_CODELIST);
+        }
+    }
+
+    private void reIndexCodelist() {
         final String indexName = createIndexName(ELASTIC_INDEX_CODELIST);
 
         final IndexStatus status = new IndexStatus();

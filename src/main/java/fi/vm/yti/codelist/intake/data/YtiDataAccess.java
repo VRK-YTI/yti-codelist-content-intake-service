@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -112,7 +113,7 @@ public class YtiDataAccess implements DataAccess {
         if (updateManager.shouldUpdateData(DATA_CODESCHEMES, DEFAULT_CODESCHEME_FILENAME)) {
             final List<CodeScheme> codeSchemes = new ArrayList<>();
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, SOURCE_INTERNAL, DEFAULT_CODESCHEME_FILENAME, UpdateManager.UPDATE_RUNNING);
-            final List<CodeRegistry> defaultCodeRegistries = codeRegistryRepository.findAll();
+            final Set<CodeRegistry> defaultCodeRegistries = codeRegistryRepository.findAll();
             defaultCodeRegistries.forEach(codeRegistry -> {
                 if (codeRegistry.getCodeValue().startsWith(DEFAULT_CODEREGISTRY_NAME_PREFIX)) {
                     try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/codeschemes/" + DEFAULT_CODESCHEME_FILENAME);) {
@@ -144,10 +145,10 @@ public class YtiDataAccess implements DataAccess {
         if (updateManager.shouldUpdateData(DATA_CODES, DEFAULT_CODE_FILENAME)) {
             final List<Code> codes = new ArrayList<>();
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, SOURCE_INTERNAL, DEFAULT_CODE_FILENAME, UpdateManager.UPDATE_RUNNING);
-            final List<CodeRegistry> defaultCodeRegistries = codeRegistryRepository.findAll();
+            final Set<CodeRegistry> defaultCodeRegistries = codeRegistryRepository.findAll();
             defaultCodeRegistries.forEach(codeRegistry -> {
                 if (codeRegistry.getCodeValue().startsWith(DEFAULT_CODEREGISTRY_NAME_PREFIX)) {
-                    final List<CodeScheme> defaultCodeSchemes = codeSchemeRepository.findByCodeRegistry(codeRegistry);
+                    final Set<CodeScheme> defaultCodeSchemes = codeSchemeRepository.findByCodeRegistry(codeRegistry);
                     defaultCodeSchemes.forEach(codeScheme -> {
                         try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/codes/" + DEFAULT_CODE_FILENAME);) {
                             codes.addAll(codeParser.parseCodesFromInputStream(codeScheme, SOURCE_INTERNAL, inputStream));

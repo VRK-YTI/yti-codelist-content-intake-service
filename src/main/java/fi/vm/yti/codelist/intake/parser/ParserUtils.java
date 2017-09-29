@@ -3,6 +3,7 @@ package fi.vm.yti.codelist.intake.parser;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -35,7 +36,7 @@ public class ParserUtils {
     }
 
     public Map<String, CodeRegistry> getCodeRegistriesMap() {
-        final List<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
+        final Set<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
         final Map<String, CodeRegistry> codeRegistriesMap = new HashMap<>();
         for (final CodeRegistry codeRegistry : codeRegistries) {
             codeRegistriesMap.put(codeRegistry.getCodeValue(), codeRegistry);
@@ -44,7 +45,7 @@ public class ParserUtils {
     }
 
     public Map<String, CodeScheme> getCodeSchemesMap() {
-        final List<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
+        final Set<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
         final Map<String, CodeScheme> codeSchemesMap = new HashMap<>();
         for (final CodeScheme codeScheme : codeSchemes) {
             codeSchemesMap.put(codeScheme.getCodeValue(), codeScheme);
@@ -53,7 +54,7 @@ public class ParserUtils {
     }
 
     public Map<String, Code> getCodesMap(final CodeScheme codeScheme) {
-        final List<Code> codes = codeRepository.findByCodeScheme(codeScheme);
+        final Set<Code> codes = codeRepository.findByCodeScheme(codeScheme);
         final Map<String, Code> codesMap = new HashMap<>();
         for (final Code code : codes) {
             codesMap.put(code.getCodeValue(), code);
