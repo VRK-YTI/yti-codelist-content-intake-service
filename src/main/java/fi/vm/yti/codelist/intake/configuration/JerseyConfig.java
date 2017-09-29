@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.intake.resource.CodeRegistryResource;
+import fi.vm.yti.codelist.intake.resource.PingResource;
 import fi.vm.yti.codelist.intake.resource.SwaggerResource;
 import fi.vm.yti.codelist.intake.resource.VersionResource;
 import io.swagger.annotations.Api;
@@ -46,6 +47,9 @@ public class JerseyConfig extends ResourceConfig {
         // CORS filtering.
         register(CorsFilter.class);
 
+        // Health.
+        register(PingResource.class);
+
         // Generic resources.
         register(VersionResource.class);
         register(SwaggerResource.class);
@@ -56,5 +60,4 @@ public class JerseyConfig extends ResourceConfig {
         // Admin APIs for YTI model.
         register(CodeRegistryResource.class);
     }
-
 }
