@@ -118,6 +118,16 @@ CREATE TABLE code_description (
 
 -- Data update handling and bookkeeping
 
+CREATE TABLE indexstatus (
+  id character varying(255) UNIQUE NOT NULL,
+  indexName character varying(255) NOT NULL,
+  indexAlias character varying(255) NOT NULL,
+  status character varying(255) NOT NULL,
+  created timestamp without time zone NOT NULL,
+  modified timestamp without time zone NULL,
+  CONSTRAINT indexstatus_pkey PRIMARY KEY (id)
+);
+
 CREATE TABLE updatestatus (
   id character varying(255) UNIQUE NOT NULL,
   datatype character varying(255) NOT NULL,

@@ -28,6 +28,7 @@ import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.domain.Domain;
+import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
@@ -38,6 +39,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
  * Content Intake Service: REST resources for registryItems.
@@ -46,10 +48,11 @@ import io.swagger.annotations.ApiResponse;
 @Path("/v1/coderegistries")
 @Api(value = "coderegistries", description = "Operations for creating, deleting and updating coderegistries, codeschemes and codes.")
 @Produces("text/plain")
-public class CodeRegistryResource {
+public class CodeRegistryResource extends AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryResource.class);
     private final Domain domain;
+    private final Indexing indexing;
     private final CodeRegistryParser codeRegistryParser;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeParser codeSchemeParser;
@@ -59,6 +62,7 @@ public class CodeRegistryResource {
 
     @Inject
     public CodeRegistryResource(final Domain domain,
+                                final Indexing indexing,
                                 final CodeRegistryParser codeRegistryParser,
                                 final CodeRegistryRepository codeRegistryRepository,
                                 final CodeSchemeParser codeSchemeParser,
@@ -66,6 +70,7 @@ public class CodeRegistryResource {
                                 final CodeParser codeParser,
                                 final CodeRepository codeRepository) {
         this.domain = domain;
+        this.indexing = indexing;
         this.codeRegistryParser = codeRegistryParser;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeParser = codeSchemeParser;
@@ -81,7 +86,7 @@ public class CodeRegistryResource {
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
     public Response addOrUpdateCodeRegistries(@ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
-        LOG.info("/v1/coderegistries/ POST request.");
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES);
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromInputStream(ApiConstants.SOURCE_INTERNAL, inputStream);
@@ -90,7 +95,7 @@ public class CodeRegistryResource {
         }
         if (!codeRegistries.isEmpty()) {
             domain.persistCodeRegistries(codeRegistries);
-            domain.reIndexCodeRegistries();
+            indexing.reIndexEverything();
         }
         meta.setMessage("CodeRegistries added or modified: " + codeRegistries.size());
         meta.setCode(200);
@@ -106,7 +111,7 @@ public class CodeRegistryResource {
     @Transactional
     public Response addOrUpdateCodeSchemes(@ApiParam(value = "CodeRegistry codeValue") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                            @ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
-        LOG.info("/v1/coderegistries/" + codeRegistryCodeValue + "/ POST request!");
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
@@ -122,7 +127,7 @@ public class CodeRegistryResource {
             }
             if (!codeSchemes.isEmpty()) {
                 domain.persistCodeSchemes(codeSchemes);
-                domain.reIndexCodeSchemes();
+                indexing.reIndexEverything();
             }
             meta.setMessage("CodeSchemes added or modified: " + codeSchemes.size());
             meta.setCode(200);
@@ -134,7 +139,7 @@ public class CodeRegistryResource {
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/{codeSchemeCodeValue}")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses codes from CSV-source file with ',' delimiter.")
@@ -144,6 +149,7 @@ public class CodeRegistryResource {
                                      @ApiParam(value = "CodeScheme codeValue") @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                      @ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
 
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/codeschemes/" + codeSchemeCodeValue + "/");
         LOG.info("/v1/coderegistries/" + codeRegistryCodeValue + "/" + codeSchemeCodeValue + "/ POST request!");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
@@ -162,7 +168,7 @@ public class CodeRegistryResource {
                 }
                 if (!codes.isEmpty()) {
                     domain.persistCodes(codes);
-                    domain.reIndexCodes();
+                    indexing.reIndexEverything();
                 }
                 meta.setMessage("Codes added or modified: " + codes.size());
                 meta.setCode(200);
@@ -179,7 +185,7 @@ public class CodeRegistryResource {
     }
 
     @DELETE
-    @Path("{codeRegistryCodeValue}/{codeSchemeCodeValue}/{codeCodeValue}")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/{codeCodeValue}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single code. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
@@ -187,8 +193,7 @@ public class CodeRegistryResource {
     public Response retireCode(@ApiParam(value = "CodeRegistry codeValue.") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                @ApiParam(value = "CodeScheme codeValue.") @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                @ApiParam(value = "Code codeValue.") @PathParam("codeCodeValue") final String codeCodeValue) {
-
-        LOG.info("/v1/coderegistries/" + codeRegistryCodeValue + "/" + codeSchemeCodeValue + "/" + codeCodeValue + " DELETE request.");
+        logApiRequest(LOG, METHOD_DELETE, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/codeschemes/" + codeSchemeCodeValue + "/codes/" + codeCodeValue + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
@@ -199,7 +204,7 @@ public class CodeRegistryResource {
                 if (code != null) {
                     code.setStatus(Status.RETIRED.toString());
                     codeRepository.save(code);
-                    domain.reIndexCodes();
+                    indexing.reIndexEverything();
                     meta.setMessage("Code marked as RETIRED!");
                     meta.setCode(200);
                     return Response.ok(responseWrapper).build();
@@ -217,5 +222,4 @@ public class CodeRegistryResource {
         }
         return Response.status(Response.Status.NOT_FOUND).entity(responseWrapper).build();
     }
-
 }

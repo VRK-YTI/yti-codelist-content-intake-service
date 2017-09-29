@@ -18,28 +18,4 @@ public interface Domain {
 
     void persistCodes(final List<Code> codes);
 
-    /**
-     * Methods for indexing data to ElasticSearch.
-     */
-
-    void createIndex(final String indexName);
-
-    void deleteIndex(final String indexName);
-
-    void deleteTypeFromIndex(final String indexName, final String type);
-
-    void ensureNestedPrefLabelsMapping(final String indexName, final String indexType);
-
-    void refreshIndex(final String indexName);
-
-    void indexCodeSchemes();
-
-    void reIndexCodeRegistries();
-
-    void reIndexCodeSchemes();
-
-    void reIndexCodes();
-
-    void reIndexEverything();
-
 }

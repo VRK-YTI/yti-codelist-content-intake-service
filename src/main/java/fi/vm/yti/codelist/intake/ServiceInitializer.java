@@ -29,6 +29,7 @@ import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.VersionInformation;
 import fi.vm.yti.codelist.intake.data.YtiDataAccess;
 import fi.vm.yti.codelist.intake.domain.Domain;
+import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 
 /**
@@ -40,19 +41,19 @@ public class ServiceInitializer {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceInitializer.class);
     public static final String LOCAL_SWAGGER_DATA_DIR = "/data/yti/yti-codelist-intake/swagger/";
     private final YtiDataAccess ytiDataAccess;
-    private final Domain domain;
+    private final Indexing indexing;
     private final ApiUtils apiUtils;
     private final PublicApiServiceProperties publicApiServiceProperties;
     private final VersionInformation versionInformation;
 
     @Inject
     public ServiceInitializer(final VersionInformation versionInformation,
-                              final Domain domain,
+                              final Indexing indexing,
                               final ApiUtils apiUtils,
                               final YtiDataAccess ytiDataAccess,
                               final PublicApiServiceProperties publicApiServiceProperties) {
         this.versionInformation = versionInformation;
-        this.domain = domain;
+        this.indexing = indexing;
         this.apiUtils = apiUtils;
         this.ytiDataAccess = ytiDataAccess;
         this.publicApiServiceProperties = publicApiServiceProperties;
@@ -68,7 +69,7 @@ public class ServiceInitializer {
         ytiDataAccess.initializeOrRefresh();
         LOG.info("*** Database population took: " + watch + ". ***");
         final Stopwatch indexWatch = Stopwatch.createStarted();
-        domain.reIndexEverything();
+        indexing.reIndexEverything();
         LOG.info("*** Elastic indexing took: " + indexWatch + ". ***");
         // Timing of initialization.
         LOG.info("*** Data initialization complete, took " + watch + ". ***");

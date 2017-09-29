@@ -16,13 +16,14 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.ServiceInitializer.LOCAL_SWAGGER_DATA_DIR;
 
 @Component
 @Path("/swagger.json")
 @Api(value = "swagger.json", description = "Operation that outputs environment specific dynamic swagger.json.")
 @Produces("text/plain")
-public class SwaggerResource {
+public class SwaggerResource extends AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(SwaggerResource.class);
 
@@ -31,7 +32,7 @@ public class SwaggerResource {
     @ApiResponse(code = 200, message = "Returns the swagger.json description for this service.")
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     public String getSwaggerJson() throws IOException {
-        LOG.info("/swagger.json called.");
+        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_SWAGGER_JSON);
         final File file = new File(LOCAL_SWAGGER_DATA_DIR + "swagger.json");
         final String swaggerJson = FileUtils.readFileToString(file, "UTF-8");
         return swaggerJson;
