@@ -82,7 +82,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses coderegistries from CSV-source file with ',' delimiter.")
+    @ApiOperation(value = "Parses CodeRegistries from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
     public Response addOrUpdateCodeRegistries(@ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
@@ -103,15 +103,15 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}")
+    @Path("{codeRegistryCodeValue}/codeschemes/")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses codes from CSV-source file with ',' delimiter.")
+    @ApiOperation(value = "Parses CodeSchemes from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
     public Response addOrUpdateCodeSchemes(@ApiParam(value = "CodeRegistry codeValue") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                            @ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/");
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/codeschemes/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
@@ -139,17 +139,17 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses codes from CSV-source file with ',' delimiter.")
+    @ApiOperation(value = "Parses Codes from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
     public Response addOrUpdateCodes(@ApiParam(value = "CodeRegistry codeValue") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue") @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                      @ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
 
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/codeschemes/" + codeSchemeCodeValue + "/");
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/codeschemes/" + codeSchemeCodeValue + "/codes/");
         LOG.info("/v1/coderegistries/" + codeRegistryCodeValue + "/" + codeSchemeCodeValue + "/ POST request!");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
