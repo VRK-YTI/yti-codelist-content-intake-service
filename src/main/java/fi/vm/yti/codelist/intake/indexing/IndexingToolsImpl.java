@@ -65,9 +65,7 @@ public class IndexingToolsImpl implements IndexingTools {
             final GetAliasesResponse aliasesResponse = client.admin().indices().getAliases(new GetAliasesRequest(aliasName)).actionGet();
             final ImmutableOpenMap<String, List<AliasMetaData>> aliases = aliasesResponse.getAliases();
             for (final ObjectCursor cursor : aliases.keys()) {
-                final String oldIndex = cursor.value.toString();
-                LOG.info("ElasticSearch alias: " + aliasName + " for index: " + oldIndex + " removed.");
-                request.addAliasAction(IndicesAliasesRequest.AliasActions.remove().alias(aliasName).index(oldIndex));
+                request.addAliasAction(IndicesAliasesRequest.AliasActions.remove().alias(aliasName).index(cursor.value.toString()));
             }
             request.addAliasAction(IndicesAliasesRequest.AliasActions.add().alias(aliasName).index(indexName));
             final IndicesAliasesResponse response = client.admin().indices().aliases(request).actionGet();
@@ -75,6 +73,9 @@ public class IndexingToolsImpl implements IndexingTools {
                 logAliasFailed(indexName);
             } else {
                 logAliasSuccessful(indexName);
+                for (final ObjectCursor cursor : aliases.keys()) {
+                    logAliasRemovedSuccessful(cursor.value.toString());
+                }
             }
         } else {
             logIndexDoesNotExist(indexName);
@@ -162,6 +163,10 @@ public class IndexingToolsImpl implements IndexingTools {
 
     private void logAliasSuccessful(final String indexName) {
         logIndex(false, indexName, "alias set successfully.");
+    }
+
+    private void logAliasRemovedSuccessful(final String indexName) {
+        logIndex(false, indexName, "alias removed successfully.");
     }
 
     private void logDeleteFailed(final String indexName) {
