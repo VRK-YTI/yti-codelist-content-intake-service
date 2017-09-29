@@ -28,17 +28,8 @@ public class UpdateManager {
         this.updateStatusRepository = updateStatusRepository;
     }
 
-    public boolean shouldInitialize(final String dataType) {
-        final List<UpdateStatus> list = updateStatusRepository.getLatestSuccessfulUpdatesForType(dataType);
-        if (!list.isEmpty()) {
-            return false;
-        }
-        return true;
-    }
-
     public boolean shouldUpdateData(final String dataType, final String version) {
         final List<UpdateStatus> list = updateStatusRepository.getLatestSuccessfulUpdatesForType(dataType);
-        // Initial data (null) or yet updated processed update, version does not match.
         if (!list.isEmpty()) {
             final UpdateStatus status = list.get(0);
             if (status.getVersion().equals(version)) {
@@ -46,15 +37,6 @@ public class UpdateManager {
             }
         }
         return true;
-    }
-
-    public String getNextUpdateVersion(final String dataType) {
-        final List<UpdateStatus> list = updateStatusRepository.getLatestSuccessfulUpdatesForType(dataType);
-        if (!list.isEmpty()) {
-            final UpdateStatus status = list.get(0);
-            return status.getNextVersion();
-        }
-        return null;
     }
 
     public UpdateStatus createStatus(final String dataType,

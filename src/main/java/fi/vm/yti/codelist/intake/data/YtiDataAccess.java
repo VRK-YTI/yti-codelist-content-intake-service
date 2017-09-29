@@ -144,7 +144,7 @@ public class YtiDataAccess implements DataAccess {
         final Stopwatch watch = Stopwatch.createStarted();
         if (updateManager.shouldUpdateData(DATA_CODES, DEFAULT_CODE_FILENAME)) {
             final List<Code> codes = new ArrayList<>();
-            final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, SOURCE_INTERNAL, DEFAULT_CODE_FILENAME, UpdateManager.UPDATE_RUNNING);
+            final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODES, SOURCE_INTERNAL, DEFAULT_CODE_FILENAME, UpdateManager.UPDATE_RUNNING);
             final Set<CodeRegistry> defaultCodeRegistries = codeRegistryRepository.findAll();
             defaultCodeRegistries.forEach(codeRegistry -> {
                 if (codeRegistry.getCodeValue().startsWith(DEFAULT_CODEREGISTRY_NAME_PREFIX)) {
