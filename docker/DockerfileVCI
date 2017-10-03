@@ -1,6 +1,3 @@
-# Artifactory from arg
-ENV artifactory=$artifactory
-
 # Pull base image
 FROM ${artifactory}/yti-codelist-docker-java-base:alpine
 
