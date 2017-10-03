@@ -1,5 +1,8 @@
+# Artifactory from arg
+ENV artifactory=$artifactory
+
 # Pull base image
-FROM artifactory/yti-codelist-docker-java-base:alpine
+FROM ${artifactory}/yti-codelist-docker-java-base:alpine
 
 # Deploy project
 ADD target/yti-codelist-content-intake-service.jar ${deploy_dir}/yti-codelist-content-intake-service.jar
