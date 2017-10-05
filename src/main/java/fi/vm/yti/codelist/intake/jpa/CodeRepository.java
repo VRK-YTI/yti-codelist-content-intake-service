@@ -1,6 +1,5 @@
 package fi.vm.yti.codelist.intake.jpa;
 
-import java.util.List;
 import java.util.Set;
 
 import javax.transaction.Transactional;

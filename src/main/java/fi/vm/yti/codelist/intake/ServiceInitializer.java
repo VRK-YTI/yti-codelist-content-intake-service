@@ -28,7 +28,6 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.VersionInformation;
 import fi.vm.yti.codelist.intake.data.YtiDataAccess;
-import fi.vm.yti.codelist.intake.domain.Domain;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 

@@ -64,7 +64,7 @@ public class IndexingToolsImpl implements IndexingTools {
             final IndicesAliasesRequest request = new IndicesAliasesRequest();
             final GetAliasesResponse aliasesResponse = client.admin().indices().getAliases(new GetAliasesRequest(aliasName)).actionGet();
             final ImmutableOpenMap<String, List<AliasMetaData>> aliases = aliasesResponse.getAliases();
-            for (final ObjectCursor cursor : aliases.keys()) {
+            for (final ObjectCursor<?> cursor : aliases.keys()) {
                 request.addAliasAction(IndicesAliasesRequest.AliasActions.remove().alias(aliasName).index(cursor.value.toString()));
             }
             request.addAliasAction(IndicesAliasesRequest.AliasActions.add().alias(aliasName).index(indexName));
@@ -73,7 +73,7 @@ public class IndexingToolsImpl implements IndexingTools {
                 logAliasFailed(indexName);
             } else {
                 logAliasSuccessful(indexName);
-                for (final ObjectCursor cursor : aliases.keys()) {
+                for (final ObjectCursor<?> cursor : aliases.keys()) {
                     logAliasRemovedSuccessful(cursor.value.toString());
                 }
             }
@@ -138,15 +138,6 @@ public class IndexingToolsImpl implements IndexingTools {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         return mapper;
-    }
-
-    private void logFlushFailed(final String indexName,
-                                final Exception e) {
-        LOG.error("ElasticSearch index: " + indexName + "failed with error.", e);
-    }
-
-    private void logFlushedSuccessful(final String indexName) {
-        logIndex(false, indexName, "flushed successfully.");
     }
 
     private void logCreateFailed(final String indexName) {
