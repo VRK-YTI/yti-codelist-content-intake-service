@@ -144,14 +144,14 @@
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>5.2.1</version><!--$NO-MVN-MAN-VER$-->
+            <version>5.5.2</version><!--$NO-MVN-MAN-VER$-->
         </dependency>
 
         <!-- Elastic Search Transport client -->
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>transport</artifactId>
-            <version>5.2.1</version>
+            <version>5.5.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.elasticsearch</groupId>
