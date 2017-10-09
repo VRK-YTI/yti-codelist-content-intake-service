@@ -7,11 +7,8 @@
 CREATE TABLE coderegistry (
   id character varying(255) UNIQUE NOT NULL,
   codevalue character varying(255) NOT NULL,
-  status character varying(255) NULL,
   uri character varying(2048) NULL,
   source character varying(255) NOT NULL,
-  startdate timestamp without time zone NULL,
-  enddate timestamp without time zone NULL,
   modified timestamp without time zone NOT NULL,
   CONSTRAINT coderegistry_pkey PRIMARY KEY (id)
 );

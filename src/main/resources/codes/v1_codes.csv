@@ -1,10 +1,10 @@
 CODEVALUE,ID,STATUS,PREFLABEL_FI,PREFLABEL_SE,PREFLABEL_EN,DEFINITION_FI,DEFINITION_SE,DEFINITION_EN,DESCRIPTION_FI,DESCRIPTION_SE,DESCRIPTION_EN,SHORTNAME,STARTDATE,ENDDATE
-01,,VALID,Testi elementti 1,Test elementen 1,Test Element 1,testi määrite 1,test definitionen 1,test definition 1,testi kuvaus 1,test description 1,test description 1,test shortname 1,2017-01-01,2022-12-31
-01,,SUPERSEDED,Testi elementti 1,Test elementen 1,Test Element 1,testi määrite 1,test definitionen 1,test definition 1,testi kuvaus 1,test description 1,test description 1,test shortname 1,2017-01-01,2022-12-31
-02,,VALID,Testi elementti 2,Test elementen 2,Test Element 2,testi määrite 2,test definitionen 2,test definition 2,testi kuvaus 2,test description 2,test description 2,test shortname 2,2017-01-01,2022-12-31
-03,,VALID,Testi elementti 3,Test elementen 3,Test Element 3,testi määrite 3,test definitionen 3,test definition 3,testi kuvaus 3,test description 3,test description 3,test shortname 3,2017-01-01,2022-12-31
-04,,VALID,Testi elementti 4,Test elementen 4,Test Element 4,testi määrite 4,test definitionen 4,test definition 4,testi kuvaus 4,test description 4,test description 4,test shortname 4,2017-01-01,2022-12-31
-05,,VALID,Testi elementti 5,Test elementen 5,Test Element 5,testi määrite 5,test definitionen 5,test definition 5,testi kuvaus 5,test description 5,test description 5,test shortname 5,2017-01-01,2022-12-31
-06,,VALID,Testi elementti 6,Test elementen 6,Test Element 6,testi määrite 6,test definitionen 6,test definition 6,testi kuvaus 6,test description 6,test description 6,test shortname 6,2017-01-01,2022-12-31
-07,,VALID,Testi elementti 7,Test elementen 7,Test Element 7,testi määrite 7,test definitionen 7,test definition 7,testi kuvaus 7,test description 7,test description 7,test shortname 7,2017-01-01,2022-12-31
-08,,VALID,Testi elementti 8,Test elementen 8,Test Element 8,testi määrite 8,test definitionen 8,test definition 8,testi kuvaus 8,test description 8,test description 8,test shortname 8,2017-01-01,2022-12-31
+01,,VALID,Testi elementti 1,Test elementen 1,Test Element 1,testi määrite 1,test definitionen 1,test definition 1,testi kuvaus 1,test beskrivning 1,test description 1,test shortname 1,2017-01-01,2022-12-31
+01,,SUPERSEDED,Testi elementti 1,Test elementen 1,Test Element 1,testi määrite 1,test definitionen 1,test definition 1,testi kuvaus 1,test beskrivning 1,test description 1,test shortname 1,2017-01-01,2022-12-31
+02,,VALID,Testi elementti 2,Test elementen 2,Test Element 2,testi määrite 2,test definitionen 2,test definition 2,testi kuvaus 2,test beskrivning 2,test description 2,test shortname 2,2017-01-01,2022-12-31
+03,,VALID,Testi elementti 3,Test elementen 3,Test Element 3,testi määrite 3,test definitionen 3,test definition 3,testi kuvaus 3,test beskrivning 3,test description 3,test shortname 3,2017-01-01,2022-12-31
+04,,VALID,Testi elementti 4,Test elementen 4,Test Element 4,testi määrite 4,test definitionen 4,test definition 4,testi kuvaus 4,test beskrivning 4,test description 4,test shortname 4,2017-01-01,2022-12-31
+05,,VALID,Testi elementti 5,Test elementen 5,Test Element 5,testi määrite 5,test definitionen 5,test definition 5,testi kuvaus 5,test beskrivning 5,test description 5,test shortname 5,2017-01-01,2022-12-31
+06,,VALID,Testi elementti 6,Test elementen 6,Test Element 6,testi määrite 6,test definitionen 6,test definition 6,testi kuvaus 6,test beskrivning 6,test description 6,test shortname 6,2017-01-01,2022-12-31
+07,,VALID,Testi elementti 7,Test elementen 7,Test Element 7,testi määrite 7,test definitionen 7,test definition 7,testi kuvaus 7,test beskrivning 7,test description 7,test shortname 7,2017-01-01,2022-12-31
+08,,VALID,Testi elementti 8,Test elementen 8,Test Element 8,testi määrite 8,test definitionen 8,test definition 8,testi kuvaus 8,test beskrivning 8,test description 8,test shortname 8,2017-01-01,2022-12-31

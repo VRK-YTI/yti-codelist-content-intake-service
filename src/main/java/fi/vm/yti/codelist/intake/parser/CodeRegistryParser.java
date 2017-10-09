@@ -25,6 +25,7 @@ import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.util.FileUtils;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
  * Class that handles parsing of coderegistries from source data.
@@ -59,13 +60,13 @@ public class CodeRegistryParser {
             FileUtils.skipBom(in);
             final List<CSVRecord> records = csvParser.getRecords();
             records.forEach(record -> {
-                final String code = record.get("CODEVALUE");
-                final String prefLabelFinnish = record.get("PREFLABEL_FI");
-                final String prefLabelSwedish = record.get("PREFLABEL_SE");
-                final String prefLabelEnglish = record.get("PREFLABEL_EN");
-                final String definitionFinnish = record.get("DEFINITION_FI");
-                final String definitionSwedish = record.get("DEFINITION_SE");
-                final String definitionEnglish = record.get("DEFINITION_EN");
+                final String code = record.get(CSV_HEADER_CODEVALUE);
+                final String prefLabelFinnish = record.get(CSV_HEADER_PREFLABEL_FI);
+                final String prefLabelSwedish = record.get(CSV_HEADER_PREFLABEL_SE);
+                final String prefLabelEnglish = record.get(CSV_HEADER_PREFLABEL_EN);
+                final String definitionFinnish = record.get(CSV_HEADER_DEFINITION_FI);
+                final String definitionSwedish = record.get(CSV_HEADER_DEFINITION_SE);
+                final String definitionEnglish = record.get(CSV_HEADER_DEFINITION_EN);
                 final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(code, source, prefLabelFinnish, prefLabelSwedish, prefLabelEnglish, definitionFinnish, definitionSwedish, definitionEnglish);
                 if (codeRegistry != null) {
                     codeRegistries.add(codeRegistry);
@@ -100,28 +101,28 @@ public class CodeRegistryParser {
                 codeRegistry.setSource(source);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeRegistry.getPrefLabel("fi"), prefLabelFinnish)) {
-                codeRegistry.setPrefLabel("fi", prefLabelFinnish);
+            if (!Objects.equals(codeRegistry.getPrefLabel(LANGUAGE_CODE_FI), prefLabelFinnish)) {
+                codeRegistry.setPrefLabel(LANGUAGE_CODE_FI, prefLabelFinnish);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeRegistry.getPrefLabel("se"), prefLabelSwedish)) {
-                codeRegistry.setPrefLabel("se", prefLabelSwedish);
+            if (!Objects.equals(codeRegistry.getPrefLabel(LANGUAGE_CODE_SE), prefLabelSwedish)) {
+                codeRegistry.setPrefLabel(LANGUAGE_CODE_SE, prefLabelSwedish);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeRegistry.getPrefLabel("en"), prefLabelEnglish)) {
-                codeRegistry.setPrefLabel("en", prefLabelEnglish);
+            if (!Objects.equals(codeRegistry.getPrefLabel(LANGUAGE_CODE_EN), prefLabelEnglish)) {
+                codeRegistry.setPrefLabel(LANGUAGE_CODE_EN, prefLabelEnglish);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeRegistry.getDefinition("fi"), definitionFinnish)) {
-                codeRegistry.setDefinition("fi", definitionFinnish);
+            if (!Objects.equals(codeRegistry.getDefinition(LANGUAGE_CODE_FI), definitionFinnish)) {
+                codeRegistry.setDefinition(LANGUAGE_CODE_FI, definitionFinnish);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeRegistry.getDefinition("se"), definitionSwedish)) {
-                codeRegistry.setDefinition("se", prefLabelSwedish);
+            if (!Objects.equals(codeRegistry.getDefinition(LANGUAGE_CODE_SE), definitionSwedish)) {
+                codeRegistry.setDefinition(LANGUAGE_CODE_SE, prefLabelSwedish);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeRegistry.getDefinition("en"), definitionEnglish)) {
-                codeRegistry.setDefinition("en", prefLabelEnglish);
+            if (!Objects.equals(codeRegistry.getDefinition(LANGUAGE_CODE_EN), definitionEnglish)) {
+                codeRegistry.setDefinition(LANGUAGE_CODE_EN, prefLabelEnglish);
                 hasChanges = true;
             }
             if (hasChanges) {
@@ -135,12 +136,12 @@ public class CodeRegistryParser {
             codeRegistry.setCodeValue(code);
             codeRegistry.setSource(source);
             codeRegistry.setModified(timeStamp);
-            codeRegistry.setPrefLabel("fi", prefLabelFinnish);
-            codeRegistry.setPrefLabel("se", prefLabelSwedish);
-            codeRegistry.setPrefLabel("en", prefLabelEnglish);
-            codeRegistry.setDefinition("fi", definitionFinnish);
-            codeRegistry.setDefinition("se", definitionSwedish);
-            codeRegistry.setDefinition("en", definitionEnglish);
+            codeRegistry.setPrefLabel(LANGUAGE_CODE_FI, prefLabelFinnish);
+            codeRegistry.setPrefLabel(LANGUAGE_CODE_SE, prefLabelSwedish);
+            codeRegistry.setPrefLabel(LANGUAGE_CODE_EN, prefLabelEnglish);
+            codeRegistry.setDefinition(LANGUAGE_CODE_FI, definitionFinnish);
+            codeRegistry.setDefinition(LANGUAGE_CODE_SE, definitionSwedish);
+            codeRegistry.setDefinition(LANGUAGE_CODE_EN, definitionEnglish);
         }
         return codeRegistry;
     }
