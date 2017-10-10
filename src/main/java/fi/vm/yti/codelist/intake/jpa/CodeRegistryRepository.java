@@ -18,5 +18,4 @@ public interface CodeRegistryRepository extends CrudRepository<CodeRegistry, Str
     CodeRegistry findById(final String id);
 
     Set<CodeRegistry> findAll();
-
 }

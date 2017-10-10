@@ -76,41 +76,4 @@ public abstract class Utils {
         final Calendar cal = Calendar.getInstance();
         return simpleDateFormatter.format(cal.getTime());
     }
-
-    public static String ensureRegionIdPadding(final String id) {
-        return StringUtils.leftPad(id, REGION_ID_LENGTH, '0');
-    }
-
-    public static String ensureElectoralDistrictIdPadding(final String id) {
-        return StringUtils.leftPad(id, ELECTORALDISTRICT_ID_LENGTH, '0');
-    }
-
-    public static String ensureBusinessServiceSubRegionIdPadding(final String id) {
-        return StringUtils.leftPad(id, BUSINESSERVICESUBREGION_ID_LENGTH, '0');
-    }
-
-    public static String ensurePostalCodeIdPadding(final String id) {
-        return StringUtils.leftPad(id, POSTALCODE_ID_LENGTH, '0');
-    }
-
-    public static String ensurePostManagementDistrictIdPadding(final String id) {
-        return StringUtils.leftPad(id, POSTMANAGEMENTDISTRICT_ID_LENGTH, '0');
-    }
-
-    public static String ensureMagistrateServiceUnitIdPadding(final String id) {
-        return StringUtils.leftPad(id, MAGISTRATESERVICEUNIT_ID_LENGTH, '0');
-    }
-
-    public static String ensureMunicipalityIdPadding(final String id) {
-        return StringUtils.leftPad(id, MUNICIPALITY_ID_LENGTH, '0');
-    }
-
-    public static String ensureMagistrateIdPadding(final String id) {
-        return StringUtils.leftPad(id, MAGISTRATE_ID_LENGTH, '0');
-    }
-
-    public static String ensureHealthCareDistrictIdPadding(final String id) {
-        return StringUtils.leftPad(id, HEALTHCAREDISTRICT_ID_LENGTH, '0');
-    }
-
 }

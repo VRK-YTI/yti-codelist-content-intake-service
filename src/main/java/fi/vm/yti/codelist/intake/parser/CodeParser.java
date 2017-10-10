@@ -71,7 +71,7 @@ public class CodeParser {
 
                 for (final CSVRecord record : records) {
                     final String id = record.get(CSV_HEADER_ID);
-                    final String codeValue = Utils.ensureRegionIdPadding(record.get(CSV_HEADER_CODEVALUE));
+                    final String codeValue = record.get(CSV_HEADER_CODEVALUE);
                     final String prefLabelFinnish = record.get(CSV_HEADER_PREFLABEL_FI);
                     final String prefLabelSwedish = record.get(CSV_HEADER_PREFLABEL_SE);
                     final String prefLabelEnglish = record.get(CSV_HEADER_PREFLABEL_EN);
@@ -253,5 +253,4 @@ public class CodeParser {
         }
         return code;
     }
-
 }

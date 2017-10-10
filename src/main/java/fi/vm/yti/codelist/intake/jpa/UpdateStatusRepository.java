@@ -17,5 +17,4 @@ public interface UpdateStatusRepository extends CrudRepository<UpdateStatus, Str
 
     @Query(value = "SELECT u FROM UpdateStatus as u WHERE u.dataType = :dataType AND u.status = 'successful' ORDER BY u.modified DESC")
     List<UpdateStatus> getLatestSuccessfulUpdatesForType(@Param("dataType") final String dataType);
-
 }

@@ -8,5 +8,4 @@ public interface DataAccess {
     void initializeOrRefresh();
 
     boolean checkForNewData();
-
 }

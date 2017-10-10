@@ -23,5 +23,4 @@ public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String>
     Set<CodeScheme> findByCodeRegistry(final CodeRegistry codeRegistry);
 
     Set<CodeScheme> findAll();
-
 }

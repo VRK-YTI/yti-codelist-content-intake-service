@@ -111,7 +111,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Transactional
     public Response addOrUpdateCodeSchemes(@ApiParam(value = "CodeRegistry codeValue") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                            @ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/codeschemes/");
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
@@ -149,7 +149,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                      @ApiParam(value = "CodeScheme codeValue") @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                      @ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
 
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/codeschemes/" + codeSchemeCodeValue + "/codes/");
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
@@ -192,7 +192,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     public Response retireCode(@ApiParam(value = "CodeRegistry codeValue.") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                @ApiParam(value = "CodeScheme codeValue.") @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                @ApiParam(value = "Code codeValue.") @PathParam("codeCodeValue") final String codeCodeValue) {
-        logApiRequest(LOG, METHOD_DELETE, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/codeschemes/" + codeSchemeCodeValue + "/codes/" + codeCodeValue + "/");
+        logApiRequest(LOG, METHOD_DELETE, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + codeCodeValue + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);

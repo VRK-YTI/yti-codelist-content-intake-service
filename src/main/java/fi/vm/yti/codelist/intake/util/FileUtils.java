@@ -37,5 +37,4 @@ public abstract class FileUtils {
         final InputStream inputStream = classPathResource.getInputStream();
         return inputStream;
     }
-
 }

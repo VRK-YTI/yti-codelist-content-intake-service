@@ -52,5 +52,4 @@ public class PublicApiServiceProperties {
     public void setContextPath(final String contextPath) {
         this.contextPath = contextPath;
     }
-
 }

@@ -37,5 +37,4 @@ public class SwaggerResource extends AbstractBaseResource {
         final String swaggerJson = FileUtils.readFileToString(file, "UTF-8");
         return swaggerJson;
     }
-
 }

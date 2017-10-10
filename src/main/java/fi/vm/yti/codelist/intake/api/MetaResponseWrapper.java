@@ -19,5 +19,4 @@ public class MetaResponseWrapper {
     public void setMeta(final Meta meta) {
         this.meta = meta;
     }
-
 }

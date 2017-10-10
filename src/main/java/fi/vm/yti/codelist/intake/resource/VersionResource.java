@@ -50,5 +50,4 @@ public class VersionResource extends AbstractBaseResource {
                "\n" +
                "                --- Version " + versionInformation.getVersion() + " running. --- \n";
     }
-
 }

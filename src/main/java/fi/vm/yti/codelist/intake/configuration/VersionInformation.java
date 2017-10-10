@@ -29,5 +29,4 @@ public class VersionInformation {
         version = version + " build " + commitId;
         return version;
     }
-
 }

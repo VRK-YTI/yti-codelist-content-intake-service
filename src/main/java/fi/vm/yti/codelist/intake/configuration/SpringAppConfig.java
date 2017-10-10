@@ -69,5 +69,4 @@ public class SpringAppConfig {
         final Settings settings = Settings.builder().put("cluster.name", clusterName).put("client.transport.ignore_cluster_name", false).put("client.transport.sniff", false).build();
         return new PreBuiltTransportClient(settings).addTransportAddress(address);
     }
-
 }

@@ -17,5 +17,4 @@ public interface Domain {
     void persistCodeSchemes(final List<CodeScheme> codeSchemes);
 
     void persistCodes(final List<Code> codes);
-
 }

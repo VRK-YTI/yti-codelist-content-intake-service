@@ -90,5 +90,4 @@ public class UpdateManager {
         updateStatusRepository.save(updateStatus);
         return updateStatus;
     }
-
 }

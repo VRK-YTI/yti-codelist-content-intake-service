@@ -175,5 +175,4 @@ public class IndexingImpl implements Indexing {
     private String createIndexName(final String indexName) {
         return indexName + "_" + System.currentTimeMillis();
     }
-
 }

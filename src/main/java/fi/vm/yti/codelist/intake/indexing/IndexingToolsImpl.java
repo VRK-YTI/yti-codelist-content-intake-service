@@ -186,5 +186,4 @@ public class IndexingToolsImpl implements IndexingTools {
             LOG.info(message);
         }
     }
-
 }
