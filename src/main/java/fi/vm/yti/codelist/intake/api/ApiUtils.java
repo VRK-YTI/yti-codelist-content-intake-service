@@ -5,19 +5,23 @@ import javax.inject.Inject;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.constants.ApiConstants;
+import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
 
 /**
- * Generic utils for serving API population functionality.
+ * Generic utils for serving APIs.
  */
 @Component
 public class ApiUtils {
 
     private PublicApiServiceProperties publicApiServiceProperties;
+    private ContentIntakeServiceProperties contentIntakeServiceProperties;
 
     @Inject
-    public ApiUtils(final PublicApiServiceProperties publicApiServiceProperties) {
+    public ApiUtils(final PublicApiServiceProperties publicApiServiceProperties,
+                    final ContentIntakeServiceProperties contentIntakeServiceProperties) {
         this.publicApiServiceProperties = publicApiServiceProperties;
+        this.contentIntakeServiceProperties = contentIntakeServiceProperties;
     }
 
     /**
@@ -48,18 +52,16 @@ public class ApiUtils {
     }
 
     /**
-     *
-     *
-     * @return Returns the Public API Service hostname mapped to the running environment.
+     * @return Returns the Content Intake Service hostname mapped to the running environment.
      */
-    public String getPublicApiServiceHostname() {
+    public String getContentIntakeServiceHostname() {
         final StringBuilder builder = new StringBuilder();
-        final String port = publicApiServiceProperties.getPort();
-        builder.append(publicApiServiceProperties.getHost());
+        final String port = contentIntakeServiceProperties.getPort();
+        builder.append(contentIntakeServiceProperties.getHost());
         appendPortToUrlIfNotEmpty(port, builder);
         return builder.toString();
     }
-    
+
     private void appendPortToUrlIfNotEmpty(final String port, final StringBuilder builder) {
         if (port != null && !port.isEmpty()) {
             builder.append(":");
