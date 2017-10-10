@@ -15,6 +15,8 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +87,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @ApiOperation(value = "Parses CodeRegistries from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
-    public Response addOrUpdateCodeRegistries(@ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
+    public Response addOrUpdateCodeRegistries(@ApiParam(value = "Input-file", required = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES);
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
@@ -109,8 +111,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @ApiOperation(value = "Parses CodeSchemes from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
-    public Response addOrUpdateCodeSchemes(@ApiParam(value = "CodeRegistry codeValue") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                           @ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
+    public Response addOrUpdateCodeSchemes(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                           @ApiParam(value = "Input-file", required = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
@@ -145,9 +147,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @ApiOperation(value = "Parses Codes from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
-    public Response addOrUpdateCodes(@ApiParam(value = "CodeRegistry codeValue") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                     @ApiParam(value = "CodeScheme codeValue") @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                                     @ApiParam(value = "Input-file") @FormDataParam("file") final InputStream inputStream) {
+    public Response addOrUpdateCodes(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                                     @ApiParam(value = "Input-file", required = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
 
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/");
         final Meta meta = new Meta();
@@ -189,9 +191,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @ApiOperation(value = "Deletes a single code. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
-    public Response retireCode(@ApiParam(value = "CodeRegistry codeValue.") @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                               @ApiParam(value = "CodeScheme codeValue.") @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                               @ApiParam(value = "Code codeValue.") @PathParam("codeCodeValue") final String codeCodeValue) {
+    public Response retireCode(@ApiParam(value = "CodeRegistry codeValue.", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                               @ApiParam(value = "CodeScheme codeValue.", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                               @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue) {
         logApiRequest(LOG, METHOD_DELETE, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + codeCodeValue + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
