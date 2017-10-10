@@ -437,7 +437,7 @@
                     <replacements>
                         <replacement>
                             <token>http://petstore.swagger.io/v2/swagger.json</token>
-                            <value>/api/swagger.json</value>
+                            <value>/codelist-intake/api/swagger.json</value>
                         </replacement>
                     </replacements>
                 </configuration>
