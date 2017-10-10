@@ -26,7 +26,8 @@ import io.swagger.annotations.SwaggerDefinition;
         termsOfService = "https://opensource.org/licenses/EUPL-1.1",
         contact = @Contact(
             name = "Code List Service by the Population Register Center of Finland",
-            url = "http://vm.fi/yhteinen-tiedon-hallinta"
+            url = "http://vm.fi/yhteinen-tiedon-hallinta",
+            email = "yhteentoimivuus@vrk.fi"
         ),
         license = @License(
             name = "EUPL-1.2",
