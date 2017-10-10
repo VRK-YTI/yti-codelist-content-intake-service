@@ -38,6 +38,8 @@ import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
 import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -86,8 +88,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses CodeRegistries from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "file", value = "Input-file", required = true, dataType = "file", paramType = "formData")
+    })
     @Transactional
-    public Response addOrUpdateCodeRegistries(@ApiParam(value = "Input-file", required = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+    public Response addOrUpdateCodeRegistries(@ApiParam(value = "Input-file", required = true, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES);
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
@@ -110,9 +115,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses CodeSchemes from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "file", value = "Input-file", required = true, dataType = "file", paramType = "formData")
+    })
     @Transactional
     public Response addOrUpdateCodeSchemes(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                           @ApiParam(value = "Input-file", required = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+                                           @ApiParam(value = "Input-file", required = true, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
@@ -146,10 +154,13 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses Codes from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "file", value = "Input-file", required = true, dataType = "file", paramType = "formData")
+    })
     @Transactional
     public Response addOrUpdateCodes(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                                     @ApiParam(value = "Input-file", required = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+                                     @ApiParam(value = "Input-file", required = true, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
 
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/");
         final Meta meta = new Meta();
