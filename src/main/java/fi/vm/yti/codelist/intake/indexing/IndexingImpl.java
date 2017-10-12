@@ -123,16 +123,22 @@ public class IndexingImpl implements Indexing {
     }
 
     public void reIndexEverything() {
-        final List<IndexStatus> list = indexStatusRepository.getLatestRunningIndexStatusForIndexAlias(ELASTIC_INDEX_CODELIST);
+        reIndex(ELASTIC_INDEX_CODEREGISTRY);
+        reIndex(ELASTIC_INDEX_CODESCHEME);
+        reIndex(ELASTIC_INDEX_CODE);
+    }
+
+    private void reIndex(final String indexName) {
+        final List<IndexStatus> list = indexStatusRepository.getLatestRunningIndexStatusForIndexAlias(indexName);
         if (list.isEmpty()) {
-            reIndexCodelist();
+            reIndexCodelist(indexName);
         } else {
-            LOG.info("Indexing is already running for index: " + ELASTIC_INDEX_CODELIST);
+            LOG.info("Indexing is already running for index: " + indexName);
         }
     }
 
-    private void reIndexCodelist() {
-        final String indexName = createIndexName(ELASTIC_INDEX_CODELIST);
+    private void reIndexCodelist(final String indexAlias) {
+        final String indexName = createIndexName(indexAlias);
 
         final IndexStatus status = new IndexStatus();
         final Date timeStamp = new Date(System.currentTimeMillis());
@@ -140,7 +146,7 @@ public class IndexingImpl implements Indexing {
         status.setCreated(timeStamp);
         status.setModified(timeStamp);
         status.setStatus(INDEX_STATUS_RUNNING);
-        status.setIndexAlias(ELASTIC_INDEX_CODELIST);
+        status.setIndexAlias(indexName);
         status.setIndexName(indexName);
         indexStatusRepository.save(status);
         indexingTools.createIndexWithNestedPrefLabels(indexName);
@@ -156,8 +162,8 @@ public class IndexingImpl implements Indexing {
             success = false;
         }
         if (success) {
-            indexingTools.aliasIndex(indexName, ELASTIC_INDEX_CODELIST);
-            final List<IndexStatus> earlierStatuses = indexStatusRepository.getLatestSuccessfulIndexStatusForIndexAlias(ELASTIC_INDEX_CODELIST);
+            indexingTools.aliasIndex(indexName, indexAlias);
+            final List<IndexStatus> earlierStatuses = indexStatusRepository.getLatestSuccessfulIndexStatusForIndexAlias(indexAlias);
             earlierStatuses.forEach(index -> {
                 indexingTools.deleteIndex(index.getIndexName());
                 index.setModified(timeStamp);
