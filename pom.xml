@@ -436,8 +436,9 @@
                     <file>${project.build.directory}/classes/static/swagger/index.html</file>
                     <replacements>
                         <replacement>
-                            <token>http://petstore.swagger.io/v2/swagger.json</token>
-                            <value>/codelist-intake/api/swagger.json</value>
+                            <token>http://petstore.swagger.io/v2/swagger.json"</token>
+                            <value>/codelist-intake/api/swagger.json",
+                                validatorUrl: null</value>
                         </replacement>
                     </replacements>
                 </configuration>
