@@ -30,7 +30,6 @@ import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.util.FileUtils;
-import fi.vm.yti.codelist.intake.util.Utils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
@@ -53,8 +52,8 @@ public class CodeParser {
     /**
      * Parses the .csv Code-file and returns the codes as an arrayList.
      *
-     * @param codeScheme CodeScheme codeValue identifier.
-     * @param source Source identifier for the data.
+     * @param codeScheme  CodeScheme codeValue identifier.
+     * @param source      Source identifier for the data.
      * @param inputStream The Code -file.
      * @return List of Code objects.
      */
@@ -103,9 +102,9 @@ public class CodeParser {
                         }
                     }
                     final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, source, shortName, startDate, endDate,
-                                prefLabelFinnish, prefLabelSwedish, prefLabelEnglish,
-                                descriptionFinnish, descriptionSwedish, descriptionEnglish,
-                                definitionFinnish, definitionSwedish, definitionEnglish);
+                        prefLabelFinnish, prefLabelSwedish, prefLabelEnglish,
+                        descriptionFinnish, descriptionSwedish, descriptionEnglish,
+                        definitionFinnish, definitionSwedish, definitionEnglish);
                     if (code != null) {
                         codes.add(code);
                     }
@@ -220,7 +219,7 @@ public class CodeParser {
             if (hasChanges) {
                 code.setModified(timeStamp);
             }
-        // Create
+            // Create
         } else {
             code = new Code();
             if (id != null && !id.isEmpty()) {

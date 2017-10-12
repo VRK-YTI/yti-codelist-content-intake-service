@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.indexing;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -10,6 +11,7 @@ import javax.inject.Singleton;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,20 +67,20 @@ public class IndexingImpl implements Indexing {
 
     private boolean indexCodeRegistries(final String indexName) {
         final Set<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
-        return indexType(codeRegistries, indexName, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES);
+        return indexData(codeRegistries, indexName, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES);
     }
 
     private boolean indexCodeSchemes(final String indexName) {
         final Set<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
-        return indexType(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
+        return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
     }
 
     private boolean indexCodes(final String indexName) {
         final Set<Code> regions = codeRepository.findAll();
-        return indexType(regions, indexName, ELASTIC_TYPE_CODE, NAME_CODES);
+        return indexData(regions, indexName, ELASTIC_TYPE_CODE, NAME_CODES);
     }
 
-    private <T> boolean indexType(final Set<T> set,
+    private <T> boolean indexData(final Set<T> set,
                                   final String elasticIndex,
                                   final String elasticType,
                                   final String name) {
@@ -88,7 +90,7 @@ public class IndexingImpl implements Indexing {
             final BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (final T item : set) {
                 try {
-                    bulkRequest.add(client.prepareIndex(elasticIndex, elasticType).setSource(mapper.writeValueAsString(item)));
+                    bulkRequest.add(client.prepareIndex(elasticIndex, elasticType).setSource(mapper.writeValueAsString(item), XContentType.JSON));
                 } catch (JsonProcessingException e) {
                     logBulkErrorWithException(name, e);
                 }
@@ -123,21 +125,21 @@ public class IndexingImpl implements Indexing {
     }
 
     public void reIndexEverything() {
-        reIndex(ELASTIC_INDEX_CODEREGISTRY);
-        reIndex(ELASTIC_INDEX_CODESCHEME);
-        reIndex(ELASTIC_INDEX_CODE);
+        reIndex(ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY);
+        reIndex(ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME);
+        reIndex(ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE);
     }
 
-    private void reIndex(final String indexName) {
+    private void reIndex(final String indexName, final String type) {
         final List<IndexStatus> list = indexStatusRepository.getLatestRunningIndexStatusForIndexAlias(indexName);
         if (list.isEmpty()) {
-            reIndexCodelist(indexName);
+            reIndexData(indexName, type);
         } else {
             LOG.info("Indexing is already running for index: " + indexName);
         }
     }
 
-    private void reIndexCodelist(final String indexAlias) {
+    private void reIndexData(final String indexAlias, final String type) {
         final String indexName = createIndexName(indexAlias);
 
         final IndexStatus status = new IndexStatus();
@@ -149,7 +151,13 @@ public class IndexingImpl implements Indexing {
         status.setIndexAlias(indexName);
         status.setIndexName(indexName);
         indexStatusRepository.save(status);
-        indexingTools.createIndexWithNestedPrefLabels(indexName);
+
+        final Set<String> types = new HashSet<>();
+        types.add(ELASTIC_TYPE_CODEREGISTRY);
+        types.add(ELASTIC_TYPE_CODESCHEME);
+        types.add(ELASTIC_TYPE_CODE);
+
+        indexingTools.createIndexWithNestedPrefLabels(indexName, types);
 
         boolean success = true;
         if (!indexCodeRegistries(indexName)) {

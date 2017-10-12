@@ -1,7 +1,7 @@
 package fi.vm.yti.codelist.intake.indexing;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import javax.inject.Singleton;
@@ -18,6 +18,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +27,6 @@ import org.springframework.stereotype.Service;
 import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Singleton
 @Service
@@ -110,18 +109,15 @@ public class IndexingToolsImpl implements IndexingTools {
      * Creates index with name.
      *
      * @param indexName The name of the index to be created.
+     * @param types     Set of types for this index.
      */
-    public void createIndexWithNestedPrefLabels(final String indexName) {
-        final List<String> types = new ArrayList<>();
-        types.add(ELASTIC_TYPE_CODEREGISTRY);
-        types.add(ELASTIC_TYPE_CODESCHEME);
-        types.add(ELASTIC_TYPE_CODE);
+    public void createIndexWithNestedPrefLabels(final String indexName, final Set<String> types) {
         final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
         if (!exists) {
             final CreateIndexRequestBuilder builder = client.admin().indices().prepareCreate(indexName);
             builder.setSettings(Settings.builder().put(MAX_RESULT_WINDOW, MAX_RESULT_WINDOW_SIZE));
             for (final String type : types) {
-                builder.addMapping(type, NESTED_PREFLABELS_MAPPING_JSON);
+                builder.addMapping(type, NESTED_PREFLABELS_MAPPING_JSON, XContentType.JSON);
             }
             final CreateIndexResponse response = builder.get();
             if (!response.isAcknowledged()) {
