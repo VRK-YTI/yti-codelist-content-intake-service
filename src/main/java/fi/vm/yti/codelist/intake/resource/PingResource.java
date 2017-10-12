@@ -13,7 +13,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_PING;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_VERSION_V1;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.METHOD_GET;
 
 /**
@@ -32,7 +31,7 @@ public class PingResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Returns pong if service is this API is reachable.")
     @Produces("text/plain")
     public Response ping() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_PING);
+        logApiRequest(LOG, METHOD_GET, "", API_PATH_PING);
         return Response.ok("pong").build();
     }
 }
