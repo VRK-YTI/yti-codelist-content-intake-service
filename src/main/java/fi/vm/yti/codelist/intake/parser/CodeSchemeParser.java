@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
-import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.Status;
@@ -52,7 +51,7 @@ public class CodeSchemeParser {
     /**
      * Parses the .csv CodeScheme-file and returns the codeschemes as an arrayList.
      *
-     * @param source source identifier for the data.
+     * @param source      source identifier for the data.
      * @param inputStream The CodeScheme -file.
      * @return List of CodeScheme objects.
      */
@@ -61,8 +60,8 @@ public class CodeSchemeParser {
                                                             final InputStream inputStream) throws Exception {
         final List<CodeScheme> codeSchemes = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                final BufferedReader in = new BufferedReader(inputStreamReader);
-                final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
+             final BufferedReader in = new BufferedReader(inputStreamReader);
+             final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
             FileUtils.skipBom(in);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
@@ -102,11 +101,11 @@ public class CodeSchemeParser {
                     }
                 }
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, id, codeValue,
-                        version, source, status, startDate, endDate,
-                        prefLabelFinnish, prefLabelSwedish, prefLabelEnglish,
-                        descriptionFinnish, descriptionSwedish, descriptionEnglish,
-                        definitionFinnish, definitionSwedish, definitionEnglish,
-                        changeNoteFinnish, changeNoteSwedish, changeNoteEnglish);
+                    version, source, status, startDate, endDate,
+                    prefLabelFinnish, prefLabelSwedish, prefLabelEnglish,
+                    descriptionFinnish, descriptionSwedish, descriptionEnglish,
+                    definitionFinnish, definitionSwedish, definitionEnglish,
+                    changeNoteFinnish, changeNoteSwedish, changeNoteEnglish);
                 codeSchemes.add(codeScheme);
             }
         } catch (IOException e) {
@@ -114,7 +113,7 @@ public class CodeSchemeParser {
         }
         return codeSchemes;
     }
-    
+
     private CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
                                                 final String id,
                                                 final String codeValue,
@@ -142,14 +141,14 @@ public class CodeSchemeParser {
         }
         String uri = null;
         if (Status.VALID == status) {
-            uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + ApiConstants.API_PATH_CODESCHEMES, codeValue);
+            uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeValue);
             final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeValueAndStatusAndCodeRegistry(codeValue, status.toString(), codeRegistry);
             if (existingCodeScheme != null) {
                 LOG.error("Existing value already found, cancel update!");
                 throw new Exception("Existing value already found with status VALID for code scheme with code value: " + codeValue + ", cancel update!");
             }
         } else if (id != null && !id.isEmpty()) {
-            uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + ApiConstants.API_PATH_CODESCHEMES, id);
+            uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, id);
         }
         // Update
         if (codeScheme != null) {
@@ -233,7 +232,7 @@ public class CodeSchemeParser {
             if (hasChanges) {
                 codeScheme.setModified(timeStamp);
             }
-        // Create
+            // Create
         } else {
             codeScheme = new CodeScheme();
             codeScheme.setId(UUID.randomUUID().toString());
@@ -243,7 +242,7 @@ public class CodeSchemeParser {
             } else {
                 final String uuid = UUID.randomUUID().toString();
                 if (status != Status.VALID) {
-                    uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + ApiConstants.API_PATH_CODESCHEMES, id);
+                    uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, id);
                 }
                 codeScheme.setId(uuid);
             }

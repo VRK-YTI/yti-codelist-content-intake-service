@@ -4,9 +4,10 @@ import javax.inject.Inject;
 
 import org.springframework.stereotype.Component;
 
-import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_BASE_PATH;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_VERSION;
 
 /**
  * Generic utils for serving APIs.
@@ -27,7 +28,7 @@ public class ApiUtils {
     /**
      * Creates a resource URL for given resource id with dynamic hostname, port and API context path mapping.
      *
-     * @param apiPath API path that serves the resource.
+     * @param apiPath    API path that serves the resource.
      * @param resourceId ID of the REST resource.
      * @return Fully concatenated resource URL that can be used in API responses as a link to the resource.
      */
@@ -39,9 +40,9 @@ public class ApiUtils {
         builder.append(publicApiServiceProperties.getHost());
         appendPortToUrlIfNotEmpty(port, builder);
         builder.append(publicApiServiceProperties.getContextPath());
-        builder.append(ApiConstants.API_BASE_PATH);
+        builder.append(API_BASE_PATH);
         builder.append("/");
-        builder.append(ApiConstants.API_VERSION);
+        builder.append(API_VERSION);
         builder.append(apiPath);
         builder.append("/");
         if (resourceId != null) {

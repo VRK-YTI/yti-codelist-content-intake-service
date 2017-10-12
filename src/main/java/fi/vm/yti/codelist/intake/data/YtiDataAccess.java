@@ -1,15 +1,5 @@
 package fi.vm.yti.codelist.intake.data;
 
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_CODEREGISTRIES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_CODES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_CODESCHEMES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DEFAULT_CODEREGISTRY_FILENAME;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DEFAULT_CODEREGISTRY_NAME_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DEFAULT_CODESCHEME_FILENAME;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DEFAULT_CODESCHEME_NAME;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DEFAULT_CODE_FILENAME;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.SOURCE_INTERNAL;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -36,10 +26,11 @@ import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
 import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
 import fi.vm.yti.codelist.intake.update.UpdateManager;
 import fi.vm.yti.codelist.intake.util.FileUtils;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
  * Implementing class for DataAccess interface.
- *
+ * <p>
  * This class provides method implementations for accessing YTI specific source data.
  */
 @Service
@@ -57,12 +48,12 @@ public class YtiDataAccess implements DataAccess {
 
     @Inject
     public YtiDataAccess(final Domain domain,
-                             final UpdateManager updateManager,
-                             final CodeSchemeParser codeSchemeParser,
-                             final CodeRegistryParser codeRegistryParser,
-                             final CodeParser codeParser,
-                             final CodeRegistryRepository codeRegistryRepository,
-                             final CodeSchemeRepository codeSchemeRepository) {
+                         final UpdateManager updateManager,
+                         final CodeSchemeParser codeSchemeParser,
+                         final CodeRegistryParser codeRegistryParser,
+                         final CodeParser codeParser,
+                         final CodeRegistryRepository codeRegistryRepository,
+                         final CodeSchemeRepository codeSchemeRepository) {
         this.domain = domain;
         this.updateManager = updateManager;
         this.codeSchemeParser = codeSchemeParser;

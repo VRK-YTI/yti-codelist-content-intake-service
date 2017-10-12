@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.CodeScheme;
@@ -94,7 +93,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES);
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-        final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromInputStream(ApiConstants.SOURCE_INTERNAL, inputStream);
+        final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromInputStream(SOURCE_INTERNAL, inputStream);
         for (final CodeRegistry register : codeRegistries) {
             LOG.info("CodeRegistry parsed from input: " + register.getCodeValue());
         }
@@ -126,7 +125,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             final List<CodeScheme> codeSchemes;
             try {
-                codeSchemes = codeSchemeParser.parseCodeSchemesFromInputStream(codeRegistry, ApiConstants.SOURCE_INTERNAL, inputStream);
+                codeSchemes = codeSchemeParser.parseCodeSchemesFromInputStream(codeRegistry, SOURCE_INTERNAL, inputStream);
             } catch (final Exception e) {
                 throw new WebApplicationException(e.getMessage());
             }
@@ -169,7 +168,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             if (codeScheme != null) {
                 final List<Code> codes;
                 try {
-                    codes = codeParser.parseCodesFromInputStream(codeScheme, ApiConstants.SOURCE_INTERNAL, inputStream);
+                    codes = codeParser.parseCodesFromInputStream(codeScheme, SOURCE_INTERNAL, inputStream);
                 } catch (Exception e) {
                     throw new WebApplicationException(e.getMessage());
                 }

@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.util.FileUtils;
@@ -39,7 +38,7 @@ public class CodeRegistryParser {
 
     @Inject
     public CodeRegistryParser(final ApiUtils apiUtils,
-                            final ParserUtils parserUtils) {
+                              final ParserUtils parserUtils) {
         this.apiUtils = apiUtils;
         this.parserUtils = parserUtils;
     }
@@ -47,7 +46,7 @@ public class CodeRegistryParser {
     /**
      * Parses the .csv CodeRegistry-file and returns the coderegistries as an arrayList.
      *
-     * @param source source identifier for the data.
+     * @param source      source identifier for the data.
      * @param inputStream The CodeRegistry-file.
      * @return List of CodeRegistry objects.
      */
@@ -87,7 +86,7 @@ public class CodeRegistryParser {
                                                     final String definitionEnglish,
                                                     final String source) {
         final Map<String, CodeRegistry> existingCodeRegistriesMap = parserUtils.getCodeRegistriesMap();
-        String uri = apiUtils.createResourceUrl(ApiConstants.API_PATH_CODEREGISTRIES, code);
+        String uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES, code);
         final Date timeStamp = new Date(System.currentTimeMillis());
         CodeRegistry codeRegistry = existingCodeRegistriesMap.get(code);
         // Update
@@ -128,7 +127,7 @@ public class CodeRegistryParser {
             if (hasChanges) {
                 codeRegistry.setModified(timeStamp);
             }
-        // Create
+            // Create
         } else {
             codeRegistry = new CodeRegistry();
             codeRegistry.setId(UUID.randomUUID().toString());
