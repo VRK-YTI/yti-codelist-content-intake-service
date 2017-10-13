@@ -143,7 +143,7 @@ public class CodeSchemeParser {
         if (Status.VALID == status) {
             uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeValue);
             final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeValueAndStatusAndCodeRegistry(codeValue, status.toString(), codeRegistry);
-            if (existingCodeScheme != null) {
+            if (existingCodeScheme != codeScheme) {
                 LOG.error("Existing value already found, cancel update!");
                 throw new Exception("Existing value already found with status VALID for code scheme with code value: " + codeValue + ", cancel update!");
             }
