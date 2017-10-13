@@ -78,13 +78,13 @@ public class CodeRegistryParser {
     }
 
     private CodeRegistry createOrUpdateCodeRegistry(final String code,
+                                                    final String source,
                                                     final String prefLabelFinnish,
                                                     final String prefLabelSwedish,
                                                     final String prefLabelEnglish,
                                                     final String definitionFinnish,
                                                     final String definitionSwedish,
-                                                    final String definitionEnglish,
-                                                    final String source) {
+                                                    final String definitionEnglish) {
         final Map<String, CodeRegistry> existingCodeRegistriesMap = parserUtils.getCodeRegistriesMap();
         String uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES, code);
         final Date timeStamp = new Date(System.currentTimeMillis());
