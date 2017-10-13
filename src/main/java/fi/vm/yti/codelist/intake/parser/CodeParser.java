@@ -71,13 +71,13 @@ public class CodeParser {
                     final String id = record.get(CSV_HEADER_ID);
                     final String codeValue = record.get(CSV_HEADER_CODEVALUE);
                     final String prefLabelFinnish = record.get(CSV_HEADER_PREFLABEL_FI);
-                    final String prefLabelSwedish = record.get(CSV_HEADER_PREFLABEL_SE);
+                    final String prefLabelSwedish = record.get(CSV_HEADER_PREFLABEL_SV);
                     final String prefLabelEnglish = record.get(CSV_HEADER_PREFLABEL_EN);
                     final String descriptionFinnish = record.get(CSV_HEADER_DESCRIPTION_FI);
-                    final String descriptionSwedish = record.get(CSV_HEADER_DESCRIPTION_SE);
+                    final String descriptionSwedish = record.get(CSV_HEADER_DESCRIPTION_SV);
                     final String descriptionEnglish = record.get(CSV_HEADER_DESCRIPTION_EN);
                     final String definitionFinnish = record.get(CSV_HEADER_DEFINITION_FI);
-                    final String definitionSwedish = record.get(CSV_HEADER_DEFINITION_SE);
+                    final String definitionSwedish = record.get(CSV_HEADER_DEFINITION_SV);
                     final String definitionEnglish = record.get(CSV_HEADER_DEFINITION_EN);
                     final String shortName = record.get(CSV_HEADER_SHORTNAME);
                     final Status status = Status.valueOf(record.get(CSV_HEADER_STATUS));
@@ -175,8 +175,8 @@ public class CodeParser {
                 code.setPrefLabel(LANGUAGE_CODE_FI, finnishPrefLabel);
                 hasChanges = true;
             }
-            if (!Objects.equals(code.getPrefLabel(LANGUAGE_CODE_SE), swedishPrefLabel)) {
-                code.setPrefLabel(LANGUAGE_CODE_SE, swedishPrefLabel);
+            if (!Objects.equals(code.getPrefLabel(LANGUAGE_CODE_SV), swedishPrefLabel)) {
+                code.setPrefLabel(LANGUAGE_CODE_SV, swedishPrefLabel);
                 hasChanges = true;
             }
             if (!Objects.equals(code.getPrefLabel(LANGUAGE_CODE_EN), englishPrefLabel)) {
@@ -187,8 +187,8 @@ public class CodeParser {
                 codeScheme.setDefinition(LANGUAGE_CODE_FI, finnishDefinition);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getDefinition(LANGUAGE_CODE_SE), swedishDefinition)) {
-                codeScheme.setDefinition(LANGUAGE_CODE_SE, swedishDefinition);
+            if (!Objects.equals(codeScheme.getDefinition(LANGUAGE_CODE_SV), swedishDefinition)) {
+                codeScheme.setDefinition(LANGUAGE_CODE_SV, swedishDefinition);
                 hasChanges = true;
             }
             if (!Objects.equals(codeScheme.getDefinition(LANGUAGE_CODE_EN), englishDefinition)) {
@@ -199,8 +199,8 @@ public class CodeParser {
                 codeScheme.setDescription(LANGUAGE_CODE_FI, finnishDescription);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getDescription(LANGUAGE_CODE_SE), swedishDescription)) {
-                codeScheme.setDescription(LANGUAGE_CODE_SE, swedishDescription);
+            if (!Objects.equals(codeScheme.getDescription(LANGUAGE_CODE_SV), swedishDescription)) {
+                codeScheme.setDescription(LANGUAGE_CODE_SV, swedishDescription);
                 hasChanges = true;
             }
             if (!Objects.equals(codeScheme.getDescription(LANGUAGE_CODE_EN), englishDescription)) {
@@ -238,13 +238,13 @@ public class CodeParser {
             code.setShortName(shortName);
             code.setModified(timeStamp);
             code.setPrefLabel(LANGUAGE_CODE_FI, finnishPrefLabel);
-            code.setPrefLabel(LANGUAGE_CODE_SE, swedishPrefLabel);
+            code.setPrefLabel(LANGUAGE_CODE_SV, swedishPrefLabel);
             code.setPrefLabel(LANGUAGE_CODE_EN, englishPrefLabel);
             code.setDefinition(LANGUAGE_CODE_FI, finnishDefinition);
-            code.setDefinition(LANGUAGE_CODE_SE, swedishDefinition);
+            code.setDefinition(LANGUAGE_CODE_SV, swedishDefinition);
             code.setDefinition(LANGUAGE_CODE_EN, englishDefinition);
             code.setDescription(LANGUAGE_CODE_FI, finnishDescription);
-            code.setDescription(LANGUAGE_CODE_SE, swedishDescription);
+            code.setDescription(LANGUAGE_CODE_SV, swedishDescription);
             code.setDescription(LANGUAGE_CODE_EN, englishDescription);
             code.setStartDate(startDate);
             code.setEndDate(endDate);

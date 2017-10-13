@@ -61,10 +61,10 @@ public class CodeRegistryParser {
             records.forEach(record -> {
                 final String code = record.get(CSV_HEADER_CODEVALUE);
                 final String prefLabelFinnish = record.get(CSV_HEADER_PREFLABEL_FI);
-                final String prefLabelSwedish = record.get(CSV_HEADER_PREFLABEL_SE);
+                final String prefLabelSwedish = record.get(CSV_HEADER_PREFLABEL_SV);
                 final String prefLabelEnglish = record.get(CSV_HEADER_PREFLABEL_EN);
                 final String definitionFinnish = record.get(CSV_HEADER_DEFINITION_FI);
-                final String definitionSwedish = record.get(CSV_HEADER_DEFINITION_SE);
+                final String definitionSwedish = record.get(CSV_HEADER_DEFINITION_SV);
                 final String definitionEnglish = record.get(CSV_HEADER_DEFINITION_EN);
                 final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(code, source, prefLabelFinnish, prefLabelSwedish, prefLabelEnglish, definitionFinnish, definitionSwedish, definitionEnglish);
                 if (codeRegistry != null) {
@@ -104,8 +104,8 @@ public class CodeRegistryParser {
                 codeRegistry.setPrefLabel(LANGUAGE_CODE_FI, prefLabelFinnish);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeRegistry.getPrefLabel(LANGUAGE_CODE_SE), prefLabelSwedish)) {
-                codeRegistry.setPrefLabel(LANGUAGE_CODE_SE, prefLabelSwedish);
+            if (!Objects.equals(codeRegistry.getPrefLabel(LANGUAGE_CODE_SV), prefLabelSwedish)) {
+                codeRegistry.setPrefLabel(LANGUAGE_CODE_SV, prefLabelSwedish);
                 hasChanges = true;
             }
             if (!Objects.equals(codeRegistry.getPrefLabel(LANGUAGE_CODE_EN), prefLabelEnglish)) {
@@ -116,8 +116,8 @@ public class CodeRegistryParser {
                 codeRegistry.setDefinition(LANGUAGE_CODE_FI, definitionFinnish);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeRegistry.getDefinition(LANGUAGE_CODE_SE), definitionSwedish)) {
-                codeRegistry.setDefinition(LANGUAGE_CODE_SE, prefLabelSwedish);
+            if (!Objects.equals(codeRegistry.getDefinition(LANGUAGE_CODE_SV), definitionSwedish)) {
+                codeRegistry.setDefinition(LANGUAGE_CODE_SV, prefLabelSwedish);
                 hasChanges = true;
             }
             if (!Objects.equals(codeRegistry.getDefinition(LANGUAGE_CODE_EN), definitionEnglish)) {
@@ -136,10 +136,10 @@ public class CodeRegistryParser {
             codeRegistry.setSource(source);
             codeRegistry.setModified(timeStamp);
             codeRegistry.setPrefLabel(LANGUAGE_CODE_FI, prefLabelFinnish);
-            codeRegistry.setPrefLabel(LANGUAGE_CODE_SE, prefLabelSwedish);
+            codeRegistry.setPrefLabel(LANGUAGE_CODE_SV, prefLabelSwedish);
             codeRegistry.setPrefLabel(LANGUAGE_CODE_EN, prefLabelEnglish);
             codeRegistry.setDefinition(LANGUAGE_CODE_FI, definitionFinnish);
-            codeRegistry.setDefinition(LANGUAGE_CODE_SE, definitionSwedish);
+            codeRegistry.setDefinition(LANGUAGE_CODE_SV, definitionSwedish);
             codeRegistry.setDefinition(LANGUAGE_CODE_EN, definitionEnglish);
         }
         return codeRegistry;

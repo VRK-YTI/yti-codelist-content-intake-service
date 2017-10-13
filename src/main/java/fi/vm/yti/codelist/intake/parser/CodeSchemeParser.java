@@ -68,16 +68,16 @@ public class CodeSchemeParser {
                 final String id = record.get(CSV_HEADER_ID);
                 final String codeValue = record.get(CSV_HEADER_CODEVALUE);
                 final String prefLabelFinnish = record.get(CSV_HEADER_PREFLABEL_FI);
-                final String prefLabelSwedish = record.get(CSV_HEADER_PREFLABEL_SE);
+                final String prefLabelSwedish = record.get(CSV_HEADER_PREFLABEL_SV);
                 final String prefLabelEnglish = record.get(CSV_HEADER_PREFLABEL_EN);
                 final String descriptionFinnish = record.get(CSV_HEADER_DESCRIPTION_FI);
-                final String descriptionSwedish = record.get(CSV_HEADER_DESCRIPTION_SE);
+                final String descriptionSwedish = record.get(CSV_HEADER_DESCRIPTION_SV);
                 final String descriptionEnglish = record.get(CSV_HEADER_DESCRIPTION_EN);
                 final String definitionFinnish = record.get(CSV_HEADER_DEFINITION_FI);
-                final String definitionSwedish = record.get(CSV_HEADER_DEFINITION_SE);
+                final String definitionSwedish = record.get(CSV_HEADER_DEFINITION_SV);
                 final String definitionEnglish = record.get(CSV_HEADER_DEFINITION_EN);
                 final String changeNoteFinnish = record.get(CSV_HEADER_CHANGENOTE_FI);
-                final String changeNoteSwedish = record.get(CSV_HEADER_CHANGENOTE_SE);
+                final String changeNoteSwedish = record.get(CSV_HEADER_CHANGENOTE_SV);
                 final String changeNoteEnglish = record.get(CSV_HEADER_CHANGENOTE_EN);
                 final String version = record.get(CSV_HEADER_VERSION);
                 final Status status = Status.valueOf(record.get(CSV_HEADER_STATUS));
@@ -173,8 +173,8 @@ public class CodeSchemeParser {
                 codeScheme.setPrefLabel(LANGUAGE_CODE_FI, finnishPrefLabel);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getPrefLabel(LANGUAGE_CODE_SE), swedishPrefLabel)) {
-                codeScheme.setPrefLabel(LANGUAGE_CODE_SE, swedishPrefLabel);
+            if (!Objects.equals(codeScheme.getPrefLabel(LANGUAGE_CODE_SV), swedishPrefLabel)) {
+                codeScheme.setPrefLabel(LANGUAGE_CODE_SV, swedishPrefLabel);
                 hasChanges = true;
             }
             if (!Objects.equals(codeScheme.getPrefLabel(LANGUAGE_CODE_EN), englishPrefLabel)) {
@@ -185,8 +185,8 @@ public class CodeSchemeParser {
                 codeScheme.setDefinition(LANGUAGE_CODE_FI, finnishDefinition);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getDefinition(LANGUAGE_CODE_SE), swedishDefinition)) {
-                codeScheme.setDefinition(LANGUAGE_CODE_SE, swedishDefinition);
+            if (!Objects.equals(codeScheme.getDefinition(LANGUAGE_CODE_SV), swedishDefinition)) {
+                codeScheme.setDefinition(LANGUAGE_CODE_SV, swedishDefinition);
                 hasChanges = true;
             }
             if (!Objects.equals(codeScheme.getDefinition(LANGUAGE_CODE_EN), englishDefinition)) {
@@ -197,8 +197,8 @@ public class CodeSchemeParser {
                 codeScheme.setDescription(LANGUAGE_CODE_FI, finnishDescription);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getDescription(LANGUAGE_CODE_SE), swedishDescription)) {
-                codeScheme.setDescription(LANGUAGE_CODE_SE, swedishDescription);
+            if (!Objects.equals(codeScheme.getDescription(LANGUAGE_CODE_SV), swedishDescription)) {
+                codeScheme.setDescription(LANGUAGE_CODE_SV, swedishDescription);
                 hasChanges = true;
             }
             if (!Objects.equals(codeScheme.getDescription(LANGUAGE_CODE_EN), englishDescription)) {
@@ -209,8 +209,8 @@ public class CodeSchemeParser {
                 codeScheme.setChangeNote(LANGUAGE_CODE_FI, finnishChangeNote);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getChangeNote(LANGUAGE_CODE_SE), swedishChangeNote)) {
-                codeScheme.setChangeNote(LANGUAGE_CODE_SE, swedishChangeNote);
+            if (!Objects.equals(codeScheme.getChangeNote(LANGUAGE_CODE_SV), swedishChangeNote)) {
+                codeScheme.setChangeNote(LANGUAGE_CODE_SV, swedishChangeNote);
                 hasChanges = true;
             }
             if (!Objects.equals(codeScheme.getChangeNote(LANGUAGE_CODE_EN), englishChangeNote)) {
@@ -251,16 +251,16 @@ public class CodeSchemeParser {
             codeScheme.setSource(source);
             codeScheme.setModified(timeStamp);
             codeScheme.setPrefLabel(LANGUAGE_CODE_FI, finnishPrefLabel);
-            codeScheme.setPrefLabel(LANGUAGE_CODE_SE, swedishPrefLabel);
+            codeScheme.setPrefLabel(LANGUAGE_CODE_SV, swedishPrefLabel);
             codeScheme.setPrefLabel(LANGUAGE_CODE_EN, englishPrefLabel);
             codeScheme.setDefinition(LANGUAGE_CODE_FI, finnishDefinition);
-            codeScheme.setDefinition(LANGUAGE_CODE_SE, swedishDefinition);
+            codeScheme.setDefinition(LANGUAGE_CODE_SV, swedishDefinition);
             codeScheme.setDefinition(LANGUAGE_CODE_EN, englishDefinition);
             codeScheme.setDescription(LANGUAGE_CODE_FI, finnishDescription);
-            codeScheme.setDescription(LANGUAGE_CODE_SE, swedishDescription);
+            codeScheme.setDescription(LANGUAGE_CODE_SV, swedishDescription);
             codeScheme.setDescription(LANGUAGE_CODE_EN, englishDescription);
             codeScheme.setChangeNote(LANGUAGE_CODE_FI, finnishChangeNote);
-            codeScheme.setChangeNote(LANGUAGE_CODE_SE, swedishChangeNote);
+            codeScheme.setChangeNote(LANGUAGE_CODE_SV, swedishChangeNote);
             codeScheme.setChangeNote(LANGUAGE_CODE_EN, englishChangeNote);
             codeScheme.setVersion(version);
             codeScheme.setStatus(status.toString());
