@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.7.RELEASE</version>
+        <version>1.5.8.RELEASE</version>
         <relativePath/>
     </parent>
 
@@ -31,18 +31,7 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <!--
-                    When you upgrade Spring Cloud version check what is the current version number
-                    it uses for
-                        io.github.openfeign:feign-*
-                    artifacts and update that version number to this pom file's
-                        io.github.openfeign:feign-jackson
-                    version field.
-                    Current version number (9.3.1) is hardcoded because spring-cloud-dependencies
-                    does not contain feign-jackson in its dependencyManagement section nor
-                    is there property available which could be used.
-                -->
-                <version>Camden.SR4</version>
+                <version>Dalston.SR4</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -105,10 +94,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-jms</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-broker</artifactId>
-        </dependency>
 
         <!-- Spring boot database -->
         <dependency>
@@ -120,6 +105,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -184,20 +170,6 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-eureka</artifactId>
-            <exclusions>
-                <exclusion>
-                    <!--
-                    Exluded because of this issue: https://github.com/Netflix/eureka/issues/600
-                    -->
-                    <groupId>javax.ws.rs</groupId>
-                    <artifactId>jsr311-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- Swagger -->
@@ -326,7 +298,7 @@
             </plugin>
 
             <!-- Spotify docker maven plugin -->
-            <plugin>
+            <!--plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${spotify-docker.version}</version>
@@ -348,7 +320,7 @@
                         </resource>
                     </resources>
                 </configuration>
-            </plugin>
+            </plugin-->
 
             <!-- Swagger generation plugin -->
             <plugin>
@@ -371,6 +343,145 @@
                         <goals>
                             <goal>generate</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.22.1</version>
+                <configuration>
+                    <skip>${skipTests}</skip>
+                    <portPropertyFile>target/test-classes/test-port.properties</portPropertyFile>
+                    <images>
+                        <image>
+                            <name>yti-codelist-elasticsearch:latest</name>
+                            <alias>${project.artifactId}_test_elastic</alias>
+                            <run>
+                                <namingStrategy>alias</namingStrategy>
+                                <log>
+                                    <enabled>true</enabled>
+                                    <color>green</color>
+                                </log>
+                                <ports>
+                                    <port>testelasticsearch.transport.port:9300</port>
+                                    <port>testelasticsearch.http.port:9200</port>
+                                </ports>
+                            </run>
+                        </image>
+                        <image>
+                            <name>yti-postgres:latest</name>
+                            <alias>${project.artifactId}_test_postgres</alias>
+                            <run>
+                                <namingStrategy>alias</namingStrategy>
+                                <log>
+                                    <enabled>true</enabled>
+                                    <color>green</color>
+                                </log>
+                                <ports>
+                                    <port>testpostgres.port:5432</port>
+                                </ports>
+                                <wait>
+                                    <log>PostgreSQL init process complete; ready for start up.</log>
+                                    <time>120000</time>
+                                </wait>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
+                <!-- Connect this plugin to the maven lifecycle around the integration-test phase. I.e. start the container
+                     in pre-integration-test and stop it in post-integration-test. -->
+                <executions>
+                    <execution>
+                        <id>start</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- fails-safe-plugin should be used instead of surefire so that the container gets stopped even
+                 when the tests fail -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <reuseForks>false</reuseForks>
+                    <forkCount>0</forkCount>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>integration-test</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>verify</id>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- This plugin is kept here to help OWASP local testing,
+                 but should not be committed to repository uncommented. -->
+            <!--plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>1.4.5</version>
+                <configuration>
+                    <autoUpdate>false</autoUpdate>
+                    <dataDirectory>${env.OWASP_DATA_DIR}</dataDirectory>
+                    <skipProvidedScope>true</skipProvidedScope>
+                    <skipRuntimeScope>true</skipRuntimeScope>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin-->
+
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway.version}</version>
+                <configuration>
+                    <user>postgres</user>
+                    <password></password>
+                    <url>jdbc:postgresql://${psql.host}:${psql.port}/${project.db.name}</url>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.5</version>
+                <executions>
+                    <execution>
+                        <id>failing-on-high</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>findbugs</goal>
+                        </goals>
+                        <configuration>
+                            <failOnError>true</failOnError>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -444,74 +555,6 @@
                 </configuration>
             </plugin>
 
-            <!-- fails-safe-plugin should be used instead of surefire so that the container gets stopped even when the tests fail -->
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.19.1</version><!--$NO-MVN-MAN-VER$-->
-                <executions>
-                    <execution>
-                        <id>integration-test</id>
-                        <phase>integration-test</phase>
-                        <goals>
-                            <goal>integration-test</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>verify</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.owasp</groupId>
-                <artifactId>dependency-check-maven</artifactId>
-                <version>1.4.5</version>
-                <configuration>
-                    <skipProvidedScope>true</skipProvidedScope>
-                    <skipRuntimeScope>true</skipRuntimeScope>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-                <version>${flyway.version}</version>
-                <configuration>
-                    <user>postgres</user>
-                    <password></password>
-                    <url>jdbc:postgresql://${psql.host}:${psql.port}/${project.db.name}</url>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.5</version>
-                <executions>
-                    <execution>
-                        <id>failing-on-high</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>findbugs</goal>
-                        </goals>
-                        <configuration>
-                            <failOnError>true</failOnError>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
         </plugins>
 
     </build>
@@ -525,11 +568,11 @@
         <swagger.version>1.5.15</swagger.version>
         <swagger-ui.version>3.1.5</swagger-ui.version>
         <swagger-maven-plugin.version>3.1.5</swagger-maven-plugin.version>
-        <postgresql.version>42.0.0.jre7</postgresql.version>
+        <postgresql.version>42.1.4</postgresql.version>
         <flyway.version>4.1.1</flyway.version>
         <psql.host>localhost</psql.host>
         <psql.port>5432</psql.port>
-        <project.db.name>yti-codelist</project.db.name>
+        <project.db.name>yti_codelist</project.db.name>
     </properties>
 
 </project>

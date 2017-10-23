@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories("fi.vm.yti.codelist.*")
 @EnableTransactionManagement
 @EntityScan("fi.vm.yti.codelist.*")
-@ComponentScan({ "fi.vm.yti.codelist.*" })
+@ComponentScan({"fi.vm.yti.codelist.*"})
 public class ContentIntakeServiceApplication {
 
     public static void main(final String[] args) {
@@ -23,5 +23,4 @@ public class ContentIntakeServiceApplication {
         serviceInitializer.printLogo();
         serviceInitializer.initialize();
     }
-
 }

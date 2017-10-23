@@ -1,0 +1,56 @@
+---
+spring:
+  profiles: test
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+
+thread:
+  pool:
+    idle-timeout: 10000
+    max: 50
+    min: 10
+
+service:
+  name: yti-codelist-content-intake-service
+  database-name: yti_codelist
+
+hikari:
+  jdbcUrl: jdbc:postgresql://${environment.postgres.host}:${testpostgres.port}/${service.database-name}
+  username: postgres
+  password:
+  minimumIdle: 10
+  maximumPoolSize: 300
+
+yti_codelist_content_intake_service_elastic_host: ${environment.elastic.host}
+yti_codelist_content_intake_service_elastic_port: ${testelasticsearch.transport.port}
+yti_codelist_content_intake_service_elastic_cluster: ${environment.elastic.cluster}
+
+environment:
+  elastic:
+    host: 127.0.0.1
+    port: 9300
+    cluster: yti-codelist-elasticsearch
+  postgres:
+    host: 127.0.0.1
+    port: 5432
+
+server:
+  port: 9602
+
+application:
+  scheme: http
+  host: localhost
+  port: 9602
+  contextPath: /codelist-intake
+  access-log: true
+
+public_api:
+  scheme: http
+  host: localhost
+  port: 9601
+  contextPath: /codelist-api
+
+session:
+  timeout-mins: 10

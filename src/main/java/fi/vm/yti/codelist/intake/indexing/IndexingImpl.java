@@ -124,18 +124,28 @@ public class IndexingImpl implements Indexing {
         LOG.info(BULK + type + " operation failed, no content to be indexed!");
     }
 
-    public void reIndexEverything() {
-        reIndex(ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY);
-        reIndex(ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME);
-        reIndex(ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE);
+    public boolean reIndexEverything() {
+        boolean success = true;
+        if (!reIndex(ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY)) {
+            success = false;
+        }
+        if (reIndex(ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME)) {
+            success = false;
+        }
+        if (!reIndex(ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE)) {
+            success = false;
+        }
+        return success;
     }
 
-    private void reIndex(final String indexName, final String type) {
+    private boolean reIndex(final String indexName, final String type) {
         final List<IndexStatus> list = indexStatusRepository.getLatestRunningIndexStatusForIndexAlias(indexName);
         if (list.isEmpty()) {
             reIndexData(indexName, type);
+            return true;
         } else {
             LOG.info("Indexing is already running for index: " + indexName);
+            return false;
         }
     }
 
