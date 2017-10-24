@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.indexing;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -28,6 +29,8 @@ import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+
 @Singleton
 @Service
 public class IndexingToolsImpl implements IndexingTools {
@@ -38,6 +41,18 @@ public class IndexingToolsImpl implements IndexingTools {
 
     private static final String NESTED_PREFLABELS_MAPPING_JSON = "{" +
         "\"properties\": {\n" +
+        "  \"codeValue\": {\n" +
+        "    \"type\": \"text\"," +
+        "    \"analyzer\": \"lowercase_analyzer\",\n" +
+        "    \"fields\": {\n" +
+        "      \"keyword\": { \n" +
+        "        \"ignore_above\": 256," +
+        "        \"type\": \"keyword\"\n" +
+        "      }\n" +
+        "    }\n" +
+        "  },\n" +
+        "  \"id\": {\n" +
+        "    \"type\": \"text\"},\n" +
         "  \"prefLabels\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  }\n" +
@@ -115,7 +130,23 @@ public class IndexingToolsImpl implements IndexingTools {
         final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
         if (!exists) {
             final CreateIndexRequestBuilder builder = client.admin().indices().prepareCreate(indexName);
-            builder.setSettings(Settings.builder().put(MAX_RESULT_WINDOW, MAX_RESULT_WINDOW_SIZE));
+            try {
+                builder.setSettings(Settings.builder().loadFromSource(jsonBuilder()
+                    .startObject()
+                    .startObject("analysis")
+                    .startObject("analyzer")
+                    .startObject("lowercase_analyzer")
+                    .field("type", "custom")
+                    .field("tokenizer", "keyword")
+                    .field("filter", new String[]{"lowercase", "standard"})
+                    .endObject()
+                    .endObject()
+                    .endObject()
+                    .endObject().string(), XContentType.JSON)
+                    .put(MAX_RESULT_WINDOW, MAX_RESULT_WINDOW_SIZE));
+            } catch (IOException e) {
+                LOG.error("Error parsing index request settings JSON!", e);
+            }
             for (final String type : types) {
                 builder.addMapping(type, NESTED_PREFLABELS_MAPPING_JSON, XContentType.JSON);
             }
