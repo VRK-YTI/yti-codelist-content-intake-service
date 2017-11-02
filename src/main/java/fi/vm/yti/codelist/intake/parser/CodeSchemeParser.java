@@ -79,7 +79,7 @@ public class CodeSchemeParser {
             final Map<String, String> changeNoteHeaders = new LinkedHashMap<>();
             for (final String value : headerMap.keySet()) {
                 if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                    prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), value);
+                    prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_PREFLABEL_PREFIX)).toLowerCase(), value);
                 } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
                     descriptionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), value);
                 } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
@@ -170,7 +170,7 @@ public class CodeSchemeParser {
                         final String value = cell.getStringCellValue();
                         final Integer index = cell.getColumnIndex();
                         if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                            prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), index);
+                            prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_PREFLABEL_PREFIX)).toLowerCase(), index);
                         } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
                             descriptionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), index);
                         } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {

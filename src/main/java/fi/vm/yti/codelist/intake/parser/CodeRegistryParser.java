@@ -70,7 +70,7 @@ public class CodeRegistryParser {
             final Map<String, String> definitionHeaders = new LinkedHashMap<>();
             for (final String value : headerMap.keySet()) {
                 if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                    prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), value);
+                    prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_PREFLABEL_PREFIX)).toLowerCase(), value);
                 } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
                     definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), value);
                 }
@@ -111,9 +111,7 @@ public class CodeRegistryParser {
         final Iterator<Row> rowIterator = codesSheet.rowIterator();
         final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
         final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
-        final Map<String, Integer> descriptionHeaders = new LinkedHashMap<>();
         final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
-        final Map<String, Integer> changeNoteHeaders = new LinkedHashMap<>();
         boolean firstRow = true;
         while (rowIterator.hasNext()) {
             final Row row = rowIterator.next();
@@ -125,12 +123,8 @@ public class CodeRegistryParser {
                     final Integer index = cell.getColumnIndex();
                     if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
                         prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), index);
-                    } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
-                        descriptionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), index);
                     } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
                         definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), index);
-                    } else if (value.startsWith(CONTENT_HEADER_CHANGENOTE_PREFIX)) {
-                        changeNoteHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_CHANGENOTE_PREFIX)).toLowerCase(), index);
                     } else {
                         genericHeaders.put(value, index);
                     }
