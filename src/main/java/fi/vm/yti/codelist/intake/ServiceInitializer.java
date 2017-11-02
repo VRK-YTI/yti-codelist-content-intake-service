@@ -70,7 +70,6 @@ public class ServiceInitializer {
         final Stopwatch indexWatch = Stopwatch.createStarted();
         indexing.reIndexEverything();
         LOG.info("*** Elastic indexing took: " + indexWatch + ". ***");
-        // Timing of initialization.
         LOG.info("*** Data initialization complete, took " + watch + ". ***");
     }
 
@@ -79,12 +78,12 @@ public class ServiceInitializer {
      */
     public void printLogo() {
         LOG.info("");
-        LOG.info("       .__                     .__        __          __           ");
-        LOG.info("  ____ |  |   ______           |__| _____/  |______  |  | __ ____  ");
-        LOG.info("_/ ___\\|  |  /  ___/   ______  |  |/    \\   __\\__  \\ |  |/ // __ \\ ");
-        LOG.info("\\  \\___|  |__\\___ \\   /_____/  |  |   |  \\  |  / __ \\|    <\\  ___/ ");
-        LOG.info(" \\___  >____/____  >           |__|___|  /__| (____  /__|_ \\\\___  >");
-        LOG.info("     \\/          \\/                    \\/          \\/     \\/    \\/ ");
+        LOG.info("          __  .__          .__        __          __           ");
+        LOG.info(" ___.__._/  |_|__|         |__| _____/  |______  |  | __ ____  ");
+        LOG.info("<   |  |\\   __\\  |  ______ |  |/    \\   __\\__  \\ |  |/ // __ \\ ");
+        LOG.info(" \\___  | |  | |  | /_____/ |  |   |  \\  |  / __ \\|    <\\  ___/ ");
+        LOG.info(" / ____| |__| |__|         |__|___|  /__| (____  /__|_ \\\\___  >");
+        LOG.info(" \\/                                \\/          \\/     \\/    \\/ ");
         LOG.info("                          .__              ");
         LOG.info("  ______ ______________  _|__| ____  ____  ");
         LOG.info(" /  ___// __ \\_  __ \\  \\/ /  |/ ___\\/ __ \\ ");
