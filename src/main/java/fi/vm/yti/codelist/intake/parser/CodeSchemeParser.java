@@ -8,7 +8,10 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -17,6 +20,12 @@ import javax.inject.Inject;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,7 +41,7 @@ import fi.vm.yti.codelist.intake.util.FileUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
- * Class that handles parsing of codeschemes from source data.
+ * Class that handles parsing of CodeSchemes from source data.
  */
 @Service
 public class CodeSchemeParser {
@@ -51,9 +60,9 @@ public class CodeSchemeParser {
     /**
      * Parses the .csv CodeScheme-file and returns the codeschemes as an arrayList.
      *
-     * @param source      source identifier for the data.
+     * @param source      Source identifier for the data.
      * @param inputStream The CodeScheme -file.
-     * @return List of CodeScheme objects.
+     * @return            List of CodeScheme objects.
      */
     public List<CodeScheme> parseCodeSchemesFromInputStream(final CodeRegistry codeRegistry,
                                                             final String source,
@@ -61,29 +70,49 @@ public class CodeSchemeParser {
         final List<CodeScheme> codeSchemes = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
-             final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
+             final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             FileUtils.skipBom(in);
+            final Map<String, Integer> headerMap = csvParser.getHeaderMap();
+            final Map<String, String> prefLabelHeaders = new LinkedHashMap<>();
+            final Map<String, String> descriptionHeaders = new LinkedHashMap<>();
+            final Map<String, String> definitionHeaders = new LinkedHashMap<>();
+            final Map<String, String> changeNoteHeaders = new LinkedHashMap<>();
+            for (final String value : headerMap.keySet()) {
+                if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                    prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), value);
+                } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
+                    descriptionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), value);
+                } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
+                    definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), value);
+                } else if (value.startsWith(CONTENT_HEADER_CHANGENOTE_PREFIX)) {
+                    changeNoteHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_CHANGENOTE_PREFIX)).toLowerCase(), value);
+                }
+            }
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
-                final String id = record.get(CSV_HEADER_ID);
-                final String codeValue = record.get(CSV_HEADER_CODEVALUE);
-                final String prefLabelFinnish = record.get(CSV_HEADER_PREFLABEL_FI);
-                final String prefLabelSwedish = record.get(CSV_HEADER_PREFLABEL_SV);
-                final String prefLabelEnglish = record.get(CSV_HEADER_PREFLABEL_EN);
-                final String descriptionFinnish = record.get(CSV_HEADER_DESCRIPTION_FI);
-                final String descriptionSwedish = record.get(CSV_HEADER_DESCRIPTION_SV);
-                final String descriptionEnglish = record.get(CSV_HEADER_DESCRIPTION_EN);
-                final String definitionFinnish = record.get(CSV_HEADER_DEFINITION_FI);
-                final String definitionSwedish = record.get(CSV_HEADER_DEFINITION_SV);
-                final String definitionEnglish = record.get(CSV_HEADER_DEFINITION_EN);
-                final String changeNoteFinnish = record.get(CSV_HEADER_CHANGENOTE_FI);
-                final String changeNoteSwedish = record.get(CSV_HEADER_CHANGENOTE_SV);
-                final String changeNoteEnglish = record.get(CSV_HEADER_CHANGENOTE_EN);
-                final String version = record.get(CSV_HEADER_VERSION);
-                final Status status = Status.valueOf(record.get(CSV_HEADER_STATUS));
+                final String id = record.get(CONTENT_HEADER_ID);
+                final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
+                final Map<String, String> prefLabels = new LinkedHashMap<>();
+                for (final String language : prefLabelHeaders.keySet()) {
+                    prefLabels.put(language, record.get(prefLabelHeaders.get(language)));
+                }
+                final Map<String, String> definitions = new LinkedHashMap<>();
+                for (final String language : definitionHeaders.keySet()) {
+                    definitions.put(language, record.get(definitionHeaders.get(language)));
+                }
+                final Map<String, String> descriptions = new LinkedHashMap<>();
+                for (final String language : descriptionHeaders.keySet()) {
+                    descriptions.put(language, record.get(descriptionHeaders.get(language)));
+                }
+                final Map<String, String> changeNotes = new LinkedHashMap<>();
+                for (final String language : changeNoteHeaders.keySet()) {
+                    changeNotes.put(language, record.get(changeNoteHeaders.get(language)));
+                }
+                final String version = record.get(CONTENT_HEADER_VERSION);
+                final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
                 final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
                 Date startDate = null;
-                final String startDateString = record.get(CSV_HEADER_STARTDATE);
+                final String startDateString = record.get(CONTENT_HEADER_STARTDATE);
                 if (!startDateString.isEmpty()) {
                     try {
                         startDate = dateFormat.parse(startDateString);
@@ -92,7 +121,7 @@ public class CodeSchemeParser {
                     }
                 }
                 Date endDate = null;
-                final String endDateString = record.get(CSV_HEADER_ENDDATE);
+                final String endDateString = record.get(CONTENT_HEADER_ENDDATE);
                 if (!endDateString.isEmpty()) {
                     try {
                         endDate = dateFormat.parse(endDateString);
@@ -100,12 +129,8 @@ public class CodeSchemeParser {
                         LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                     }
                 }
-                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, id, codeValue,
-                    version, source, status, startDate, endDate,
-                    prefLabelFinnish, prefLabelSwedish, prefLabelEnglish,
-                    descriptionFinnish, descriptionSwedish, descriptionEnglish,
-                    definitionFinnish, definitionSwedish, definitionEnglish,
-                    changeNoteFinnish, changeNoteSwedish, changeNoteEnglish);
+                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, id, codeValue, version, status,
+                    source, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
                 codeSchemes.add(codeScheme);
             }
         } catch (IOException e) {
@@ -114,26 +139,111 @@ public class CodeSchemeParser {
         return codeSchemes;
     }
 
+    /*
+     * Parses the .xls CodeScheme Excel-file and returns the CodeSchemes as an arrayList.
+     *
+     * @param codeRegistry CodeRegistry.
+     * @param source      Source identifier for the data.
+     * @param inputStream The Code containing Excel -file.
+     * @return List of Code objects.
+     */
+    public List<CodeScheme> parseCodeSchemesFromExcelInputStream(final CodeRegistry codeRegistry,
+                                                                 final String source,
+                                                                 final InputStream inputStream) throws Exception {
+        final List<CodeScheme> codeSchemes = new ArrayList<>();
+        if (codeRegistry != null) {
+            final Workbook workbook = new XSSFWorkbook(inputStream);
+            final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);
+            final Iterator<Row> rowIterator = codesSheet.rowIterator();
+            final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> descriptionHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> changeNoteHeaders = new LinkedHashMap<>();
+            boolean firstRow = true;
+            while (rowIterator.hasNext()) {
+                final Row row = rowIterator.next();
+                if (firstRow) {
+                    final Iterator<Cell> cellIterator = row.cellIterator();
+                    while (cellIterator.hasNext()) {
+                        final Cell cell = cellIterator.next();
+                        final String value = cell.getStringCellValue();
+                        final Integer index = cell.getColumnIndex();
+                        if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                            prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), index);
+                        } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
+                            descriptionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), index);
+                        } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
+                            definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), index);
+                        } else if (value.startsWith(CONTENT_HEADER_CHANGENOTE_PREFIX)) {
+                            changeNoteHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_CHANGENOTE_PREFIX)).toLowerCase(), index);
+                        } else {
+                            genericHeaders.put(value, index);
+                        }
+                    }
+                    firstRow = false;
+                } else {
+                    final String id = row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue();
+                    final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
+                    final Map<String, String> prefLabels = new LinkedHashMap<>();
+                    for (final String language : prefLabelHeaders.keySet()) {
+                        prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
+                    }
+                    final Map<String, String> definitions = new LinkedHashMap<>();
+                    for (final String language : definitionHeaders.keySet()) {
+                        definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
+                    }
+                    final Map<String, String> descriptions = new LinkedHashMap<>();
+                    for (final String language : descriptionHeaders.keySet()) {
+                        descriptions.put(language, row.getCell(descriptionHeaders.get(language)).getStringCellValue());
+                    }
+                    final Map<String, String> changeNotes = new LinkedHashMap<>();
+                    for (final String language : changeNoteHeaders.keySet()) {
+                        changeNotes.put(language, row.getCell(changeNoteHeaders.get(language)).getStringCellValue());
+                    }
+                    final String version = row.getCell(genericHeaders.get(CONTENT_HEADER_VERSION)).getStringCellValue();
+                    final Status status = Status.valueOf(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)).getStringCellValue());
+                    final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
+                    Date startDate = null;
+                    final String startDateString = row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)).getStringCellValue();
+                    if (!startDateString.isEmpty()) {
+                        try {
+                            startDate = dateFormat.parse(startDateString);
+                        } catch (ParseException e) {
+                            LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
+                        }
+                    }
+                    Date endDate = null;
+                    final String endDateString = row.getCell(genericHeaders.get(CONTENT_HEADER_ENDDATE)).getStringCellValue();
+                    if (!endDateString.isEmpty()) {
+                        try {
+                            endDate = dateFormat.parse(endDateString);
+                        } catch (ParseException e) {
+                            LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
+                        }
+                    }
+                    final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, id, codeValue, version, status, source, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
+                    if (codeScheme != null) {
+                        codeSchemes.add(codeScheme);
+                    }
+                }
+            }
+        }
+        return codeSchemes;
+    }
+
     private CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
                                                 final String id,
                                                 final String codeValue,
                                                 final String version,
-                                                final String source,
                                                 final Status status,
+                                                final String source,
                                                 final Date startDate,
                                                 final Date endDate,
-                                                final String finnishPrefLabel,
-                                                final String swedishPrefLabel,
-                                                final String englishPrefLabel,
-                                                final String finnishDescription,
-                                                final String swedishDescription,
-                                                final String englishDescription,
-                                                final String finnishDefinition,
-                                                final String swedishDefinition,
-                                                final String englishDefinition,
-                                                final String finnishChangeNote,
-                                                final String swedishChangeNote,
-                                                final String englishChangeNote) throws Exception {
+                                                final Map<String, String> prefLabels,
+                                                final Map<String, String> descriptions,
+                                                final Map<String, String> definitions,
+                                                final Map<String, String> changeNotes) throws Exception {
         final Date timeStamp = new Date(System.currentTimeMillis());
         CodeScheme codeScheme = null;
         if (id != null) {
@@ -150,7 +260,6 @@ public class CodeSchemeParser {
         } else if (id != null && !id.isEmpty()) {
             uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, id);
         }
-        // Update
         if (codeScheme != null) {
             boolean hasChanges = false;
             if (!Objects.equals(codeScheme.getStatus(), status.toString())) {
@@ -169,53 +278,33 @@ public class CodeSchemeParser {
                 codeScheme.setSource(source);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getPrefLabel(LANGUAGE_CODE_FI), finnishPrefLabel)) {
-                codeScheme.setPrefLabel(LANGUAGE_CODE_FI, finnishPrefLabel);
-                hasChanges = true;
+            for (final String language : prefLabels.keySet()) {
+                final String value = prefLabels.get(language);
+                if (!Objects.equals(codeScheme.getPrefLabel(language), value)) {
+                    codeScheme.setPrefLabel(language, value);
+                    hasChanges = true;
+                }
             }
-            if (!Objects.equals(codeScheme.getPrefLabel(LANGUAGE_CODE_SV), swedishPrefLabel)) {
-                codeScheme.setPrefLabel(LANGUAGE_CODE_SV, swedishPrefLabel);
-                hasChanges = true;
+            for (final String language : descriptions.keySet()) {
+                final String value = descriptions.get(language);
+                if (!Objects.equals(codeScheme.getDescription(language), value)) {
+                    codeScheme.setDescription(language, value);
+                    hasChanges = true;
+                }
             }
-            if (!Objects.equals(codeScheme.getPrefLabel(LANGUAGE_CODE_EN), englishPrefLabel)) {
-                codeScheme.setPrefLabel(LANGUAGE_CODE_EN, englishPrefLabel);
-                hasChanges = true;
+            for (final String language : definitions.keySet()) {
+                final String value = definitions.get(language);
+                if (!Objects.equals(codeScheme.getDefinition(language), value)) {
+                    codeScheme.setDefinition(language, value);
+                    hasChanges = true;
+                }
             }
-            if (!Objects.equals(codeScheme.getDefinition(LANGUAGE_CODE_FI), finnishDefinition)) {
-                codeScheme.setDefinition(LANGUAGE_CODE_FI, finnishDefinition);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getDefinition(LANGUAGE_CODE_SV), swedishDefinition)) {
-                codeScheme.setDefinition(LANGUAGE_CODE_SV, swedishDefinition);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getDefinition(LANGUAGE_CODE_EN), englishDefinition)) {
-                codeScheme.setDefinition(LANGUAGE_CODE_EN, englishDefinition);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getDescription(LANGUAGE_CODE_FI), finnishDescription)) {
-                codeScheme.setDescription(LANGUAGE_CODE_FI, finnishDescription);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getDescription(LANGUAGE_CODE_SV), swedishDescription)) {
-                codeScheme.setDescription(LANGUAGE_CODE_SV, swedishDescription);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getDescription(LANGUAGE_CODE_EN), englishDescription)) {
-                codeScheme.setDescription(LANGUAGE_CODE_EN, englishDescription);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getChangeNote(LANGUAGE_CODE_FI), finnishChangeNote)) {
-                codeScheme.setChangeNote(LANGUAGE_CODE_FI, finnishChangeNote);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getChangeNote(LANGUAGE_CODE_SV), swedishChangeNote)) {
-                codeScheme.setChangeNote(LANGUAGE_CODE_SV, swedishChangeNote);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getChangeNote(LANGUAGE_CODE_EN), englishChangeNote)) {
-                codeScheme.setChangeNote(LANGUAGE_CODE_EN, englishChangeNote);
-                hasChanges = true;
+            for (final String language : changeNotes.keySet()) {
+                final String value = changeNotes.get(language);
+                if (!Objects.equals(codeScheme.getChangeNote(language), value)) {
+                    codeScheme.setChangeNote(language, value);
+                    hasChanges = true;
+                }
             }
             if (!Objects.equals(codeScheme.getVersion(), version)) {
                 codeScheme.setVersion(version);
@@ -232,7 +321,6 @@ public class CodeSchemeParser {
             if (hasChanges) {
                 codeScheme.setModified(timeStamp);
             }
-            // Create
         } else {
             codeScheme = new CodeScheme();
             codeScheme.setId(UUID.randomUUID().toString());
@@ -250,18 +338,18 @@ public class CodeSchemeParser {
             codeScheme.setCodeValue(codeValue);
             codeScheme.setSource(source);
             codeScheme.setModified(timeStamp);
-            codeScheme.setPrefLabel(LANGUAGE_CODE_FI, finnishPrefLabel);
-            codeScheme.setPrefLabel(LANGUAGE_CODE_SV, swedishPrefLabel);
-            codeScheme.setPrefLabel(LANGUAGE_CODE_EN, englishPrefLabel);
-            codeScheme.setDefinition(LANGUAGE_CODE_FI, finnishDefinition);
-            codeScheme.setDefinition(LANGUAGE_CODE_SV, swedishDefinition);
-            codeScheme.setDefinition(LANGUAGE_CODE_EN, englishDefinition);
-            codeScheme.setDescription(LANGUAGE_CODE_FI, finnishDescription);
-            codeScheme.setDescription(LANGUAGE_CODE_SV, swedishDescription);
-            codeScheme.setDescription(LANGUAGE_CODE_EN, englishDescription);
-            codeScheme.setChangeNote(LANGUAGE_CODE_FI, finnishChangeNote);
-            codeScheme.setChangeNote(LANGUAGE_CODE_SV, swedishChangeNote);
-            codeScheme.setChangeNote(LANGUAGE_CODE_EN, englishChangeNote);
+            for (final String language : prefLabels.keySet()) {
+                codeScheme.setPrefLabel(language, prefLabels.get(language));
+            }
+            for (final String language : descriptions.keySet()) {
+                codeScheme.setDescription(language, prefLabels.get(language));
+            }
+            for (final String language : definitions.keySet()) {
+                codeScheme.setDefinition(language, prefLabels.get(language));
+            }
+            for (final String language : changeNotes.keySet()) {
+                codeScheme.setChangeNote(language, prefLabels.get(language));
+            }
             codeScheme.setVersion(version);
             codeScheme.setStatus(status.toString());
             codeScheme.setStartDate(startDate);

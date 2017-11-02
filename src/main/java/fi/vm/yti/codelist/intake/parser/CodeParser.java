@@ -8,7 +8,10 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -17,6 +20,12 @@ import javax.inject.Inject;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -63,27 +72,42 @@ public class CodeParser {
         if (codeScheme != null) {
             try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                  final BufferedReader in = new BufferedReader(inputStreamReader);
-                 final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withHeader())) {
+                 final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
                 FileUtils.skipBom(in);
+                final Map<String, Integer> headerMap = csvParser.getHeaderMap();
+                final Map<String, String> prefLabelHeaders = new LinkedHashMap<>();
+                final Map<String, String> descriptionHeaders = new LinkedHashMap<>();
+                final Map<String, String> definitionHeaders = new LinkedHashMap<>();
+                for (final String value : headerMap.keySet()) {
+                    if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                        prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), value);
+                    } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
+                        descriptionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), value);
+                    } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
+                        definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), value);
+                    }
+                }
                 final List<CSVRecord> records = csvParser.getRecords();
-
                 for (final CSVRecord record : records) {
-                    final String id = record.get(CSV_HEADER_ID);
-                    final String codeValue = record.get(CSV_HEADER_CODEVALUE);
-                    final String prefLabelFinnish = record.get(CSV_HEADER_PREFLABEL_FI);
-                    final String prefLabelSwedish = record.get(CSV_HEADER_PREFLABEL_SV);
-                    final String prefLabelEnglish = record.get(CSV_HEADER_PREFLABEL_EN);
-                    final String descriptionFinnish = record.get(CSV_HEADER_DESCRIPTION_FI);
-                    final String descriptionSwedish = record.get(CSV_HEADER_DESCRIPTION_SV);
-                    final String descriptionEnglish = record.get(CSV_HEADER_DESCRIPTION_EN);
-                    final String definitionFinnish = record.get(CSV_HEADER_DEFINITION_FI);
-                    final String definitionSwedish = record.get(CSV_HEADER_DEFINITION_SV);
-                    final String definitionEnglish = record.get(CSV_HEADER_DEFINITION_EN);
-                    final String shortName = record.get(CSV_HEADER_SHORTNAME);
-                    final Status status = Status.valueOf(record.get(CSV_HEADER_STATUS));
+                    final String id = record.get(CONTENT_HEADER_ID);
+                    final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
+                    final Map<String, String> prefLabels = new LinkedHashMap<>();
+                    for (final String language : prefLabelHeaders.keySet()) {
+                        prefLabels.put(language, record.get(prefLabelHeaders.get(language)));
+                    }
+                    final Map<String, String> definitions = new LinkedHashMap<>();
+                    for (final String language : definitionHeaders.keySet()) {
+                        definitions.put(language, record.get(definitionHeaders.get(language)));
+                    }
+                    final Map<String, String> descriptions = new LinkedHashMap<>();
+                    for (final String language : descriptionHeaders.keySet()) {
+                        descriptions.put(language, record.get(descriptionHeaders.get(language)));
+                    }
+                    final String shortName = record.get(CONTENT_HEADER_SHORTNAME);
+                    final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
                     final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
                     Date startDate = null;
-                    final String startDateString = record.get(CSV_HEADER_STARTDATE);
+                    final String startDateString = record.get(CONTENT_HEADER_STARTDATE);
                     if (!startDateString.isEmpty()) {
                         try {
                             startDate = dateFormat.parse(startDateString);
@@ -92,7 +116,7 @@ public class CodeParser {
                         }
                     }
                     Date endDate = null;
-                    final String endDateString = record.get(CSV_HEADER_ENDDATE);
+                    final String endDateString = record.get(CONTENT_HEADER_ENDDATE);
                     if (!endDateString.isEmpty()) {
                         try {
                             endDate = dateFormat.parse(endDateString);
@@ -100,16 +124,99 @@ public class CodeParser {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                         }
                     }
-                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, source, shortName, startDate, endDate,
-                        prefLabelFinnish, prefLabelSwedish, prefLabelEnglish,
-                        descriptionFinnish, descriptionSwedish, descriptionEnglish,
-                        definitionFinnish, definitionSwedish, definitionEnglish);
+                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, source, shortName, startDate, endDate, prefLabels, descriptions, definitions);
                     if (code != null) {
                         codes.add(code);
                     }
                 }
             } catch (final IOException e) {
                 LOG.error("Parsing codes failed: " + e.getMessage());
+            }
+        }
+        return codes;
+    }
+
+    /**
+     * Parses the .xls Code-file and returns the codes as an arrayList.
+     *
+     * @param codeScheme  CodeScheme for which these codes are for.
+     * @param source      Source identifier for the data.
+     * @param inputStream The Code containing Excel -file.
+     * @return List of Code objects.
+     */
+    public List<Code> parseCodesFromExcelInputStream(final CodeScheme codeScheme,
+                                                     final String source,
+                                                     final InputStream inputStream) throws Exception {
+        final List<Code> codes = new ArrayList<>();
+        if (codeScheme != null) {
+            final Workbook workbook = new XSSFWorkbook(inputStream);
+            final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_CODES);
+            final Iterator<Row> rowIterator = codesSheet.rowIterator();
+            final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> descriptionHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
+            boolean firstRow = true;
+            while (rowIterator.hasNext()) {
+                final Row row = rowIterator.next();
+                if (firstRow) {
+                    final Iterator<Cell> cellIterator = row.cellIterator();
+                    while (cellIterator.hasNext()) {
+                        final Cell cell = cellIterator.next();
+                        final String value = cell.getStringCellValue();
+                        final Integer index = cell.getColumnIndex();
+                        if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                            prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), index);
+                        } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
+                            descriptionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), index);
+                        } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
+                            definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), index);
+                        } else {
+                            genericHeaders.put(value, index);
+                        }
+                    }
+                    firstRow = false;
+                } else {
+                    final String id = row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue();
+                    final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
+                    final Map<String, String> prefLabels = new LinkedHashMap<>();
+                    for (final String language : prefLabelHeaders.keySet()) {
+                        prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
+                    }
+                    final Map<String, String> definitions = new LinkedHashMap<>();
+                    for (final String language : definitionHeaders.keySet()) {
+                        definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
+                    }
+                    final Map<String, String> descriptions = new LinkedHashMap<>();
+                    for (final String language : descriptionHeaders.keySet()) {
+                        descriptions.put(language, row.getCell(descriptionHeaders.get(language)).getStringCellValue());
+                    }
+                    final String shortName = row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)).getStringCellValue();
+                    final Status status = Status.valueOf(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)).getStringCellValue());
+                    final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
+                    Date startDate = null;
+                    final String startDateString = row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)).getStringCellValue();
+                    if (!startDateString.isEmpty()) {
+                        try {
+                            startDate = dateFormat.parse(startDateString);
+                        } catch (ParseException e) {
+                            LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
+                        }
+                    }
+                    Date endDate = null;
+                    final String endDateString = row.getCell(genericHeaders.get(CONTENT_HEADER_ENDDATE)).getStringCellValue();
+                    if (!endDateString.isEmpty()) {
+                        try {
+                            endDate = dateFormat.parse(endDateString);
+                        } catch (ParseException e) {
+                            LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
+                        }
+                    }
+                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, source, shortName, startDate, endDate, prefLabels, descriptions, definitions);
+                    if (code != null) {
+                        codes.add(code);
+                    }
+                }
             }
         }
         return codes;
@@ -123,15 +230,9 @@ public class CodeParser {
                                     final String shortName,
                                     final Date startDate,
                                     final Date endDate,
-                                    final String finnishPrefLabel,
-                                    final String swedishPrefLabel,
-                                    final String englishPrefLabel,
-                                    final String finnishDescription,
-                                    final String swedishDescription,
-                                    final String englishDescription,
-                                    final String finnishDefinition,
-                                    final String swedishDefinition,
-                                    final String englishDefinition) throws Exception {
+                                    final Map<String, String> prefLabels,
+                                    final Map<String, String> descriptions,
+                                    final Map<String, String> definitions) throws Exception {
         final Date timeStamp = new Date(System.currentTimeMillis());
         Code code = null;
         if (id != null) {
@@ -148,7 +249,6 @@ public class CodeParser {
         } else if (id != null && !id.isEmpty()) {
             uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, id);
         }
-        // Update
         if (code != null) {
             boolean hasChanges = false;
             if (!Objects.equals(code.getStatus(), status.toString())) {
@@ -171,41 +271,26 @@ public class CodeParser {
                 code.setShortName(shortName);
                 hasChanges = true;
             }
-            if (!Objects.equals(code.getPrefLabel(LANGUAGE_CODE_FI), finnishPrefLabel)) {
-                code.setPrefLabel(LANGUAGE_CODE_FI, finnishPrefLabel);
-                hasChanges = true;
+            for (final String language : prefLabels.keySet()) {
+                final String value = prefLabels.get(language);
+                if (!Objects.equals(code.getPrefLabel(language), value)) {
+                    code.setPrefLabel(language, value);
+                    hasChanges = true;
+                }
             }
-            if (!Objects.equals(code.getPrefLabel(LANGUAGE_CODE_SV), swedishPrefLabel)) {
-                code.setPrefLabel(LANGUAGE_CODE_SV, swedishPrefLabel);
-                hasChanges = true;
+            for (final String language : descriptions.keySet()) {
+                final String value = descriptions.get(language);
+                if (!Objects.equals(code.getDescription(language), value)) {
+                    code.setDescription(language, value);
+                    hasChanges = true;
+                }
             }
-            if (!Objects.equals(code.getPrefLabel(LANGUAGE_CODE_EN), englishPrefLabel)) {
-                code.setPrefLabel(LANGUAGE_CODE_EN, englishPrefLabel);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getDefinition(LANGUAGE_CODE_FI), finnishDefinition)) {
-                codeScheme.setDefinition(LANGUAGE_CODE_FI, finnishDefinition);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getDefinition(LANGUAGE_CODE_SV), swedishDefinition)) {
-                codeScheme.setDefinition(LANGUAGE_CODE_SV, swedishDefinition);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getDefinition(LANGUAGE_CODE_EN), englishDefinition)) {
-                codeScheme.setDefinition(LANGUAGE_CODE_EN, englishDefinition);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getDescription(LANGUAGE_CODE_FI), finnishDescription)) {
-                codeScheme.setDescription(LANGUAGE_CODE_FI, finnishDescription);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getDescription(LANGUAGE_CODE_SV), swedishDescription)) {
-                codeScheme.setDescription(LANGUAGE_CODE_SV, swedishDescription);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getDescription(LANGUAGE_CODE_EN), englishDescription)) {
-                codeScheme.setDescription(LANGUAGE_CODE_EN, englishDescription);
-                hasChanges = true;
+            for (final String language : definitions.keySet()) {
+                final String value = definitions.get(language);
+                if (!Objects.equals(code.getDefinition(language), value)) {
+                    code.setDefinition(language, value);
+                    hasChanges = true;
+                }
             }
             if (!Objects.equals(code.getStartDate(), startDate)) {
                 code.setStartDate(startDate);
@@ -218,7 +303,6 @@ public class CodeParser {
             if (hasChanges) {
                 code.setModified(timeStamp);
             }
-            // Create
         } else {
             code = new Code();
             if (id != null && !id.isEmpty()) {
@@ -237,15 +321,15 @@ public class CodeParser {
             code.setSource(source);
             code.setShortName(shortName);
             code.setModified(timeStamp);
-            code.setPrefLabel(LANGUAGE_CODE_FI, finnishPrefLabel);
-            code.setPrefLabel(LANGUAGE_CODE_SV, swedishPrefLabel);
-            code.setPrefLabel(LANGUAGE_CODE_EN, englishPrefLabel);
-            code.setDefinition(LANGUAGE_CODE_FI, finnishDefinition);
-            code.setDefinition(LANGUAGE_CODE_SV, swedishDefinition);
-            code.setDefinition(LANGUAGE_CODE_EN, englishDefinition);
-            code.setDescription(LANGUAGE_CODE_FI, finnishDescription);
-            code.setDescription(LANGUAGE_CODE_SV, swedishDescription);
-            code.setDescription(LANGUAGE_CODE_EN, englishDescription);
+            for (final String language : prefLabels.keySet()) {
+                code.setPrefLabel(language, prefLabels.get(language));
+            }
+            for (final String language : descriptions.keySet()) {
+                code.setDescription(language, prefLabels.get(language));
+            }
+            for (final String language : definitions.keySet()) {
+                code.setDefinition(language, prefLabels.get(language));
+            }
             code.setStartDate(startDate);
             code.setEndDate(endDate);
         }
