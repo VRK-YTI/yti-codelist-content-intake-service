@@ -64,9 +64,9 @@ public class CodeSchemeParser {
      * @param inputStream The CodeScheme -file.
      * @return            List of CodeScheme objects.
      */
-    public List<CodeScheme> parseCodeSchemesFromInputStream(final CodeRegistry codeRegistry,
-                                                            final String source,
-                                                            final InputStream inputStream) throws Exception {
+    public List<CodeScheme> parseCodeSchemesFromCsvInputStream(final CodeRegistry codeRegistry,
+                                                               final String source,
+                                                               final InputStream inputStream) throws Exception {
         final List<CodeScheme> codeSchemes = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -97,17 +97,17 @@ public class CodeSchemeParser {
                     prefLabels.put(language, record.get(prefLabelHeaders.get(language)));
                 }
                 final Map<String, String> definitions = new LinkedHashMap<>();
-                for (final String language : definitionHeaders.keySet()) {
-                    definitions.put(language, record.get(definitionHeaders.get(language)));
-                }
+                definitionHeaders.forEach((language, header) -> {
+                    definitions.put(language, record.get(header));
+                });
                 final Map<String, String> descriptions = new LinkedHashMap<>();
-                for (final String language : descriptionHeaders.keySet()) {
-                    descriptions.put(language, record.get(descriptionHeaders.get(language)));
-                }
+                descriptionHeaders.forEach((language, header) -> {
+                    descriptions.put(language, record.get(header));
+                });
                 final Map<String, String> changeNotes = new LinkedHashMap<>();
-                for (final String language : changeNoteHeaders.keySet()) {
-                    changeNotes.put(language, record.get(changeNoteHeaders.get(language)));
-                }
+                changeNoteHeaders.forEach((language, header) -> {
+                    changeNotes.put(language, record.get(header));
+                });
                 final String version = record.get(CONTENT_HEADER_VERSION);
                 final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
                 final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
@@ -186,21 +186,21 @@ public class CodeSchemeParser {
                     final String id = row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue();
                     final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
                     final Map<String, String> prefLabels = new LinkedHashMap<>();
-                    for (final String language : prefLabelHeaders.keySet()) {
-                        prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
-                    }
+                    prefLabelHeaders.forEach((language, header) -> {
+                        prefLabels.put(language, row.getCell(header).getStringCellValue());
+                    });
                     final Map<String, String> definitions = new LinkedHashMap<>();
-                    for (final String language : definitionHeaders.keySet()) {
-                        definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
-                    }
+                    definitionHeaders.forEach((language, header) -> {
+                        definitions.put(language, row.getCell(header).getStringCellValue());
+                    });
                     final Map<String, String> descriptions = new LinkedHashMap<>();
-                    for (final String language : descriptionHeaders.keySet()) {
-                        descriptions.put(language, row.getCell(descriptionHeaders.get(language)).getStringCellValue());
-                    }
+                    descriptionHeaders.forEach((language, header) -> {
+                        descriptions.put(language, row.getCell(header).getStringCellValue());
+                    });
                     final Map<String, String> changeNotes = new LinkedHashMap<>();
-                    for (final String language : changeNoteHeaders.keySet()) {
-                        changeNotes.put(language, row.getCell(changeNoteHeaders.get(language)).getStringCellValue());
-                    }
+                    changeNoteHeaders.forEach((language, header) -> {
+                        changeNotes.put(language, row.getCell(header).getStringCellValue());
+                    });
                     final String version = row.getCell(genericHeaders.get(CONTENT_HEADER_VERSION)).getStringCellValue();
                     final Status status = Status.valueOf(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)).getStringCellValue());
                     final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
@@ -342,13 +342,13 @@ public class CodeSchemeParser {
                 codeScheme.setPrefLabel(language, prefLabels.get(language));
             }
             for (final String language : descriptions.keySet()) {
-                codeScheme.setDescription(language, prefLabels.get(language));
+                codeScheme.setDescription(language, descriptions.get(language));
             }
             for (final String language : definitions.keySet()) {
-                codeScheme.setDefinition(language, prefLabels.get(language));
+                codeScheme.setDefinition(language, definitions.get(language));
             }
             for (final String language : changeNotes.keySet()) {
-                codeScheme.setChangeNote(language, prefLabels.get(language));
+                codeScheme.setChangeNote(language, changeNotes.get(language));
             }
             codeScheme.setVersion(version);
             codeScheme.setStatus(status.toString());

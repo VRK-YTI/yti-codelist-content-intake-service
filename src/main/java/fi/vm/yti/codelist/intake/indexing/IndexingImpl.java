@@ -23,11 +23,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.CodeScheme;
+import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.IndexStatus;
+import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
+import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.IndexStatusRepository;
+import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Singleton
@@ -42,11 +46,15 @@ public class IndexingImpl implements Indexing {
     private static final String NAME_CODEREGISTRIES = "CodeRegistries";
     private static final String NAME_CODESCHEMES = "CodeSchemes";
     private static final String NAME_CODES = "Codes";
+    private static final String NAME_EXTERNALREFERENCES = "ExternalReferences";
+    private static final String NAME_PROPERTYTYPES = "PropertyTypes";
     private static final String BULK = "ElasticSearch bulk: ";
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeRepository codeRepository;
     private final IndexStatusRepository indexStatusRepository;
+    private final ExternalReferenceRepository externalReferenceRepository;
+    private final PropertyTypeRepository propertyTypeRepository;
     private final Client client;
     private IndexingTools indexingTools;
 
@@ -56,13 +64,17 @@ public class IndexingImpl implements Indexing {
                         final IndexStatusRepository indexStatusRepository,
                         final CodeRegistryRepository codeRegistryRepository,
                         final CodeSchemeRepository codeSchemeRepository,
-                        final CodeRepository codeRepository) {
+                        final CodeRepository codeRepository,
+                        final ExternalReferenceRepository externalReferenceRepository,
+                        final PropertyTypeRepository propertyTypeRepository) {
         this.indexingTools = indexingTools;
         this.client = client;
         this.indexStatusRepository = indexStatusRepository;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeRepository = codeRepository;
+        this.externalReferenceRepository = externalReferenceRepository;
+        this.propertyTypeRepository = propertyTypeRepository;
     }
 
     private boolean indexCodeRegistries(final String indexName) {
@@ -78,6 +90,16 @@ public class IndexingImpl implements Indexing {
     private boolean indexCodes(final String indexName) {
         final Set<Code> regions = codeRepository.findAll();
         return indexData(regions, indexName, ELASTIC_TYPE_CODE, NAME_CODES);
+    }
+
+    private boolean indexPropertyTypes(final String indexName) {
+        final Set<PropertyType> propertyTypes = propertyTypeRepository.findAll();
+        return indexData(propertyTypes, indexName, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES);
+    }
+
+    private boolean indexExternalReferences(final String indexName) {
+        final Set<ExternalReference> externalReferences = externalReferenceRepository.findAll();
+        return indexData(externalReferences, indexName, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES);
     }
 
     private <T> boolean indexData(final Set<T> set,
@@ -115,7 +137,7 @@ public class IndexingImpl implements Indexing {
             LOG.error(BULK + type + " operation failed with errors: " + response.buildFailureMessage());
             return false;
         } else {
-            LOG.info(BULK + type + " operation successfully persisted " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
+            LOG.info(BULK + type + " operation successfully indexed " + response.getItems().length + " items in " + response.getTookInMillis() + " ms.");
             return true;
         }
     }
@@ -135,10 +157,16 @@ public class IndexingImpl implements Indexing {
         if (!reIndex(ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE)) {
             success = false;
         }
+        if (reIndex(ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE)) {
+            success = false;
+        }
+        if (reIndex(ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_INDEX_EXTERNALREFERENCE)) {
+            success = false;
+        }
         return success;
     }
 
-    private boolean reIndex(final String indexName, final String type) {
+    public boolean reIndex(final String indexName, final String type) {
         final List<IndexStatus> list = indexStatusRepository.getLatestRunningIndexStatusForIndexAlias(indexName);
         if (list.isEmpty()) {
             reIndexData(indexName, type);
@@ -163,21 +191,36 @@ public class IndexingImpl implements Indexing {
         indexStatusRepository.save(status);
 
         final Set<String> types = new HashSet<>();
-        types.add(ELASTIC_TYPE_CODEREGISTRY);
-        types.add(ELASTIC_TYPE_CODESCHEME);
-        types.add(ELASTIC_TYPE_CODE);
+        types.add(type);
+//        types.add(ELASTIC_TYPE_CODEREGISTRY);
+//        types.add(ELASTIC_TYPE_CODESCHEME);
+//        types.add(ELASTIC_TYPE_CODE);
+//        types.add(ELASTIC_TYPE_PROPERTYTYPE);
+//        types.add(ELASTIC_TYPE_EXTERNALREFERENCE);
 
         indexingTools.createIndexWithNestedPrefLabels(indexName, types);
 
         boolean success = true;
-        if (!indexCodeRegistries(indexName)) {
-            success = false;
-        }
-        if (!indexCodeSchemes(indexName)) {
-            success = false;
-        }
-        if (!indexCodes(indexName)) {
-            success = false;
+        switch (indexAlias) {
+            case ELASTIC_INDEX_CODEREGISTRY:
+                success = indexCodeRegistries(indexName);
+                break;
+            case ELASTIC_INDEX_CODESCHEME:
+                success = indexCodeSchemes(indexName);
+                break;
+            case ELASTIC_INDEX_CODE:
+                success = indexCodes(indexName);
+                break;
+            case ELASTIC_INDEX_PROPERTYTYPE:
+                success = indexPropertyTypes(indexName);
+                break;
+            case ELASTIC_INDEX_EXTERNALREFERENCE:
+                success = indexExternalReferences(indexName);
+                break;
+            default:
+                LOG.error("Index type: " + indexAlias + " not supported.");
+                success = false;
+                break;
         }
         if (success) {
             indexingTools.aliasIndex(indexName, indexAlias);

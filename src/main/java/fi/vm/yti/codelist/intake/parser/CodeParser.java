@@ -65,9 +65,9 @@ public class CodeParser {
      * @param inputStream The Code -file.
      * @return List of Code objects.
      */
-    public List<Code> parseCodesFromInputStream(final CodeScheme codeScheme,
-                                                final String source,
-                                                final InputStream inputStream) throws Exception {
+    public List<Code> parseCodesFromCsvInputStream(final CodeScheme codeScheme,
+                                                   final String source,
+                                                   final InputStream inputStream) throws Exception {
         final List<Code> codes = new ArrayList<>();
         if (codeScheme != null) {
             try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
@@ -78,31 +78,31 @@ public class CodeParser {
                 final Map<String, String> prefLabelHeaders = new LinkedHashMap<>();
                 final Map<String, String> descriptionHeaders = new LinkedHashMap<>();
                 final Map<String, String> definitionHeaders = new LinkedHashMap<>();
-                for (final String value : headerMap.keySet()) {
-                    if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                        prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_PREFLABEL_PREFIX)).toLowerCase(), value);
-                    } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
-                        descriptionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), value);
-                    } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                        definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), value);
+                headerMap.keySet().forEach(header -> {
+                    if (header.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                        prefLabelHeaders.put(header.substring(header.indexOf(CONTENT_HEADER_PREFLABEL_PREFIX)).toLowerCase(), header);
+                    } else if (header.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
+                        descriptionHeaders.put(header.substring(header.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), header);
+                    } else if (header.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
+                        definitionHeaders.put(header.substring(header.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), header);
                     }
-                }
+                });
                 final List<CSVRecord> records = csvParser.getRecords();
                 for (final CSVRecord record : records) {
                     final String id = record.get(CONTENT_HEADER_ID);
                     final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
                     final Map<String, String> prefLabels = new LinkedHashMap<>();
-                    for (final String language : prefLabelHeaders.keySet()) {
-                        prefLabels.put(language, record.get(prefLabelHeaders.get(language)));
-                    }
+                    prefLabelHeaders.forEach((language, header) -> {
+                        prefLabels.put(language, record.get(header));
+                    });
                     final Map<String, String> definitions = new LinkedHashMap<>();
-                    for (final String language : definitionHeaders.keySet()) {
-                        definitions.put(language, record.get(definitionHeaders.get(language)));
-                    }
+                    definitionHeaders.forEach((language, header) -> {
+                        definitions.put(language, record.get(header));
+                    });
                     final Map<String, String> descriptions = new LinkedHashMap<>();
-                    for (final String language : descriptionHeaders.keySet()) {
-                        descriptions.put(language, record.get(descriptionHeaders.get(language)));
-                    }
+                    descriptionHeaders.forEach((language, header) -> {
+                        definitions.put(language, record.get(header));
+                    });
                     final String shortName = record.get(CONTENT_HEADER_SHORTNAME);
                     final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
                     final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
@@ -180,17 +180,17 @@ public class CodeParser {
                     final String id = row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue();
                     final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
                     final Map<String, String> prefLabels = new LinkedHashMap<>();
-                    for (final String language : prefLabelHeaders.keySet()) {
+                    prefLabelHeaders.forEach((language, haeder) -> {
                         prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
-                    }
+                    });
                     final Map<String, String> definitions = new LinkedHashMap<>();
-                    for (final String language : definitionHeaders.keySet()) {
-                        definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
-                    }
+                    definitionHeaders.forEach((language, header) -> {
+                        definitions.put(language, row.getCell(header).getStringCellValue());
+                    });
                     final Map<String, String> descriptions = new LinkedHashMap<>();
-                    for (final String language : descriptionHeaders.keySet()) {
-                        descriptions.put(language, row.getCell(descriptionHeaders.get(language)).getStringCellValue());
-                    }
+                    descriptionHeaders.forEach((language, header) -> {
+                        descriptions.put(language, row.getCell(header).getStringCellValue());
+                    });
                     final String shortName = row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)).getStringCellValue();
                     final Status status = Status.valueOf(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)).getStringCellValue());
                     final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
@@ -325,10 +325,10 @@ public class CodeParser {
                 code.setPrefLabel(language, prefLabels.get(language));
             }
             for (final String language : descriptions.keySet()) {
-                code.setDescription(language, prefLabels.get(language));
+                code.setDescription(language, descriptions.get(language));
             }
             for (final String language : definitions.keySet()) {
-                code.setDefinition(language, prefLabels.get(language));
+                code.setDefinition(language, definitions.get(language));
             }
             code.setStartDate(startDate);
             code.setEndDate(endDate);

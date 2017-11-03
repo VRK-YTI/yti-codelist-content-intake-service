@@ -29,38 +29,39 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import fi.vm.yti.codelist.common.model.CodeRegistry;
+import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
- * Class that handles parsing of CodeRegistries from source data.
+ * Class that handles parsing of PropertyTypes from source data.
  */
 @Service
-public class CodeRegistryParser {
+public class PropertyTypeParser {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryParser.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParser.class);
     private final ApiUtils apiUtils;
-    private final ParserUtils parserUtils;
+    private final PropertyTypeRepository propertyTypeRepository;
 
     @Inject
-    public CodeRegistryParser(final ApiUtils apiUtils,
-                              final ParserUtils parserUtils) {
+    public PropertyTypeParser(final ApiUtils apiUtils,
+                              final PropertyTypeRepository codeSchemeRepository) {
         this.apiUtils = apiUtils;
-        this.parserUtils = parserUtils;
+        this.propertyTypeRepository = codeSchemeRepository;
     }
 
     /**
-     * Parses the .csv CodeRegistry-file and returns the coderegistries as an arrayList.
+     * Parses the .csv PropertyType-file and returns the PropertyType as an ArrayList.
      *
      * @param source      Source identifier for the data.
-     * @param inputStream The CodeRegistry-file.
-     * @return            List of CodeRegistry objects.
+     * @param inputStream The PropertyType -file.
+     * @return List of PropertyType objects.
      */
-    public List<CodeRegistry> parseCodeRegistriesFromCsvInputStream(final String source,
-                                                                    final InputStream inputStream) {
-        final List<CodeRegistry> codeRegistries = new ArrayList<>();
+    public List<PropertyType> parsePropertyTypeFromCsvInputStream(final String source,
+                                                                  final InputStream inputStream) {
+        final List<PropertyType> propertyTypes = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -76,38 +77,39 @@ public class CodeRegistryParser {
                 }
             }
             final List<CSVRecord> records = csvParser.getRecords();
-            records.forEach(record -> {
-                final String code = record.get(CONTENT_HEADER_CODEVALUE);
+            for (final CSVRecord record : records) {
+                final String id = record.get(CONTENT_HEADER_ID);
+                final String notation = record.get(CONTENT_HEADER_NOTATION);
                 final Map<String, String> prefLabels = new LinkedHashMap<>();
-                for (final String language : prefLabelHeaders.keySet()) {
-                    prefLabels.put(language, record.get(prefLabelHeaders.get(language)));
-                }
+                prefLabelHeaders.forEach((language, header) -> {
+                    prefLabels.put(language, record.get(header));
+                });
                 final Map<String, String> definitions = new LinkedHashMap<>();
-                for (final String language : definitionHeaders.keySet()) {
-                    definitions.put(language, record.get(definitionHeaders.get(language)));
-                }
-                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(code, source, prefLabels, definitions);
-                if (codeRegistry != null) {
-                    codeRegistries.add(codeRegistry);
-                }
-            });
+                definitionHeaders.forEach((language, header) -> {
+                    definitions.put(language, record.get(header));
+                });
+                final PropertyType propertyType = createOrUpdatePropertyType(id, notation, prefLabels, definitions);
+                propertyTypes.add(propertyType);
+            }
         } catch (IOException e) {
-            LOG.error("Parsing coderegistries failed: " + e.getMessage());
+            LOG.error("Parsing codeschemes failed: " + e.getMessage());
         }
-        return codeRegistries;
+        return propertyTypes;
     }
 
-    /* Parses the .xls CodeResistry Excel-file and returns the CodeRegistries as an arrayList.
+    /*
+     * Parses the .xls PropertyType Excel-file and returns the PropertyTypes as an arrayList.
      *
+     * @param codeRegistry CodeRegistry.
      * @param source      Source identifier for the data.
-     * @param inputStream The CodeRegistry containing Excel -file.
-     * @return            List of CodeRegistry objects.
+     * @param inputStream The Code containing Excel -file.
+     * @return List of Code objects.
      */
-    public List<CodeRegistry> parseCodeRegistriesFromExcelInputStream(final String source,
-                                                                      final InputStream inputStream) throws Exception {
-        final List<CodeRegistry> codeRegistries = new ArrayList<>();
+    public List<PropertyType> parseCodeSchemesFromExcelInputStream(final String source,
+                                                                   final InputStream inputStream) throws Exception {
+        final List<PropertyType> propertyTypes = new ArrayList<>();
         final Workbook workbook = new XSSFWorkbook(inputStream);
-        final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);
+        final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_PROPERTYTYPES);
         final Iterator<Row> rowIterator = codesSheet.rowIterator();
         final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
         final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
@@ -122,7 +124,7 @@ public class CodeRegistryParser {
                     final String value = cell.getStringCellValue();
                     final Integer index = cell.getColumnIndex();
                     if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                        prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), index);
+                        prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_PREFLABEL_PREFIX)).toLowerCase(), index);
                     } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
                         definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), index);
                     } else {
@@ -131,73 +133,81 @@ public class CodeRegistryParser {
                 }
                 firstRow = false;
             } else {
-                final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
+                final String id = row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue();
+                final String notation = row.getCell(genericHeaders.get(CONTENT_HEADER_NOTATION)).getStringCellValue();
                 final Map<String, String> prefLabels = new LinkedHashMap<>();
-                prefLabelHeaders.forEach((language, header) -> {
+                for (final String language : prefLabelHeaders.keySet()) {
                     prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
-                });
+                }
                 final Map<String, String> definitions = new LinkedHashMap<>();
-                definitionHeaders.forEach((language, header) -> {
+                for (final String language : definitionHeaders.keySet()) {
                     definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
-                });
-                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, source, prefLabels, definitions);
-                if (codeRegistry != null) {
-                    codeRegistries.add(codeRegistry);
+                }
+                final PropertyType propertyType = createOrUpdatePropertyType(id, notation, prefLabels, definitions);
+                if (propertyType != null) {
+                    propertyTypes.add(propertyType);
                 }
             }
         }
-        return codeRegistries;
+        return propertyTypes;
     }
 
-    private CodeRegistry createOrUpdateCodeRegistry(final String codeValue,
-                                                    final String source,
+    private PropertyType createOrUpdatePropertyType(final String id,
+                                                    final String notation,
                                                     final Map<String, String> prefLabels,
                                                     final Map<String, String> definitions) {
-        final Map<String, CodeRegistry> existingCodeRegistriesMap = parserUtils.getCodeRegistriesMap();
-        String uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES, codeValue);
         final Date timeStamp = new Date(System.currentTimeMillis());
-        CodeRegistry codeRegistry = existingCodeRegistriesMap.get(codeValue);
-        if (codeRegistry != null) {
+        PropertyType propertyType = null;
+        if (id != null && !id.isEmpty()) {
+            propertyType = propertyTypeRepository.findById(id);
+        }
+        String uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, id);
+        if (propertyType != null) {
             boolean hasChanges = false;
-            if (!Objects.equals(codeRegistry.getUri(), uri)) {
-                codeRegistry.setUri(uri);
+            if (!Objects.equals(propertyType.getUri(), uri)) {
+                propertyType.setUri(uri);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeRegistry.getSource(), source)) {
-                codeRegistry.setSource(source);
+            if (!Objects.equals(propertyType.getNotation(), notation)) {
+                propertyType.setNotation(uri);
                 hasChanges = true;
             }
             for (final String language : prefLabels.keySet()) {
                 final String value = prefLabels.get(language);
-                if (!Objects.equals(codeRegistry.getPrefLabel(language), value)) {
-                    codeRegistry.setPrefLabel(language, value);
+                if (!Objects.equals(propertyType.getPrefLabel(language), value)) {
+                    propertyType.setPrefLabel(language, value);
                     hasChanges = true;
                 }
             }
             for (final String language : definitions.keySet()) {
                 final String value = definitions.get(language);
-                if (!Objects.equals(codeRegistry.getDefinition(language), value)) {
-                    codeRegistry.setDefinition(language, value);
+                if (!Objects.equals(propertyType.getDefinition(language), value)) {
+                    propertyType.setDefinition(language, value);
                     hasChanges = true;
                 }
             }
             if (hasChanges) {
-                codeRegistry.setModified(timeStamp);
+                propertyType.setModified(timeStamp);
             }
         } else {
-            codeRegistry = new CodeRegistry();
-            codeRegistry.setId(UUID.randomUUID().toString());
-            codeRegistry.setUri(uri);
-            codeRegistry.setCodeValue(codeValue);
-            codeRegistry.setSource(source);
-            codeRegistry.setModified(timeStamp);
+            propertyType = new PropertyType();
+            if (id != null && !id.isEmpty()) {
+                propertyType.setId(id);
+            } else {
+                final String uuid = UUID.randomUUID().toString();
+                uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, uuid);
+                propertyType.setId(uuid);
+            }
+            propertyType.setNotation(notation);
+            propertyType.setUri(uri);
+            propertyType.setModified(timeStamp);
             for (final String language : prefLabels.keySet()) {
-                codeRegistry.setPrefLabel(language, prefLabels.get(language));
+                propertyType.setPrefLabel(language, prefLabels.get(language));
             }
             for (final String language : definitions.keySet()) {
-                codeRegistry.setDefinition(language, definitions.get(language));
+                propertyType.setDefinition(language, definitions.get(language));
             }
         }
-        return codeRegistry;
+        return propertyType;
     }
 }

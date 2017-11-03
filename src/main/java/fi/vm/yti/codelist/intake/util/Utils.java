@@ -6,16 +6,6 @@ import java.util.Calendar;
 
 public abstract class Utils {
 
-    private static final int REGION_ID_LENGTH = 2;
-    private static final int ELECTORALDISTRICT_ID_LENGTH = 2;
-    private static final int MUNICIPALITY_ID_LENGTH = 3;
-    private static final int MAGISTRATE_ID_LENGTH = 3;
-    private static final int MAGISTRATESERVICEUNIT_ID_LENGTH = 3;
-    private static final int HEALTHCAREDISTRICT_ID_LENGTH = 2;
-    private static final int POSTALCODE_ID_LENGTH = 5;
-    private static final int POSTMANAGEMENTDISTRICT_ID_LENGTH = 5;
-    private static final int BUSINESSERVICESUBREGION_ID_LENGTH = 5;
-
     /**
      * String charset conversion from ISO-8859-1 to UTF-8.
      *

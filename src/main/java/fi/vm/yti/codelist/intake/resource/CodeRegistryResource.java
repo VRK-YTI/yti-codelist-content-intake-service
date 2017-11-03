@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.resource;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -19,6 +20,10 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
@@ -43,7 +48,7 @@ import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
- * Content Intake Service: REST resources for registryItems.
+ * Content Intake Service: REST resources for CodeRegistry, CodeScheme and Code entity management.
  */
 @Component
 @Path("/v1/coderegistries")
@@ -81,43 +86,59 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes({MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses CodeRegistries from CSV-source file with ',' delimiter.")
+    @ApiOperation(value = "Parses CodeRegistries from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
     @ApiImplicitParams({
-        @ApiImplicitParam(name = "file", value = "Input-file", required = true, dataType = "file", paramType = "formData")
+        @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
     })
     @Transactional
-    public Response addOrUpdateCodeRegistries(@ApiParam(value = "Input-file", required = true, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+    public Response addOrUpdateCodeRegistries(@ApiParam(value = "JSON playload for CodeRegistry data.", required = false) final String jsonPayload,
+                                              @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES);
         final Meta meta = new Meta();
-        final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-        final List<CodeRegistry> codeRegistries = codeRegistryParser.parseCodeRegistriesFromInputStream(SOURCE_INTERNAL, inputStream);
-        for (final CodeRegistry register : codeRegistries) {
-            LOG.info("CodeRegistry parsed from input: " + register.getCodeValue());
+        final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+        try {
+            final List<CodeRegistry> codeRegistries;
+            if (jsonPayload != null && !jsonPayload.isEmpty()) {
+                codeRegistries = mapper.readValue(jsonPayload, new TypeReference<List<CodeRegistry>>() {
+                });
+            } else {
+                codeRegistries = codeRegistryParser.parseCodeRegistriesFromCsvInputStream(SOURCE_INTERNAL, inputStream);
+            }
+            for (final CodeRegistry register : codeRegistries) {
+                LOG.debug("CodeRegistry parsed from input: " + register.getCodeValue());
+            }
+            if (!codeRegistries.isEmpty()) {
+                domain.persistCodeRegistries(codeRegistries);
+                indexing.reIndexEverything();
+            }
+            meta.setMessage("CodeRegistries added or modified: " + codeRegistries.size());
+            meta.setCode(200);
+            return Response.ok(wrapper).build();
+        } catch (final IOException e) {
+            LOG.error("Error parsing CodeRegistries from JSON.", e.getMessage());
+            meta.setCode(400);
+            return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
         }
-        if (!codeRegistries.isEmpty()) {
-            domain.persistCodeRegistries(codeRegistries);
-            indexing.reIndexEverything();
-        }
-        meta.setMessage("CodeRegistries added or modified: " + codeRegistries.size());
-        meta.setCode(200);
-        return Response.ok(responseWrapper).build();
     }
 
     @POST
     @Path("{codeRegistryCodeValue}/codeschemes/")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes({MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses CodeSchemes from CSV-source file with ',' delimiter.")
+    @ApiOperation(value = "Parses CodeSchemes from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
     @ApiImplicitParams({
-        @ApiImplicitParam(name = "file", value = "Input-file", required = true, dataType = "file", paramType = "formData")
+        @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
     })
     @Transactional
     public Response addOrUpdateCodeSchemes(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                           @ApiParam(value = "Input-file", required = true, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+                                           @ApiParam(value = "JSON playload for CodeScheme data.", required = false) final String jsonPayload,
+                                           @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
@@ -125,12 +146,19 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             final List<CodeScheme> codeSchemes;
             try {
-                codeSchemes = codeSchemeParser.parseCodeSchemesFromInputStream(codeRegistry, SOURCE_INTERNAL, inputStream);
+                if (jsonPayload != null && !jsonPayload.isEmpty()) {
+                    final ObjectMapper mapper = new ObjectMapper();
+                    mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+                    codeSchemes = mapper.readValue(jsonPayload, new TypeReference<List<CodeScheme>>() {
+                    });
+                } else {
+                    codeSchemes = codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, SOURCE_INTERNAL, inputStream);
+                }
             } catch (final Exception e) {
                 throw new WebApplicationException(e.getMessage());
             }
             for (final CodeScheme codeScheme : codeSchemes) {
-                LOG.info("CodeScheme parsed from input: " + codeScheme.getCodeValue());
+                LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
             }
             if (!codeSchemes.isEmpty()) {
                 domain.persistCodeSchemes(codeSchemes);
@@ -147,17 +175,17 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
     @POST
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes({MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses Codes from CSV-source file with ',' delimiter.")
     @ApiResponse(code = 200, message = "Returns success.")
     @ApiImplicitParams({
-        @ApiImplicitParam(name = "file", value = "Input-file", required = true, dataType = "file", paramType = "formData")
+        @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
     })
     @Transactional
     public Response addOrUpdateCodes(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                                     @ApiParam(value = "Input-file", required = true, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+                                     @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream,
+                                     @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
 
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/");
         final Meta meta = new Meta();
@@ -168,12 +196,19 @@ public class CodeRegistryResource extends AbstractBaseResource {
             if (codeScheme != null) {
                 final List<Code> codes;
                 try {
-                    codes = codeParser.parseCodesFromInputStream(codeScheme, SOURCE_INTERNAL, inputStream);
+                    if (jsonPayload != null && !jsonPayload.isEmpty()) {
+                        final ObjectMapper mapper = new ObjectMapper();
+                        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+                        codes = mapper.readValue(jsonPayload, new TypeReference<List<Code>>() {
+                        });
+                    } else {
+                        codes = codeParser.parseCodesFromCsvInputStream(codeScheme, SOURCE_INTERNAL, inputStream);
+                    }
                 } catch (Exception e) {
                     throw new WebApplicationException(e.getMessage());
                 }
                 for (final Code code : codes) {
-                    LOG.info("Code parsed from input: " + code.getCodeValue());
+                    LOG.debug("Code parsed from input: " + code.getCodeValue());
                 }
                 if (!codes.isEmpty()) {
                     domain.persistCodes(codes);
