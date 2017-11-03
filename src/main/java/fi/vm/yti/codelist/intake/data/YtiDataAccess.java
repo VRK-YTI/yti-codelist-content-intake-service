@@ -182,7 +182,7 @@ public class YtiDataAccess {
         if (updateManager.shouldUpdateData(DATA_PROPERTYTYPES, DEFAULT_PROPERTYTYPE_FILENAME)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_PROPERTYTYPES, SOURCE_INTERNAL, DEFAULT_PROPERTYTYPE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME);) {
-                final List<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypeFromCsvInputStream(SOURCE_INTERNAL, inputStream);
+                final List<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(SOURCE_INTERNAL, inputStream);
                 LOG.info("PropertyType data loaded: " + propertyTypes.size() + " PropertyTypes in " + watch);
                 watch.reset().start();
                 propertyTypeRepository.save(propertyTypes);

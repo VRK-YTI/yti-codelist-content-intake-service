@@ -56,7 +56,7 @@ public class CodeRegistryParser {
      *
      * @param source      Source identifier for the data.
      * @param inputStream The CodeRegistry-file.
-     * @return            List of CodeRegistry objects.
+     * @return List of CodeRegistry objects.
      */
     public List<CodeRegistry> parseCodeRegistriesFromCsvInputStream(final String source,
                                                                     final InputStream inputStream) {

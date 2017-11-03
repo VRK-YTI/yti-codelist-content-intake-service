@@ -192,11 +192,6 @@ public class IndexingImpl implements Indexing {
 
         final Set<String> types = new HashSet<>();
         types.add(type);
-//        types.add(ELASTIC_TYPE_CODEREGISTRY);
-//        types.add(ELASTIC_TYPE_CODESCHEME);
-//        types.add(ELASTIC_TYPE_CODE);
-//        types.add(ELASTIC_TYPE_PROPERTYTYPE);
-//        types.add(ELASTIC_TYPE_EXTERNALREFERENCE);
 
         indexingTools.createIndexWithNestedPrefLabels(indexName, types);
 

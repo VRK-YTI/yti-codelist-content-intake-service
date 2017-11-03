@@ -70,7 +70,7 @@ public class PropertyTypeResource extends AbstractBaseResource {
             });
             if (!propertyTypes.isEmpty()) {
                 propertyTypeRepository.save(propertyTypes);
-                indexing.reIndexEverything();
+                indexing.reIndex(ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE);
             }
             meta.setMessage("PropertyTypes added or modified: " + propertyTypes.size());
             meta.setCode(200);
@@ -101,6 +101,7 @@ public class PropertyTypeResource extends AbstractBaseResource {
             try {
                 final PropertyType propertyType = mapper.readValue(jsonPayload, PropertyType.class);
                 propertyTypeRepository.save(propertyType);
+                indexing.reIndex(ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE);
                 meta.setCode(200);
                 return Response.ok(wrapper).build();
             } catch (final IOException e) {

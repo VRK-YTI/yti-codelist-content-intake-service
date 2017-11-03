@@ -71,7 +71,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
             });
             if (!externalReferences.isEmpty()) {
                 externalReferenceRepository.save(externalReferences);
-                indexing.reIndexEverything();
+                indexing.reIndex(ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE);
             }
             meta.setMessage("ExternalReferences added or modified: " + externalReferences.size());
             meta.setCode(200);
@@ -102,7 +102,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
             try {
                 final ExternalReference externalReference = mapper.readValue(jsonPayload, ExternalReference.class);
                 externalReferenceRepository.save(externalReference);
-                indexing.reIndexEverything();
+                indexing.reIndex(ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE);
                 meta.setCode(200);
                 return Response.ok(wrapper).build();
             } catch (final IOException e) {

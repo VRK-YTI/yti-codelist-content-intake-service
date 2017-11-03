@@ -59,8 +59,8 @@ public class PropertyTypeParser {
      * @param inputStream The PropertyType -file.
      * @return List of PropertyType objects.
      */
-    public List<PropertyType> parsePropertyTypeFromCsvInputStream(final String source,
-                                                                  final InputStream inputStream) {
+    public List<PropertyType> parsePropertyTypesFromCsvInputStream(final String source,
+                                                                   final InputStream inputStream) {
         final List<PropertyType> propertyTypes = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -92,7 +92,7 @@ public class PropertyTypeParser {
                 propertyTypes.add(propertyType);
             }
         } catch (IOException e) {
-            LOG.error("Parsing codeschemes failed: " + e.getMessage());
+            LOG.error("Parsing PropertyTypes failed: " + e.getMessage());
         }
         return propertyTypes;
     }
@@ -105,8 +105,8 @@ public class PropertyTypeParser {
      * @param inputStream The Code containing Excel -file.
      * @return List of Code objects.
      */
-    public List<PropertyType> parseCodeSchemesFromExcelInputStream(final String source,
-                                                                   final InputStream inputStream) throws Exception {
+    public List<PropertyType> parsePropertyTypesFromExcelInputStream(final String source,
+                                                                     final InputStream inputStream) throws Exception {
         final List<PropertyType> propertyTypes = new ArrayList<>();
         final Workbook workbook = new XSSFWorkbook(inputStream);
         final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_PROPERTYTYPES);
