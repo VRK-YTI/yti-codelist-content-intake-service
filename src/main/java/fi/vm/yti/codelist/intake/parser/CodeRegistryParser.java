@@ -154,7 +154,7 @@ public class CodeRegistryParser {
                                                     final Map<String, String> prefLabels,
                                                     final Map<String, String> definitions) {
         final Map<String, CodeRegistry> existingCodeRegistriesMap = parserUtils.getCodeRegistriesMap();
-        String uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES, codeValue);
+        final String uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES, codeValue);
         final Date timeStamp = new Date(System.currentTimeMillis());
         CodeRegistry codeRegistry = existingCodeRegistriesMap.get(codeValue);
         if (codeRegistry != null) {

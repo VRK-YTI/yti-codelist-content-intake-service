@@ -233,7 +233,6 @@ public class CodeParser {
                                     final Map<String, String> prefLabels,
                                     final Map<String, String> descriptions,
                                     final Map<String, String> definitions) throws Exception {
-        final Date timeStamp = new Date(System.currentTimeMillis());
         Code code = null;
         if (id != null) {
             code = codeRepository.findById(id);
@@ -301,6 +300,7 @@ public class CodeParser {
                 hasChanges = true;
             }
             if (hasChanges) {
+                final Date timeStamp = new Date(System.currentTimeMillis());
                 code.setModified(timeStamp);
             }
         } else {
@@ -320,6 +320,7 @@ public class CodeParser {
             code.setCodeValue(codeValue);
             code.setSource(source);
             code.setShortName(shortName);
+            final Date timeStamp = new Date(System.currentTimeMillis());
             code.setModified(timeStamp);
             for (final String language : prefLabels.keySet()) {
                 code.setPrefLabel(language, prefLabels.get(language));

@@ -244,7 +244,6 @@ public class CodeSchemeParser {
                                                 final Map<String, String> descriptions,
                                                 final Map<String, String> definitions,
                                                 final Map<String, String> changeNotes) throws Exception {
-        final Date timeStamp = new Date(System.currentTimeMillis());
         CodeScheme codeScheme = null;
         if (id != null) {
             codeScheme = codeSchemeRepository.findById(id);
@@ -319,6 +318,7 @@ public class CodeSchemeParser {
                 hasChanges = true;
             }
             if (hasChanges) {
+                final Date timeStamp = new Date(System.currentTimeMillis());
                 codeScheme.setModified(timeStamp);
             }
         } else {
@@ -337,6 +337,7 @@ public class CodeSchemeParser {
             codeScheme.setUri(uri);
             codeScheme.setCodeValue(codeValue);
             codeScheme.setSource(source);
+            final Date timeStamp = new Date(System.currentTimeMillis());
             codeScheme.setModified(timeStamp);
             for (final String language : prefLabels.keySet()) {
                 codeScheme.setPrefLabel(language, prefLabels.get(language));
