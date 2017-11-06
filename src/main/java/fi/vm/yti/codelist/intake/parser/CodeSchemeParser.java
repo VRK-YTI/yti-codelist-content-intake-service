@@ -44,7 +44,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
  * Class that handles parsing of CodeSchemes from source data.
  */
 @Service
-public class CodeSchemeParser {
+public class CodeSchemeParser extends AbstractBaseParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParser.class);
     private final ApiUtils apiUtils;
@@ -79,13 +79,13 @@ public class CodeSchemeParser {
             final Map<String, String> changeNoteHeaders = new LinkedHashMap<>();
             for (final String value : headerMap.keySet()) {
                 if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                    prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_PREFLABEL_PREFIX)).toLowerCase(), value);
+                    prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), value);
                 } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
-                    descriptionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), value);
+                    descriptionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DESCRIPTION_PREFIX, value), value);
                 } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                    definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), value);
+                    definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), value);
                 } else if (value.startsWith(CONTENT_HEADER_CHANGENOTE_PREFIX)) {
-                    changeNoteHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_CHANGENOTE_PREFIX)).toLowerCase(), value);
+                    changeNoteHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_CHANGENOTE_PREFIX, value), value);
                 }
             }
             final List<CSVRecord> records = csvParser.getRecords();
@@ -170,13 +170,13 @@ public class CodeSchemeParser {
                         final String value = cell.getStringCellValue();
                         final Integer index = cell.getColumnIndex();
                         if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                            prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_PREFLABEL_PREFIX)).toLowerCase(), index);
+                            prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), index);
                         } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
-                            descriptionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), index);
+                            descriptionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DESCRIPTION_PREFIX, value), index);
                         } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                            definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), index);
+                            definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), index);
                         } else if (value.startsWith(CONTENT_HEADER_CHANGENOTE_PREFIX)) {
-                            changeNoteHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_CHANGENOTE_PREFIX)).toLowerCase(), index);
+                            changeNoteHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_CHANGENOTE_PREFIX, value), index);
                         } else {
                             genericHeaders.put(value, index);
                         }

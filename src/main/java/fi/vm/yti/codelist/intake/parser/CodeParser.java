@@ -44,7 +44,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
  * Class that handles parsing of codes from source data.
  */
 @Service
-public class CodeParser {
+public class CodeParser extends AbstractBaseParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeParser.class);
     private final ApiUtils apiUtils;
@@ -80,11 +80,11 @@ public class CodeParser {
                 final Map<String, String> definitionHeaders = new LinkedHashMap<>();
                 headerMap.keySet().forEach(header -> {
                     if (header.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                        prefLabelHeaders.put(header.substring(header.indexOf(CONTENT_HEADER_PREFLABEL_PREFIX)).toLowerCase(), header);
+                        prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, header), header);
                     } else if (header.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
-                        descriptionHeaders.put(header.substring(header.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), header);
+                        descriptionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DESCRIPTION_PREFIX, header), header);
                     } else if (header.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                        definitionHeaders.put(header.substring(header.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), header);
+                        definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, header), header);
                     }
                 });
                 final List<CSVRecord> records = csvParser.getRecords();
@@ -166,11 +166,11 @@ public class CodeParser {
                         final String value = cell.getStringCellValue();
                         final Integer index = cell.getColumnIndex();
                         if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                            prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_PREFLABEL_PREFIX)).toLowerCase(), index);
+                            prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), index);
                         } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
-                            descriptionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), index);
+                            descriptionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DESCRIPTION_PREFIX, value), index);
                         } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                            definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), index);
+                            definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), index);
                         } else {
                             genericHeaders.put(value, index);
                         }

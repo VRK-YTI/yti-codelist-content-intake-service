@@ -38,7 +38,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
  * Class that handles parsing of CodeRegistries from source data.
  */
 @Service
-public class CodeRegistryParser {
+public class CodeRegistryParser extends AbstractBaseParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryParser.class);
     private final ApiUtils apiUtils;
@@ -70,9 +70,9 @@ public class CodeRegistryParser {
             final Map<String, String> definitionHeaders = new LinkedHashMap<>();
             for (final String value : headerMap.keySet()) {
                 if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                    prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_PREFLABEL_PREFIX)).toLowerCase(), value);
+                    prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), value);
                 } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                    definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), value);
+                    definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), value);
                 }
             }
             final List<CSVRecord> records = csvParser.getRecords();
@@ -122,9 +122,9 @@ public class CodeRegistryParser {
                     final String value = cell.getStringCellValue();
                     final Integer index = cell.getColumnIndex();
                     if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                        prefLabelHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DESCRIPTION_PREFIX)).toLowerCase(), index);
+                        prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), index);
                     } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                        definitionHeaders.put(value.substring(value.indexOf(CONTENT_HEADER_DEFINITION_PREFIX)).toLowerCase(), index);
+                        definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), index);
                     } else {
                         genericHeaders.put(value, index);
                     }
