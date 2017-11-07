@@ -101,7 +101,7 @@ public class CodeParser extends AbstractBaseParser {
                     });
                     final Map<String, String> descriptions = new LinkedHashMap<>();
                     descriptionHeaders.forEach((language, header) -> {
-                        definitions.put(language, record.get(header));
+                        descriptions.put(language, record.get(header));
                     });
                     final String shortName = record.get(CONTENT_HEADER_SHORTNAME);
                     final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));

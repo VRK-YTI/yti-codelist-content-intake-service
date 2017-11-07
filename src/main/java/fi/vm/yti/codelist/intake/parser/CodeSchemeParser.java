@@ -93,9 +93,9 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 final String id = record.get(CONTENT_HEADER_ID);
                 final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
                 final Map<String, String> prefLabels = new LinkedHashMap<>();
-                for (final String language : prefLabelHeaders.keySet()) {
-                    prefLabels.put(language, record.get(prefLabelHeaders.get(language)));
-                }
+                prefLabelHeaders.forEach((language, header) -> {
+                    prefLabels.put(language, record.get(header));
+                });
                 final Map<String, String> definitions = new LinkedHashMap<>();
                 definitionHeaders.forEach((language, header) -> {
                     definitions.put(language, record.get(header));

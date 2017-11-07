@@ -79,13 +79,13 @@ public class CodeRegistryParser extends AbstractBaseParser {
             records.forEach(record -> {
                 final String code = record.get(CONTENT_HEADER_CODEVALUE);
                 final Map<String, String> prefLabels = new LinkedHashMap<>();
-                for (final String language : prefLabelHeaders.keySet()) {
-                    prefLabels.put(language, record.get(prefLabelHeaders.get(language)));
-                }
+                prefLabelHeaders.forEach((language, header) -> {
+                    prefLabels.put(language, record.get(header));
+                });
                 final Map<String, String> definitions = new LinkedHashMap<>();
-                for (final String language : definitionHeaders.keySet()) {
-                    definitions.put(language, record.get(definitionHeaders.get(language)));
-                }
+                definitionHeaders.forEach((language, header) -> {
+                    definitions.put(language, record.get(header));
+                });
                 final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(code, source, prefLabels, definitions);
                 if (codeRegistry != null) {
                     codeRegistries.add(codeRegistry);
