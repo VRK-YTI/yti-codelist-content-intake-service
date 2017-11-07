@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -174,6 +175,59 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Modifies single existing CodeScheme.")
+    @ApiResponse(code = 200, message = "Returns success.")
+    @Transactional
+    public Response updateCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                                     @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
+
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + "/");
+        final Meta meta = new Meta();
+        final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        if (codeRegistry != null) {
+            final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, codeSchemeCodeValue);
+            if (existingCodeScheme != null) {
+                try {
+                    if (jsonPayload != null && !jsonPayload.isEmpty()) {
+                        final ObjectMapper mapper = new ObjectMapper();
+                        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+                        final CodeScheme codeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
+                        if (!codeScheme.getCodeValue().equalsIgnoreCase(existingCodeScheme.getCodeValue())) {
+                            LOG.error("CodeScheme cannot be updated because codevalue changed: " + codeScheme.getCodeValue());
+                            meta.setMessage("CodeScheme cannot be updated because codeValue changed. " + codeScheme.getCodeValue());
+                            meta.setCode(406);
+                        } else {
+                            codeScheme.setModified(new Date(System.currentTimeMillis()));
+                            codeSchemeRepository.save(codeScheme);
+                            indexing.reIndexEverything();
+                            meta.setMessage("CodeScheme " + codeSchemeCodeValue + " modified.");
+                            meta.setCode(200);
+                            return Response.ok(responseWrapper).build();
+                        }
+                    } else {
+                        meta.setMessage("No JSON payload found.");
+                        meta.setCode(406);
+                    }
+                } catch (Exception e) {
+                    throw new WebApplicationException(e.getMessage());
+                }
+            } else {
+                meta.setMessage("CodeScheme with code: " + codeSchemeCodeValue + " does not exist yet, please create codeScheme first.");
+                meta.setCode(406);
+            }
+        } else {
+            meta.setMessage("CodeRegistry with code: " + codeRegistryCodeValue + " does not exist yet, please create registry first.");
+            meta.setCode(406);
+        }
+        return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
+    }
+
+    @POST
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/")
     @Consumes({MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
@@ -223,6 +277,61 @@ public class CodeRegistryResource extends AbstractBaseResource {
             }
         } else {
             meta.setMessage("CodeRegistry with code: " + codeRegistryCodeValue + " does not exist yet, please create registry first.");
+            meta.setCode(406);
+        }
+        return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
+    }
+
+    @POST
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/{codeCodeValue}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Modifies single existing Code.")
+    @ApiResponse(code = 200, message = "Returns success.")
+    @Transactional
+    public Response updateCode(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                               @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                               @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue,
+                               @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
+
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + codeCodeValue + "/");
+        final Meta meta = new Meta();
+        final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        if (codeRegistry != null) {
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
+            if (codeScheme != null) {
+                final Code existingCode = codeRepository.findByCodeSchemeAndId(codeScheme, codeCodeValue);
+                try {
+                    if (jsonPayload != null && !jsonPayload.isEmpty()) {
+                        final ObjectMapper mapper = new ObjectMapper();
+                        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+                        final Code code = mapper.readValue(jsonPayload, Code.class);
+                        if (!code.getCodeValue().equalsIgnoreCase(existingCode.getCodeValue())) {
+                            LOG.error("Code cannot be updated because CodeValue changed: " + code.getCodeValue());
+                            meta.setMessage("Code cannot be updated because CodeValue changed. " + code.getCodeValue());
+                            meta.setCode(406);
+                        } else {
+                            code.setModified(new Date(System.currentTimeMillis()));
+                            codeRepository.save(code);
+                            indexing.reIndexEverything();
+                            meta.setMessage("Code " + codeCodeValue + " modified.");
+                            meta.setCode(200);
+                            return Response.ok(responseWrapper).build();
+                        }
+                    } else {
+                        meta.setMessage("No JSON payload found.");
+                        meta.setCode(406);
+                    }
+                } catch (Exception e) {
+                    throw new WebApplicationException(e.getMessage());
+                }
+            } else {
+                meta.setMessage("CodeScheme with CodeValue: " + codeSchemeCodeValue + " does not exist yet, please create codeScheme first.");
+                meta.setCode(406);
+            }
+        } else {
+            meta.setMessage("CodeRegistry with CodeValue: " + codeRegistryCodeValue + " does not exist yet, please create registry first.");
             meta.setCode(406);
         }
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();

@@ -16,6 +16,8 @@ public interface CodeRepository extends CrudRepository<Code, String> {
 
     Code findByCodeSchemeAndCodeValueAndStatus(final CodeScheme codeScheme, final String codeValue, final String status);
 
+    Code findByCodeSchemeAndId(final CodeScheme codeScheme, final String codeId);
+
     Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme, final String codeValue);
 
     Code findById(final String id);

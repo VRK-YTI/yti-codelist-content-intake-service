@@ -19,7 +19,7 @@ import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterModifier;
 
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
-public class AbstractBaseResource {
+public abstract class AbstractBaseResource {
 
     public SimpleFilterProvider createSimpleFilterProvider(final String baseFilter,
                                                            final String expand) {

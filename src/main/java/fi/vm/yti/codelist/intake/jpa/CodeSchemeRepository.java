@@ -14,6 +14,8 @@ import fi.vm.yti.codelist.common.model.CodeScheme;
 @Transactional
 public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String> {
 
+    CodeScheme findByCodeRegistryAndId(final CodeRegistry codeRegistry, final String id);
+
     CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry, final String codeValue);
 
     CodeScheme findByCodeValueAndStatusAndCodeRegistry(final String codeValue, final String status, final CodeRegistry codeRegistry);
