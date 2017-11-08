@@ -82,7 +82,7 @@ CREATE TABLE codescheme_changenote (
 );
 
 
--- Single Code
+-- Code
 
 CREATE TABLE code (
   id uuid UNIQUE NOT NULL,
@@ -195,30 +195,6 @@ CREATE TABLE externalreference_description (
 );
 
 
--- Organization
-
-CREATE TABLE organization (
-  id uuid UNIQUE NOT NULL,
-  CONSTRAINT organization_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE organization_name (
-  organization_id uuid NOT NULL,
-  language text NOT NULL,
-  name text NOT NULL,
-  CONSTRAINT organization_name_pkey PRIMARY KEY (organization_id, language),
-  CONSTRAINT fk_organization_name FOREIGN KEY (organization_id) REFERENCES organization (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
-);
-
-CREATE TABLE coderegistry_organization (
-  codescheme_id uuid NULL,
-  organization_id uuid NULL,
-  CONSTRAINT coderegistry_organization_pkey PRIMARY KEY (codescheme_id, organization_id),
-  CONSTRAINT fk_coderegistry_id FOREIGN KEY (codescheme_id) REFERENCES codescheme (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT fk_coderegistry_organization FOREIGN KEY (organization_id) REFERENCES organization (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
-);
-
-
 -- Extension
 
 CREATE TABLE extensionscheme (
@@ -252,6 +228,30 @@ CREATE TABLE extension (
 );
 
 
+-- Organization
+
+CREATE TABLE organization (
+  id uuid UNIQUE NOT NULL,
+  CONSTRAINT organization_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE organization_name (
+  organization_id uuid NOT NULL,
+  language text NOT NULL,
+  name text NOT NULL,
+  CONSTRAINT organization_name_pkey PRIMARY KEY (organization_id, language),
+  CONSTRAINT fk_organization_name FOREIGN KEY (organization_id) REFERENCES organization (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+CREATE TABLE coderegistry_organization (
+  codescheme_id uuid NULL,
+  organization_id uuid NULL,
+  CONSTRAINT coderegistry_organization_pkey PRIMARY KEY (codescheme_id, organization_id),
+  CONSTRAINT fk_coderegistry_id FOREIGN KEY (codescheme_id) REFERENCES codescheme (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT fk_coderegistry_organization FOREIGN KEY (organization_id) REFERENCES organization (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+
 -- User
 
 CREATE TABLE ytiuser (
@@ -263,14 +263,6 @@ CREATE TABLE ytiuser (
   CONSTRAINT ytiuser_pkey PRIMARY KEY (email)
 );
 
-CREATE TABLE commit (
-  id uuid NOT NULL,
-  modified timestamp without time zone NULL,
-  useremail text NOT NULL,
-  CONSTRAINT commit_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_useremail FOREIGN KEY (useremail) REFERENCES ytiuser (email) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
-);
-
 CREATE TABLE user_organization (
   useremail text NOT NULL,
   organization_id uuid NOT NULL,
@@ -278,6 +270,16 @@ CREATE TABLE user_organization (
   CONSTRAINT user_organization_pkey PRIMARY KEY (useremail, organization_id, role_id),
   CONSTRAINT fk_useremail FOREIGN KEY (useremail) REFERENCES ytiuser (email) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT fk_organization_id FOREIGN KEY (organization_id) REFERENCES organization (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+-- Commit
+
+CREATE TABLE commit (
+  id uuid NOT NULL,
+  modified timestamp without time zone NULL,
+  useremail text NOT NULL,
+  CONSTRAINT commit_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_useremail FOREIGN KEY (useremail) REFERENCES ytiuser (email) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 CREATE TABLE editedentry (
@@ -296,8 +298,29 @@ CREATE TABLE editedentry (
   CONSTRAINT fk_externalreference_id FOREIGN KEY (externalreference_id) REFERENCES externalreference (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
+-- Concept
 
--- Data update handling and bookkeeping
+CREATE TABLE concept (
+  uri text UNIQUE NOT NULL
+);
+
+CREATE TABLE code_concept (
+  code_id uuid UNIQUE NOT NULL,
+  concept_uri text UNIQUE NOT NULL,
+  CONSTRAINT code_concept_pkey PRIMARY KEY (code_id, concept_uri),
+  CONSTRAINT fk_code_id FOREIGN KEY (code_id) REFERENCES code (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT fk_concept_uri FOREIGN KEY (concept_uri) REFERENCES concept (uri) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+CREATE TABLE codescheme_concept (
+  codescheme_id uuid UNIQUE NOT NULL,
+  concept_uri text UNIQUE NOT NULL,
+  CONSTRAINT codescheme_concept_pkey PRIMARY KEY (codescheme_id, concept_uri),
+  CONSTRAINT fk_codescheme_id FOREIGN KEY (codescheme_id) REFERENCES codescheme (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT fk_concept_uri FOREIGN KEY (concept_uri) REFERENCES concept (uri) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+-- Data update handling and bookkeeping, to be removed later on.
 
 CREATE TABLE indexstatus (
   id uuid UNIQUE NOT NULL,
