@@ -52,7 +52,7 @@ public class UpdateManager {
                                      final String nextVersion,
                                      final String status) {
         final UpdateStatus updateStatus = new UpdateStatus();
-        updateStatus.setId(UUID.randomUUID().toString());
+        updateStatus.setId(UUID.randomUUID());
         updateStatus.setDataType(dataType);
         updateStatus.setSource(source);
         updateStatus.setVersion(version);

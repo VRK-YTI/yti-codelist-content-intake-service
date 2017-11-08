@@ -54,12 +54,10 @@ public class CodeRegistryParser extends AbstractBaseParser {
     /**
      * Parses the .csv CodeRegistry-file and returns the coderegistries as an arrayList.
      *
-     * @param source      Source identifier for the data.
      * @param inputStream The CodeRegistry-file.
      * @return List of CodeRegistry objects.
      */
-    public List<CodeRegistry> parseCodeRegistriesFromCsvInputStream(final String source,
-                                                                    final InputStream inputStream) {
+    public List<CodeRegistry> parseCodeRegistriesFromCsvInputStream(final InputStream inputStream) {
         final List<CodeRegistry> codeRegistries = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -86,7 +84,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
                 definitionHeaders.forEach((language, header) -> {
                     definitions.put(language, record.get(header));
                 });
-                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(code, source, prefLabels, definitions);
+                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(code, prefLabels, definitions);
                 if (codeRegistry != null) {
                     codeRegistries.add(codeRegistry);
                 }
@@ -99,12 +97,10 @@ public class CodeRegistryParser extends AbstractBaseParser {
 
     /* Parses the .xls CodeResistry Excel-file and returns the CodeRegistries as an arrayList.
      *
-     * @param source      Source identifier for the data.
      * @param inputStream The CodeRegistry containing Excel -file.
      * @return            List of CodeRegistry objects.
      */
-    public List<CodeRegistry> parseCodeRegistriesFromExcelInputStream(final String source,
-                                                                      final InputStream inputStream) throws Exception {
+    public List<CodeRegistry> parseCodeRegistriesFromExcelInputStream(final InputStream inputStream) throws Exception {
         final List<CodeRegistry> codeRegistries = new ArrayList<>();
         final Workbook workbook = new XSSFWorkbook(inputStream);
         final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);
@@ -140,7 +136,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
                 definitionHeaders.forEach((language, header) -> {
                     definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
                 });
-                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, source, prefLabels, definitions);
+                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, prefLabels, definitions);
                 if (codeRegistry != null) {
                     codeRegistries.add(codeRegistry);
                 }
@@ -150,7 +146,6 @@ public class CodeRegistryParser extends AbstractBaseParser {
     }
 
     private CodeRegistry createOrUpdateCodeRegistry(final String codeValue,
-                                                    final String source,
                                                     final Map<String, String> prefLabels,
                                                     final Map<String, String> definitions) {
         final Map<String, CodeRegistry> existingCodeRegistriesMap = parserUtils.getCodeRegistriesMap();
@@ -161,10 +156,6 @@ public class CodeRegistryParser extends AbstractBaseParser {
             boolean hasChanges = false;
             if (!Objects.equals(codeRegistry.getUri(), uri)) {
                 codeRegistry.setUri(uri);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeRegistry.getSource(), source)) {
-                codeRegistry.setSource(source);
                 hasChanges = true;
             }
             for (final String language : prefLabels.keySet()) {
@@ -186,10 +177,9 @@ public class CodeRegistryParser extends AbstractBaseParser {
             }
         } else {
             codeRegistry = new CodeRegistry();
-            codeRegistry.setId(UUID.randomUUID().toString());
+            codeRegistry.setId(UUID.randomUUID());
             codeRegistry.setUri(uri);
             codeRegistry.setCodeValue(codeValue);
-            codeRegistry.setSource(source);
             codeRegistry.setModified(timeStamp);
             for (final String language : prefLabels.keySet()) {
                 codeRegistry.setPrefLabel(language, prefLabels.get(language));

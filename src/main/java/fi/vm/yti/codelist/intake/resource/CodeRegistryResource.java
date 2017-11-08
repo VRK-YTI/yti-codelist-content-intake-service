@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -108,7 +109,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 codeRegistries = mapper.readValue(jsonPayload, new TypeReference<List<CodeRegistry>>() {
                 });
             } else {
-                codeRegistries = codeRegistryParser.parseCodeRegistriesFromCsvInputStream(SOURCE_INTERNAL, inputStream);
+                codeRegistries = codeRegistryParser.parseCodeRegistriesFromCsvInputStream(inputStream);
             }
             for (final CodeRegistry register : codeRegistries) {
                 LOG.debug("CodeRegistry parsed from input: " + register.getCodeValue());
@@ -153,7 +154,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     codeSchemes = mapper.readValue(jsonPayload, new TypeReference<List<CodeScheme>>() {
                     });
                 } else {
-                    codeSchemes = codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, SOURCE_INTERNAL, inputStream);
+                    codeSchemes = codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream);
                 }
             } catch (final Exception e) {
                 throw new WebApplicationException(e.getMessage());
@@ -190,7 +191,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, codeSchemeCodeValue);
+            final UUID uuid = UUID.fromString(codeSchemeCodeValue);
+            final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, uuid);
             if (existingCodeScheme != null) {
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
@@ -256,7 +258,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         codes = mapper.readValue(jsonPayload, new TypeReference<List<Code>>() {
                         });
                     } else {
-                        codes = codeParser.parseCodesFromCsvInputStream(codeScheme, SOURCE_INTERNAL, inputStream);
+                        codes = codeParser.parseCodesFromCsvInputStream(codeScheme, inputStream);
                     }
                 } catch (Exception e) {
                     throw new WebApplicationException(e.getMessage());
@@ -301,7 +303,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             if (codeScheme != null) {
-                final Code existingCode = codeRepository.findByCodeSchemeAndId(codeScheme, codeCodeValue);
+                final UUID uuid = UUID.fromString(codeCodeValue);
+                final Code existingCode = codeRepository.findByCodeSchemeAndId(codeScheme, uuid);
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         final ObjectMapper mapper = new ObjectMapper();

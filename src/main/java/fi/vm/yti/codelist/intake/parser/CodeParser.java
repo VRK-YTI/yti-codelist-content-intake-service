@@ -61,12 +61,10 @@ public class CodeParser extends AbstractBaseParser {
      * Parses the .csv Code-file and returns the codes as an arrayList.
      *
      * @param codeScheme  CodeScheme codeValue identifier.
-     * @param source      Source identifier for the data.
      * @param inputStream The Code -file.
      * @return List of Code objects.
      */
     public List<Code> parseCodesFromCsvInputStream(final CodeScheme codeScheme,
-                                                   final String source,
                                                    final InputStream inputStream) throws Exception {
         final List<Code> codes = new ArrayList<>();
         if (codeScheme != null) {
@@ -89,7 +87,7 @@ public class CodeParser extends AbstractBaseParser {
                 });
                 final List<CSVRecord> records = csvParser.getRecords();
                 for (final CSVRecord record : records) {
-                    final String id = record.get(CONTENT_HEADER_ID);
+                    final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
                     final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
                     final Map<String, String> prefLabels = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, header) -> {
@@ -124,7 +122,7 @@ public class CodeParser extends AbstractBaseParser {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                         }
                     }
-                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, source, shortName, startDate, endDate, prefLabels, descriptions, definitions);
+                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, startDate, endDate, prefLabels, descriptions, definitions);
                     if (code != null) {
                         codes.add(code);
                     }
@@ -140,12 +138,10 @@ public class CodeParser extends AbstractBaseParser {
      * Parses the .xls Code-file and returns the codes as an arrayList.
      *
      * @param codeScheme  CodeScheme for which these codes are for.
-     * @param source      Source identifier for the data.
      * @param inputStream The Code containing Excel -file.
      * @return List of Code objects.
      */
     public List<Code> parseCodesFromExcelInputStream(final CodeScheme codeScheme,
-                                                     final String source,
                                                      final InputStream inputStream) throws Exception {
         final List<Code> codes = new ArrayList<>();
         if (codeScheme != null) {
@@ -177,7 +173,7 @@ public class CodeParser extends AbstractBaseParser {
                     }
                     firstRow = false;
                 } else {
-                    final String id = row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue();
+                    final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
                     final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
                     final Map<String, String> prefLabels = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, haeder) -> {
@@ -212,7 +208,7 @@ public class CodeParser extends AbstractBaseParser {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                         }
                     }
-                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, source, shortName, startDate, endDate, prefLabels, descriptions, definitions);
+                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, startDate, endDate, prefLabels, descriptions, definitions);
                     if (code != null) {
                         codes.add(code);
                     }
@@ -223,10 +219,9 @@ public class CodeParser extends AbstractBaseParser {
     }
 
     private Code createOrUpdateCode(final CodeScheme codeScheme,
-                                    final String id,
+                                    final UUID id,
                                     final String codeValue,
                                     final Status status,
-                                    final String source,
                                     final String shortName,
                                     final Date startDate,
                                     final Date endDate,
@@ -245,8 +240,8 @@ public class CodeParser extends AbstractBaseParser {
                 LOG.error("Existing value already found, cancel update!");
                 throw new Exception("Existing value already found with status VALID for code: " + codeValue + ", cancel update!");
             }
-        } else if (id != null && !id.isEmpty()) {
-            uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, id);
+        } else if (id != null) {
+            uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, id.toString());
         }
         if (code != null) {
             boolean hasChanges = false;
@@ -260,10 +255,6 @@ public class CodeParser extends AbstractBaseParser {
             }
             if (!Objects.equals(code.getUri(), uri)) {
                 code.setUri(uri);
-                hasChanges = true;
-            }
-            if (!Objects.equals(code.getSource(), source)) {
-                code.setSource(source);
                 hasChanges = true;
             }
             if (!Objects.equals(code.getShortName(), shortName)) {
@@ -305,12 +296,12 @@ public class CodeParser extends AbstractBaseParser {
             }
         } else {
             code = new Code();
-            if (id != null && !id.isEmpty()) {
+            if (id != null) {
                 code.setId(id);
             } else {
-                final String uuid = UUID.randomUUID().toString();
+                final UUID uuid = UUID.randomUUID();
                 if (status != Status.VALID) {
-                    uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, uuid);
+                    uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeScheme.getCodeRegistry().getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, uuid.toString());
                 }
                 code.setId(uuid);
             }
@@ -318,7 +309,6 @@ public class CodeParser extends AbstractBaseParser {
             code.setUri(uri);
             code.setCodeScheme(codeScheme);
             code.setCodeValue(codeValue);
-            code.setSource(source);
             code.setShortName(shortName);
             final Date timeStamp = new Date(System.currentTimeMillis());
             code.setModified(timeStamp);

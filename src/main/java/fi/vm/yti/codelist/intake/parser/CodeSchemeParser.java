@@ -60,12 +60,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
     /**
      * Parses the .csv CodeScheme-file and returns the codeschemes as an arrayList.
      *
-     * @param source      Source identifier for the data.
      * @param inputStream The CodeScheme -file.
      * @return            List of CodeScheme objects.
      */
     public List<CodeScheme> parseCodeSchemesFromCsvInputStream(final CodeRegistry codeRegistry,
-                                                               final String source,
                                                                final InputStream inputStream) throws Exception {
         final List<CodeScheme> codeSchemes = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
@@ -90,7 +88,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
             }
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
-                final String id = record.get(CONTENT_HEADER_ID);
+                final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
                 final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
                 final Map<String, String> prefLabels = new LinkedHashMap<>();
                 prefLabelHeaders.forEach((language, header) -> {
@@ -110,6 +108,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 });
                 final String version = record.get(CONTENT_HEADER_VERSION);
                 final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
+                final String legalBase = record.get(CONTENT_HEADER_LEGALBASE);
+                final String governancePolicy = record.get(CONTENT_HEADER_GOVERNANCEPOLICY);
+                final String license = record.get(CONTENT_HEADER_LICENSE);
+                final String source = record.get(CONTENT_HEADER_SOURCE);
                 final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
                 Date startDate = null;
                 final String startDateString = record.get(CONTENT_HEADER_STARTDATE);
@@ -130,7 +132,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     }
                 }
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, id, codeValue, version, status,
-                    source, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
+                    source, legalBase, governancePolicy, license, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
                 codeSchemes.add(codeScheme);
             }
         } catch (IOException e) {
@@ -143,12 +145,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
      * Parses the .xls CodeScheme Excel-file and returns the CodeSchemes as an arrayList.
      *
      * @param codeRegistry CodeRegistry.
-     * @param source      Source identifier for the data.
      * @param inputStream The Code containing Excel -file.
      * @return List of Code objects.
      */
     public List<CodeScheme> parseCodeSchemesFromExcelInputStream(final CodeRegistry codeRegistry,
-                                                                 final String source,
                                                                  final InputStream inputStream) throws Exception {
         final List<CodeScheme> codeSchemes = new ArrayList<>();
         if (codeRegistry != null) {
@@ -183,7 +183,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     }
                     firstRow = false;
                 } else {
-                    final String id = row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue();
+                    final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
                     final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
                     final Map<String, String> prefLabels = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, header) -> {
@@ -203,6 +203,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     });
                     final String version = row.getCell(genericHeaders.get(CONTENT_HEADER_VERSION)).getStringCellValue();
                     final Status status = Status.valueOf(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)).getStringCellValue());
+                    final String source = row.getCell(genericHeaders.get(CONTENT_HEADER_SOURCE)).getStringCellValue();
+                    final String legalBase = row.getCell(genericHeaders.get(CONTENT_HEADER_LEGALBASE)).getStringCellValue();
+                    final String governancePolicy = row.getCell(genericHeaders.get(CONTENT_HEADER_GOVERNANCEPOLICY)).getStringCellValue();
+                    final String license = row.getCell(genericHeaders.get(CONTENT_HEADER_LICENSE)).getStringCellValue();
                     final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
                     Date startDate = null;
                     final String startDateString = row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)).getStringCellValue();
@@ -222,7 +226,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                         }
                     }
-                    final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, id, codeValue, version, status, source, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
+                    final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, id, codeValue, version, status, source, legalBase, governancePolicy, license, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
                     if (codeScheme != null) {
                         codeSchemes.add(codeScheme);
                     }
@@ -233,11 +237,14 @@ public class CodeSchemeParser extends AbstractBaseParser {
     }
 
     private CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
-                                                final String id,
+                                                final UUID id,
                                                 final String codeValue,
                                                 final String version,
                                                 final Status status,
                                                 final String source,
+                                                final String legalBase,
+                                                final String governancePolicy,
+                                                final String license,
                                                 final Date startDate,
                                                 final Date endDate,
                                                 final Map<String, String> prefLabels,
@@ -256,8 +263,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 LOG.error("Existing value already found, cancel update!");
                 throw new Exception("Existing value already found with status VALID for code scheme with code value: " + codeValue + ", cancel update!");
             }
-        } else if (id != null && !id.isEmpty()) {
-            uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, id);
+        } else if (id != null) {
+            uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, id.toString());
         }
         if (codeScheme != null) {
             boolean hasChanges = false;
@@ -275,6 +282,18 @@ public class CodeSchemeParser extends AbstractBaseParser {
             }
             if (!Objects.equals(codeScheme.getSource(), source)) {
                 codeScheme.setSource(source);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getLegalBase(), legalBase)) {
+                codeScheme.setLegalBase(legalBase);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getGovernancePolicy(), governancePolicy)) {
+                codeScheme.setGovernancePolicy(governancePolicy);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getLicense(), license)) {
+                codeScheme.setLicense(license);
                 hasChanges = true;
             }
             for (final String language : prefLabels.keySet()) {
@@ -323,20 +342,23 @@ public class CodeSchemeParser extends AbstractBaseParser {
             }
         } else {
             codeScheme = new CodeScheme();
-            codeScheme.setId(UUID.randomUUID().toString());
+            codeScheme.setId(UUID.randomUUID());
             codeScheme.setCodeRegistry(codeRegistry);
-            if (id != null && !id.isEmpty()) {
+            if (id != null) {
                 codeScheme.setId(id);
             } else {
-                final String uuid = UUID.randomUUID().toString();
+                final UUID uuid = UUID.randomUUID();
                 if (status != Status.VALID) {
-                    uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, id);
+                    uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, id.toString());
                 }
                 codeScheme.setId(uuid);
             }
             codeScheme.setUri(uri);
             codeScheme.setCodeValue(codeValue);
             codeScheme.setSource(source);
+            codeScheme.setLegalBase(legalBase);
+            codeScheme.setGovernancePolicy(governancePolicy);
+            codeScheme.setLicense(license);
             final Date timeStamp = new Date(System.currentTimeMillis());
             codeScheme.setModified(timeStamp);
             for (final String language : prefLabels.keySet()) {

@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.resource;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -96,7 +97,8 @@ public class PropertyTypeResource extends AbstractBaseResource {
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
-        final PropertyType existingPropertyType = propertyTypeRepository.findById(propertyTypeId);
+        final UUID uuid = UUID.fromString(propertyTypeId);
+        final PropertyType existingPropertyType = propertyTypeRepository.findById(uuid);
         if (existingPropertyType != null) {
             try {
                 final PropertyType propertyType = mapper.readValue(jsonPayload, PropertyType.class);

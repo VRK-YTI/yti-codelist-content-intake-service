@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.jpa;
 
 import java.util.Set;
+import java.util.UUID;
 
 import javax.transaction.Transactional;
 
@@ -16,11 +17,11 @@ public interface CodeRepository extends CrudRepository<Code, String> {
 
     Code findByCodeSchemeAndCodeValueAndStatus(final CodeScheme codeScheme, final String codeValue, final String status);
 
-    Code findByCodeSchemeAndId(final CodeScheme codeScheme, final String codeId);
+    Code findByCodeSchemeAndId(final CodeScheme codeScheme, final UUID codeId);
 
     Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme, final String codeValue);
 
-    Code findById(final String id);
+    Code findById(final UUID id);
 
     Set<Code> findByCodeScheme(final CodeScheme codeScheme);
 

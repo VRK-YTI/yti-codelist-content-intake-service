@@ -182,7 +182,7 @@ public class IndexingImpl implements Indexing {
 
         final IndexStatus status = new IndexStatus();
         final Date timeStamp = new Date(System.currentTimeMillis());
-        status.setId(UUID.randomUUID().toString());
+        status.setId(UUID.randomUUID());
         status.setCreated(timeStamp);
         status.setModified(timeStamp);
         status.setStatus(INDEX_STATUS_RUNNING);

@@ -1,2 +1,2 @@
-ID,NOTATION,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,DEFINITION_FI,DEFINITION_SV,DEFINITION_EN
-,testnotation,TestPropertyType 1,TestPropertyType 1,TestPropertyType 1,Testi määrite 1,Test definitionen 1,Test definition 1
+ID,LOCALNAME,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,DEFINITION_FI,DEFINITION_SV,DEFINITION_EN,TYPE
+,testlocalname,TestPropertyType 1,TestPropertyType 1,TestPropertyType 1,Testi määrite 1,Test definitionen 1,Test definition 1,testtype

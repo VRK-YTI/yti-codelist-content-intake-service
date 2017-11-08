@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.resource;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -97,7 +98,8 @@ public class ExternalReferenceResource extends AbstractBaseResource {
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
-        final ExternalReference existingExternalReference = externalReferenceRepository.findById(externalReferenceId);
+        final UUID uuid = UUID.fromString(externalReferenceId);
+        final ExternalReference existingExternalReference = externalReferenceRepository.findById(uuid);
         if (existingExternalReference != null) {
             try {
                 final ExternalReference externalReference = mapper.readValue(jsonPayload, ExternalReference.class);

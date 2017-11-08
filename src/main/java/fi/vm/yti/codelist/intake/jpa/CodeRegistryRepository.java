@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.jpa;
 
 import java.util.Set;
+import java.util.UUID;
 
 import javax.transaction.Transactional;
 
@@ -15,7 +16,7 @@ public interface CodeRegistryRepository extends CrudRepository<CodeRegistry, Str
 
     CodeRegistry findByCodeValue(final String codeValue);
 
-    CodeRegistry findById(final String id);
+    CodeRegistry findById(final UUID id);
 
     Set<CodeRegistry> findAll();
 }

@@ -55,12 +55,10 @@ public class PropertyTypeParser extends AbstractBaseParser {
     /**
      * Parses the .csv PropertyType-file and returns the PropertyType as an ArrayList.
      *
-     * @param source      Source identifier for the data.
      * @param inputStream The PropertyType -file.
      * @return List of PropertyType objects.
      */
-    public List<PropertyType> parsePropertyTypesFromCsvInputStream(final String source,
-                                                                   final InputStream inputStream) {
+    public List<PropertyType> parsePropertyTypesFromCsvInputStream(final InputStream inputStream) {
         final List<PropertyType> propertyTypes = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -78,8 +76,9 @@ public class PropertyTypeParser extends AbstractBaseParser {
             }
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
-                final String id = record.get(CONTENT_HEADER_ID);
-                final String notation = record.get(CONTENT_HEADER_NOTATION);
+                final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
+                final String localName = record.get(CONTENT_HEADER_LOCALNAME);
+                final String type = record.get(CONTENT_HEADER_TYPE);
                 final Map<String, String> prefLabels = new LinkedHashMap<>();
                 prefLabelHeaders.forEach((language, header) -> {
                     prefLabels.put(language, record.get(header));
@@ -88,7 +87,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 definitionHeaders.forEach((language, header) -> {
                     definitions.put(language, record.get(header));
                 });
-                final PropertyType propertyType = createOrUpdatePropertyType(id, notation, prefLabels, definitions);
+                final PropertyType propertyType = createOrUpdatePropertyType(id, localName, type, prefLabels, definitions);
                 propertyTypes.add(propertyType);
             }
         } catch (IOException e) {
@@ -101,12 +100,10 @@ public class PropertyTypeParser extends AbstractBaseParser {
      * Parses the .xls PropertyType Excel-file and returns the PropertyTypes as an arrayList.
      *
      * @param codeRegistry CodeRegistry.
-     * @param source      Source identifier for the data.
      * @param inputStream The Code containing Excel -file.
      * @return List of Code objects.
      */
-    public List<PropertyType> parsePropertyTypesFromExcelInputStream(final String source,
-                                                                     final InputStream inputStream) throws Exception {
+    public List<PropertyType> parsePropertyTypesFromExcelInputStream(final InputStream inputStream) throws Exception {
         final List<PropertyType> propertyTypes = new ArrayList<>();
         final Workbook workbook = new XSSFWorkbook(inputStream);
         final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_PROPERTYTYPES);
@@ -133,8 +130,9 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 }
                 firstRow = false;
             } else {
-                final String id = row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue();
-                final String notation = row.getCell(genericHeaders.get(CONTENT_HEADER_NOTATION)).getStringCellValue();
+                final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
+                final String localName = row.getCell(genericHeaders.get(CONTENT_HEADER_LOCALNAME)).getStringCellValue();
+                final String type = row.getCell(genericHeaders.get(CONTENT_HEADER_TYPE)).getStringCellValue();
                 final Map<String, String> prefLabels = new LinkedHashMap<>();
                 for (final String language : prefLabelHeaders.keySet()) {
                     prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
@@ -143,7 +141,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 for (final String language : definitionHeaders.keySet()) {
                     definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
                 }
-                final PropertyType propertyType = createOrUpdatePropertyType(id, notation, prefLabels, definitions);
+                final PropertyType propertyType = createOrUpdatePropertyType(id, localName, type, prefLabels, definitions);
                 if (propertyType != null) {
                     propertyTypes.add(propertyType);
                 }
@@ -152,55 +150,52 @@ public class PropertyTypeParser extends AbstractBaseParser {
         return propertyTypes;
     }
 
-    private PropertyType createOrUpdatePropertyType(final String id,
-                                                    final String notation,
+    private PropertyType createOrUpdatePropertyType(final UUID id,
+                                                    final String localName,
+                                                    final String type,
                                                     final Map<String, String> prefLabels,
                                                     final Map<String, String> definitions) {
         final Date timeStamp = new Date(System.currentTimeMillis());
         PropertyType propertyType = null;
-        if (id != null && !id.isEmpty()) {
+        String uri = null;
+        if (id != null) {
             propertyType = propertyTypeRepository.findById(id);
+            uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, id.toString());
         }
-        String uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, id);
         if (propertyType != null) {
-            boolean hasChanges = false;
             if (!Objects.equals(propertyType.getUri(), uri)) {
                 propertyType.setUri(uri);
-                hasChanges = true;
             }
-            if (!Objects.equals(propertyType.getNotation(), notation)) {
-                propertyType.setNotation(uri);
-                hasChanges = true;
+            if (!Objects.equals(propertyType.getLocalName(), localName)) {
+                propertyType.setLocalName(localName);
+            }
+            if (!Objects.equals(propertyType.getType(), type)) {
+                propertyType.setType(type);
             }
             for (final String language : prefLabels.keySet()) {
                 final String value = prefLabels.get(language);
                 if (!Objects.equals(propertyType.getPrefLabel(language), value)) {
                     propertyType.setPrefLabel(language, value);
-                    hasChanges = true;
                 }
             }
             for (final String language : definitions.keySet()) {
                 final String value = definitions.get(language);
                 if (!Objects.equals(propertyType.getDefinition(language), value)) {
                     propertyType.setDefinition(language, value);
-                    hasChanges = true;
                 }
-            }
-            if (hasChanges) {
-                propertyType.setModified(timeStamp);
             }
         } else {
             propertyType = new PropertyType();
-            if (id != null && !id.isEmpty()) {
+            if (id != null) {
                 propertyType.setId(id);
             } else {
-                final String uuid = UUID.randomUUID().toString();
-                uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, uuid);
+                final UUID uuid = UUID.randomUUID();
+                uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, uuid.toString());
                 propertyType.setId(uuid);
             }
-            propertyType.setNotation(notation);
+            propertyType.setLocalName(localName);
+            propertyType.setType(type);
             propertyType.setUri(uri);
-            propertyType.setModified(timeStamp);
             for (final String language : prefLabels.keySet()) {
                 propertyType.setPrefLabel(language, prefLabels.get(language));
             }

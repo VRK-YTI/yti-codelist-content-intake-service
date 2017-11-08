@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -20,8 +19,6 @@ import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.common.model.UpdateStatus;
 import fi.vm.yti.codelist.intake.domain.Domain;
-import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
-import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
@@ -45,8 +42,6 @@ public class YtiDataAccess {
     private final CodeSchemeParser codeSchemeParser;
     private final CodeParser codeParser;
     private final PropertyTypeParser propertyTypeParser;
-    private final CodeRegistryRepository codeRegistryRepository;
-    private final CodeSchemeRepository codeSchemeRepository;
     private final PropertyTypeRepository propertyTypeRepository;
 
     @Inject
@@ -56,16 +51,12 @@ public class YtiDataAccess {
                          final CodeRegistryParser codeRegistryParser,
                          final CodeParser codeParser,
                          final PropertyTypeParser propertyTypeParser,
-                         final CodeRegistryRepository codeRegistryRepository,
-                         final CodeSchemeRepository codeSchemeRepository,
                          final PropertyTypeRepository propertyTypeRepository) {
         this.domain = domain;
         this.updateManager = updateManager;
         this.codeSchemeParser = codeSchemeParser;
         this.codeRegistryParser = codeRegistryParser;
         this.codeParser = codeParser;
-        this.codeRegistryRepository = codeRegistryRepository;
-        this.codeSchemeRepository = codeSchemeRepository;
         this.propertyTypeRepository = propertyTypeRepository;
         this.propertyTypeParser = propertyTypeParser;
     }
@@ -85,7 +76,7 @@ public class YtiDataAccess {
         if (updateManager.shouldUpdateData(DATA_CODEREGISTRIES, DEFAULT_CODEREGISTRY_FILENAME)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODEREGISTRIES, SOURCE_INTERNAL, DEFAULT_CODEREGISTRY_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODEREGISTRIES + "/" + DEFAULT_CODEREGISTRY_FILENAME);) {
-                codeRegistries.addAll(codeRegistryParser.parseCodeRegistriesFromCsvInputStream(SOURCE_INTERNAL, inputStream));
+                codeRegistries.addAll(codeRegistryParser.parseCodeRegistriesFromCsvInputStream(inputStream));
                 LOG.info("CodeRegistry data loaded: " + codeRegistries.size() + " CodeRegistries in " + watch);
                 watch.reset().start();
                 domain.persistCodeRegistries(codeRegistries);
@@ -112,7 +103,7 @@ public class YtiDataAccess {
             if (updateManager.shouldUpdateData(DATA_CODESCHEMES, identifier)) {
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODESCHEMES + "/" + identifier + ".csv");) {
-                    codeSchemes.addAll(codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, SOURCE_INTERNAL, inputStream));
+                    codeSchemes.addAll(codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream));
                 } catch (IOException e) {
                     LOG.error("Issue with parsing CodeScheme file. Message: " + e.getMessage());
                     updateManager.updateFailedStatus(updateStatus);
@@ -143,7 +134,7 @@ public class YtiDataAccess {
                 final List<Code> codes = new ArrayList<>();
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODES, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODES + "/" + identifier + ".csv");) {
-                    codes.addAll(codeParser.parseCodesFromCsvInputStream(codeScheme, SOURCE_INTERNAL, inputStream));
+                    codes.addAll(codeParser.parseCodesFromCsvInputStream(codeScheme, inputStream));
                 } catch (IOException e) {
                     LOG.error("Issue with parsing Code file. Message: " + e.getMessage());
                     updateManager.updateFailedStatus(updateStatus);
@@ -169,7 +160,7 @@ public class YtiDataAccess {
         if (updateManager.shouldUpdateData(DATA_PROPERTYTYPES, DEFAULT_PROPERTYTYPE_FILENAME)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_PROPERTYTYPES, SOURCE_INTERNAL, DEFAULT_PROPERTYTYPE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME);) {
-                final List<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(SOURCE_INTERNAL, inputStream);
+                final List<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(inputStream);
                 LOG.info("PropertyType data loaded: " + propertyTypes.size() + " PropertyTypes in " + watch);
                 watch.reset().start();
                 propertyTypeRepository.save(propertyTypes);
