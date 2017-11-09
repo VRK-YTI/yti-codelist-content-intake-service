@@ -7,12 +7,15 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -32,10 +35,13 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
+import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
+import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
@@ -49,12 +55,18 @@ public class CodeSchemeParser extends AbstractBaseParser {
     private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParser.class);
     private final ApiUtils apiUtils;
     private final CodeSchemeRepository codeSchemeRepository;
+    private final CodeRepository codeRepository;
+    private final CodeRegistryRepository codeRegistryRepository;
 
     @Inject
     public CodeSchemeParser(final ApiUtils apiUtils,
-                            final CodeSchemeRepository codeSchemeRepository) {
+                            final CodeRegistryRepository codeRegistryRepository,
+                            final CodeSchemeRepository codeSchemeRepository,
+                            final CodeRepository codeRepository) {
         this.apiUtils = apiUtils;
+        this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
+        this.codeRepository = codeRepository;
     }
 
     /**
@@ -106,6 +118,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 changeNoteHeaders.forEach((language, header) -> {
                     changeNotes.put(language, record.get(header));
                 });
+                final String serviceClassificationCodes = record.get(CONTENT_HEADER_SERVICE);
+                final Set<Code> serviceClassifications = resolveServiceClassifications(serviceClassificationCodes);
                 final String version = record.get(CONTENT_HEADER_VERSION);
                 final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
                 final String legalBase = record.get(CONTENT_HEADER_LEGALBASE);
@@ -131,7 +145,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                         LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                     }
                 }
-                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, id, codeValue, version, status,
+                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, serviceClassifications, id, codeValue, version, status,
                     source, legalBase, governancePolicy, license, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
                 codeSchemes.add(codeScheme);
             }
@@ -185,6 +199,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 } else {
                     final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
                     final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
+                    final String serviceClassificationCodes = row.getCell(genericHeaders.get(CONTENT_HEADER_SERVICE)).getStringCellValue();
+                    final Set<Code> serviceClassifications = resolveServiceClassifications(serviceClassificationCodes);
                     final Map<String, String> prefLabels = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, header) -> {
                         prefLabels.put(language, row.getCell(header).getStringCellValue());
@@ -226,7 +242,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                         }
                     }
-                    final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, id, codeValue, version, status, source, legalBase, governancePolicy, license, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
+                    final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, serviceClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, license, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
                     if (codeScheme != null) {
                         codeSchemes.add(codeScheme);
                     }
@@ -237,6 +253,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
     }
 
     private CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
+                                                final Set<Code> serviceClassifications,
                                                 final UUID id,
                                                 final String codeValue,
                                                 final String version,
@@ -274,6 +291,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
             }
             if (!Objects.equals(codeScheme.getCodeRegistry(), codeRegistry)) {
                 codeScheme.setCodeRegistry(codeRegistry);
+                hasChanges = true;
+            }
+            if (!Objects.equals(codeScheme.getServiceClassifications(), serviceClassifications)) {
+                codeScheme.setServiceClassifications(serviceClassifications);
                 hasChanges = true;
             }
             if (!Objects.equals(codeScheme.getUri(), uri)) {
@@ -344,6 +365,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
             codeScheme = new CodeScheme();
             codeScheme.setId(UUID.randomUUID());
             codeScheme.setCodeRegistry(codeRegistry);
+            codeScheme.setServiceClassifications(serviceClassifications);
             if (id != null) {
                 codeScheme.setId(id);
             } else {
@@ -379,5 +401,22 @@ public class CodeSchemeParser extends AbstractBaseParser {
             codeScheme.setEndDate(endDate);
         }
         return codeScheme;
+    }
+
+    private Set<Code> resolveServiceClassifications(final String serviceClassificationCodes) {
+        final Set<Code> serviceClassifications = new HashSet<>();
+        final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(YTI_REGISTRY);
+        if (ytiRegistry != null) {
+            final CodeScheme serviceClassificationScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_SERVICE_CLASSIFICATION_CODESCHEME);
+            if (serviceClassificationScheme != null) {
+                Arrays.asList(serviceClassificationCodes.split(";")).forEach(serviceClassificationCode -> {
+                    final Code code = codeRepository.findByCodeSchemeAndCodeValue(serviceClassificationScheme, serviceClassificationCode);
+                    if (code != null) {
+                        serviceClassifications.add(code);
+                    }
+                });
+            }
+        }
+        return serviceClassifications;
     }
 }

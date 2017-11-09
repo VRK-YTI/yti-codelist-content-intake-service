@@ -31,6 +31,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 @Service
 public class YtiDataAccess {
 
+    private static final String DEFAULT_SERVICEREGISTRY_FILENAME = "serviceregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
     private static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
 
@@ -63,19 +64,22 @@ public class YtiDataAccess {
 
     public void initializeOrRefresh() {
         LOG.info("Initializing YTI DataAccess with mock/test data...");
-        final List<CodeRegistry> codeRegistries = loadDefaultCodeRegistries();
+        final List<CodeRegistry> serviceRegistries = loadDefaultCodeRegistries(DEFAULT_SERVICEREGISTRY_FILENAME);
+        final List<CodeScheme> serviceCodeSchemes = loadDefaultCodeSchemes(serviceRegistries);
+        loadDefaultCodes(serviceCodeSchemes);
+        final List<CodeRegistry> codeRegistries = loadDefaultCodeRegistries(DEFAULT_CODEREGISTRY_FILENAME);
         final List<CodeScheme> codeSchemes = loadDefaultCodeSchemes(codeRegistries);
         loadDefaultCodes(codeSchemes);
         loadDefaultPropertyTypes();
     }
 
-    private List<CodeRegistry> loadDefaultCodeRegistries() {
+    private List<CodeRegistry> loadDefaultCodeRegistries(final String filename) {
         LOG.info("Loading default CodeRegistries...");
         final List<CodeRegistry> codeRegistries = new ArrayList<>();
         final Stopwatch watch = Stopwatch.createStarted();
-        if (updateManager.shouldUpdateData(DATA_CODEREGISTRIES, DEFAULT_CODEREGISTRY_FILENAME)) {
-            final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODEREGISTRIES, SOURCE_INTERNAL, DEFAULT_CODEREGISTRY_FILENAME, UpdateManager.UPDATE_RUNNING);
-            try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODEREGISTRIES + "/" + DEFAULT_CODEREGISTRY_FILENAME);) {
+        if (updateManager.shouldUpdateData(DATA_CODEREGISTRIES, filename)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODEREGISTRIES, SOURCE_INTERNAL, filename, UpdateManager.UPDATE_RUNNING);
+            try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODEREGISTRIES + "/" + filename);) {
                 codeRegistries.addAll(codeRegistryParser.parseCodeRegistriesFromCsvInputStream(inputStream));
                 LOG.info("CodeRegistry data loaded: " + codeRegistries.size() + " CodeRegistries in " + watch);
                 watch.reset().start();

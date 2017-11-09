@@ -228,6 +228,15 @@ CREATE TABLE extension (
 );
 
 
+-- CodeScheme linking to Service Code
+
+CREATE TABLE service_codescheme_code (
+  codescheme_id uuid NOT NULL,
+  code_id uuid NOT NULL,
+  CONSTRAINT service_codescheme_code_pkey PRIMARY KEY(codescheme_id, code_id)
+);
+
+
 -- Organization
 
 CREATE TABLE organization (

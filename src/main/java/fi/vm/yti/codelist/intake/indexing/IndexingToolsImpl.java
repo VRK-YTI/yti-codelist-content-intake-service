@@ -29,6 +29,7 @@ import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODESCHEME;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 @Singleton
@@ -54,6 +55,28 @@ public class IndexingToolsImpl implements IndexingTools {
         "  \"id\": {\n" +
         "    \"type\": \"text\"},\n" +
         "  \"prefLabels\": {\n" +
+        "    \"type\": \"nested\"\n" +
+        "  }\n" +
+        "}\n}";
+
+    private static final String CODESCHEME_MAPPING = "{" +
+        "\"properties\": {\n" +
+        "  \"codeValue\": {\n" +
+        "    \"type\": \"text\"," +
+        "    \"analyzer\": \"lowercase_analyzer\",\n" +
+        "    \"fields\": {\n" +
+        "      \"keyword\": { \n" +
+        "        \"ignore_above\": 256," +
+        "        \"type\": \"keyword\"\n" +
+        "      }\n" +
+        "    }\n" +
+        "  },\n" +
+        "  \"id\": {\n" +
+        "    \"type\": \"text\"},\n" +
+        "  \"prefLabels\": {\n" +
+        "    \"type\": \"nested\"\n" +
+        "  },\n" +
+        "  \"serviceClassifications\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  }\n" +
         "}\n}";
@@ -148,7 +171,11 @@ public class IndexingToolsImpl implements IndexingTools {
                 LOG.error("Error parsing index request settings JSON!", e);
             }
             for (final String type : types) {
-                builder.addMapping(type, NESTED_PREFLABELS_MAPPING_JSON, XContentType.JSON);
+                if (ELASTIC_TYPE_CODESCHEME.equals(type)) {
+                    builder.addMapping(type, CODESCHEME_MAPPING, XContentType.JSON);
+                } else {
+                    builder.addMapping(type, NESTED_PREFLABELS_MAPPING_JSON, XContentType.JSON);
+                }
             }
             final CreateIndexResponse response = builder.get();
             if (!response.isAcknowledged()) {
