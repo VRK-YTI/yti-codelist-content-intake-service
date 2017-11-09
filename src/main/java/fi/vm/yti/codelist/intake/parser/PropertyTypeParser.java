@@ -1,12 +1,19 @@
 package fi.vm.yti.codelist.intake.parser;
 
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_PROPERTYTYPES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DEFINITION_PREFIX;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ID;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_LOCALNAME;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PREFLABEL_PREFIX;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_TYPE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_PROPERTYTYPES;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,7 +40,6 @@ import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.util.FileUtils;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
  * Class that handles parsing of PropertyTypes from source data.
@@ -155,7 +161,6 @@ public class PropertyTypeParser extends AbstractBaseParser {
                                                     final String type,
                                                     final Map<String, String> prefLabels,
                                                     final Map<String, String> definitions) {
-        final Date timeStamp = new Date(System.currentTimeMillis());
         PropertyType propertyType = null;
         String uri = null;
         if (id != null) {
