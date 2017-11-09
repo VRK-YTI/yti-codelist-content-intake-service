@@ -349,7 +349,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
             } else {
                 final UUID uuid = UUID.randomUUID();
                 if (status != Status.VALID) {
-                    uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, id.toString());
+                    uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, uuid.toString());
                 }
                 codeScheme.setId(uuid);
             }
