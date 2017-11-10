@@ -102,43 +102,44 @@ public class CodeRegistryParser extends AbstractBaseParser {
      */
     public List<CodeRegistry> parseCodeRegistriesFromExcelInputStream(final InputStream inputStream) throws Exception {
         final List<CodeRegistry> codeRegistries = new ArrayList<>();
-        final Workbook workbook = new XSSFWorkbook(inputStream);
-        final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);
-        final Iterator<Row> rowIterator = codesSheet.rowIterator();
-        final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
-        final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
-        final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
-        boolean firstRow = true;
-        while (rowIterator.hasNext()) {
-            final Row row = rowIterator.next();
-            if (firstRow) {
-                final Iterator<Cell> cellIterator = row.cellIterator();
-                while (cellIterator.hasNext()) {
-                    final Cell cell = cellIterator.next();
-                    final String value = cell.getStringCellValue();
-                    final Integer index = cell.getColumnIndex();
-                    if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                        prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), index);
-                    } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                        definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), index);
-                    } else {
-                        genericHeaders.put(value, index);
+        try (final Workbook workbook = new XSSFWorkbook(inputStream)) {
+            final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);
+            final Iterator<Row> rowIterator = codesSheet.rowIterator();
+            final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
+            boolean firstRow = true;
+            while (rowIterator.hasNext()) {
+                final Row row = rowIterator.next();
+                if (firstRow) {
+                    final Iterator<Cell> cellIterator = row.cellIterator();
+                    while (cellIterator.hasNext()) {
+                        final Cell cell = cellIterator.next();
+                        final String value = cell.getStringCellValue();
+                        final Integer index = cell.getColumnIndex();
+                        if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                            prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), index);
+                        } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
+                            definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), index);
+                        } else {
+                            genericHeaders.put(value, index);
+                        }
                     }
-                }
-                firstRow = false;
-            } else {
-                final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
-                final Map<String, String> prefLabels = new LinkedHashMap<>();
-                prefLabelHeaders.forEach((language, header) -> {
-                    prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
-                });
-                final Map<String, String> definitions = new LinkedHashMap<>();
-                definitionHeaders.forEach((language, header) -> {
-                    definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
-                });
-                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, prefLabels, definitions);
-                if (codeRegistry != null) {
-                    codeRegistries.add(codeRegistry);
+                    firstRow = false;
+                } else {
+                    final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
+                    final Map<String, String> prefLabels = new LinkedHashMap<>();
+                    prefLabelHeaders.forEach((language, header) -> {
+                        prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
+                    });
+                    final Map<String, String> definitions = new LinkedHashMap<>();
+                    definitionHeaders.forEach((language, header) -> {
+                        definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
+                    });
+                    final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, prefLabels, definitions);
+                    if (codeRegistry != null) {
+                        codeRegistries.add(codeRegistry);
+                    }
                 }
             }
         }

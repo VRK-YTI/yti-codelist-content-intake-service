@@ -111,45 +111,46 @@ public class PropertyTypeParser extends AbstractBaseParser {
      */
     public List<PropertyType> parsePropertyTypesFromExcelInputStream(final InputStream inputStream) throws Exception {
         final List<PropertyType> propertyTypes = new ArrayList<>();
-        final Workbook workbook = new XSSFWorkbook(inputStream);
-        final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_PROPERTYTYPES);
-        final Iterator<Row> rowIterator = codesSheet.rowIterator();
-        final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
-        final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
-        final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
-        boolean firstRow = true;
-        while (rowIterator.hasNext()) {
-            final Row row = rowIterator.next();
-            if (firstRow) {
-                final Iterator<Cell> cellIterator = row.cellIterator();
-                while (cellIterator.hasNext()) {
-                    final Cell cell = cellIterator.next();
-                    final String value = cell.getStringCellValue();
-                    final Integer index = cell.getColumnIndex();
-                    if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                        prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), index);
-                    } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                        definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), index);
-                    } else {
-                        genericHeaders.put(value, index);
+        try (final Workbook workbook = new XSSFWorkbook(inputStream)) {
+            final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_PROPERTYTYPES);
+            final Iterator<Row> rowIterator = codesSheet.rowIterator();
+            final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
+            boolean firstRow = true;
+            while (rowIterator.hasNext()) {
+                final Row row = rowIterator.next();
+                if (firstRow) {
+                    final Iterator<Cell> cellIterator = row.cellIterator();
+                    while (cellIterator.hasNext()) {
+                        final Cell cell = cellIterator.next();
+                        final String value = cell.getStringCellValue();
+                        final Integer index = cell.getColumnIndex();
+                        if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                            prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), index);
+                        } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
+                            definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), index);
+                        } else {
+                            genericHeaders.put(value, index);
+                        }
                     }
-                }
-                firstRow = false;
-            } else {
-                final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
-                final String localName = row.getCell(genericHeaders.get(CONTENT_HEADER_LOCALNAME)).getStringCellValue();
-                final String type = row.getCell(genericHeaders.get(CONTENT_HEADER_TYPE)).getStringCellValue();
-                final Map<String, String> prefLabels = new LinkedHashMap<>();
-                for (final String language : prefLabelHeaders.keySet()) {
-                    prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
-                }
-                final Map<String, String> definitions = new LinkedHashMap<>();
-                for (final String language : definitionHeaders.keySet()) {
-                    definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
-                }
-                final PropertyType propertyType = createOrUpdatePropertyType(id, localName, type, prefLabels, definitions);
-                if (propertyType != null) {
-                    propertyTypes.add(propertyType);
+                    firstRow = false;
+                } else {
+                    final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
+                    final String localName = row.getCell(genericHeaders.get(CONTENT_HEADER_LOCALNAME)).getStringCellValue();
+                    final String type = row.getCell(genericHeaders.get(CONTENT_HEADER_TYPE)).getStringCellValue();
+                    final Map<String, String> prefLabels = new LinkedHashMap<>();
+                    for (final String language : prefLabelHeaders.keySet()) {
+                        prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
+                    }
+                    final Map<String, String> definitions = new LinkedHashMap<>();
+                    for (final String language : definitionHeaders.keySet()) {
+                        definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
+                    }
+                    final PropertyType propertyType = createOrUpdatePropertyType(id, localName, type, prefLabels, definitions);
+                    if (propertyType != null) {
+                        propertyTypes.add(propertyType);
+                    }
                 }
             }
         }
