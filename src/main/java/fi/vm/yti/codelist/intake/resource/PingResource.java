@@ -15,9 +15,6 @@ import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_PING;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.METHOD_GET;
 
-/**
- * REST resources for service responsiveness testing.
- */
 @Component
 @Path("/ping")
 @Api(value = "ping")

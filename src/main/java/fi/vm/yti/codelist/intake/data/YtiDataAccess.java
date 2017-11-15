@@ -31,7 +31,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 @Service
 public class YtiDataAccess {
 
-    private static final String DEFAULT_SERVICEREGISTRY_FILENAME = "serviceregistries.csv";
+    private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
     private static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
 
@@ -64,7 +64,7 @@ public class YtiDataAccess {
 
     public void initializeOrRefresh() {
         LOG.info("Initializing YTI DataAccess with mock/test data...");
-        final List<CodeRegistry> serviceRegistries = loadDefaultCodeRegistries(DEFAULT_SERVICEREGISTRY_FILENAME);
+        final List<CodeRegistry> serviceRegistries = loadDefaultCodeRegistries(DEFAULT_YTIREGISTRY_FILENAME);
         final List<CodeScheme> serviceCodeSchemes = loadDefaultCodeSchemes(serviceRegistries);
         loadDefaultCodes(serviceCodeSchemes);
         final List<CodeRegistry> codeRegistries = loadDefaultCodeRegistries(DEFAULT_CODEREGISTRY_FILENAME);

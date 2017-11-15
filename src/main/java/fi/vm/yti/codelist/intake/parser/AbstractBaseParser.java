@@ -5,7 +5,7 @@ import java.util.UUID;
 public abstract class AbstractBaseParser {
 
     public static final String YTI_REGISTRY = "yti";
-    public static final String YTI_SERVICE_CLASSIFICATION_CODESCHEME = "serviceclassifications";
+    public static final String YTI_DATACLASSIFICATION_CODESCHEME = "dcat";
 
     public String resolveLanguageFromHeader(final String prefix,
                                             final String header) {

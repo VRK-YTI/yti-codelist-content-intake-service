@@ -118,8 +118,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 changeNoteHeaders.forEach((language, header) -> {
                     changeNotes.put(language, record.get(header));
                 });
-                final String serviceClassificationCodes = record.get(CONTENT_HEADER_SERVICE);
-                final Set<Code> serviceClassifications = resolveServiceClassifications(serviceClassificationCodes);
+                final String dataClassificationCodes = record.get(CONTENT_HEADER_CLASSIFICATION);
+                final Set<Code> dataClassifications = resolveServiceClassifications(dataClassificationCodes);
                 final String version = record.get(CONTENT_HEADER_VERSION);
                 final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
                 final String legalBase = record.get(CONTENT_HEADER_LEGALBASE);
@@ -145,7 +145,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                         LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                     }
                 }
-                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, serviceClassifications, id, codeValue, version, status,
+                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status,
                     source, legalBase, governancePolicy, license, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
                 codeSchemes.add(codeScheme);
             }
@@ -199,8 +199,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     } else {
                         final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
                         final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
-                        final String serviceClassificationCodes = row.getCell(genericHeaders.get(CONTENT_HEADER_SERVICE)).getStringCellValue();
-                        final Set<Code> serviceClassifications = resolveServiceClassifications(serviceClassificationCodes);
+                        final String dataClassificationCodes = row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)).getStringCellValue();
+                        final Set<Code> dataClassifications = resolveServiceClassifications(dataClassificationCodes);
                         final Map<String, String> prefLabels = new LinkedHashMap<>();
                         prefLabelHeaders.forEach((language, header) -> {
                             prefLabels.put(language, row.getCell(header).getStringCellValue());
@@ -242,7 +242,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                                 LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                             }
                         }
-                        final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, serviceClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, license, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
+                        final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, license, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
                         if (codeScheme != null) {
                             codeSchemes.add(codeScheme);
                         }
@@ -254,7 +254,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
     }
 
     private CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
-                                                final Set<Code> serviceClassifications,
+                                                final Set<Code> dataClassifications,
                                                 final UUID id,
                                                 final String codeValue,
                                                 final String version,
@@ -294,8 +294,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 codeScheme.setCodeRegistry(codeRegistry);
                 hasChanges = true;
             }
-            if (!Objects.equals(codeScheme.getServiceClassifications(), serviceClassifications)) {
-                codeScheme.setServiceClassifications(serviceClassifications);
+            if (!Objects.equals(codeScheme.getDataClassifications(), dataClassifications)) {
+                codeScheme.setDataClassifications(dataClassifications);
                 hasChanges = true;
             }
             if (!Objects.equals(codeScheme.getUri(), uri)) {
@@ -366,7 +366,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
             codeScheme = new CodeScheme();
             codeScheme.setId(UUID.randomUUID());
             codeScheme.setCodeRegistry(codeRegistry);
-            codeScheme.setServiceClassifications(serviceClassifications);
+            codeScheme.setDataClassifications(dataClassifications);
             if (id != null) {
                 codeScheme.setId(id);
             } else {
@@ -408,7 +408,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         final Set<Code> serviceClassifications = new HashSet<>();
         final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(YTI_REGISTRY);
         if (ytiRegistry != null) {
-            final CodeScheme serviceClassificationScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_SERVICE_CLASSIFICATION_CODESCHEME);
+            final CodeScheme serviceClassificationScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
             if (serviceClassificationScheme != null) {
                 Arrays.asList(serviceClassificationCodes.split(";")).forEach(serviceClassificationCode -> {
                     final Code code = codeRepository.findByCodeSchemeAndCodeValue(serviceClassificationScheme, serviceClassificationCode);

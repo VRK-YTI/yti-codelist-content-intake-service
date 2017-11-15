@@ -28,8 +28,8 @@ import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.CodeScheme;
+import fi.vm.yti.codelist.common.model.DataClassification;
 import fi.vm.yti.codelist.common.model.Meta;
-import fi.vm.yti.codelist.common.model.ServiceClassification;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
@@ -40,28 +40,25 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
-/**
- * Content Intake Service: REST resources for ExternalReference entity management.
- */
 @Component
-@Path("/v1/serviceclassifications")
-@Api(value = "serviceclassifications", description = "Operations for ServiceClassifications.")
+@Path("/v1/dataclassifications")
+@Api(value = "dataclassifications", description = "Operations for data classifications.")
 @Produces(MediaType.APPLICATION_JSON)
-public class ServiceClassificationResource extends AbstractBaseResource {
+public class DataClassificationResource extends AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceResource.class);
     private static final String YTI_REGISTRY_CODEVALUE = "yti";
-    private static final String YTI_SERVICECLASSIFICATION_SCHEME_CODEVALUE = "serviceclassifications";
+    private static final String YTI_DATACLASSIFICATION_SCHEME_CODEVALUE = "dcat";
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeRepository codeRepository;
     private final DataSource dataSource;
 
     @Inject
-    public ServiceClassificationResource(final CodeRegistryRepository codeRegistryRepository,
-                                         final CodeSchemeRepository codeSchemeRepository,
-                                         final CodeRepository codeRepository,
-                                         final DataSource dataSource) {
+    public DataClassificationResource(final CodeRegistryRepository codeRegistryRepository,
+                                      final CodeSchemeRepository codeSchemeRepository,
+                                      final CodeRepository codeRepository,
+                                      final DataSource dataSource) {
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeRepository = codeRepository;
@@ -70,22 +67,22 @@ public class ServiceClassificationResource extends AbstractBaseResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Service classification API.")
-    @ApiResponse(code = 200, message = "Returns ServiceClassifications.")
-    public Response getServiceClassifications(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand) {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_SERVICECLASSIFICATIONS + "/");
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_SERVICECLASSIFICATION, expand)));
+    @ApiOperation(value = "Data classification API.")
+    @ApiResponse(code = 200, message = "Returns data classifications.")
+    public Response getDataClassifications(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand) {
+        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_DATACLASSIFICATIONS + "/");
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_DATACLASSIFICATION, expand)));
         final Meta meta = new Meta();
-        final ResponseWrapper<ServiceClassification> wrapper = new ResponseWrapper<>();
+        final ResponseWrapper<DataClassification> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);
         final ObjectMapper mapper = new ObjectMapper();
         final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(YTI_REGISTRY_CODEVALUE);
-        final CodeScheme serviceClassificationsScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_SERVICECLASSIFICATION_SCHEME_CODEVALUE);
-        final Set<Code> codes = codeRepository.findByCodeScheme(serviceClassificationsScheme);
-        final Set<ServiceClassification> serviceClassifications = new LinkedHashSet<>();
+        final CodeScheme dataClassificationsScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_SCHEME_CODEVALUE);
+        final Set<Code> codes = codeRepository.findByCodeScheme(dataClassificationsScheme);
+        final Set<DataClassification> dataClassifications = new LinkedHashSet<>();
         final Map<String, Integer> statistics = new HashMap<>();
         try (final Connection connection = dataSource.getConnection()) {
-            final ResultSet results = connection.prepareStatement("SELECT code_id, count(code_id) from service_codescheme_code group by code_id").executeQuery();
+            final ResultSet results = connection.prepareStatement("SELECT code_id, count(code_id) FROM service_codescheme_code GROUP BY code_id").executeQuery();
             while (results.next()) {
                 statistics.put(results.getString(1), results.getInt(2));
             }
@@ -95,11 +92,11 @@ public class ServiceClassificationResource extends AbstractBaseResource {
         }
         codes.forEach(code -> {
             final Integer count = statistics.get(code.getId().toString());
-            final ServiceClassification serviceClassification = new ServiceClassification(code, count != null ? count : 0);
-            serviceClassifications.add(serviceClassification);
+            final DataClassification dataClassification = new DataClassification(code, count != null ? count : 0);
+            dataClassifications.add(dataClassification);
         });
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
-        wrapper.setResults(serviceClassifications);
+        wrapper.setResults(dataClassifications);
         return Response.ok(wrapper).build();
     }
 }

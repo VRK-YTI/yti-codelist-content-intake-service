@@ -1,13 +1,13 @@
 package fi.vm.yti.codelist.intake.jpa;
 
-public class ServiceClassificationStatistic {
+public class DataClassificationStatistic {
 
     private Integer count;
 
-    public ServiceClassificationStatistic() {
+    public DataClassificationStatistic() {
     }
 
-    public ServiceClassificationStatistic(final Integer count) {
+    public DataClassificationStatistic(final Integer count) {
         this.count = count;
     }
 

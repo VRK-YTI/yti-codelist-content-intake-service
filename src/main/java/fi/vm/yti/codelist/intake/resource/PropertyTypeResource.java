@@ -33,9 +33,6 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
-/**
- * Content Intake Service: REST resources for PropertyType entity management.
- */
 @Component
 @Path("/v1/propertytypes")
 @Api(value = "propertytypes", description = "Operations for creating, deleting and updating PropertyTypes.")
