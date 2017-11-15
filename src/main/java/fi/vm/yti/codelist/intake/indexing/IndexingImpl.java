@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fi.vm.yti.codelist.common.model.AbstractIdentifyableCode;
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.CodeScheme;
@@ -112,7 +113,33 @@ public class IndexingImpl implements Indexing {
             final BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (final T item : set) {
                 try {
-                    bulkRequest.add(client.prepareIndex(elasticIndex, elasticType).setSource(mapper.writeValueAsString(item), XContentType.JSON));
+                    final AbstractIdentifyableCode identifyableCode = (AbstractIdentifyableCode) item;
+                    bulkRequest.add(client.prepareIndex(elasticIndex, elasticType, identifyableCode.getId().toString()).setSource(mapper.writeValueAsString(item), XContentType.JSON));
+                } catch (JsonProcessingException e) {
+                    logBulkErrorWithException(name, e);
+                }
+            }
+            final BulkResponse response = bulkRequest.get();
+            success = logBulkResponse(name, response);
+        } else {
+            noContent(name);
+            success = false;
+        }
+        return success;
+    }
+
+    private <T> boolean updateData(final Set<T> set,
+                                   final String elasticIndex,
+                                   final String elasticType,
+                                   final String name) {
+        boolean success;
+        if (!set.isEmpty()) {
+            final ObjectMapper mapper = indexingTools.createObjectMapper();
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
+            for (final T item : set) {
+                try {
+                    final AbstractIdentifyableCode identifyableCode = (AbstractIdentifyableCode) item;
+                    bulkRequest.add(client.prepareUpdate(elasticIndex, elasticType, identifyableCode.getId().toString()).setDoc(mapper.writeValueAsString(item), XContentType.JSON));
                 } catch (JsonProcessingException e) {
                     logBulkErrorWithException(name, e);
                 }
@@ -144,6 +171,18 @@ public class IndexingImpl implements Indexing {
 
     private void noContent(final String type) {
         LOG.info(BULK + type + " operation failed, no content to be indexed!");
+    }
+
+    public boolean updateCode(final Code code) {
+        final Set<Code> codes = new HashSet<>();
+        codes.add(code);
+        return updateData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES);
+    }
+
+    public boolean updateCodeScheme(final CodeScheme codeScheme) {
+        final Set<CodeScheme> codeSchemes = new HashSet<>();
+        codeSchemes.add(codeScheme);
+        return updateData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
     }
 
     public boolean reIndexEverything() {

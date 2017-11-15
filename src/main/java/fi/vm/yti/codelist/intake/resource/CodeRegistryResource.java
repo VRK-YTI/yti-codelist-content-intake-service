@@ -203,10 +203,16 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         } else {
                             codeScheme.setModified(new Date(System.currentTimeMillis()));
                             codeSchemeRepository.save(codeScheme);
-                            indexing.reIndexEverything();
-                            meta.setMessage("CodeScheme " + codeSchemeCodeValue + " modified.");
-                            meta.setCode(200);
-                            return Response.ok(responseWrapper).build();
+                            final boolean success = indexing.updateCodeScheme(codeScheme);
+                            if (success) {
+                                meta.setMessage("CodeScheme " + codeSchemeCodeValue + " modified.");
+                                meta.setCode(200);
+                                return Response.ok(responseWrapper).build();
+                            } else {
+                                meta.setMessage("CodeScheme " + codeSchemeCodeValue + " modifification failed.");
+                                meta.setCode(500);
+                                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(responseWrapper).build();
+                            }
                         }
                     } else {
                         meta.setMessage("No JSON payload found.");
@@ -314,10 +320,16 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         } else {
                             code.setModified(new Date(System.currentTimeMillis()));
                             codeRepository.save(code);
-                            indexing.reIndexEverything();
-                            meta.setMessage("Code " + codeCodeValue + " modified.");
-                            meta.setCode(200);
-                            return Response.ok(responseWrapper).build();
+                            final boolean success = indexing.updateCode(code);
+                            if (success) {
+                                meta.setMessage("Code " + codeCodeValue + " modified.");
+                                meta.setCode(200);
+                                return Response.ok(responseWrapper).build();
+                            } else {
+                                meta.setMessage("CodeScheme " + codeSchemeCodeValue + " modifification failed.");
+                                meta.setCode(500);
+                                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(responseWrapper).build();
+                            }
                         }
                     } else {
                         meta.setMessage("No JSON payload found.");
