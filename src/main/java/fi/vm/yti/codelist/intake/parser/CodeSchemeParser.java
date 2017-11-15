@@ -119,7 +119,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     changeNotes.put(language, record.get(header));
                 });
                 final String dataClassificationCodes = record.get(CONTENT_HEADER_CLASSIFICATION);
-                final Set<Code> dataClassifications = resolveServiceClassifications(dataClassificationCodes);
+                final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
                 final String version = record.get(CONTENT_HEADER_VERSION);
                 final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
                 final String legalBase = record.get(CONTENT_HEADER_LEGALBASE);
@@ -200,7 +200,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                         final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
                         final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
                         final String dataClassificationCodes = row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)).getStringCellValue();
-                        final Set<Code> dataClassifications = resolveServiceClassifications(dataClassificationCodes);
+                        final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
                         final Map<String, String> prefLabels = new LinkedHashMap<>();
                         prefLabelHeaders.forEach((language, header) -> {
                             prefLabels.put(language, row.getCell(header).getStringCellValue());
@@ -404,20 +404,20 @@ public class CodeSchemeParser extends AbstractBaseParser {
         return codeScheme;
     }
 
-    private Set<Code> resolveServiceClassifications(final String serviceClassificationCodes) {
-        final Set<Code> serviceClassifications = new HashSet<>();
+    private Set<Code> resolveDataClassifications(final String dataClassificationCodes) {
+        final Set<Code> dataClassifications = new HashSet<>();
         final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(YTI_REGISTRY);
         if (ytiRegistry != null) {
-            final CodeScheme serviceClassificationScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
-            if (serviceClassificationScheme != null) {
-                Arrays.asList(serviceClassificationCodes.split(";")).forEach(serviceClassificationCode -> {
-                    final Code code = codeRepository.findByCodeSchemeAndCodeValue(serviceClassificationScheme, serviceClassificationCode);
+            final CodeScheme dataClassificationScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
+            if (dataClassificationScheme != null) {
+                Arrays.asList(dataClassificationCodes.split(";")).forEach(dataClassificationCode -> {
+                    final Code code = codeRepository.findByCodeSchemeAndCodeValue(dataClassificationScheme, dataClassificationCode);
                     if (code != null) {
-                        serviceClassifications.add(code);
+                        dataClassifications.add(code);
                     }
                 });
             }
         }
-        return serviceClassifications;
+        return dataClassifications;
     }
 }
