@@ -173,16 +173,32 @@ public class IndexingImpl implements Indexing {
         LOG.info(BULK + type + " operation failed, no content to be indexed!");
     }
 
+    public boolean updateCodes(final Set<Code> codes) {
+        boolean success = true;
+        if (!codes.isEmpty()) {
+            success = updateData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES);
+        }
+        return success;
+    }
+
     public boolean updateCode(final Code code) {
         final Set<Code> codes = new HashSet<>();
         codes.add(code);
-        return updateData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES);
+        return updateCodes(codes);
+    }
+
+    public boolean updateCodeSchemes(final Set<CodeScheme> codeSchemes) {
+        boolean success = true;
+        if (!codeSchemes.isEmpty()) {
+            return updateData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
+        }
+        return success;
     }
 
     public boolean updateCodeScheme(final CodeScheme codeScheme) {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         codeSchemes.add(codeScheme);
-        return updateData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
+        return updateCodeSchemes(codeSchemes);
     }
 
     public boolean reIndexEverything() {

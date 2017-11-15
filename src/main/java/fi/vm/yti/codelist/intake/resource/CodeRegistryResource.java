@@ -203,8 +203,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         } else {
                             codeScheme.setModified(new Date(System.currentTimeMillis()));
                             codeSchemeRepository.save(codeScheme);
-                            final boolean success = indexing.updateCodeScheme(codeScheme);
-                            if (success) {
+                            if (indexing.updateCodeScheme(codeScheme) && indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme))) {
                                 meta.setMessage("CodeScheme " + codeSchemeCodeValue + " modified.");
                                 meta.setCode(200);
                                 return Response.ok(responseWrapper).build();
