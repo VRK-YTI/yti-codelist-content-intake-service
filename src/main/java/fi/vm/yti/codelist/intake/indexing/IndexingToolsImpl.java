@@ -76,7 +76,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "  \"prefLabels\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  },\n" +
-        "  \"serviceClassifications\": {\n" +
+        "  \"dataClassifications\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  }\n" +
         "}\n}";
