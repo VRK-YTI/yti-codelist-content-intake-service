@@ -10,6 +10,7 @@ import javax.inject.Singleton;
 
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
@@ -115,6 +116,7 @@ public class IndexingImpl implements Indexing {
                 try {
                     final AbstractIdentifyableCode identifyableCode = (AbstractIdentifyableCode) item;
                     bulkRequest.add(client.prepareIndex(elasticIndex, elasticType, identifyableCode.getId().toString()).setSource(mapper.writeValueAsString(item), XContentType.JSON));
+                    bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
                 } catch (JsonProcessingException e) {
                     logBulkErrorWithException(name, e);
                 }
@@ -140,6 +142,7 @@ public class IndexingImpl implements Indexing {
                 try {
                     final AbstractIdentifyableCode identifyableCode = (AbstractIdentifyableCode) item;
                     bulkRequest.add(client.prepareUpdate(elasticIndex, elasticType, identifyableCode.getId().toString()).setDoc(mapper.writeValueAsString(item), XContentType.JSON));
+                    bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
                 } catch (JsonProcessingException e) {
                     logBulkErrorWithException(name, e);
                 }
