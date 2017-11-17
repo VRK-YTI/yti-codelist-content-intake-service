@@ -201,9 +201,9 @@ CREATE TABLE externalreference_description (
 
 CREATE TABLE extensionscheme (
   id uuid UNIQUE NOT NULL,
-  propertytypeid uuid NOT NULL,
-  codeschemeid uuid NOT NULL,
-  targetcodeschemeid uuid NOT NULL,
+  propertytype_id uuid NOT NULL,
+  codescheme_id uuid NOT NULL,
+  targetcodescheme_id uuid NOT NULL,
   startdate timestamp without time zone NULL,
   enddate timestamp without time zone NULL,
   CONSTRAINT extensionscheme_pkey PRIMARY KEY (id)
@@ -219,14 +219,14 @@ CREATE TABLE extensionscheme_preflabel (
 
 CREATE TABLE extension (
   id uuid UNIQUE NOT NULL,
-  codeid uuid NOT NULL,
-  extensionid uuid NULL,
-  extensionschemeid uuid NOT NULL,
+  code_id uuid NOT NULL,
+  extension_id uuid NULL,
+  extensionscheme_id uuid NOT NULL,
   extensionvalue text NULL,
   CONSTRAINT extension_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_codeid FOREIGN KEY (codeid) REFERENCES code (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT fk_extensionid FOREIGN KEY (extensionid) REFERENCES extension (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT fk_extensionschemeid FOREIGN KEY (extensionschemeid) REFERENCES extensionscheme (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+  CONSTRAINT fk_codeid FOREIGN KEY (code_id) REFERENCES code (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT fk_extensionid FOREIGN KEY (extension_id) REFERENCES extension (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT fk_extensionschemeid FOREIGN KEY (extensionscheme_id) REFERENCES extensionscheme (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 
