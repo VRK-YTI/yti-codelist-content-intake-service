@@ -1,13 +1,5 @@
 package fi.vm.yti.codelist.intake.parser;
 
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_PROPERTYTYPES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DEFINITION_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ID;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_LOCALNAME;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PREFLABEL_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_TYPE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_PROPERTYTYPES;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +32,7 @@ import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.util.FileUtils;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
  * Class that handles parsing of PropertyTypes from source data.
@@ -84,6 +77,8 @@ public class PropertyTypeParser extends AbstractBaseParser {
             for (final CSVRecord record : records) {
                 final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
                 final String localName = record.get(CONTENT_HEADER_LOCALNAME);
+                final String propertyUri = record.get(CONTENT_HEADER_PROPERTYURI);
+                final String context = record.get(CONTENT_HEADER_CONTEXT);
                 final String type = record.get(CONTENT_HEADER_TYPE);
                 final Map<String, String> prefLabels = new LinkedHashMap<>();
                 prefLabelHeaders.forEach((language, header) -> {
@@ -93,7 +88,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 definitionHeaders.forEach((language, header) -> {
                     definitions.put(language, record.get(header));
                 });
-                final PropertyType propertyType = createOrUpdatePropertyType(id, localName, type, prefLabels, definitions);
+                final PropertyType propertyType = createOrUpdatePropertyType(id, propertyUri, context, localName, type, prefLabels, definitions);
                 propertyTypes.add(propertyType);
             }
         } catch (IOException e) {
@@ -138,6 +133,8 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 } else {
                     final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
                     final String localName = row.getCell(genericHeaders.get(CONTENT_HEADER_LOCALNAME)).getStringCellValue();
+                    final String propertyUri = row.getCell(genericHeaders.get(CONTENT_HEADER_PROPERTYURI)).getStringCellValue();
+                    final String context = row.getCell(genericHeaders.get(CONTENT_HEADER_CONTEXT)).getStringCellValue();
                     final String type = row.getCell(genericHeaders.get(CONTENT_HEADER_TYPE)).getStringCellValue();
                     final Map<String, String> prefLabels = new LinkedHashMap<>();
                     for (final String language : prefLabelHeaders.keySet()) {
@@ -147,7 +144,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
                     for (final String language : definitionHeaders.keySet()) {
                         definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
                     }
-                    final PropertyType propertyType = createOrUpdatePropertyType(id, localName, type, prefLabels, definitions);
+                    final PropertyType propertyType = createOrUpdatePropertyType(id, propertyUri, context, localName, type, prefLabels, definitions);
                     if (propertyType != null) {
                         propertyTypes.add(propertyType);
                     }
@@ -158,6 +155,8 @@ public class PropertyTypeParser extends AbstractBaseParser {
     }
 
     private PropertyType createOrUpdatePropertyType(final UUID id,
+                                                    final String propertyUri,
+                                                    final String context,
                                                     final String localName,
                                                     final String type,
                                                     final Map<String, String> prefLabels,
@@ -169,8 +168,14 @@ public class PropertyTypeParser extends AbstractBaseParser {
             uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, id.toString());
         }
         if (propertyType != null) {
+            if (!Objects.equals(propertyType.getPropertyUri(), propertyUri)) {
+                propertyType.setPropertyUri(propertyUri);
+            }
             if (!Objects.equals(propertyType.getUri(), uri)) {
                 propertyType.setUri(uri);
+            }
+            if (!Objects.equals(propertyType.getContext(), context)) {
+                propertyType.setUri(context);
             }
             if (!Objects.equals(propertyType.getLocalName(), localName)) {
                 propertyType.setLocalName(localName);
@@ -199,9 +204,11 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, uuid.toString());
                 propertyType.setId(uuid);
             }
+            propertyType.setContext(context);
             propertyType.setLocalName(localName);
             propertyType.setType(type);
             propertyType.setUri(uri);
+            propertyType.setPropertyUri(propertyUri);
             for (final String language : prefLabels.keySet()) {
                 propertyType.setPrefLabel(language, prefLabels.get(language));
             }

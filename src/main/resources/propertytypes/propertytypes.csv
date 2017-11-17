@@ -1,2 +1,8 @@
-ID,LOCALNAME,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,DEFINITION_FI,DEFINITION_SV,DEFINITION_EN,TYPE
-,testlocalname,TestPropertyType 1,TestPropertyType 1,TestPropertyType 1,Testi määrite 1,Test definitionen 1,Test definition 1,testtype
+ID,LOCALNAME,CONTEXT,PROPERTYURI,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,DEFINITION_FI,DEFINITION_SV,DEFINITION_EN,TYPE
+,link,ExternalReference,http://purl.org/dc/terms/relation/,Linkki,,Link,Linkki ulkopuoliseen resurssiin.,,A link to the related resource.,ObjectProperty
+,source,ExternalReference,http://purl.org/dc/terms/source/,Lähde,,Source,Liittyvä resurssi jota on käytetty lähteenä.,,A related resource from which the described resource is derived.,ObjectProperty
+,instructions,ExternalReference,http://purl.org/dc/terms/instructionalMethod/,Käyttöohje,,Instructions,Viittaus käyttöohjeeseen jossa on kuvattu koodiston ja koodien käyttötarkoitus.,,"Reference to a document that describes a process that is used to engender knowledge, attitudes, and skills.",ObjectProperty
+,standard,ExternalReference,http://purl.org/dc/terms/conformsTo/,Liittyvä standardi,,Standard,Liittyvä standardi tai suositus.,,An established standard to which the described resource conforms.,ObjectProperty
+,isReferencedBy,ExternalReference,http://purl.org/dc/terms/isReferencedBy/,Käyttökohde,,Is referenced by,"Liittyvä palvelu, sovellus tai verkkosivu, jossa on viitattu koodistoon.",,"A related resource that references, cites, or otherwise points to the described resource.",ObjectProperty
+,isRequiredBy,ExternalReference,http://purl.org/dc/terms/isRequiredBy/,Käyttöedellytys,,Is required by,Liittyvä sovellus tai rajapinta jossa koodiston käyttöä on edellytetty.,,"A related resource that requires the described resource to support its function, delivery, or coherence.",ObjectProperty
+,license,ExternalReference,http://purl.org/dc/terms/license/,Lisenssi,,License,Viittaus viralliseen lisenssidokumenttiin.,,A legal document giving official permission to do something with the resource.,ObjectProperty

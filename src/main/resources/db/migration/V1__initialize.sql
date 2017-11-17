@@ -130,7 +130,9 @@ CREATE TABLE code_description (
 CREATE TABLE propertytype (
   id uuid UNIQUE NOT NULL,
   uri text UNIQUE NOT NULL,
+  propertyuri text UNIQUE NOT NULL,
   localname text UNIQUE NOT NULL,
+  context text NOT NULL,
   type text NOT NULL,
   CONSTRAINT propertytype_pkey PRIMARY KEY (id)
 );
