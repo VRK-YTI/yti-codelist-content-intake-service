@@ -12,6 +12,9 @@ thread:
     max: 50
     min: 10
 
+groupmanagement:
+  url: https://rhp-dev.suomi.fi
+
 service:
   name: yti-codelist-content-intake-service
   database-name: yti_codelist
