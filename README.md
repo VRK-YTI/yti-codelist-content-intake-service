@@ -7,7 +7,7 @@ This application is part of the [Joint metadata and information management progr
 This is the implementation of the Content Intake Service microservice for the YTI CodeList (yti-codelist) with:
 
 * [Spring boot] For getting things up and running
-* Embedded [Jetty] to serve
+* Embedded [Tomcat] to serve
 * [Jersey 2] for JAX-RS
 
 ## Interface Documentation
@@ -61,5 +61,5 @@ $ docker-compose up yti-codelist-content-intake-service
 ```
 
 [Spring boot]:http://projects.spring.io/spring-boot/
-[Jetty]:http://www.eclipse.org/jetty/
+[Tomcat]:https://tomcat.apache.org/
 [Jersey 2]:https://jersey.java.net

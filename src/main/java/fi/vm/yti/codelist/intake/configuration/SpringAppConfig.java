@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 
 import javax.sql.DataSource;
 
+import org.apache.catalina.connector.Connector;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -12,14 +13,12 @@ import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
-import org.springframework.boot.context.embedded.jetty.JettyEmbeddedServletContainerFactory;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.web.servlet.ErrorPage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.zaxxer.hikari.HikariDataSource;
@@ -41,7 +40,8 @@ public class SpringAppConfig {
     @Value(value = "${application.contextPath}")
     private String contextPath;
 
-    public SpringAppConfig() {}
+    public SpringAppConfig() {
+    }
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -49,11 +49,18 @@ public class SpringAppConfig {
     }
 
     @Bean
-    public EmbeddedServletContainerFactory servletContainer() {
-        final JettyEmbeddedServletContainerFactory factory = new JettyEmbeddedServletContainerFactory();
-        factory.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND, "/notfound.html"));
-        factory.setContextPath(contextPath);
-        return factory;
+    public EmbeddedServletContainerFactory servletContainer(@Value("${tomcat.ajp.port:}") Integer ajpPort) {
+        TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory();
+        tomcat.setContextPath(contextPath);
+        if (ajpPort != null) {
+            final Connector ajpConnector = new Connector("AJP/1.3");
+            ajpConnector.setPort(ajpPort);
+            ajpConnector.setSecure(false);
+            ajpConnector.setAllowTrace(false);
+            ajpConnector.setScheme("http");
+            tomcat.addAdditionalTomcatConnectors(ajpConnector);
+        }
+        return tomcat;
     }
 
     @ConfigurationProperties(prefix = "hikari")

@@ -7,6 +7,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.intake.resource.AuthenticatedUserResource;
 import fi.vm.yti.codelist.intake.resource.CodeRegistryResource;
 import fi.vm.yti.codelist.intake.resource.ExternalReferenceResource;
 import fi.vm.yti.codelist.intake.resource.PingResource;
@@ -62,6 +63,9 @@ public class JerseyConfig extends ResourceConfig {
 
         // Multipart support.
         register(MultiPartFeature.class);
+
+        // User authentication.
+        register(AuthenticatedUserResource.class);
 
         // Admin APIs for YTI.
         register(CodeRegistryResource.class);
