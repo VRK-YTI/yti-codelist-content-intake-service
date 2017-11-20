@@ -15,10 +15,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.servlet.ErrorPage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.zaxxer.hikari.HikariDataSource;
@@ -50,8 +52,9 @@ public class SpringAppConfig {
 
     @Bean
     public EmbeddedServletContainerFactory servletContainer(@Value("${tomcat.ajp.port:}") Integer ajpPort) {
-        TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory();
+        final TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory();
         tomcat.setContextPath(contextPath);
+        tomcat.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND, "/notfound.html"));
         if (ajpPort != null) {
             final Connector ajpConnector = new Connector("AJP/1.3");
             ajpConnector.setPort(ajpPort);
