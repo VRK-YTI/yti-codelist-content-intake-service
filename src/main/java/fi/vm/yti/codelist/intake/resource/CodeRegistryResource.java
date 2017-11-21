@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -25,19 +26,21 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.CodeScheme;
+import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.common.model.Status;
+import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.domain.Domain;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
+import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
 import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
@@ -58,30 +61,36 @@ public class CodeRegistryResource extends AbstractBaseResource {
     private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryResource.class);
     private final Domain domain;
     private final Indexing indexing;
+    private final ApiUtils apiUtils;
     private final CodeRegistryParser codeRegistryParser;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeParser codeSchemeParser;
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeParser codeParser;
     private final CodeRepository codeRepository;
+    private final ExternalReferenceRepository externalReferenceRepository;
 
     @Inject
     public CodeRegistryResource(final Domain domain,
                                 final Indexing indexing,
+                                final ApiUtils apiUtils,
                                 final CodeRegistryParser codeRegistryParser,
                                 final CodeRegistryRepository codeRegistryRepository,
                                 final CodeSchemeParser codeSchemeParser,
                                 final CodeSchemeRepository codeSchemeRepository,
                                 final CodeParser codeParser,
-                                final CodeRepository codeRepository) {
+                                final CodeRepository codeRepository,
+                                final ExternalReferenceRepository externalReferenceRepository) {
         this.domain = domain;
         this.indexing = indexing;
+        this.apiUtils = apiUtils;
         this.codeRegistryParser = codeRegistryParser;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeParser = codeSchemeParser;
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeParser = codeParser;
         this.codeRepository = codeRepository;
+        this.externalReferenceRepository = externalReferenceRepository;
     }
 
     @POST
@@ -98,8 +107,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES);
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+        final ObjectMapper mapper = createObjectMapper();
         try {
             final List<CodeRegistry> codeRegistries;
             if (jsonPayload != null && !jsonPayload.isEmpty()) {
@@ -146,8 +154,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             final List<CodeScheme> codeSchemes;
             try {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                    final ObjectMapper mapper = new ObjectMapper();
-                    mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+                    final ObjectMapper mapper = createObjectMapper();
                     codeSchemes = mapper.readValue(jsonPayload, new TypeReference<List<CodeScheme>>() {
                     });
                 } else {
@@ -181,7 +188,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Transactional
     public Response updateCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                                     @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
+                                     @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) throws WebApplicationException {
 
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + "/");
         final Meta meta = new Meta();
@@ -193,17 +200,39 @@ public class CodeRegistryResource extends AbstractBaseResource {
             if (existingCodeScheme != null) {
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                        final ObjectMapper mapper = new ObjectMapper();
-                        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+                        final ObjectMapper mapper = createObjectMapper();
                         final CodeScheme codeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
                         if (!codeScheme.getCodeValue().equalsIgnoreCase(existingCodeScheme.getCodeValue())) {
                             LOG.error("CodeScheme cannot be updated because codevalue changed: " + codeScheme.getCodeValue());
                             meta.setMessage("CodeScheme cannot be updated because codeValue changed. " + codeScheme.getCodeValue());
                             meta.setCode(406);
                         } else {
+                            final Set<ExternalReference> externalReferences = codeScheme.getExternalReferences();
+                            externalReferences.forEach(externalReference -> {
+                                boolean hasChanges = false;
+                                if (externalReference.getId() == null) {
+                                    final UUID referenceUuid = UUID.randomUUID();
+                                    externalReference.setId(referenceUuid);
+                                    externalReference.setUri(apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, referenceUuid.toString()));
+                                    hasChanges = true;
+                                }
+                                if (externalReference.getParentCodeScheme() == null) {
+                                    externalReference.setParentCodeScheme(existingCodeScheme);
+                                    hasChanges = true;
+                                }
+                                if (hasChanges) {
+                                    externalReference.setModified(new Date(System.currentTimeMillis()));
+                                }
+                            });
+                            if (!externalReferences.isEmpty()) {
+                                externalReferenceRepository.save(externalReferences);
+                                codeScheme.setExternalReferences(externalReferences);
+                            } else {
+                                codeScheme.setExternalReferences(null);
+                            }
                             codeScheme.setModified(new Date(System.currentTimeMillis()));
                             codeSchemeRepository.save(codeScheme);
-                            if (indexing.updateCodeScheme(codeScheme) && indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme))) {
+                            if (indexing.updateCodeScheme(codeScheme) && indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme)) && indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme))) {
                                 meta.setMessage("CodeScheme " + codeSchemeCodeValue + " modified.");
                                 meta.setCode(200);
                                 return Response.ok(responseWrapper).build();
@@ -218,6 +247,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         meta.setCode(406);
                     }
                 } catch (Exception e) {
+                    LOG.error("Exception storing CodeScheme: " + e.getMessage());
                     throw new WebApplicationException(e.getMessage());
                 }
             } else {
@@ -255,8 +285,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 final List<Code> codes;
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                        final ObjectMapper mapper = new ObjectMapper();
-                        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+                        final ObjectMapper mapper = createObjectMapper();
                         codes = mapper.readValue(jsonPayload, new TypeReference<List<Code>>() {
                         });
                     } else {
@@ -309,8 +338,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 final Code existingCode = codeRepository.findByCodeSchemeAndId(codeScheme, uuid);
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                        final ObjectMapper mapper = new ObjectMapper();
-                        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+                        final ObjectMapper mapper = createObjectMapper();
                         final Code code = mapper.readValue(jsonPayload, Code.class);
                         if (!code.getCodeValue().equalsIgnoreCase(existingCode.getCodeValue())) {
                             LOG.error("Code cannot be updated because CodeValue changed: " + code.getCodeValue());

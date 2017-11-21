@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Meta;
@@ -61,8 +60,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+        final ObjectMapper mapper = createObjectMapper();
         try {
             final List<ExternalReference> externalReferences;
             externalReferences = mapper.readValue(jsonPayload, new TypeReference<List<ExternalReference>>() {
@@ -93,8 +91,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/" + externalReferenceId + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+        final ObjectMapper mapper = createObjectMapper();
         final UUID uuid = UUID.fromString(externalReferenceId);
         final ExternalReference existingExternalReference = externalReferenceRepository.findById(uuid);
         if (existingExternalReference != null) {

@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.common.model.PropertyType;
@@ -61,8 +60,7 @@ public class PropertyTypeResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_PROPERTYTYPES);
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+        final ObjectMapper mapper = createObjectMapper();
         try {
             final List<PropertyType> propertyTypes = mapper.readValue(jsonPayload, new TypeReference<List<PropertyType>>() {
             });
@@ -92,8 +90,7 @@ public class PropertyTypeResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_PROPERTYTYPES + "/" + propertyTypeId);
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+        final ObjectMapper mapper = createObjectMapper();
         final UUID uuid = UUID.fromString(propertyTypeId);
         final PropertyType existingPropertyType = propertyTypeRepository.findById(uuid);
         if (existingPropertyType != null) {

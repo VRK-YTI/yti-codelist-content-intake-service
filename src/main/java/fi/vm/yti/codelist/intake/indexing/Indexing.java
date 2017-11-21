@@ -4,6 +4,7 @@ import java.util.Set;
 
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeScheme;
+import fi.vm.yti.codelist.common.model.ExternalReference;
 
 public interface Indexing {
 
@@ -14,6 +15,8 @@ public interface Indexing {
     boolean updateCodeScheme(final CodeScheme codeScheme);
 
     boolean updateCodeSchemes(final Set<CodeScheme> codeSchemes);
+
+    boolean updateExternalReferences(final Set<ExternalReference> externalReferences);
 
     boolean reIndexEverything();
 

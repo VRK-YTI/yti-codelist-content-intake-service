@@ -75,7 +75,7 @@ public class DataClassificationResource extends AbstractBaseResource {
         final Meta meta = new Meta();
         final ResponseWrapper<DataClassification> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);
-        final ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = createObjectMapper();
         final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(YTI_REGISTRY_CODEVALUE);
         final CodeScheme dataClassificationsScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_SCHEME_CODEVALUE);
         final Set<Code> codes = codeRepository.findByCodeScheme(dataClassificationsScheme);

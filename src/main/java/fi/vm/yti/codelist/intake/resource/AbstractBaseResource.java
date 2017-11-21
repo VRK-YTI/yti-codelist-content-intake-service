@@ -9,7 +9,9 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.slf4j.Logger;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
@@ -73,5 +75,12 @@ public abstract class AbstractBaseResource {
                                    final JsonGenerator g) throws IOException {
             return w.with(provider);
         }
+    }
+
+    public ObjectMapper createObjectMapper() {
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        return mapper;
     }
 }

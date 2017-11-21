@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,7 @@ public class ServiceInitializer {
     /**
      * Initialize the application, load data for services.
      */
+    @Transactional
     public void initialize() {
         updateSwaggerHost();
         LOG.info("*** Initializing data. ***");

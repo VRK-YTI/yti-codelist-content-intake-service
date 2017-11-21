@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,7 @@ public class YtiDataAccess {
         this.propertyTypeParser = propertyTypeParser;
     }
 
+    @Transactional
     public void initializeOrRefresh() {
         LOG.info("Initializing YTI DataAccess with mock/test data...");
         final List<CodeRegistry> serviceRegistries = loadDefaultCodeRegistries(DEFAULT_YTIREGISTRY_FILENAME);

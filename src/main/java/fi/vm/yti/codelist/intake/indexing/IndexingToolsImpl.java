@@ -78,6 +78,9 @@ public class IndexingToolsImpl implements IndexingTools {
         "  },\n" +
         "  \"dataClassifications\": {\n" +
         "    \"type\": \"nested\"\n" +
+        "  },\n" +
+        "  \"externalReferences\": {\n" +
+        "    \"type\": \"nested\"\n" +
         "  }\n" +
         "}\n}";
 

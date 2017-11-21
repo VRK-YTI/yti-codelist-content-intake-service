@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -28,6 +29,7 @@ import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.IndexStatus;
 import fi.vm.yti.codelist.common.model.PropertyType;
+import fi.vm.yti.codelist.common.model.Views;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
@@ -81,41 +83,43 @@ public class IndexingImpl implements Indexing {
 
     private boolean indexCodeRegistries(final String indexName) {
         final Set<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
-        return indexData(codeRegistries, indexName, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES);
+        return indexData(codeRegistries, indexName, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
     }
 
     private boolean indexCodeSchemes(final String indexName) {
         final Set<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
-        return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
+        return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
     }
 
     private boolean indexCodes(final String indexName) {
         final Set<Code> regions = codeRepository.findAll();
-        return indexData(regions, indexName, ELASTIC_TYPE_CODE, NAME_CODES);
+        return indexData(regions, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.Normal.class);
     }
 
     private boolean indexPropertyTypes(final String indexName) {
         final Set<PropertyType> propertyTypes = propertyTypeRepository.findAll();
-        return indexData(propertyTypes, indexName, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES);
+        return indexData(propertyTypes, indexName, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
     }
 
     private boolean indexExternalReferences(final String indexName) {
         final Set<ExternalReference> externalReferences = externalReferenceRepository.findAll();
-        return indexData(externalReferences, indexName, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES);
+        return indexData(externalReferences, indexName, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
     }
 
     private <T> boolean indexData(final Set<T> set,
                                   final String elasticIndex,
                                   final String elasticType,
-                                  final String name) {
+                                  final String name,
+                                  final Class jsonViewClass) {
         boolean success;
         if (!set.isEmpty()) {
             final ObjectMapper mapper = indexingTools.createObjectMapper();
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
             final BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (final T item : set) {
                 try {
                     final AbstractIdentifyableCode identifyableCode = (AbstractIdentifyableCode) item;
-                    bulkRequest.add(client.prepareIndex(elasticIndex, elasticType, identifyableCode.getId().toString()).setSource(mapper.writeValueAsString(item), XContentType.JSON));
+                    bulkRequest.add(client.prepareIndex(elasticIndex, elasticType, identifyableCode.getId().toString()).setSource(mapper.writerWithView(jsonViewClass).writeValueAsString(item), XContentType.JSON));
                     bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
                 } catch (JsonProcessingException e) {
                     logBulkErrorWithException(name, e);
@@ -133,15 +137,17 @@ public class IndexingImpl implements Indexing {
     private <T> boolean updateData(final Set<T> set,
                                    final String elasticIndex,
                                    final String elasticType,
-                                   final String name) {
+                                   final String name,
+                                   final Class jsonViewClass) {
         boolean success;
         if (!set.isEmpty()) {
             final ObjectMapper mapper = indexingTools.createObjectMapper();
+            mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
             final BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (final T item : set) {
                 try {
                     final AbstractIdentifyableCode identifyableCode = (AbstractIdentifyableCode) item;
-                    bulkRequest.add(client.prepareUpdate(elasticIndex, elasticType, identifyableCode.getId().toString()).setDoc(mapper.writeValueAsString(item), XContentType.JSON));
+                    bulkRequest.add(client.prepareUpdate(elasticIndex, elasticType, identifyableCode.getId().toString()).setDoc(mapper.writerWithView(jsonViewClass).writeValueAsString(item), XContentType.JSON));
                     bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
                 } catch (JsonProcessingException e) {
                     logBulkErrorWithException(name, e);
@@ -179,7 +185,7 @@ public class IndexingImpl implements Indexing {
     public boolean updateCodes(final Set<Code> codes) {
         boolean success = true;
         if (!codes.isEmpty()) {
-            success = updateData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES);
+            success = updateData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.Normal.class);
         }
         return success;
     }
@@ -193,7 +199,7 @@ public class IndexingImpl implements Indexing {
     public boolean updateCodeSchemes(final Set<CodeScheme> codeSchemes) {
         boolean success = true;
         if (!codeSchemes.isEmpty()) {
-            return updateData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
+            return updateData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
         }
         return success;
     }
@@ -202,6 +208,14 @@ public class IndexingImpl implements Indexing {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         codeSchemes.add(codeScheme);
         return updateCodeSchemes(codeSchemes);
+    }
+
+    public boolean updateExternalReferences(final Set<ExternalReference> externalReferences) {
+        boolean success = true;
+        if (!externalReferences.isEmpty()) {
+            return updateData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
+        }
+        return success;
     }
 
     public boolean reIndexEverything() {
