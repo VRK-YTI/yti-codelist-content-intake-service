@@ -66,17 +66,19 @@ public class YtiDataAccess {
     @Transactional
     public void initializeOrRefresh() {
         LOG.info("Initializing YTI DataAccess with mock/test data...");
-        final List<CodeRegistry> serviceRegistries = loadDefaultCodeRegistries(DEFAULT_YTIREGISTRY_FILENAME);
-        final List<CodeScheme> serviceCodeSchemes = loadDefaultCodeSchemes(serviceRegistries);
-        loadDefaultCodes(serviceCodeSchemes);
-        final List<CodeRegistry> codeRegistries = loadDefaultCodeRegistries(DEFAULT_CODEREGISTRY_FILENAME);
-        final List<CodeScheme> codeSchemes = loadDefaultCodeSchemes(codeRegistries);
-        loadDefaultCodes(codeSchemes);
+        loadRegistryContent(DEFAULT_YTIREGISTRY_FILENAME);
+        loadRegistryContent(DEFAULT_CODEREGISTRY_FILENAME);
         loadDefaultPropertyTypes();
     }
 
+    private void loadRegistryContent(final String filename) {
+        final List<CodeRegistry> coodeRegistries = loadDefaultCodeRegistries(filename);
+        final List<CodeScheme> codeSchemes = loadDefaultCodeSchemes(coodeRegistries);
+        loadDefaultCodes(codeSchemes);
+    }
+
     private List<CodeRegistry> loadDefaultCodeRegistries(final String filename) {
-        LOG.info("Loading default CodeRegistries...");
+        LOG.info("Loading default CodeRegistries fromm file: " + filename);
         final List<CodeRegistry> codeRegistries = new ArrayList<>();
         final Stopwatch watch = Stopwatch.createStarted();
         if (updateManager.shouldUpdateData(DATA_CODEREGISTRIES, filename)) {
@@ -107,6 +109,7 @@ public class YtiDataAccess {
         codeRegistries.forEach(codeRegistry -> {
             final String identifier = codeRegistry.getCodeValue();
             if (updateManager.shouldUpdateData(DATA_CODESCHEMES, identifier)) {
+                LOG.info("Loading CodeSchemes from CodeRegistry: " + identifier);
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODESCHEMES + "/" + identifier + ".csv");) {
                     codeSchemes.addAll(codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream));
@@ -137,6 +140,7 @@ public class YtiDataAccess {
         codeSchemes.forEach(codeScheme -> {
             final String identifier = codeScheme.getCodeRegistry().getCodeValue() + "_" + codeScheme.getCodeValue();
             if (updateManager.shouldUpdateData(DATA_CODES, identifier)) {
+                LOG.info("Loading Codes from CodeScheme: " + identifier);
                 final List<Code> codes = new ArrayList<>();
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODES, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODES + "/" + identifier + ".csv");) {

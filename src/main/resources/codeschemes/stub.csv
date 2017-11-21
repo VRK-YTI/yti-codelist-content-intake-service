@@ -1,0 +1,6 @@
+CODEVALUE,ID,CLASSIFICATION,VERSION,STATUS,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,DEFINITION_FI,DEFINITION_SV,DEFINITION_EN,DESCRIPTION_FI,DESCRIPTION_SV,DESCRIPTION_EN,CHANGENOTE_FI,CHANGENOTE_SV,CHANGENOTE_EN,STARTDATE,ENDDATE,SOURCE,LEGALBASE,GOVERNANCEPOLICY,LICENSE
+kielikoodit,,SOCI,1,INVALID,Kielikoodit,,Language codes,,,,,,,,,,2017-01-01,,"Kotoistus, Kielten nimiä suomeksi – kielikoodin mukaan https://kotoistus.fi/suositukset/suositukset-kielet-fi-koodi/",,,
+kohderyhmat,,SOCI,1,SUPERSEDED,Kohderyhmät,,Target groups,,,,,,,,,,2017-01-01,,KaPA,,,
+kunnat2018,,REGI,1,DRAFT,Kunnat 2018,,Municipalities 2018,,,,,,,,,,2018-01-01,,Kela. www.kela.fi/kelasto,,,
+tilat,,TECH,1,SUBMITTED,Tila,Status,Status,ISO 19135-1 -standardiluonnoksen mukaiset tilanimet.,Status tagna ifrån utkast ISO 19135-1.,These status are taken from the draft ISO 19135-1.,,,,,,,2017-01-01,,Re3gistry http://inspire.ec.europa.eu/registry/status/,,,
+dcat,,,1,RETIRED,DCAT-luokitus,,Dataset classification,,,,,,,,,,2016-03-02,,EU - http://publications.europa.eu/mdr/resource/authority/data-theme/html/data-theme-swe.html#description,,,
