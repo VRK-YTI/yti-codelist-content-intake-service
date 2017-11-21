@@ -129,7 +129,7 @@ public class IndexingImpl implements Indexing {
             success = logBulkResponse(name, response);
         } else {
             noContent(name);
-            success = false;
+            success = true;
         }
         return success;
     }
@@ -157,7 +157,7 @@ public class IndexingImpl implements Indexing {
             success = logBulkResponse(name, response);
         } else {
             noContent(name);
-            success = false;
+            success = true;
         }
         return success;
     }
@@ -179,7 +179,7 @@ public class IndexingImpl implements Indexing {
     }
 
     private void noContent(final String type) {
-        LOG.info(BULK + type + " operation failed, no content to be indexed!");
+        LOG.info(BULK + type + " operation ran, but there was no content to be indexed!");
     }
 
     public boolean updateCodes(final Set<Code> codes) {
