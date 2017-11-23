@@ -316,7 +316,7 @@
             </plugin>
 
             <!-- Spotify docker maven plugin -->
-            <!--plugin>
+            <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${spotify-docker.version}</version>
@@ -338,7 +338,7 @@
                         </resource>
                     </resources>
                 </configuration>
-            </plugin-->
+            </plugin>
 
             <!-- Swagger generation plugin -->
             <plugin>
