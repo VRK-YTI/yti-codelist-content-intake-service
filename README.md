@@ -13,8 +13,8 @@ This is the implementation of the Content Intake Service microservice for the YT
 ## Interface Documentation
 
 When the microservice is running, you can get the Swagger REST API documentation from:
-- [http://localhost:9602/api/swagger.json](http://localhost:9602/api/swagger.json)
-- [http://localhost:9602/swagger/index.html](http://localhost:9602/swagger/index.html)
+- [http://localhost:9602/api/swagger.json](http://localhost:9602/codelist-api/api/swagger.json)
+- [http://localhost:9602/swagger/index.html](http://localhost:9602/codelist-api/swagger/index.html)
 
 ## Prerequisities
 
