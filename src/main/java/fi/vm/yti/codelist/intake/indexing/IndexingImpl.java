@@ -147,7 +147,8 @@ public class IndexingImpl implements Indexing {
             for (final T item : set) {
                 try {
                     final AbstractIdentifyableCode identifyableCode = (AbstractIdentifyableCode) item;
-                    bulkRequest.add(client.prepareUpdate(elasticIndex, elasticType, identifyableCode.getId().toString()).setDoc(mapper.writerWithView(jsonViewClass).writeValueAsString(item), XContentType.JSON));
+                    final String doc = mapper.writerWithView(jsonViewClass).writeValueAsString(item);
+                    bulkRequest.add(client.prepareUpdate(elasticIndex, elasticType, identifyableCode.getId().toString()).setDoc(doc, XContentType.JSON).setUpsert(doc, XContentType.JSON));
                     bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
                 } catch (JsonProcessingException e) {
                     logBulkErrorWithException(name, e);
