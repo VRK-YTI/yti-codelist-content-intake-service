@@ -110,7 +110,7 @@ public class IndexingImpl implements Indexing {
                                   final String elasticIndex,
                                   final String elasticType,
                                   final String name,
-                                  final Class jsonViewClass) {
+                                  final Class<?> jsonViewClass) {
         boolean success;
         if (!set.isEmpty()) {
             final ObjectMapper mapper = indexingTools.createObjectMapper();
@@ -138,7 +138,7 @@ public class IndexingImpl implements Indexing {
                                    final String elasticIndex,
                                    final String elasticType,
                                    final String name,
-                                   final Class jsonViewClass) {
+                                   final Class<?> jsonViewClass) {
         boolean success;
         if (!set.isEmpty()) {
             final ObjectMapper mapper = indexingTools.createObjectMapper();
