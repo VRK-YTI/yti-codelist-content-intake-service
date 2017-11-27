@@ -95,6 +95,8 @@ public class DataClassificationResource extends AbstractBaseResource {
             final DataClassification dataClassification = new DataClassification(code, count != null ? count : 0);
             dataClassifications.add(dataClassification);
         });
+        meta.setCode(200);
+        meta.setResultCount(dataClassifications.size());
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         wrapper.setResults(dataClassifications);
         return Response.ok(wrapper).build();
