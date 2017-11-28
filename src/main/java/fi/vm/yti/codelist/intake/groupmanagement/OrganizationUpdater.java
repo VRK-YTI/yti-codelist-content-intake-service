@@ -43,7 +43,7 @@ public class OrganizationUpdater {
         this.organizationRepository = organizationRepository;
     }
 
-    @Scheduled(cron = "*/5 * * * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     public void fetchOrganizations() {
         updateOrganizations();
     }
