@@ -154,6 +154,7 @@ public class YtiDataAccess {
                 }
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     LOG.info("Code data loaded: " + codes.size() + " Codes in " + watch);
+                    watch.reset().start();
                     domain.persistCodes(codes);
                     LOG.info("Code data persisted in: " + watch);
                     updateManager.updateSuccessStatus(updateStatus);

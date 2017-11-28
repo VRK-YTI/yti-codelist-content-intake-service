@@ -202,6 +202,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         final ObjectMapper mapper = createObjectMapper();
                         final CodeScheme codeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
+                        // TODO Refactor this to use existing value as master when evaluating changes.
                         if (!codeScheme.getCodeValue().equalsIgnoreCase(existingCodeScheme.getCodeValue())) {
                             LOG.error("CodeScheme cannot be updated because codevalue changed: " + codeScheme.getCodeValue());
                             meta.setMessage("CodeScheme cannot be updated because codeValue changed. " + codeScheme.getCodeValue());

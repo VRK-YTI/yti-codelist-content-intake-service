@@ -247,15 +247,24 @@ CREATE TABLE service_codescheme_code (
 
 CREATE TABLE organization (
   id uuid UNIQUE NOT NULL,
+  url text NOT NULL,
   CONSTRAINT organization_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE organization_name (
+CREATE TABLE organization_preflabel (
   organization_id uuid NOT NULL,
   language text NOT NULL,
-  name text NOT NULL,
-  CONSTRAINT organization_name_pkey PRIMARY KEY (organization_id, language),
-  CONSTRAINT fk_organization_name FOREIGN KEY (organization_id) REFERENCES organization (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+  preflabel text NOT NULL,
+  CONSTRAINT organization_preflabel_pkey PRIMARY KEY (organization_id, language),
+  CONSTRAINT fk_organization_id FOREIGN KEY (organization_id) REFERENCES organization (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+CREATE TABLE organization_description (
+  organization_id uuid NOT NULL,
+  language text NOT NULL,
+  description text NOT NULL,
+  CONSTRAINT organization_description_pkey PRIMARY KEY (organization_id, language),
+  CONSTRAINT fk_organization_id FOREIGN KEY (organization_id) REFERENCES organization (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 CREATE TABLE coderegistry_organization (

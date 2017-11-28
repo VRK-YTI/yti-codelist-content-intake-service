@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.intake.resource.AuthenticatedUserResource;
 import fi.vm.yti.codelist.intake.resource.CodeRegistryResource;
 import fi.vm.yti.codelist.intake.resource.ExternalReferenceResource;
+import fi.vm.yti.codelist.intake.resource.OrganizationResource;
 import fi.vm.yti.codelist.intake.resource.PingResource;
 import fi.vm.yti.codelist.intake.resource.PropertyTypeResource;
 import fi.vm.yti.codelist.intake.resource.DataClassificationResource;
@@ -68,6 +69,7 @@ public class JerseyConfig extends ResourceConfig {
         register(AuthenticatedUserResource.class);
 
         // Admin APIs for YTI.
+        register(OrganizationResource.class);
         register(CodeRegistryResource.class);
         register(ExternalReferenceResource.class);
         register(PropertyTypeResource.class);

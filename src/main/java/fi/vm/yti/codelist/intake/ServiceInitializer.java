@@ -29,6 +29,7 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.VersionInformation;
 import fi.vm.yti.codelist.intake.data.YtiDataAccess;
+import fi.vm.yti.codelist.intake.groupmanagement.OrganizationUpdater;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 
@@ -43,6 +44,7 @@ public class ServiceInitializer {
     private final YtiDataAccess ytiDataAccess;
     private final Indexing indexing;
     private final ApiUtils apiUtils;
+    private final OrganizationUpdater organizationUpdater;
     private final PublicApiServiceProperties publicApiServiceProperties;
     private final VersionInformation versionInformation;
 
@@ -51,11 +53,13 @@ public class ServiceInitializer {
                               final Indexing indexing,
                               final ApiUtils apiUtils,
                               final YtiDataAccess ytiDataAccess,
+                              final OrganizationUpdater organizationUpdater,
                               final PublicApiServiceProperties publicApiServiceProperties) {
         this.versionInformation = versionInformation;
         this.indexing = indexing;
         this.apiUtils = apiUtils;
         this.ytiDataAccess = ytiDataAccess;
+        this.organizationUpdater = organizationUpdater;
         this.publicApiServiceProperties = publicApiServiceProperties;
     }
 
@@ -66,6 +70,8 @@ public class ServiceInitializer {
     public void initialize() {
         updateSwaggerHost();
         LOG.info("*** Initializing data. ***");
+        LOG.info("*** Updating organizations. ***");
+        organizationUpdater.updateOrganizations();
         final Stopwatch watch = Stopwatch.createStarted();
         ytiDataAccess.initializeOrRefresh();
         LOG.info("*** Database population took: " + watch + ". ***");
