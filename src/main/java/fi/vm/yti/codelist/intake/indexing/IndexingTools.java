@@ -10,7 +10,7 @@ public interface IndexingTools {
 
     void deleteIndex(final String indexName);
 
-    void createIndexWithNestedPrefLabels(final String indexName, final Set<String> type);
+    void createIndexWithNestedPrefLabel(final String indexName, final Set<String> type);
 
     ObjectMapper createObjectMapper();
 }

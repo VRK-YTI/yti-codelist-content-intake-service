@@ -89,17 +89,17 @@ public class CodeParser extends AbstractBaseParser {
                 for (final CSVRecord record : records) {
                     final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
                     final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
-                    final Map<String, String> prefLabels = new LinkedHashMap<>();
+                    final Map<String, String> prefLabel = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, header) -> {
-                        prefLabels.put(language, record.get(header));
+                        prefLabel.put(language, record.get(header));
                     });
-                    final Map<String, String> definitions = new LinkedHashMap<>();
+                    final Map<String, String> definition = new LinkedHashMap<>();
                     definitionHeaders.forEach((language, header) -> {
-                        definitions.put(language, record.get(header));
+                        definition.put(language, record.get(header));
                     });
-                    final Map<String, String> descriptions = new LinkedHashMap<>();
+                    final Map<String, String> description = new LinkedHashMap<>();
                     descriptionHeaders.forEach((language, header) -> {
-                        descriptions.put(language, record.get(header));
+                        description.put(language, record.get(header));
                     });
                     final String shortName = record.get(CONTENT_HEADER_SHORTNAME);
                     final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
@@ -122,7 +122,7 @@ public class CodeParser extends AbstractBaseParser {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                         }
                     }
-                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, startDate, endDate, prefLabels, descriptions, definitions);
+                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, startDate, endDate, prefLabel, description, definition);
                     if (code != null) {
                         codes.add(code);
                     }
@@ -175,17 +175,17 @@ public class CodeParser extends AbstractBaseParser {
                     } else {
                         final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
                         final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
-                        final Map<String, String> prefLabels = new LinkedHashMap<>();
+                        final Map<String, String> prefLabel = new LinkedHashMap<>();
                         prefLabelHeaders.forEach((language, haeder) -> {
-                            prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
+                            prefLabel.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
                         });
-                        final Map<String, String> definitions = new LinkedHashMap<>();
+                        final Map<String, String> definition = new LinkedHashMap<>();
                         definitionHeaders.forEach((language, header) -> {
-                            definitions.put(language, row.getCell(header).getStringCellValue());
+                            definition.put(language, row.getCell(header).getStringCellValue());
                         });
-                        final Map<String, String> descriptions = new LinkedHashMap<>();
+                        final Map<String, String> description = new LinkedHashMap<>();
                         descriptionHeaders.forEach((language, header) -> {
-                            descriptions.put(language, row.getCell(header).getStringCellValue());
+                            description.put(language, row.getCell(header).getStringCellValue());
                         });
                         final String shortName = row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)).getStringCellValue();
                         final Status status = Status.valueOf(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)).getStringCellValue());
@@ -208,7 +208,7 @@ public class CodeParser extends AbstractBaseParser {
                                 LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                             }
                         }
-                        final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, startDate, endDate, prefLabels, descriptions, definitions);
+                        final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, startDate, endDate, prefLabel, description, definition);
                         if (code != null) {
                             codes.add(code);
                         }
@@ -226,9 +226,9 @@ public class CodeParser extends AbstractBaseParser {
                                     final String shortName,
                                     final Date startDate,
                                     final Date endDate,
-                                    final Map<String, String> prefLabels,
-                                    final Map<String, String> descriptions,
-                                    final Map<String, String> definitions) throws Exception {
+                                    final Map<String, String> prefLabel,
+                                    final Map<String, String> description,
+                                    final Map<String, String> definition) throws Exception {
         Code code = null;
         if (id != null) {
             code = codeRepository.findById(id);
@@ -262,22 +262,22 @@ public class CodeParser extends AbstractBaseParser {
                 code.setShortName(shortName);
                 hasChanges = true;
             }
-            for (final String language : prefLabels.keySet()) {
-                final String value = prefLabels.get(language);
+            for (final String language : prefLabel.keySet()) {
+                final String value = prefLabel.get(language);
                 if (!Objects.equals(code.getPrefLabel(language), value)) {
                     code.setPrefLabel(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : descriptions.keySet()) {
-                final String value = descriptions.get(language);
+            for (final String language : description.keySet()) {
+                final String value = description.get(language);
                 if (!Objects.equals(code.getDescription(language), value)) {
                     code.setDescription(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : definitions.keySet()) {
-                final String value = definitions.get(language);
+            for (final String language : definition.keySet()) {
+                final String value = definition.get(language);
                 if (!Objects.equals(code.getDefinition(language), value)) {
                     code.setDefinition(language, value);
                     hasChanges = true;
@@ -313,14 +313,14 @@ public class CodeParser extends AbstractBaseParser {
             code.setShortName(shortName);
             final Date timeStamp = new Date(System.currentTimeMillis());
             code.setModified(timeStamp);
-            for (final String language : prefLabels.keySet()) {
-                code.setPrefLabel(language, prefLabels.get(language));
+            for (final String language : prefLabel.keySet()) {
+                code.setPrefLabel(language, prefLabel.get(language));
             }
-            for (final String language : descriptions.keySet()) {
-                code.setDescription(language, descriptions.get(language));
+            for (final String language : description.keySet()) {
+                code.setDescription(language, description.get(language));
             }
-            for (final String language : definitions.keySet()) {
-                code.setDefinition(language, definitions.get(language));
+            for (final String language : definition.keySet()) {
+                code.setDefinition(language, definition.get(language));
             }
             code.setStartDate(startDate);
             code.setEndDate(endDate);

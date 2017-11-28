@@ -40,7 +40,7 @@ public class IndexingToolsImpl implements IndexingTools {
     private static final String MAX_RESULT_WINDOW = "max_result_window";
     private static final int MAX_RESULT_WINDOW_SIZE = 500000;
 
-    private static final String NESTED_PREFLABELS_MAPPING_JSON = "{" +
+    private static final String NESTED_PREFLABEL_MAPPING_JSON = "{" +
         "\"properties\": {\n" +
         "  \"codeValue\": {\n" +
         "    \"type\": \"text\"," +
@@ -54,7 +54,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "  },\n" +
         "  \"id\": {\n" +
         "    \"type\": \"text\"},\n" +
-        "  \"prefLabels\": {\n" +
+        "  \"prefLabel\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  }\n" +
         "}\n}";
@@ -73,7 +73,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "  },\n" +
         "  \"id\": {\n" +
         "    \"type\": \"text\"},\n" +
-        "  \"prefLabels\": {\n" +
+        "  \"prefLabel\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  },\n" +
         "  \"dataClassifications\": {\n" +
@@ -152,7 +152,7 @@ public class IndexingToolsImpl implements IndexingTools {
      * @param indexName The name of the index to be created.
      * @param types     Set of types for this index.
      */
-    public void createIndexWithNestedPrefLabels(final String indexName, final Set<String> types) {
+    public void createIndexWithNestedPrefLabel(final String indexName, final Set<String> types) {
         final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
         if (!exists) {
             final CreateIndexRequestBuilder builder = client.admin().indices().prepareCreate(indexName);
@@ -177,7 +177,7 @@ public class IndexingToolsImpl implements IndexingTools {
                 if (ELASTIC_TYPE_CODESCHEME.equals(type)) {
                     builder.addMapping(type, CODESCHEME_MAPPING, XContentType.JSON);
                 } else {
-                    builder.addMapping(type, NESTED_PREFLABELS_MAPPING_JSON, XContentType.JSON);
+                    builder.addMapping(type, NESTED_PREFLABEL_MAPPING_JSON, XContentType.JSON);
                 }
             }
             final CreateIndexResponse response = builder.get();

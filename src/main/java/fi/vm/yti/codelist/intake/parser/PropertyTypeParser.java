@@ -80,15 +80,15 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 final String propertyUri = record.get(CONTENT_HEADER_PROPERTYURI);
                 final String context = record.get(CONTENT_HEADER_CONTEXT);
                 final String type = record.get(CONTENT_HEADER_TYPE);
-                final Map<String, String> prefLabels = new LinkedHashMap<>();
+                final Map<String, String> prefLabel = new LinkedHashMap<>();
                 prefLabelHeaders.forEach((language, header) -> {
-                    prefLabels.put(language, record.get(header));
+                    prefLabel.put(language, record.get(header));
                 });
-                final Map<String, String> definitions = new LinkedHashMap<>();
+                final Map<String, String> definition = new LinkedHashMap<>();
                 definitionHeaders.forEach((language, header) -> {
-                    definitions.put(language, record.get(header));
+                    definition.put(language, record.get(header));
                 });
-                final PropertyType propertyType = createOrUpdatePropertyType(id, propertyUri, context, localName, type, prefLabels, definitions);
+                final PropertyType propertyType = createOrUpdatePropertyType(id, propertyUri, context, localName, type, prefLabel, definition);
                 propertyTypes.add(propertyType);
             }
         } catch (IOException e) {
@@ -136,15 +136,15 @@ public class PropertyTypeParser extends AbstractBaseParser {
                     final String propertyUri = row.getCell(genericHeaders.get(CONTENT_HEADER_PROPERTYURI)).getStringCellValue();
                     final String context = row.getCell(genericHeaders.get(CONTENT_HEADER_CONTEXT)).getStringCellValue();
                     final String type = row.getCell(genericHeaders.get(CONTENT_HEADER_TYPE)).getStringCellValue();
-                    final Map<String, String> prefLabels = new LinkedHashMap<>();
+                    final Map<String, String> prefLabel = new LinkedHashMap<>();
                     for (final String language : prefLabelHeaders.keySet()) {
-                        prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
+                        prefLabel.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
                     }
-                    final Map<String, String> definitions = new LinkedHashMap<>();
+                    final Map<String, String> definition = new LinkedHashMap<>();
                     for (final String language : definitionHeaders.keySet()) {
-                        definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
+                        definition.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
                     }
-                    final PropertyType propertyType = createOrUpdatePropertyType(id, propertyUri, context, localName, type, prefLabels, definitions);
+                    final PropertyType propertyType = createOrUpdatePropertyType(id, propertyUri, context, localName, type, prefLabel, definition);
                     if (propertyType != null) {
                         propertyTypes.add(propertyType);
                     }
@@ -159,8 +159,8 @@ public class PropertyTypeParser extends AbstractBaseParser {
                                                     final String context,
                                                     final String localName,
                                                     final String type,
-                                                    final Map<String, String> prefLabels,
-                                                    final Map<String, String> definitions) {
+                                                    final Map<String, String> prefLabel,
+                                                    final Map<String, String> definition) {
         PropertyType propertyType = null;
         String uri = null;
         if (id != null) {
@@ -183,14 +183,14 @@ public class PropertyTypeParser extends AbstractBaseParser {
             if (!Objects.equals(propertyType.getType(), type)) {
                 propertyType.setType(type);
             }
-            for (final String language : prefLabels.keySet()) {
-                final String value = prefLabels.get(language);
+            for (final String language : prefLabel.keySet()) {
+                final String value = prefLabel.get(language);
                 if (!Objects.equals(propertyType.getPrefLabel(language), value)) {
                     propertyType.setPrefLabel(language, value);
                 }
             }
-            for (final String language : definitions.keySet()) {
-                final String value = definitions.get(language);
+            for (final String language : definition.keySet()) {
+                final String value = definition.get(language);
                 if (!Objects.equals(propertyType.getDefinition(language), value)) {
                     propertyType.setDefinition(language, value);
                 }
@@ -209,11 +209,11 @@ public class PropertyTypeParser extends AbstractBaseParser {
             propertyType.setType(type);
             propertyType.setUri(uri);
             propertyType.setPropertyUri(propertyUri);
-            for (final String language : prefLabels.keySet()) {
-                propertyType.setPrefLabel(language, prefLabels.get(language));
+            for (final String language : prefLabel.keySet()) {
+                propertyType.setPrefLabel(language, prefLabel.get(language));
             }
-            for (final String language : definitions.keySet()) {
-                propertyType.setDefinition(language, definitions.get(language));
+            for (final String language : definition.keySet()) {
+                propertyType.setDefinition(language, definition.get(language));
             }
         }
         return propertyType;

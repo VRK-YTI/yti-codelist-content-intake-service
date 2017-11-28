@@ -266,7 +266,7 @@ public class IndexingImpl implements Indexing {
         final Set<String> types = new HashSet<>();
         types.add(type);
 
-        indexingTools.createIndexWithNestedPrefLabels(indexName, types);
+        indexingTools.createIndexWithNestedPrefLabel(indexName, types);
 
         boolean success = true;
         switch (indexAlias) {

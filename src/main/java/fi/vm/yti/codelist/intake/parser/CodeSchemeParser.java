@@ -102,21 +102,21 @@ public class CodeSchemeParser extends AbstractBaseParser {
             for (final CSVRecord record : records) {
                 final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
                 final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
-                final Map<String, String> prefLabels = new LinkedHashMap<>();
+                final Map<String, String> prefLabel = new LinkedHashMap<>();
                 prefLabelHeaders.forEach((language, header) -> {
-                    prefLabels.put(language, record.get(header));
+                    prefLabel.put(language, record.get(header));
                 });
-                final Map<String, String> definitions = new LinkedHashMap<>();
+                final Map<String, String> definition = new LinkedHashMap<>();
                 definitionHeaders.forEach((language, header) -> {
-                    definitions.put(language, record.get(header));
+                    definition.put(language, record.get(header));
                 });
-                final Map<String, String> descriptions = new LinkedHashMap<>();
+                final Map<String, String> description = new LinkedHashMap<>();
                 descriptionHeaders.forEach((language, header) -> {
-                    descriptions.put(language, record.get(header));
+                    description.put(language, record.get(header));
                 });
-                final Map<String, String> changeNotes = new LinkedHashMap<>();
+                final Map<String, String> changeNote = new LinkedHashMap<>();
                 changeNoteHeaders.forEach((language, header) -> {
-                    changeNotes.put(language, record.get(header));
+                    changeNote.put(language, record.get(header));
                 });
                 final String dataClassificationCodes = record.get(CONTENT_HEADER_CLASSIFICATION);
                 final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
@@ -146,7 +146,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     }
                 }
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status,
-                    source, legalBase, governancePolicy, license, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
+                    source, legalBase, governancePolicy, license, startDate, endDate, prefLabel, description, definition, changeNote);
                 codeSchemes.add(codeScheme);
             }
         } catch (IOException e) {
@@ -201,21 +201,21 @@ public class CodeSchemeParser extends AbstractBaseParser {
                         final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
                         final String dataClassificationCodes = row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)).getStringCellValue();
                         final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
-                        final Map<String, String> prefLabels = new LinkedHashMap<>();
+                        final Map<String, String> prefLabel = new LinkedHashMap<>();
                         prefLabelHeaders.forEach((language, header) -> {
-                            prefLabels.put(language, row.getCell(header).getStringCellValue());
+                            prefLabel.put(language, row.getCell(header).getStringCellValue());
                         });
-                        final Map<String, String> definitions = new LinkedHashMap<>();
+                        final Map<String, String> definition = new LinkedHashMap<>();
                         definitionHeaders.forEach((language, header) -> {
-                            definitions.put(language, row.getCell(header).getStringCellValue());
+                            definition.put(language, row.getCell(header).getStringCellValue());
                         });
-                        final Map<String, String> descriptions = new LinkedHashMap<>();
+                        final Map<String, String> description = new LinkedHashMap<>();
                         descriptionHeaders.forEach((language, header) -> {
-                            descriptions.put(language, row.getCell(header).getStringCellValue());
+                            description.put(language, row.getCell(header).getStringCellValue());
                         });
-                        final Map<String, String> changeNotes = new LinkedHashMap<>();
+                        final Map<String, String> changeNote = new LinkedHashMap<>();
                         changeNoteHeaders.forEach((language, header) -> {
-                            changeNotes.put(language, row.getCell(header).getStringCellValue());
+                            changeNote.put(language, row.getCell(header).getStringCellValue());
                         });
                         final String version = row.getCell(genericHeaders.get(CONTENT_HEADER_VERSION)).getStringCellValue();
                         final Status status = Status.valueOf(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)).getStringCellValue());
@@ -242,7 +242,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                                 LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                             }
                         }
-                        final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, license, startDate, endDate, prefLabels, descriptions, definitions, changeNotes);
+                        final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, license, startDate, endDate, prefLabel, description, definition, changeNote);
                         if (codeScheme != null) {
                             codeSchemes.add(codeScheme);
                         }
@@ -265,10 +265,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
                                                 final String license,
                                                 final Date startDate,
                                                 final Date endDate,
-                                                final Map<String, String> prefLabels,
-                                                final Map<String, String> descriptions,
-                                                final Map<String, String> definitions,
-                                                final Map<String, String> changeNotes) throws Exception {
+                                                final Map<String, String> prefLabel,
+                                                final Map<String, String> description,
+                                                final Map<String, String> definition,
+                                                final Map<String, String> changeNote) throws Exception {
         CodeScheme codeScheme = null;
         if (id != null) {
             codeScheme = codeSchemeRepository.findById(id);
@@ -318,29 +318,29 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 codeScheme.setLicense(license);
                 hasChanges = true;
             }
-            for (final String language : prefLabels.keySet()) {
-                final String value = prefLabels.get(language);
+            for (final String language : prefLabel.keySet()) {
+                final String value = prefLabel.get(language);
                 if (!Objects.equals(codeScheme.getPrefLabel(language), value)) {
                     codeScheme.setPrefLabel(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : descriptions.keySet()) {
-                final String value = descriptions.get(language);
+            for (final String language : description.keySet()) {
+                final String value = description.get(language);
                 if (!Objects.equals(codeScheme.getDescription(language), value)) {
                     codeScheme.setDescription(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : definitions.keySet()) {
-                final String value = definitions.get(language);
+            for (final String language : definition.keySet()) {
+                final String value = definition.get(language);
                 if (!Objects.equals(codeScheme.getDefinition(language), value)) {
                     codeScheme.setDefinition(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : changeNotes.keySet()) {
-                final String value = changeNotes.get(language);
+            for (final String language : changeNote.keySet()) {
+                final String value = changeNote.get(language);
                 if (!Objects.equals(codeScheme.getChangeNote(language), value)) {
                     codeScheme.setChangeNote(language, value);
                     hasChanges = true;
@@ -384,17 +384,17 @@ public class CodeSchemeParser extends AbstractBaseParser {
             codeScheme.setLicense(license);
             final Date timeStamp = new Date(System.currentTimeMillis());
             codeScheme.setModified(timeStamp);
-            for (final String language : prefLabels.keySet()) {
-                codeScheme.setPrefLabel(language, prefLabels.get(language));
+            for (final String language : prefLabel.keySet()) {
+                codeScheme.setPrefLabel(language, prefLabel.get(language));
             }
-            for (final String language : descriptions.keySet()) {
-                codeScheme.setDescription(language, descriptions.get(language));
+            for (final String language : description.keySet()) {
+                codeScheme.setDescription(language, description.get(language));
             }
-            for (final String language : definitions.keySet()) {
-                codeScheme.setDefinition(language, definitions.get(language));
+            for (final String language : definition.keySet()) {
+                codeScheme.setDefinition(language, definition.get(language));
             }
-            for (final String language : changeNotes.keySet()) {
-                codeScheme.setChangeNote(language, changeNotes.get(language));
+            for (final String language : changeNote.keySet()) {
+                codeScheme.setChangeNote(language, changeNote.get(language));
             }
             codeScheme.setVersion(version);
             codeScheme.setStatus(status.toString());

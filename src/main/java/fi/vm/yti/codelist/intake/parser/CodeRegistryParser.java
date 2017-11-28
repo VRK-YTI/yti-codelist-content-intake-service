@@ -76,15 +76,15 @@ public class CodeRegistryParser extends AbstractBaseParser {
             final List<CSVRecord> records = csvParser.getRecords();
             records.forEach(record -> {
                 final String code = record.get(CONTENT_HEADER_CODEVALUE);
-                final Map<String, String> prefLabels = new LinkedHashMap<>();
+                final Map<String, String> prefLabel = new LinkedHashMap<>();
                 prefLabelHeaders.forEach((language, header) -> {
-                    prefLabels.put(language, record.get(header));
+                    prefLabel.put(language, record.get(header));
                 });
-                final Map<String, String> definitions = new LinkedHashMap<>();
+                final Map<String, String> definition = new LinkedHashMap<>();
                 definitionHeaders.forEach((language, header) -> {
-                    definitions.put(language, record.get(header));
+                    definition.put(language, record.get(header));
                 });
-                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(code, prefLabels, definitions);
+                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(code, prefLabel, definition);
                 if (codeRegistry != null) {
                     codeRegistries.add(codeRegistry);
                 }
@@ -128,15 +128,15 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     firstRow = false;
                 } else {
                     final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
-                    final Map<String, String> prefLabels = new LinkedHashMap<>();
+                    final Map<String, String> prefLabel = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, header) -> {
-                        prefLabels.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
+                        prefLabel.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
                     });
-                    final Map<String, String> definitions = new LinkedHashMap<>();
+                    final Map<String, String> definition = new LinkedHashMap<>();
                     definitionHeaders.forEach((language, header) -> {
-                        definitions.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
+                        definition.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
                     });
-                    final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, prefLabels, definitions);
+                    final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, prefLabel, definition);
                     if (codeRegistry != null) {
                         codeRegistries.add(codeRegistry);
                     }
@@ -147,8 +147,8 @@ public class CodeRegistryParser extends AbstractBaseParser {
     }
 
     private CodeRegistry createOrUpdateCodeRegistry(final String codeValue,
-                                                    final Map<String, String> prefLabels,
-                                                    final Map<String, String> definitions) {
+                                                    final Map<String, String> prefLabel,
+                                                    final Map<String, String> definition) {
         final Map<String, CodeRegistry> existingCodeRegistriesMap = parserUtils.getCodeRegistriesMap();
         final String uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES, codeValue);
         final Date timeStamp = new Date(System.currentTimeMillis());
@@ -159,15 +159,15 @@ public class CodeRegistryParser extends AbstractBaseParser {
                 codeRegistry.setUri(uri);
                 hasChanges = true;
             }
-            for (final String language : prefLabels.keySet()) {
-                final String value = prefLabels.get(language);
+            for (final String language : prefLabel.keySet()) {
+                final String value = prefLabel.get(language);
                 if (!Objects.equals(codeRegistry.getPrefLabel(language), value)) {
                     codeRegistry.setPrefLabel(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : definitions.keySet()) {
-                final String value = definitions.get(language);
+            for (final String language : definition.keySet()) {
+                final String value = definition.get(language);
                 if (!Objects.equals(codeRegistry.getDefinition(language), value)) {
                     codeRegistry.setDefinition(language, value);
                     hasChanges = true;
@@ -182,11 +182,11 @@ public class CodeRegistryParser extends AbstractBaseParser {
             codeRegistry.setUri(uri);
             codeRegistry.setCodeValue(codeValue);
             codeRegistry.setModified(timeStamp);
-            for (final String language : prefLabels.keySet()) {
-                codeRegistry.setPrefLabel(language, prefLabels.get(language));
+            for (final String language : prefLabel.keySet()) {
+                codeRegistry.setPrefLabel(language, prefLabel.get(language));
             }
-            for (final String language : definitions.keySet()) {
-                codeRegistry.setDefinition(language, definitions.get(language));
+            for (final String language : definition.keySet()) {
+                codeRegistry.setDefinition(language, definition.get(language));
             }
         }
         return codeRegistry;

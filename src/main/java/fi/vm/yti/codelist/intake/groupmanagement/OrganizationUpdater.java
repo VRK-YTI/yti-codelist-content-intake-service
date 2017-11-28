@@ -73,8 +73,8 @@ public class OrganizationUpdater {
             final Organization organization = new Organization();
             organization.setId(groupManagementOrganization.getUuid());
             organization.setUrl(groupManagementOrganization.getUrl());
-            organization.setPrefLabels(groupManagementOrganization.getPrefLabel());
-            organization.setDescriptions(groupManagementOrganization.getDescription());
+            organization.setPrefLabel(groupManagementOrganization.getPrefLabel());
+            organization.setDescription(groupManagementOrganization.getDescription());
             organizations.add(organization);
         }
         if (!organizations.isEmpty()) {
