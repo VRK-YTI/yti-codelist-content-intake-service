@@ -83,7 +83,7 @@ public class IndexingImpl implements Indexing {
 
     private boolean indexCodeRegistries(final String indexName) {
         final Set<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
-        return indexData(codeRegistries, indexName, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
+        return indexData(codeRegistries, indexName, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.ExtendedCodeRegistry.class);
     }
 
     private boolean indexCodeSchemes(final String indexName) {

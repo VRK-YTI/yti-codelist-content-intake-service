@@ -228,9 +228,9 @@ CREATE TABLE extension (
   extensionscheme_id uuid NOT NULL,
   extensionvalue text NULL,
   CONSTRAINT extension_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_codeid FOREIGN KEY (code_id) REFERENCES code (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT fk_extensionid FOREIGN KEY (extension_id) REFERENCES extension (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT fk_extensionschemeid FOREIGN KEY (extensionscheme_id) REFERENCES extensionscheme (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+  CONSTRAINT fk_code_id FOREIGN KEY (code_id) REFERENCES code (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT fk_extension_id FOREIGN KEY (extension_id) REFERENCES extension (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT fk_extensionscheme_id FOREIGN KEY (extensionscheme_id) REFERENCES extensionscheme (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 
@@ -268,11 +268,11 @@ CREATE TABLE organization_description (
 );
 
 CREATE TABLE coderegistry_organization (
-  codescheme_id uuid NULL,
+  coderegistry_id uuid NULL,
   organization_id uuid NULL,
-  CONSTRAINT coderegistry_organization_pkey PRIMARY KEY (codescheme_id, organization_id),
-  CONSTRAINT fk_coderegistry_id FOREIGN KEY (codescheme_id) REFERENCES codescheme (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT fk_coderegistry_organization FOREIGN KEY (organization_id) REFERENCES organization (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+  CONSTRAINT coderegistry_organization_pkey PRIMARY KEY (coderegistry_id, organization_id),
+  CONSTRAINT fk_coderegistry_id FOREIGN KEY (coderegistry_id) REFERENCES coderegistry (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT fk_organization_id FOREIGN KEY (organization_id) REFERENCES organization (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
 

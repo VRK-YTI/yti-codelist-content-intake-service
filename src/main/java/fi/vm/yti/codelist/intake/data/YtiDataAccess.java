@@ -3,7 +3,10 @@ package fi.vm.yti.codelist.intake.data;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -17,9 +20,11 @@ import com.google.common.base.Stopwatch;
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.CodeScheme;
+import fi.vm.yti.codelist.common.model.Organization;
 import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.common.model.UpdateStatus;
 import fi.vm.yti.codelist.intake.domain.Domain;
+import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
@@ -31,6 +36,9 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Service
 public class YtiDataAccess {
+
+    private static final String VRK_ORG_ID = "d9c76d52-03d3-4480-8c2c-b66e6d9c57f2";
+    private static final String TEST_ORG_ID = "74a41211-8c99-4835-a519-7a61612b1098";
 
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
@@ -45,6 +53,7 @@ public class YtiDataAccess {
     private final CodeParser codeParser;
     private final PropertyTypeParser propertyTypeParser;
     private final PropertyTypeRepository propertyTypeRepository;
+    private final OrganizationRepository organizationRepository;
 
     @Inject
     public YtiDataAccess(final Domain domain,
@@ -53,7 +62,8 @@ public class YtiDataAccess {
                          final CodeRegistryParser codeRegistryParser,
                          final CodeParser codeParser,
                          final PropertyTypeParser propertyTypeParser,
-                         final PropertyTypeRepository propertyTypeRepository) {
+                         final PropertyTypeRepository propertyTypeRepository,
+                         final OrganizationRepository organizationRepository) {
         this.domain = domain;
         this.updateManager = updateManager;
         this.codeSchemeParser = codeSchemeParser;
@@ -61,23 +71,27 @@ public class YtiDataAccess {
         this.codeParser = codeParser;
         this.propertyTypeRepository = propertyTypeRepository;
         this.propertyTypeParser = propertyTypeParser;
+        this.organizationRepository = organizationRepository;
     }
 
     @Transactional
     public void initializeOrRefresh() {
         LOG.info("Initializing YTI DataAccess with mock/test data...");
-        loadRegistryContent(DEFAULT_YTIREGISTRY_FILENAME);
-        loadRegistryContent(DEFAULT_CODEREGISTRY_FILENAME);
+        final Organization vrkOrganization = organizationRepository.findById(UUID.fromString(VRK_ORG_ID));
+        loadRegistryContent(DEFAULT_YTIREGISTRY_FILENAME, vrkOrganization);
+        final Organization testOrganization = organizationRepository.findById(UUID.fromString(TEST_ORG_ID));
+        loadRegistryContent(DEFAULT_CODEREGISTRY_FILENAME, testOrganization);
         loadDefaultPropertyTypes();
     }
 
-    private void loadRegistryContent(final String filename) {
-        final List<CodeRegistry> coodeRegistries = loadDefaultCodeRegistries(filename);
+    private void loadRegistryContent(final String filename, final Organization organization) {
+        final List<CodeRegistry> coodeRegistries = loadDefaultCodeRegistries(filename, organization);
         final List<CodeScheme> codeSchemes = loadDefaultCodeSchemes(coodeRegistries);
         loadDefaultCodes(codeSchemes);
     }
 
-    private List<CodeRegistry> loadDefaultCodeRegistries(final String filename) {
+    private List<CodeRegistry> loadDefaultCodeRegistries(final String filename,
+                                                         final Organization organization) {
         LOG.info("Loading default CodeRegistries fromm file: " + filename);
         final List<CodeRegistry> codeRegistries = new ArrayList<>();
         final Stopwatch watch = Stopwatch.createStarted();
@@ -85,6 +99,11 @@ public class YtiDataAccess {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODEREGISTRIES, SOURCE_INTERNAL, filename, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODEREGISTRIES + "/" + filename);) {
                 codeRegistries.addAll(codeRegistryParser.parseCodeRegistriesFromCsvInputStream(inputStream));
+                for (final CodeRegistry codeRegistry : codeRegistries) {
+                    final Set<Organization> organizations = new HashSet<>();
+                    organizations.add(organization);
+                    codeRegistry.setOrganizations(organizations);
+                }
                 LOG.info("CodeRegistry data loaded: " + codeRegistries.size() + " CodeRegistries in " + watch);
                 watch.reset().start();
                 domain.persistCodeRegistries(codeRegistries);
