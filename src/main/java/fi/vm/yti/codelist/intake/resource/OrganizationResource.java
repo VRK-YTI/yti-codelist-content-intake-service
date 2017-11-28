@@ -44,9 +44,9 @@ public class OrganizationResource extends AbstractBaseResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Data classification API.")
-    @ApiResponse(code = 200, message = "Returns data classifications.")
-    public Response getDataClassifications(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand) {
+    @ApiOperation(value = "Organizations API.")
+    @ApiResponse(code = 200, message = "Returns organizations.")
+    public Response getOrganizations(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand) {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ORGANIZATIONS + "/");
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_ORGANIZATION, expand)));
         final Meta meta = new Meta();
