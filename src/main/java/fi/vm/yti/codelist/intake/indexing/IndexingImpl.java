@@ -114,7 +114,7 @@ public class IndexingImpl implements Indexing {
         boolean success;
         if (!set.isEmpty()) {
             final ObjectMapper mapper = indexingTools.createObjectMapper();
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
             final BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (final T item : set) {
                 try {
