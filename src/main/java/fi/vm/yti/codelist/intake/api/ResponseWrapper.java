@@ -18,6 +18,10 @@ public class ResponseWrapper<T> {
     public ResponseWrapper() {
     }
 
+    public ResponseWrapper(final Meta meta) {
+        this.meta = meta;
+    }
+
     public Meta getMeta() {
         return meta;
     }

@@ -5,13 +5,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -52,13 +53,13 @@ public class CodeRegistryParser extends AbstractBaseParser {
     }
 
     /**
-     * Parses the .csv CodeRegistry-file and returns the coderegistries as an arrayList.
+     * Parses the .csv CodeRegistry-file and returns the coderegistries as a set.
      *
      * @param inputStream The CodeRegistry-file.
-     * @return List of CodeRegistry objects.
+     * @return Set of CodeRegistry objects.
      */
-    public List<CodeRegistry> parseCodeRegistriesFromCsvInputStream(final InputStream inputStream) {
-        final List<CodeRegistry> codeRegistries = new ArrayList<>();
+    public Set<CodeRegistry> parseCodeRegistriesFromCsvInputStream(final InputStream inputStream) {
+        final Set<CodeRegistry> codeRegistries = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -95,13 +96,14 @@ public class CodeRegistryParser extends AbstractBaseParser {
         return codeRegistries;
     }
 
-    /* Parses the .xls CodeResistry Excel-file and returns the CodeRegistries as an arrayList.
+    /**
+     * Parses the .xls CodeRegistry Excel-file and returns the CodeRegistries as a set.
      *
      * @param inputStream The CodeRegistry containing Excel -file.
-     * @return            List of CodeRegistry objects.
+     * @return Set of CodeRegistry objects.
      */
-    public List<CodeRegistry> parseCodeRegistriesFromExcelInputStream(final InputStream inputStream) throws Exception {
-        final List<CodeRegistry> codeRegistries = new ArrayList<>();
+    public Set<CodeRegistry> parseCodeRegistriesFromExcelInputStream(final InputStream inputStream) throws Exception {
+        final Set<CodeRegistry> codeRegistries = new HashSet<>();
         try (final Workbook workbook = new XSSFWorkbook(inputStream)) {
             final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);
             final Iterator<Row> rowIterator = codesSheet.rowIterator();

@@ -6,13 +6,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -58,15 +59,15 @@ public class CodeParser extends AbstractBaseParser {
     }
 
     /**
-     * Parses the .csv Code-file and returns the codes as an arrayList.
+     * Parses the .csv Code-file and returns the codes as a set.
      *
      * @param codeScheme  CodeScheme codeValue identifier.
      * @param inputStream The Code -file.
-     * @return List of Code objects.
+     * @return Set of Code objects.
      */
-    public List<Code> parseCodesFromCsvInputStream(final CodeScheme codeScheme,
-                                                   final InputStream inputStream) throws Exception {
-        final List<Code> codes = new ArrayList<>();
+    public Set<Code> parseCodesFromCsvInputStream(final CodeScheme codeScheme,
+                                                  final InputStream inputStream) throws Exception {
+        final Set<Code> codes = new HashSet<>();
         if (codeScheme != null) {
             try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                  final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -135,15 +136,15 @@ public class CodeParser extends AbstractBaseParser {
     }
 
     /**
-     * Parses the .xls Code-file and returns the codes as an arrayList.
+     * Parses the .xls Code-file and returns the codes as a set.
      *
      * @param codeScheme  CodeScheme for which these codes are for.
      * @param inputStream The Code containing Excel -file.
-     * @return List of Code objects.
+     * @return Set of Code objects.
      */
-    public List<Code> parseCodesFromExcelInputStream(final CodeScheme codeScheme,
-                                                     final InputStream inputStream) throws Exception {
-        final List<Code> codes = new ArrayList<>();
+    public Set<Code> parseCodesFromExcelInputStream(final CodeScheme codeScheme,
+                                                    final InputStream inputStream) throws Exception {
+        final Set<Code> codes = new HashSet<>();
         if (codeScheme != null) {
             try (final Workbook workbook = new XSSFWorkbook(inputStream)) {
                 final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_CODES);

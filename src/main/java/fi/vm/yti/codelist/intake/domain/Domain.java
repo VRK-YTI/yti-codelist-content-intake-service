@@ -1,6 +1,6 @@
 package fi.vm.yti.codelist.intake.domain;
 
-import java.util.List;
+import java.util.Set;
 
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
@@ -12,9 +12,9 @@ public interface Domain {
      * Methods for persisting data to PostgreSQL.
      */
 
-    void persistCodeRegistries(final List<CodeRegistry> codeRegistries);
+    void persistCodeRegistries(final Set<CodeRegistry> codeRegistries);
 
-    void persistCodeSchemes(final List<CodeScheme> codeSchemes);
+    void persistCodeSchemes(final Set<CodeScheme> codeSchemes);
 
-    void persistCodes(final List<Code> codes);
+    void persistCodes(final Set<Code> codes);
 }

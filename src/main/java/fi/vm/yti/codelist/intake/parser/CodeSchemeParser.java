@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -70,14 +69,14 @@ public class CodeSchemeParser extends AbstractBaseParser {
     }
 
     /**
-     * Parses the .csv CodeScheme-file and returns the codeschemes as an arrayList.
+     * Parses the .csv CodeScheme-file and returns the codeschemes as a set.
      *
      * @param inputStream The CodeScheme -file.
-     * @return            List of CodeScheme objects.
+     * @return List of CodeScheme objects.
      */
-    public List<CodeScheme> parseCodeSchemesFromCsvInputStream(final CodeRegistry codeRegistry,
-                                                               final InputStream inputStream) throws Exception {
-        final List<CodeScheme> codeSchemes = new ArrayList<>();
+    public Set<CodeScheme> parseCodeSchemesFromCsvInputStream(final CodeRegistry codeRegistry,
+                                                              final InputStream inputStream) throws Exception {
+        final Set<CodeScheme> codeSchemes = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -156,15 +155,15 @@ public class CodeSchemeParser extends AbstractBaseParser {
     }
 
     /*
-     * Parses the .xls CodeScheme Excel-file and returns the CodeSchemes as an arrayList.
+     * Parses the .xls CodeScheme Excel-file and returns the CodeSchemes as a set.
      *
      * @param codeRegistry CodeRegistry.
      * @param inputStream The Code containing Excel -file.
      * @return List of Code objects.
      */
-    public List<CodeScheme> parseCodeSchemesFromExcelInputStream(final CodeRegistry codeRegistry,
-                                                                 final InputStream inputStream) throws Exception {
-        final List<CodeScheme> codeSchemes = new ArrayList<>();
+    public Set<CodeScheme> parseCodeSchemesFromExcelInputStream(final CodeRegistry codeRegistry,
+                                                                final InputStream inputStream) throws Exception {
+        final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (codeRegistry != null) {
             try (final Workbook workbook = new XSSFWorkbook(inputStream)) {
                 final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);

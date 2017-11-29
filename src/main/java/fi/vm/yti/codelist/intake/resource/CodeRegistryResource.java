@@ -1,8 +1,8 @@
 package fi.vm.yti.codelist.intake.resource;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -11,10 +11,12 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
@@ -35,6 +38,7 @@ import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
+import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.domain.Domain;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
@@ -102,32 +106,38 @@ public class CodeRegistryResource extends AbstractBaseResource {
         @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
     })
     @Transactional
-    public Response addOrUpdateCodeRegistries(@ApiParam(value = "JSON playload for CodeRegistry data.", required = false) final String jsonPayload,
+    public Response addOrUpdateCodeRegistries(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("JSON") final String format,
+                                              @ApiParam(value = "JSON playload for CodeRegistry data.", required = false) final String jsonPayload,
                                               @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES);
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
         final Meta meta = new Meta();
-        final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
+        final ResponseWrapper<CodeRegistry> wrapper = new ResponseWrapper<>(meta);
         final ObjectMapper mapper = createObjectMapper();
         try {
-            final List<CodeRegistry> codeRegistries;
-            if (jsonPayload != null && !jsonPayload.isEmpty()) {
+            Set<CodeRegistry> codeRegistries = new HashSet<>();
+            if (FORMAT_JSON.equals(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
                 codeRegistries = mapper.readValue(jsonPayload, new TypeReference<List<CodeRegistry>>() {
                 });
-            } else {
+            } else if (FORMAT_CSV.equals(format)) {
                 codeRegistries = codeRegistryParser.parseCodeRegistriesFromCsvInputStream(inputStream);
+            } else if (FORMAT_EXCEL.equals(format)) {
+                codeRegistries = codeRegistryParser.parseCodeRegistriesFromExcelInputStream(inputStream);
             }
             for (final CodeRegistry register : codeRegistries) {
                 LOG.debug("CodeRegistry parsed from input: " + register.getCodeValue());
             }
             if (!codeRegistries.isEmpty()) {
                 domain.persistCodeRegistries(codeRegistries);
+                // TODO only reindex relevant data.
                 indexing.reIndexEverything();
             }
             meta.setMessage("CodeRegistries added or modified: " + codeRegistries.size());
             meta.setCode(200);
+            wrapper.setResults(codeRegistries);
             return Response.ok(wrapper).build();
-        } catch (final IOException e) {
-            LOG.error("Error parsing CodeRegistries from JSON.", e.getMessage());
+        } catch (Exception e) {
+            LOG.error("Error parsing CodeRegistries.", e.getMessage());
             meta.setCode(400);
             return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
         }
@@ -143,22 +153,26 @@ public class CodeRegistryResource extends AbstractBaseResource {
         @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
     })
     @Transactional
-    public Response addOrUpdateCodeSchemes(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+    public Response addOrUpdateCodeSchemes(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("JSON") final String format,
+                                           @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                            @ApiParam(value = "JSON playload for CodeScheme data.", required = false) final String jsonPayload,
                                            @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/");
         final Meta meta = new Meta();
-        final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
+        final ResponseWrapper<CodeScheme> responseWrapper = new ResponseWrapper<>(meta);
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry")));
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            final List<CodeScheme> codeSchemes;
+            Set<CodeScheme> codeSchemes = new HashSet<>();
             try {
-                if (jsonPayload != null && !jsonPayload.isEmpty()) {
+                if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
                     final ObjectMapper mapper = createObjectMapper();
                     codeSchemes = mapper.readValue(jsonPayload, new TypeReference<List<CodeScheme>>() {
                     });
-                } else {
+                } else if (FORMAT_CSV.equalsIgnoreCase(format)) {
                     codeSchemes = codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream);
+                } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
+                    codeSchemes = codeSchemeParser.parseCodeSchemesFromExcelInputStream(codeRegistry, inputStream);
                 }
             } catch (final Exception e) {
                 throw new WebApplicationException(e.getMessage());
@@ -168,10 +182,15 @@ public class CodeRegistryResource extends AbstractBaseResource {
             }
             if (!codeSchemes.isEmpty()) {
                 domain.persistCodeSchemes(codeSchemes);
-                indexing.reIndexEverything();
+                indexing.updateCodeSchemes(codeSchemes);
+                for (final CodeScheme codeScheme : codeSchemes) {
+                    indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme));
+                    indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme));
+                }
             }
             meta.setMessage("CodeSchemes added or modified: " + codeSchemes.size());
             meta.setCode(200);
+            responseWrapper.setResults(codeSchemes);
             return Response.ok(responseWrapper).build();
         }
         meta.setMessage("CodeScheme with code: " + codeRegistryCodeValue + " does not exist yet, please creater register first.");
@@ -180,23 +199,22 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Modifies single existing CodeScheme.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
     public Response updateCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
                                      @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) throws WebApplicationException {
 
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + "/");
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeId + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            final UUID uuid = UUID.fromString(codeSchemeCodeValue);
-            final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, uuid);
+            final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (existingCodeScheme != null) {
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
@@ -234,11 +252,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
                             codeScheme.setModified(new Date(System.currentTimeMillis()));
                             codeSchemeRepository.save(codeScheme);
                             if (indexing.updateCodeScheme(codeScheme) && indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme)) && indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme))) {
-                                meta.setMessage("CodeScheme " + codeSchemeCodeValue + " modified.");
+                                meta.setMessage("CodeScheme " + codeSchemeId + " modified.");
                                 meta.setCode(200);
                                 return Response.ok(responseWrapper).build();
                             } else {
-                                meta.setMessage("CodeScheme " + codeSchemeCodeValue + " modifification failed.");
+                                meta.setMessage("CodeScheme " + codeSchemeId + " modifification failed.");
                                 meta.setCode(500);
                                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(responseWrapper).build();
                             }
@@ -252,7 +270,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     throw new WebApplicationException(e.getMessage());
                 }
             } else {
-                meta.setMessage("CodeScheme with code: " + codeSchemeCodeValue + " does not exist yet, please create codeScheme first.");
+                meta.setMessage("CodeScheme: " + codeSchemeId + " does not exist yet, please create codeScheme first.");
                 meta.setCode(406);
             }
         } else {
@@ -263,7 +281,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/codes/")
     @Consumes({MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiResponse(code = 200, message = "Returns success.")
@@ -271,26 +289,30 @@ public class CodeRegistryResource extends AbstractBaseResource {
         @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
     })
     @Transactional
-    public Response addOrUpdateCodes(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+    public Response addOrUpdateCodes(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("JSON") final String format,
+                                     @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
                                      @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream,
                                      @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
 
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/");
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeId + API_PATH_CODES + "/");
         final Meta meta = new Meta();
-        final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
+        final ResponseWrapper<Code> responseWrapper = new ResponseWrapper<>(meta);
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODE, "codeRegistry,codeScheme")));
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
-                final List<Code> codes;
+                Set<Code> codes = new HashSet<>();
                 try {
-                    if (jsonPayload != null && !jsonPayload.isEmpty()) {
+                    if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
                         final ObjectMapper mapper = createObjectMapper();
                         codes = mapper.readValue(jsonPayload, new TypeReference<List<Code>>() {
                         });
-                    } else {
+                    } else if (FORMAT_CSV.equalsIgnoreCase(format)) {
                         codes = codeParser.parseCodesFromCsvInputStream(codeScheme, inputStream);
+                    } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
+                        codes = codeParser.parseCodesFromExcelInputStream(codeScheme, inputStream);
                     }
                 } catch (Exception e) {
                     throw new WebApplicationException(e.getMessage());
@@ -300,43 +322,43 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 }
                 if (!codes.isEmpty()) {
                     domain.persistCodes(codes);
-                    indexing.reIndexEverything();
+                    indexing.updateCodes(codes);
                 }
                 meta.setMessage("Codes added or modified: " + codes.size());
                 meta.setCode(200);
+                responseWrapper.setResults(codes);
                 return Response.ok(responseWrapper).build();
             } else {
-                meta.setMessage("CodeScheme with code: " + codeSchemeCodeValue + " does not exist yet, please create codeScheme first.");
+                meta.setMessage("CodeScheme with id: " + codeSchemeId + " does not exist yet, please create codeScheme first.");
                 meta.setCode(406);
             }
         } else {
-            meta.setMessage("CodeRegistry with code: " + codeRegistryCodeValue + " does not exist yet, please create registry first.");
+            meta.setMessage("CodeRegistry with id: " + codeRegistryCodeValue + " does not exist yet, please create registry first.");
             meta.setCode(406);
         }
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/{codeCodeValue}")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/codes/{codeId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Modifies single existing Code.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
     public Response updateCode(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                               @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                               @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue,
+                               @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
+                               @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeId") final String codeId,
                                @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
 
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + codeCodeValue + "/");
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeId + API_PATH_CODES + "/" + codeId + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
-                final UUID uuid = UUID.fromString(codeCodeValue);
-                final Code existingCode = codeRepository.findByCodeSchemeAndId(codeScheme, uuid);
+                final Code existingCode = codeRepository.findByCodeSchemeAndId(codeScheme, UUID.fromString(codeId));
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         final ObjectMapper mapper = createObjectMapper();
@@ -350,11 +372,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
                             codeRepository.save(code);
                             final boolean success = indexing.updateCode(code);
                             if (success) {
-                                meta.setMessage("Code " + codeCodeValue + " modified.");
+                                meta.setMessage("Code " + codeId + " modified.");
                                 meta.setCode(200);
                                 return Response.ok(responseWrapper).build();
                             } else {
-                                meta.setMessage("CodeScheme " + codeSchemeCodeValue + " modifification failed.");
+                                meta.setMessage("Code " + codeId + " modifification failed.");
                                 meta.setCode(500);
                                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(responseWrapper).build();
                             }
@@ -367,7 +389,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     throw new WebApplicationException(e.getMessage());
                 }
             } else {
-                meta.setMessage("CodeScheme with CodeValue: " + codeSchemeCodeValue + " does not exist yet, please create codeScheme first.");
+                meta.setMessage("CodeScheme with id: " + codeSchemeId + " does not exist yet, please create codeScheme first.");
                 meta.setCode(406);
             }
         } else {
@@ -378,22 +400,22 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @DELETE
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/{codeCodeValue}")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/codes/{codeId}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single code. This means that the item status is set to Status.RETIRED.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
     public Response retireCode(@ApiParam(value = "CodeRegistry codeValue.", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                               @ApiParam(value = "CodeScheme codeValue.", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                               @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue) {
-        logApiRequest(LOG, METHOD_DELETE, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + codeCodeValue + "/");
+                               @ApiParam(value = "CodeScheme codeValue.", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
+                               @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeId") final String codeId) {
+        logApiRequest(LOG, METHOD_DELETE, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeId + API_PATH_CODES + "/" + codeId + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeId);
             if (codeScheme != null) {
-                final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
+                final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeId);
                 if (code != null) {
                     code.setStatus(Status.RETIRED.toString());
                     codeRepository.save(code);
@@ -402,15 +424,15 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     meta.setCode(200);
                     return Response.ok(responseWrapper).build();
                 } else {
-                    meta.setMessage("Code " + codeCodeValue + " not found!");
+                    meta.setMessage("Code " + codeId + " not found!");
                     meta.setCode(404);
                 }
             } else {
-                meta.setMessage("CodeScheme " + codeSchemeCodeValue + " not found!");
+                meta.setMessage("CodeScheme with id: " + codeSchemeId + " not found!");
                 meta.setCode(404);
             }
         } else {
-            meta.setMessage("CodeRegistry " + codeRegistryCodeValue + " not found!");
+            meta.setMessage("CodeRegistry with codeValue: " + codeRegistryCodeValue + " not found!");
             meta.setCode(404);
         }
         return Response.status(Response.Status.NOT_FOUND).entity(responseWrapper).build();

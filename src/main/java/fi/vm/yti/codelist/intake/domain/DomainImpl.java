@@ -1,6 +1,6 @@
 package fi.vm.yti.codelist.intake.domain;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -31,15 +31,15 @@ public class DomainImpl implements Domain {
         this.codeRepository = codeRepository;
     }
 
-    public void persistCodeRegistries(final List<CodeRegistry> codeRegistries) {
+    public void persistCodeRegistries(final Set<CodeRegistry> codeRegistries) {
         codeRegistryRepository.save(codeRegistries);
     }
 
-    public void persistCodeSchemes(final List<CodeScheme> codeSchemes) {
+    public void persistCodeSchemes(final Set<CodeScheme> codeSchemes) {
         codeSchemeRepository.save(codeSchemes);
     }
 
-    public void persistCodes(final List<Code> codes) {
+    public void persistCodes(final Set<Code> codes) {
         codeRepository.save(codes);
     }
 }
