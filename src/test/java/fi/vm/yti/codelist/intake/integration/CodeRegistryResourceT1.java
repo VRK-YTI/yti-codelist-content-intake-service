@@ -23,6 +23,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import fi.vm.yti.codelist.intake.ContentIntakeServiceApplication;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODEREGISTRIES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_CSV;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
@@ -42,7 +43,7 @@ public class CodeRegistryResourceT1 extends AbstractIntegrationTestBase {
     @Test
     @Transactional
     public void postRegistriesTest() {
-        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES);
+        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + "?format=" + FORMAT_CSV;
         final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<String, Object>();
         final String registryFilePath = "/" + CODEREGISTRIES_FOLDER_NAME + "/" + TEST_CODEREGISTRY_FILENAME;
         parameters.add("file", new ClassPathResource(registryFilePath));
@@ -51,6 +52,6 @@ public class CodeRegistryResourceT1 extends AbstractIntegrationTestBase {
         final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<LinkedMultiValueMap<String, Object>>(parameters, headers);
         final ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class, "");
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(codeRegistryRepository.findAll().size(), 8);
+        assertEquals(8, codeRegistryRepository.findAll().size());
     }
 }

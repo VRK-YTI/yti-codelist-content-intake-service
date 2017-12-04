@@ -53,18 +53,18 @@ public class CodeResourceT3 extends AbstractIntegrationTestBase {
     @Test
     @Transactional
     public void postCodesToCodeSchemeTest() {
-        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + TEST_CODEREGISTRY_CODEVALUE + API_PATH_CODESCHEMES + "/" + TEST_CODESCHEME_CODEVALUE + API_PATH_CODES + "/";
-        final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<String, Object>();
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(TEST_CODEREGISTRY_CODEVALUE);
+        final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, TEST_CODESCHEME_CODEVALUE);
+        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + TEST_CODEREGISTRY_CODEVALUE + API_PATH_CODESCHEMES + "/" + codeScheme.getId().toString() + API_PATH_CODES + "/" + "?format=" + FORMAT_CSV;;
+        final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
         final String registryFilePath = "/" + CODES_FOLDER_NAME + "/" + TEST_CODE_FILENAME;
         parameters.add("file", new ClassPathResource(registryFilePath));
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<LinkedMultiValueMap<String, Object>>(parameters, headers);
+        final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(parameters, headers);
         final ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class, "");
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(TEST_CODEREGISTRY_CODEVALUE);
         assertNotNull(codeRegistry);
-        final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, TEST_CODESCHEME_CODEVALUE);
         assertNotNull(codeScheme);
         assertEquals(9, codeRepository.findByCodeScheme(codeScheme).size());
     }
