@@ -106,7 +106,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
     })
     @Transactional
-    public Response addOrUpdateCodeRegistries(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("JSON") final String format,
+    public Response addOrUpdateCodeRegistries(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
                                               @ApiParam(value = "JSON playload for CodeRegistry data.", required = false) final String jsonPayload,
                                               @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES);
@@ -116,12 +116,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final ObjectMapper mapper = createObjectMapper();
         try {
             Set<CodeRegistry> codeRegistries = new HashSet<>();
-            if (FORMAT_JSON.equals(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
+            if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
                 codeRegistries = mapper.readValue(jsonPayload, new TypeReference<List<CodeRegistry>>() {
                 });
-            } else if (FORMAT_CSV.equals(format)) {
+            } else if (FORMAT_CSV.equalsIgnoreCase(format)) {
                 codeRegistries = codeRegistryParser.parseCodeRegistriesFromCsvInputStream(inputStream);
-            } else if (FORMAT_EXCEL.equals(format)) {
+            } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
                 codeRegistries = codeRegistryParser.parseCodeRegistriesFromExcelInputStream(inputStream);
             }
             for (final CodeRegistry register : codeRegistries) {
@@ -153,7 +153,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
     })
     @Transactional
-    public Response addOrUpdateCodeSchemes(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("JSON") final String format,
+    public Response addOrUpdateCodeSchemes(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
                                            @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                            @ApiParam(value = "JSON playload for CodeScheme data.", required = false) final String jsonPayload,
                                            @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
@@ -289,7 +289,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
     })
     @Transactional
-    public Response addOrUpdateCodes(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("JSON") final String format,
+    public Response addOrUpdateCodes(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
                                      @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
                                      @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream,
