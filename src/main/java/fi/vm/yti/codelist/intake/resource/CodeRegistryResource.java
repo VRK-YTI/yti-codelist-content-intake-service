@@ -48,6 +48,7 @@ import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
 import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
+import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -55,6 +56,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.security.AuthorizationException.check;
 
 @Component
 @Path("/v1/coderegistries")
@@ -73,6 +75,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     private final CodeParser codeParser;
     private final CodeRepository codeRepository;
     private final ExternalReferenceRepository externalReferenceRepository;
+    private final AuthorizationManager authorizationManager;
 
     @Inject
     public CodeRegistryResource(final Domain domain,
@@ -84,7 +87,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                 final CodeSchemeRepository codeSchemeRepository,
                                 final CodeParser codeParser,
                                 final CodeRepository codeRepository,
-                                final ExternalReferenceRepository externalReferenceRepository) {
+                                final ExternalReferenceRepository externalReferenceRepository,
+                                final AuthorizationManager authorizationManager) {
         this.domain = domain;
         this.indexing = indexing;
         this.apiUtils = apiUtils;
@@ -95,6 +99,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         this.codeParser = codeParser;
         this.codeRepository = codeRepository;
         this.externalReferenceRepository = externalReferenceRepository;
+        this.authorizationManager = authorizationManager;
     }
 
     @POST
@@ -358,6 +363,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
+                check(authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations()));
                 final Code existingCode = codeRepository.findByCodeSchemeAndId(codeScheme, UUID.fromString(codeId));
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
