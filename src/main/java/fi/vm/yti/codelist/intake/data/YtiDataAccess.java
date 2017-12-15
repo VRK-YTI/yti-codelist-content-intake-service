@@ -91,7 +91,7 @@ public class YtiDataAccess {
 
     private Set<CodeRegistry> loadDefaultCodeRegistries(final String filename,
                                                         final Organization organization) {
-        LOG.info("Loading default CodeRegistries fromm file: " + filename);
+        LOG.info("Loading default CodeRegistries from file: " + filename);
         final Set<CodeRegistry> codeRegistries = new HashSet<>();
         final Stopwatch watch = Stopwatch.createStarted();
         if (updateManager.shouldUpdateData(DATA_CODEREGISTRIES, filename)) {
