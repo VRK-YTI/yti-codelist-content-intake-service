@@ -1,9 +1,5 @@
 package fi.vm.yti.codelist.intake.groupmanagement;
 
-import static fi.vm.yti.codelist.common.constants.ApiConstants.GROUPMANAGEMENT_PUBLIC_API;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.GROUPMANAGEMENT_USERS;
-import static org.springframework.http.HttpMethod.GET;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -16,10 +12,13 @@ import org.springframework.web.client.RestTemplate;
 
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.configuration.ImpersonateProperties;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.GROUPMANAGEMENT_PUBLIC_API;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.GROUPMANAGEMENT_USERS;
+import static org.springframework.http.HttpMethod.GET;
 
 @Component
 public class ImpersonateUserService {
-    
+
     private final GroupManagementProperties groupManagementProperties;
     private final ImpersonateProperties fakeLoginProperties;
     private final RestTemplate restTemplate;
@@ -29,8 +28,8 @@ public class ImpersonateUserService {
         this.groupManagementProperties = groupManagementProperties;
         this.fakeLoginProperties = fakeLoginProperties;
         this.restTemplate = new RestTemplate();
-    }    
-    
+    }
+
     @NotNull
     public List<GroupManagementUser> getUsers() {
         if (fakeLoginProperties.isAllowed()) {
