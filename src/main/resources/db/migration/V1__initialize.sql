@@ -41,8 +41,8 @@ CREATE TABLE codescheme (
   legalbase text NULL,
   governancepolicy text NULL,
   license text NULL,
-  startdate timestamp without time zone NULL,
-  enddate timestamp without time zone NULL,
+  startdate date NULL,
+  enddate date NULL,
   modified timestamp without time zone NOT NULL,
   coderegistry_id uuid NULL,
   CONSTRAINT codescheme_pkey PRIMARY KEY (id),
@@ -90,8 +90,8 @@ CREATE TABLE code (
   codevalue text NOT NULL,
   status text NOT NULL,
   shortname text NULL,
-  startdate timestamp without time zone NULL,
-  enddate timestamp without time zone NULL,
+  startdate date NULL,
+  enddate date NULL,
   modified timestamp without time zone NOT NULL,
   codescheme_id uuid NOT NULL,
   broadercode_id uuid NULL,
@@ -208,8 +208,8 @@ CREATE TABLE extensionscheme (
   propertytype_id uuid NOT NULL,
   codescheme_id uuid NOT NULL,
   targetcodescheme_id uuid NOT NULL,
-  startdate timestamp without time zone NULL,
-  enddate timestamp without time zone NULL,
+  startdate date NULL,
+  enddate date NULL,
   CONSTRAINT extensionscheme_pkey PRIMARY KEY (id)
 );
 
@@ -363,8 +363,8 @@ CREATE TABLE updatestatus (
   status text NOT NULL,
   version text NOT NULL,
   nextVersion text NULL,
-  startdate timestamp without time zone NULL,
-  enddate timestamp without time zone NULL,
+  startdate date NULL,
+  enddate date NULL,
   modified timestamp without time zone NOT NULL,
   CONSTRAINT updatestatus_pkey PRIMARY KEY (id)
 );
