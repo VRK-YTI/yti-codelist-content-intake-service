@@ -3,7 +3,6 @@ package fi.vm.yti.codelist.intake.resource;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -103,17 +102,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
-    @Consumes({MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_JSON})
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses CodeRegistries from input data.")
+    @ApiOperation(value = "Parses CodeRegistries from JSON input data.")
     @ApiResponse(code = 200, message = "Returns success.")
-    @ApiImplicitParams({
-        @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
-    })
     @Transactional
-    public Response addOrUpdateCodeRegistries(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
-                                              @ApiParam(value = "JSON playload for CodeRegistry data.", required = false) final String jsonPayload,
-                                              @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+    public Response addOrUpdateCodeRegistriesFromJson(@ApiParam(value = "JSON playload for CodeRegistry data.", required = true) final String jsonPayload) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES);
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
         final Meta meta = new Meta();
@@ -121,10 +115,56 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final ObjectMapper mapper = createObjectMapper();
         try {
             Set<CodeRegistry> codeRegistries = new HashSet<>();
-            if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
-                codeRegistries = mapper.readValue(jsonPayload, new TypeReference<List<CodeRegistry>>() {
+            if (jsonPayload != null && !jsonPayload.isEmpty()) {
+                codeRegistries = mapper.readValue(jsonPayload, new TypeReference<Set<CodeRegistry>>() {
                 });
-            } else if (FORMAT_CSV.equalsIgnoreCase(format)) {
+                for (final CodeRegistry codeRegistry : codeRegistries) {
+                    if (codeRegistry.getId() == null) {
+                        codeRegistry.setId(UUID.randomUUID());
+                        final String uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES, codeRegistry.getCodeValue());
+                        codeRegistry.setUri(uri);
+                        codeRegistry.setModified(new Date(System.currentTimeMillis()));
+                    }
+                }
+            }
+            for (final CodeRegistry register : codeRegistries) {
+                LOG.debug("CodeRegistry parsed from input: " + register.getCodeValue());
+            }
+            if (!codeRegistries.isEmpty()) {
+                domain.persistCodeRegistries(codeRegistries);
+                // TODO only reindex relevant data.
+                indexing.reIndexEverything();
+            }
+            meta.setMessage("CodeRegistries added or modified: " + codeRegistries.size());
+            meta.setCode(200);
+            wrapper.setResults(codeRegistries);
+            return Response.ok(wrapper).build();
+        } catch (Exception e) {
+            LOG.error("Error parsing CodeRegistries.", e.getMessage());
+            meta.setCode(400);
+            return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
+        }
+    }
+
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Parses CodeRegistries from input data.")
+    @ApiResponse(code = 200, message = "Returns success.")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
+    })
+    @Transactional
+    public Response addOrUpdateCodeRegistriesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
+                                                      @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES);
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
+        final Meta meta = new Meta();
+        final ResponseWrapper<CodeRegistry> wrapper = new ResponseWrapper<>(meta);
+        final ObjectMapper mapper = createObjectMapper();
+        try {
+            Set<CodeRegistry> codeRegistries = new HashSet<>();
+            if (FORMAT_CSV.equalsIgnoreCase(format)) {
                 codeRegistries = codeRegistryParser.parseCodeRegistriesFromCsvInputStream(inputStream);
             } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
                 codeRegistries = codeRegistryParser.parseCodeRegistriesFromExcelInputStream(inputStream);
@@ -150,7 +190,68 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
     @POST
     @Path("{codeRegistryCodeValue}/codeschemes/")
-    @Consumes({MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_JSON})
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Parses CodeSchemes from input data.")
+    @ApiResponse(code = 200, message = "Retuwrns success.")
+    @Transactional
+    public Response addOrUpdateCodeSchemesFromJson(@ApiParam(value = "Format for input.", required = false) @QueryParam("format") @DefaultValue("json") final String format,
+                                                   @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                                   @ApiParam(value = "JSON playload for CodeScheme data.", required = true) final String jsonPayload) {
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/");
+        final Meta meta = new Meta();
+        final ResponseWrapper<CodeScheme> responseWrapper = new ResponseWrapper<>(meta);
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry,code")));
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        if (codeRegistry != null) {
+            Set<CodeScheme> codeSchemes = new HashSet<>();
+            try {
+                if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
+                    final ObjectMapper mapper = createObjectMapper();
+                    codeSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<CodeScheme>>() {
+                    });
+                    for (final CodeScheme codeScheme : codeSchemes) {
+                        if (codeScheme.getId() == null) {
+                            codeScheme.setId(UUID.randomUUID());
+                            if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
+                                final String uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, codeScheme.getCodeValue());
+                                codeScheme.setUri(uri);
+                            } else {
+                                final String uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, codeScheme.getId().toString());
+                                codeScheme.setUri(uri);
+                            }
+                        }
+                        codeScheme.setCodeRegistry(codeRegistry);
+                        codeScheme.setModified(new Date(System.currentTimeMillis()));
+                    }
+                }
+            } catch (final Exception e) {
+                throw new WebApplicationException(e.getMessage());
+            }
+            for (final CodeScheme codeScheme : codeSchemes) {
+                LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
+            }
+            if (!codeSchemes.isEmpty()) {
+                domain.persistCodeSchemes(codeSchemes);
+                indexing.updateCodeSchemes(codeSchemes);
+                for (final CodeScheme codeScheme : codeSchemes) {
+                    indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme));
+                    indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme));
+                }
+            }
+            meta.setMessage("CodeSchemes added or modified: " + codeSchemes.size());
+            meta.setCode(200);
+            responseWrapper.setResults(codeSchemes);
+            return Response.ok(responseWrapper).build();
+        }
+        meta.setMessage("CodeScheme with code: " + codeRegistryCodeValue + " does not exist yet, please creater register first.");
+        meta.setCode(404);
+        return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
+    }
+
+    @POST
+    @Path("{codeRegistryCodeValue}/codeschemes/")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses CodeSchemes from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
@@ -158,10 +259,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
         @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
     })
     @Transactional
-    public Response addOrUpdateCodeSchemes(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
-                                           @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                           @ApiParam(value = "JSON playload for CodeScheme data.", required = false) final String jsonPayload,
-                                           @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+    public Response addOrUpdateCodeSchemesFromFile(@ApiParam(value = "Format for input.", required = false) @QueryParam("format") @DefaultValue("json") final String format,
+                                                   @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                                   @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/");
         final Meta meta = new Meta();
         final ResponseWrapper<CodeScheme> responseWrapper = new ResponseWrapper<>(meta);
@@ -170,11 +270,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             Set<CodeScheme> codeSchemes = new HashSet<>();
             try {
-                if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
-                    final ObjectMapper mapper = createObjectMapper();
-                    codeSchemes = mapper.readValue(jsonPayload, new TypeReference<List<CodeScheme>>() {
-                    });
-                } else if (FORMAT_CSV.equalsIgnoreCase(format)) {
+                if (FORMAT_CSV.equalsIgnoreCase(format)) {
                     codeSchemes = codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream);
                 } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
                     codeSchemes = codeSchemeParser.parseCodeSchemesFromExcelInputStream(codeRegistry, inputStream);
@@ -287,18 +383,14 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
     @POST
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/codes/")
-    @Consumes({MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_JSON})
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiResponse(code = 200, message = "Returns success.")
-    @ApiImplicitParams({
-        @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
-    })
     @Transactional
-    public Response addOrUpdateCodes(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
-                                     @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
-                                     @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream,
-                                     @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
+    public Response addOrUpdateCodesFromJson(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
+                                             @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                             @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
+                                             @ApiParam(value = "JSON playload for Code data.", required = true) final String jsonPayload) {
 
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeId + API_PATH_CODES + "/");
         final Meta meta = new Meta();
@@ -312,12 +404,22 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 try {
                     if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
                         final ObjectMapper mapper = createObjectMapper();
-                        codes = mapper.readValue(jsonPayload, new TypeReference<List<Code>>() {
+                        codes = mapper.readValue(jsonPayload, new TypeReference<Set<Code>>() {
                         });
-                    } else if (FORMAT_CSV.equalsIgnoreCase(format)) {
-                        codes = codeParser.parseCodesFromCsvInputStream(codeScheme, inputStream);
-                    } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
-                        codes = codeParser.parseCodesFromExcelInputStream(codeScheme, inputStream);
+                        for (final Code code : codes) {
+                            if (code.getId() == null) {
+                                code.setId(UUID.randomUUID());
+                                if (code.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
+                                    final String uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, code.getCodeValue());
+                                    code.setUri(uri);
+                                } else {
+                                    final String uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, code.getId().toString());
+                                    code.setUri(uri);
+                                }
+                                code.setCodeScheme(codeScheme);
+                                code.setModified(new Date(System.currentTimeMillis()));
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     throw new WebApplicationException(e.getMessage());
@@ -339,6 +441,60 @@ public class CodeRegistryResource extends AbstractBaseResource {
             }
         } else {
             meta.setMessage("CodeRegistry with id: " + codeRegistryCodeValue + " does not exist yet, please create registry first.");
+            meta.setCode(406);
+        }
+        return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
+    }
+
+    @POST
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/codes/")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiResponse(code = 200, message = "Returns success.")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
+    })
+    @Transactional
+    public Response addOrUpdateCodesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
+                                             @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                             @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
+                                             @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeId + API_PATH_CODES + "/");
+        final Meta meta = new Meta();
+        final ResponseWrapper<Code> responseWrapper = new ResponseWrapper<>(meta);
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODE, "codeRegistry,codeScheme")));
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        if (codeRegistry != null) {
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
+            if (codeScheme != null) {
+                Set<Code> codes = new HashSet<>();
+                try {
+                    if (FORMAT_CSV.equalsIgnoreCase(format)) {
+                        codes = codeParser.parseCodesFromCsvInputStream(codeScheme, inputStream);
+                    } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
+                        codes = codeParser.parseCodesFromExcelInputStream(codeScheme, inputStream);
+                    }
+                } catch (Exception e) {
+                    throw new WebApplicationException(e.getMessage());
+                }
+                for (final Code code : codes) {
+                    LOG.debug("Code parsed from input: " + code.getCodeValue());
+                }
+                if (!codes.isEmpty()) {
+                    domain.persistCodes(codes);
+                    indexing.updateCodes(codes);
+                }
+                meta.setMessage("Codes added or modified: " + codes.size());
+                meta.setCode(200);
+                responseWrapper.setResults(codes);
+                return Response.ok(responseWrapper).build();
+            } else {
+                meta.setMessage("CodeScheme with id: " + codeSchemeId + " does not exist yet, please create CodeScheme first.");
+                meta.setCode(406);
+            }
+        } else {
+            meta.setMessage("CodeRegistry with id: " + codeRegistryCodeValue + " does not exist yet, please create CodeRegistry first.");
             meta.setCode(406);
         }
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
