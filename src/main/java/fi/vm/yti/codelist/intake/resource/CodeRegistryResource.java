@@ -119,6 +119,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 codeRegistries = mapper.readValue(jsonPayload, new TypeReference<Set<CodeRegistry>>() {
                 });
                 for (final CodeRegistry codeRegistry : codeRegistries) {
+                    check(authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations()));
                     if (codeRegistry.getId() == null) {
                         codeRegistry.setId(UUID.randomUUID());
                         final String uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES, codeRegistry.getCodeValue());
@@ -211,6 +212,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     codeSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<CodeScheme>>() {
                     });
                     for (final CodeScheme codeScheme : codeSchemes) {
+                        check(authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations()));
                         if (codeScheme.getId() == null) {
                             codeScheme.setId(UUID.randomUUID());
                             if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
@@ -400,6 +402,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
+                check(authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations()));
                 Set<Code> codes = new HashSet<>();
                 try {
                     if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
@@ -577,6 +580,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeId);
             if (codeScheme != null) {
+                check(authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations()));
                 final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeId);
                 if (code != null) {
                     code.setStatus(Status.RETIRED.toString());
