@@ -93,7 +93,7 @@ public class IndexingImpl implements Indexing {
 
     private boolean indexCodes(final String indexName) {
         final Set<Code> regions = codeRepository.findAll();
-        return indexData(regions, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.Normal.class);
+        return indexData(regions, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
     }
 
     private boolean indexPropertyTypes(final String indexName) {
@@ -186,7 +186,7 @@ public class IndexingImpl implements Indexing {
     public boolean updateCodes(final Set<Code> codes) {
         boolean success = true;
         if (!codes.isEmpty()) {
-            success = updateData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.Normal.class);
+            success = updateData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
         }
         return success;
     }
