@@ -194,7 +194,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses CodeSchemes from input data.")
-    @ApiResponse(code = 200, message = "Retuwrns success.")
+    @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
     public Response addOrUpdateCodeSchemesFromJson(@ApiParam(value = "Format for input.", required = false) @QueryParam("format") @DefaultValue("json") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
@@ -215,15 +215,22 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         check(authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations()));
                         if (codeScheme.getId() == null) {
                             codeScheme.setId(UUID.randomUUID());
+                            final String uri;
                             if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
-                                final String uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, codeScheme.getCodeValue());
-                                codeScheme.setUri(uri);
+                                uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, codeScheme.getCodeValue());
                             } else {
-                                final String uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, codeScheme.getId().toString());
-                                codeScheme.setUri(uri);
+                                uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, codeScheme.getId().toString());
                             }
+                            codeScheme.setUri(uri);
                         }
                         codeScheme.setCodeRegistry(codeRegistry);
+                        final Set<ExternalReference> externalReferences = initializeExternalReferences(codeScheme.getExternalReferences(), codeScheme);
+                        if (!externalReferences.isEmpty()) {
+                            externalReferenceRepository.save(externalReferences);
+                            codeScheme.setExternalReferences(externalReferences);
+                        } else {
+                            codeScheme.setExternalReferences(null);
+                        }
                         codeScheme.setModified(new Date(System.currentTimeMillis()));
                     }
                 }
@@ -329,23 +336,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                             meta.setMessage("CodeScheme cannot be updated because codeValue changed. " + codeScheme.getCodeValue());
                             meta.setCode(406);
                         } else {
-                            final Set<ExternalReference> externalReferences = codeScheme.getExternalReferences();
-                            externalReferences.forEach(externalReference -> {
-                                boolean hasChanges = false;
-                                if (externalReference.getId() == null) {
-                                    final UUID referenceUuid = UUID.randomUUID();
-                                    externalReference.setId(referenceUuid);
-                                    externalReference.setUri(apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, referenceUuid.toString()));
-                                    hasChanges = true;
-                                }
-                                if (externalReference.getParentCodeScheme() == null) {
-                                    externalReference.setParentCodeScheme(existingCodeScheme);
-                                    hasChanges = true;
-                                }
-                                if (hasChanges) {
-                                    externalReference.setModified(new Date(System.currentTimeMillis()));
-                                }
-                            });
+                            final Set<ExternalReference> externalReferences = initializeExternalReferences(codeScheme.getExternalReferences(), codeScheme);
                             if (!externalReferences.isEmpty()) {
                                 externalReferenceRepository.save(externalReferences);
                                 codeScheme.setExternalReferences(externalReferences);
@@ -412,16 +403,24 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         for (final Code code : codes) {
                             if (code.getId() == null) {
                                 code.setId(UUID.randomUUID());
+                                final String uri;
                                 if (code.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
-                                    final String uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, code.getCodeValue());
-                                    code.setUri(uri);
+                                    uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, code.getCodeValue());
                                 } else {
-                                    final String uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, code.getId().toString());
-                                    code.setUri(uri);
+                                    uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, code.getId().toString());
                                 }
+                                code.setUri(uri);
                                 code.setCodeScheme(codeScheme);
                                 code.setModified(new Date(System.currentTimeMillis()));
                             }
+                            final Set<ExternalReference> externalReferences = initializeExternalReferences(code.getExternalReferences(), codeScheme);
+                            if (!externalReferences.isEmpty()) {
+                                externalReferenceRepository.save(externalReferences);
+                                code.setExternalReferences(externalReferences);
+                            } else {
+                                code.setExternalReferences(null);
+                            }
+
                         }
                     }
                 } catch (Exception e) {
@@ -533,10 +532,19 @@ public class CodeRegistryResource extends AbstractBaseResource {
                             meta.setMessage("Code cannot be updated because CodeValue changed. " + code.getCodeValue());
                             meta.setCode(406);
                         } else {
+                            final Set<ExternalReference> externalReferences = initializeExternalReferences(code.getExternalReferences(), codeScheme);
+                            if (!externalReferences.isEmpty()) {
+                                externalReferenceRepository.save(externalReferences);
+                                code.setExternalReferences(externalReferences);
+                            } else {
+                                code.setExternalReferences(null);
+                            }
                             code.setModified(new Date(System.currentTimeMillis()));
                             codeRepository.save(code);
-                            final boolean success = indexing.updateCode(code);
-                            if (success) {
+                            codeSchemeRepository.save(codeScheme);
+                            if (indexing.updateCode(code) &&
+                                indexing.updateCodeScheme(codeScheme) &&
+                                indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme))) {
                                 meta.setMessage("Code " + codeId + " modified.");
                                 meta.setCode(200);
                                 return Response.ok(responseWrapper).build();
@@ -602,5 +610,31 @@ public class CodeRegistryResource extends AbstractBaseResource {
             meta.setCode(404);
         }
         return Response.status(Response.Status.NOT_FOUND).entity(responseWrapper).build();
+    }
+
+    private Set<ExternalReference> initializeExternalReferences(final Set<ExternalReference> externalReferences,
+                                              final CodeScheme codeScheme) {
+        externalReferences.forEach(externalReference -> {
+            boolean hasChanges = false;
+            if (externalReference.getId() == null) {
+                final UUID referenceUuid = UUID.randomUUID();
+                externalReference.setId(referenceUuid);
+                externalReference.setUri(apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, referenceUuid.toString()));
+                hasChanges = true;
+            } else {
+                final ExternalReference existingExternalReference = externalReferenceRepository.findById(externalReference.getId());
+                if (existingExternalReference != null) {
+                    externalReference.setModified(existingExternalReference.getModified());
+                }
+            }
+            if (externalReference.getParentCodeScheme() == null) {
+                externalReference.setParentCodeScheme(codeScheme);
+                hasChanges = true;
+            }
+            if (hasChanges) {
+                externalReference.setModified(new Date(System.currentTimeMillis()));
+            }
+        });
+        return externalReferences;
     }
 }
