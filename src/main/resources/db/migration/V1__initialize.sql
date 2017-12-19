@@ -162,7 +162,7 @@ CREATE TABLE externalreference (
   modified timestamp without time zone NOT NULL,
   url text NULL,
   propertytype_id uuid NOT NULL,
-  parentcodescheme_id uuid NOT NULL,
+  parentcodescheme_id uuid NULL,
   CONSTRAINT externalreference_pkey PRIMARY KEY (id),
   CONSTRAINT fk_externalreference_propertytype FOREIGN KEY (propertytype_id) REFERENCES propertytype (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT fk_externalreference_parentcodescheme FOREIGN KEY (parentcodescheme_id) REFERENCES codescheme (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION

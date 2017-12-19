@@ -39,8 +39,8 @@ import fi.vm.yti.codelist.intake.util.FileUtils;
 @Component
 public class ServiceInitializer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ServiceInitializer.class);
     public static final String LOCAL_SWAGGER_DATA_DIR = "/data/yti/yti-codelist-intake/swagger/";
+    private static final Logger LOG = LoggerFactory.getLogger(ServiceInitializer.class);
     private final YtiDataAccess ytiDataAccess;
     private final Indexing indexing;
     private final ApiUtils apiUtils;
@@ -105,7 +105,7 @@ public class ServiceInitializer {
 
     /**
      * Updates the compile time generated swagger.json with the hostname of the current environment.
-     *
+     * <p>
      * The file is stored in the {@value #LOCAL_SWAGGER_DATA_DIR} folder, where it will be served from the SwaggerResource.
      */
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
