@@ -613,28 +613,32 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     private Set<ExternalReference> initializeExternalReferences(final Set<ExternalReference> externalReferences,
-                                              final CodeScheme codeScheme) {
-        externalReferences.forEach(externalReference -> {
-            boolean hasChanges = false;
-            if (externalReference.getId() == null) {
-                final UUID referenceUuid = UUID.randomUUID();
-                externalReference.setId(referenceUuid);
-                externalReference.setUri(apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, referenceUuid.toString()));
-                hasChanges = true;
-            } else {
-                final ExternalReference existingExternalReference = externalReferenceRepository.findById(externalReference.getId());
-                if (existingExternalReference != null) {
-                    externalReference.setModified(existingExternalReference.getModified());
+                                                                final CodeScheme codeScheme) {
+        if (externalReferences != null) {
+            externalReferences.forEach(externalReference -> {
+                boolean hasChanges = false;
+                if (externalReference.getId() == null) {
+                    final UUID referenceUuid = UUID.randomUUID();
+                    externalReference.setId(referenceUuid);
+                    externalReference.setUri(apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, referenceUuid.toString()));
+                    hasChanges = true;
+                } else {
+                    final ExternalReference existingExternalReference = externalReferenceRepository.findById(externalReference.getId());
+                    if (existingExternalReference != null) {
+                        externalReference.setModified(existingExternalReference.getModified());
+                    }
                 }
-            }
-            if (externalReference.getParentCodeScheme() == null) {
-                externalReference.setParentCodeScheme(codeScheme);
-                hasChanges = true;
-            }
-            if (hasChanges) {
-                externalReference.setModified(new Date(System.currentTimeMillis()));
-            }
-        });
-        return externalReferences;
+                if (externalReference.getParentCodeScheme() == null) {
+                    externalReference.setParentCodeScheme(codeScheme);
+                    hasChanges = true;
+                }
+                if (hasChanges) {
+                    externalReference.setModified(new Date(System.currentTimeMillis()));
+                }
+            });
+            return externalReferences;
+        } else {
+            return new HashSet<ExternalReference>();
+        }
     }
 }
