@@ -426,15 +426,16 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 } catch (Exception e) {
                     throw new WebApplicationException(e.getMessage());
                 }
-                for (final Code code : codes) {
-                    LOG.debug("Code parsed from input: " + code.getCodeValue());
-                }
                 if (!codes.isEmpty()) {
                     domain.persistCodes(codes);
                     indexing.updateCodes(codes);
                 }
                 meta.setMessage("Codes added or modified: " + codes.size());
                 meta.setCode(200);
+                // Hack for removing cyclic dependency issue in response.
+                for (final Code code : codes) {
+                    code.setCodeScheme(null);
+                }
                 responseWrapper.setResults(codes);
                 return Response.ok(responseWrapper).build();
             } else {
