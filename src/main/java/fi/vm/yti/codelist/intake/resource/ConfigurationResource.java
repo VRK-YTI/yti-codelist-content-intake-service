@@ -28,7 +28,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 @Produces("text/plain")
 public class ConfigurationResource extends AbstractBaseResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryResource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ConfigurationResource.class);
     private final ApiUtils apiUtils;
 
     @Inject
