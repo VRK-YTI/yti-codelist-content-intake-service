@@ -29,9 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.util.FileUtils;
@@ -47,14 +49,17 @@ public class ExternalReferenceParser extends AbstractBaseParser {
     private final ApiUtils apiUtils;
     private final ExternalReferenceRepository externalReferenceRepository;
     private final PropertyTypeRepository propertyTypeRepository;
+    private final CodeSchemeRepository codeSchemeRepository;
 
     @Inject
     public ExternalReferenceParser(final ApiUtils apiUtils,
-                                   final ExternalReferenceRepository codeSchemeRepository,
-                                   final PropertyTypeRepository propertyTypeRepository) {
+                                   final ExternalReferenceRepository externalReferenceRepository,
+                                   final PropertyTypeRepository propertyTypeRepository,
+                                   final CodeSchemeRepository codeSchemeRepository) {
         this.apiUtils = apiUtils;
-        this.externalReferenceRepository = codeSchemeRepository;
+        this.externalReferenceRepository = externalReferenceRepository;
         this.propertyTypeRepository = propertyTypeRepository;
+        this.codeSchemeRepository = codeSchemeRepository;
     }
 
     /**
@@ -82,6 +87,8 @@ public class ExternalReferenceParser extends AbstractBaseParser {
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
                 final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
+                final UUID parentCodeSchemeId = parseUUIDFromString(record.get(CONTENT_HEADER_PARENTCODESCHEMEID));
+                final CodeScheme parentCodeScheme = codeSchemeRepository.findById(parentCodeSchemeId);
                 final String propertyTypeLocalName = record.get(CONTENT_HEADER_PROPERTYTYPE);
                 final PropertyType propertyType = propertyTypeRepository.findByLocalName(propertyTypeLocalName);
                 final String url = record.get(CONTENT_HEADER_URL);
@@ -93,7 +100,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 descriptionHeaders.forEach((language, header) -> {
                     description.put(language, record.get(header));
                 });
-                final ExternalReference externalReference = createOrUpdateExternalReference(id, propertyType, url, title, description);
+                final ExternalReference externalReference = createOrUpdateExternalReference(id, propertyType, url, parentCodeScheme, title, description);
                 externalReferences.add(externalReference);
             }
         } catch (IOException e) {
@@ -137,6 +144,8 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                     firstRow = false;
                 } else {
                     final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
+                    final UUID parentCodeSchemeId = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_PARENTCODESCHEMEID)).getStringCellValue());
+                    final CodeScheme parentCodeScheme = codeSchemeRepository.findById(parentCodeSchemeId);
                     final String url = row.getCell(genericHeaders.get(CONTENT_HEADER_URL)).getStringCellValue();
                     final String propertyTypeLocalName = row.getCell(genericHeaders.get(CONTENT_HEADER_PROPERTYTYPE)).getStringCellValue();
                     final PropertyType propertyType = propertyTypeRepository.findByLocalName(propertyTypeLocalName);
@@ -148,7 +157,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                     for (final String language : descriptionHeaders.keySet()) {
                         description.put(language, row.getCell(descriptionHeaders.get(language)).getStringCellValue());
                     }
-                    final ExternalReference externalReference = createOrUpdateExternalReference(id, propertyType, url, title, description);
+                    final ExternalReference externalReference = createOrUpdateExternalReference(id, propertyType, url, parentCodeScheme, title, description);
                     if (externalReference != null) {
                         externalReferences.add(externalReference);
                     }
@@ -161,6 +170,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
     private ExternalReference createOrUpdateExternalReference(final UUID id,
                                                               final PropertyType propertyType,
                                                               final String url,
+                                                              final CodeScheme parentCodeScheme,
                                                               final Map<String, String> title,
                                                               final Map<String, String> description) {
         ExternalReference externalReference = null;
@@ -177,6 +187,11 @@ public class ExternalReferenceParser extends AbstractBaseParser {
             }
             if (!Objects.equals(externalReference.getUrl(), url)) {
                 externalReference.setUrl(url);
+                hasChanges = true;
+            }
+            if (!Objects.equals(externalReference.getParentCodeScheme(), parentCodeScheme)) {
+                externalReference.setParentCodeScheme(parentCodeScheme);
+                externalReference.setGlobal(parentCodeScheme == null);
                 hasChanges = true;
             }
             if (!Objects.equals(externalReference.getPropertyType(), propertyType)) {
@@ -210,6 +225,8 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, uuid.toString());
                 externalReference.setId(uuid);
             }
+            externalReference.setParentCodeScheme(parentCodeScheme);
+            externalReference.setGlobal(parentCodeScheme == null);
             externalReference.setPropertyType(propertyType);
             externalReference.setUri(uri);
             externalReference.setUrl(url);

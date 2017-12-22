@@ -161,6 +161,7 @@ CREATE TABLE externalreference (
   uri text UNIQUE NOT NULL,
   modified timestamp without time zone NOT NULL,
   url text NULL,
+  global bool NOT NULL,
   propertytype_id uuid NOT NULL,
   parentcodescheme_id uuid NULL,
   CONSTRAINT externalreference_pkey PRIMARY KEY (id),
