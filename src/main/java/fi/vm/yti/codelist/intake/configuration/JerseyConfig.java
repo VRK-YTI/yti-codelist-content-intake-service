@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.intake.resource.AuthenticatedUserResource;
 import fi.vm.yti.codelist.intake.resource.CodeRegistryResource;
+import fi.vm.yti.codelist.intake.resource.ConfigurationResource;
 import fi.vm.yti.codelist.intake.resource.ExternalReferenceResource;
 import fi.vm.yti.codelist.intake.resource.ImpersonateUserResource;
 import fi.vm.yti.codelist.intake.resource.OrganizationResource;
@@ -53,24 +54,27 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.API_CONTEXT_PATH_
 public class JerseyConfig extends ResourceConfig {
 
     public JerseyConfig() {
-        // CORS filtering.
+        // CORS filtering
         register(CorsFilter.class);
 
-        // Health.
+        // Health
         register(PingResource.class);
 
-        // Generic resources.
+        // Configuration
+        register(ConfigurationResource.class);
+
+        // Generic resources
         register(VersionResource.class);
         register(SwaggerResource.class);
 
-        // Multipart support.
+        // Multipart support
         register(MultiPartFeature.class);
 
-        // User authentication.
+        // User authentication
         register(AuthenticatedUserResource.class);
         register(ImpersonateUserResource.class);
 
-        // Admin APIs for YTI.
+        // Admin APIs for YTI
         register(OrganizationResource.class);
         register(CodeRegistryResource.class);
         register(ExternalReferenceResource.class);

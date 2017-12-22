@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
+import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.API_BASE_PATH;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.API_VERSION;
@@ -17,12 +18,15 @@ public class ApiUtils {
 
     private PublicApiServiceProperties publicApiServiceProperties;
     private ContentIntakeServiceProperties contentIntakeServiceProperties;
+    private GroupManagementProperties groupManagementProperties;
 
     @Inject
     public ApiUtils(final PublicApiServiceProperties publicApiServiceProperties,
-                    final ContentIntakeServiceProperties contentIntakeServiceProperties) {
+                    final ContentIntakeServiceProperties contentIntakeServiceProperties,
+                    final GroupManagementProperties groupManagementProperties) {
         this.publicApiServiceProperties = publicApiServiceProperties;
         this.contentIntakeServiceProperties = contentIntakeServiceProperties;
+        this.groupManagementProperties = groupManagementProperties;
     }
 
     /**
@@ -52,15 +56,16 @@ public class ApiUtils {
         return builder.toString();
     }
 
-    /**
-     * @return Returns the Content Intake Service hostname mapped to the running environment.
-     */
     public String getContentIntakeServiceHostname() {
         final StringBuilder builder = new StringBuilder();
         final String port = contentIntakeServiceProperties.getPort();
         builder.append(contentIntakeServiceProperties.getHost());
         appendPortToUrlIfNotEmpty(port, builder);
         return builder.toString();
+    }
+
+    public String getGroupmanagementUrl() {
+        return groupManagementProperties.getUrl();
     }
 
     private void appendPortToUrlIfNotEmpty(final String port, final StringBuilder builder) {
