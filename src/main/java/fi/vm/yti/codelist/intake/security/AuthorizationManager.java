@@ -21,13 +21,13 @@ public class AuthorizationManager {
     private final AuthenticatedUserProvider userProvider;
     
     @Autowired
-    AuthorizationManager(AuthenticatedUserProvider userProvider) {
+    AuthorizationManager(final AuthenticatedUserProvider userProvider) {
         this.userProvider = userProvider;
     }
 
-    public boolean canBeModifiedByUserInOrganization(Collection<Organization> organizations ) {
-        Collection<UUID> organizationIds = organizations.stream().map(organization -> organization.getId()).collect(Collectors.toList());
-        YtiUser user = userProvider.getUser();
+    public boolean canBeModifiedByUserInOrganization(final Collection<Organization> organizations ) {
+        final Collection<UUID> organizationIds = organizations.stream().map(organization -> organization.getId()).collect(Collectors.toList());
+        final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds);
     }
 }
