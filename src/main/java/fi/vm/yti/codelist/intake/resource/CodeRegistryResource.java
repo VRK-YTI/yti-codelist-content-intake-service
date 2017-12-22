@@ -162,7 +162,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
         final Meta meta = new Meta();
         final ResponseWrapper<CodeRegistry> wrapper = new ResponseWrapper<>(meta);
-        final ObjectMapper mapper = createObjectMapper();
         try {
             Set<CodeRegistry> codeRegistries = new HashSet<>();
             if (FORMAT_CSV.equalsIgnoreCase(format)) {
