@@ -12,8 +12,7 @@ import org.springframework.web.client.RestTemplate;
 
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.configuration.ImpersonateProperties;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.GROUPMANAGEMENT_PUBLIC_API;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.GROUPMANAGEMENT_USERS;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static org.springframework.http.HttpMethod.GET;
 
 @Component
@@ -24,7 +23,8 @@ public class ImpersonateUserService {
     private final RestTemplate restTemplate;
 
     @Inject
-    public ImpersonateUserService(final GroupManagementProperties groupManagementProperties, final ImpersonateProperties fakeLoginProperties) {
+    public ImpersonateUserService(final GroupManagementProperties groupManagementProperties,
+                                  final ImpersonateProperties fakeLoginProperties) {
         this.groupManagementProperties = groupManagementProperties;
         this.fakeLoginProperties = fakeLoginProperties;
         this.restTemplate = new RestTemplate();
@@ -33,7 +33,7 @@ public class ImpersonateUserService {
     @NotNull
     public List<GroupManagementUser> getUsers() {
         if (fakeLoginProperties.isAllowed()) {
-            String url = groupManagementProperties.getUrl() + GROUPMANAGEMENT_PUBLIC_API + GROUPMANAGEMENT_USERS;
+            String url = groupManagementProperties.getUrl() + GROUPMANAGEMENT_API_CONTEXT_PATH + GROUPMANAGEMENT_API_USERS;
             System.out.println("URL " + url);
             return restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<GroupManagementUser>>() {
             }).getBody();

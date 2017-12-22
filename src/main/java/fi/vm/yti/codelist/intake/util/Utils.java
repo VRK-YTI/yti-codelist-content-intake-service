@@ -1,5 +1,7 @@
 package fi.vm.yti.codelist.intake.util;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -63,5 +65,13 @@ public abstract class Utils {
         final SimpleDateFormat simpleDateFormatter = new SimpleDateFormat("yyyy-MM-dd");
         final Calendar cal = Calendar.getInstance();
         return simpleDateFormatter.format(cal.getTime());
+    }
+
+    public static String entityEncode(final String value) {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.name());
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

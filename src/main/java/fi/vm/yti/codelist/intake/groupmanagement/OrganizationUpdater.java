@@ -26,13 +26,13 @@ import com.google.common.base.Stopwatch;
 import fi.vm.yti.codelist.common.model.Organization;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.GROUPMANAGEMENT_API_CONTEXT_PATH;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.GROUPMANAGEMENT_API_ORGANIZATIONS;
 
 @Component
 public class OrganizationUpdater {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrganizationUpdater.class);
-    private static final String GROUPMANAGEMENT_PUBLIC_API = "/public-api";
-    private static final String GROUPMANAGEMENT_API_ORGANIZATIONS = "/organizations";
     private GroupManagementProperties groupManagementProperties;
     private OrganizationRepository organizationRepository;
 
@@ -56,7 +56,7 @@ public class OrganizationUpdater {
         requestFactory.setReadTimeout(1000);
         final RestTemplate restTemplate = new RestTemplate(requestFactory);
         final Map<String, String> vars = new HashMap<>();
-        final String response = restTemplate.getForObject(getOrganizationApiUrl(), String.class, vars);
+        final String response = restTemplate.getForObject(getGroupManagementOrganizationsApiUrl(), String.class, vars);
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         List<GroupManagementOrganization> groupManagementOrganizations = new ArrayList<>();
@@ -82,7 +82,7 @@ public class OrganizationUpdater {
         }
     }
 
-    private String getOrganizationApiUrl() {
-        return groupManagementProperties.getUrl() + GROUPMANAGEMENT_PUBLIC_API + GROUPMANAGEMENT_API_ORGANIZATIONS + "/";
+    private String getGroupManagementOrganizationsApiUrl() {
+        return groupManagementProperties.getUrl() + GROUPMANAGEMENT_API_CONTEXT_PATH + GROUPMANAGEMENT_API_ORGANIZATIONS + "/";
     }
 }

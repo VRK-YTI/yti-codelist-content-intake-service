@@ -11,6 +11,7 @@ import fi.vm.yti.codelist.intake.resource.AuthenticatedUserResource;
 import fi.vm.yti.codelist.intake.resource.CodeRegistryResource;
 import fi.vm.yti.codelist.intake.resource.ConfigurationResource;
 import fi.vm.yti.codelist.intake.resource.ExternalReferenceResource;
+import fi.vm.yti.codelist.intake.resource.GroupManagementProxyResource;
 import fi.vm.yti.codelist.intake.resource.ImpersonateUserResource;
 import fi.vm.yti.codelist.intake.resource.OrganizationResource;
 import fi.vm.yti.codelist.intake.resource.PingResource;
@@ -62,6 +63,9 @@ public class JerseyConfig extends ResourceConfig {
 
         // Configuration
         register(ConfigurationResource.class);
+
+        // GroupManagement
+        register(GroupManagementProxyResource.class);
 
         // Generic resources
         register(VersionResource.class);
