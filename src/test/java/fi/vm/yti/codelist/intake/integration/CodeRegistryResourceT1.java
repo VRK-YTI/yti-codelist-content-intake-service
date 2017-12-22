@@ -44,7 +44,7 @@ public class CodeRegistryResourceT1 extends AbstractIntegrationTestBase {
     @Transactional
     public void postRegistriesTest() {
         final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + "?format=" + FORMAT_CSV;
-        final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<String, Object>();
+        final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
         final String registryFilePath = "/" + CODEREGISTRIES_FOLDER_NAME + "/" + TEST_CODEREGISTRY_FILENAME;
         parameters.add("file", new ClassPathResource(registryFilePath));
         final HttpHeaders headers = new HttpHeaders();

@@ -69,7 +69,7 @@ public class CodeSchemeResourceT2 extends AbstractIntegrationTestBase {
     @Transactional
     public void postCodeSchemesToNotExistingCodeRegistryTest() {
         final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + "/" + NOT_FOUND_REGISTRY_CODEVALUE + API_PATH_CODESCHEMES + "/" + "?format=" + FORMAT_CSV;
-        final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<String, Object>();
+        final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
         final String registryFilePath = "/" + CODESCHEMES_FOLDER_NAME + "/" + TEST_CODESCHEME_FILENAME;
         parameters.add("file", new ClassPathResource(registryFilePath));
         final HttpHeaders headers = new HttpHeaders();
