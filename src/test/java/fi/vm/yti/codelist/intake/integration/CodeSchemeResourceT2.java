@@ -57,7 +57,7 @@ public class CodeSchemeResourceT2 extends AbstractIntegrationTestBase {
         parameters.add("file", new ClassPathResource(registryFilePath));
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<LinkedMultiValueMap<String, Object>>(parameters, headers);
+        final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(parameters, headers);
         final ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class, "");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(TEST_CODEREGISTRY_CODEVALUE);
@@ -74,7 +74,7 @@ public class CodeSchemeResourceT2 extends AbstractIntegrationTestBase {
         parameters.add("file", new ClassPathResource(registryFilePath));
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<LinkedMultiValueMap<String, Object>>(parameters, headers);
+        final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(parameters, headers);
         final ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class, "");
         assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
     }
