@@ -32,7 +32,6 @@ import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.groupmanagement.GroupManagementUserRequest;
-import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.security.AuthenticatedUserProvider;
 import fi.vm.yti.security.Role;
 import fi.vm.yti.security.YtiUser;
@@ -41,7 +40,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.util.Utils.entityEncode;
 
 @Component
 @Path("/v1/groupmanagement")
@@ -54,8 +52,7 @@ public class GroupManagementProxyResource extends AbstractBaseResource {
 
     @Inject
     public GroupManagementProxyResource(final GroupManagementProperties groupManagementProperties,
-                                        final AuthenticatedUserProvider authenticatedUserProvider,
-                                        final AuthorizationManager authorizationManager) {
+                                        final AuthenticatedUserProvider authenticatedUserProvider) {
         this.groupManagementProperties = groupManagementProperties;
         this.authenticatedUserProvider = authenticatedUserProvider;
     }
@@ -137,6 +134,6 @@ public class GroupManagementProxyResource extends AbstractBaseResource {
     }
 
     private String createGroupManagementRequestsApiUrl(final String email) {
-        return groupManagementProperties.getUrl() + GROUPMANAGEMENT_API_CONTEXT_PATH + GROUPMANAGEMENT_API_REQUESTS + "?email=" + entityEncode(email);
+        return groupManagementProperties.getUrl() + GROUPMANAGEMENT_API_CONTEXT_PATH + GROUPMANAGEMENT_API_REQUESTS + "?email=" + email;
     }
 }
