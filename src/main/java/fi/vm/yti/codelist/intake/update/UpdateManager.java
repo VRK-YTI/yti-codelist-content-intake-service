@@ -12,7 +12,7 @@ import fi.vm.yti.codelist.common.model.UpdateStatus;
 import fi.vm.yti.codelist.intake.jpa.UpdateStatusRepository;
 
 /**
- * Class that is responsible for update gatekeeper and status handling and bookkeeping.
+ * Class that is responsible for update status handling and bookkeeping.
  */
 @Component
 public class UpdateManager {
