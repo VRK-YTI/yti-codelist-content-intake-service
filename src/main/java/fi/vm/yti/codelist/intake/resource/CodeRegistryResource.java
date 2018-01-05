@@ -477,6 +477,10 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 }
                 meta.setMessage("Codes added or modified: " + codes.size());
                 meta.setCode(200);
+                // Hack for removing cyclic dependency issue in response.
+                for (final Code code : codes) {
+                    code.setCodeScheme(null);
+                }
                 responseWrapper.setResults(codes);
                 return Response.ok(responseWrapper).build();
             } else {
