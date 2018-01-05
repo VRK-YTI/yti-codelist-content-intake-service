@@ -23,10 +23,11 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -103,9 +104,13 @@ public class CodeRegistryParser extends AbstractBaseParser {
      */
     public Set<CodeRegistry> parseCodeRegistriesFromExcelInputStream(final InputStream inputStream) throws Exception {
         final Set<CodeRegistry> codeRegistries = new HashSet<>();
-        try (final Workbook workbook = new XSSFWorkbook(inputStream)) {
-            final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);
-            final Iterator<Row> rowIterator = codesSheet.rowIterator();
+        try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
+            final DataFormatter formatter = new DataFormatter();
+            Sheet sheet = workbook.getSheet(EXCEL_SHEET_CODEREGISTRIES);
+            if (sheet == null) {
+                sheet = workbook.getSheetAt(0);
+            }
+            final Iterator<Row> rowIterator = sheet.rowIterator();
             final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
             final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
             final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
@@ -128,14 +133,14 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     }
                     firstRow = false;
                 } else {
-                    final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
+                    final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, header) -> {
-                        prefLabel.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
+                        prefLabel.put(language, formatter.formatCellValue(row.getCell(header)));
                     });
                     final Map<String, String> definition = new LinkedHashMap<>();
                     definitionHeaders.forEach((language, header) -> {
-                        definition.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
+                        definition.put(language, formatter.formatCellValue(row.getCell(header)));
                     });
                     final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, prefLabel, definition);
                     if (codeRegistry != null) {

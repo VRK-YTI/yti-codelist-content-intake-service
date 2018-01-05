@@ -25,10 +25,11 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -170,9 +171,13 @@ public class CodeSchemeParser extends AbstractBaseParser {
                                                                 final InputStream inputStream) throws Exception {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (codeRegistry != null) {
-            try (final Workbook workbook = new XSSFWorkbook(inputStream)) {
-                final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);
-                final Iterator<Row> rowIterator = codesSheet.rowIterator();
+            try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
+                final DataFormatter formatter = new DataFormatter();
+                Sheet sheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);
+                if (sheet == null) {
+                    sheet = workbook.getSheetAt(0);
+                }
+                final Iterator<Row> rowIterator = sheet.rowIterator();
                 final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
                 final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
                 final Map<String, Integer> descriptionHeaders = new LinkedHashMap<>();
@@ -201,41 +206,42 @@ public class CodeSchemeParser extends AbstractBaseParser {
                         }
                         firstRow = false;
                     } else {
-                        final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
-                        final String codeValue = row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)).getStringCellValue();
-                        final String dataClassificationCodes = row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)).getStringCellValue();
+                        final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
+                        final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
+                        final String dataClassificationCodes = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)));
+                        ;
                         final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
                         final Map<String, String> prefLabel = new LinkedHashMap<>();
                         prefLabelHeaders.forEach((language, header) -> {
-                            prefLabel.put(language, row.getCell(header).getStringCellValue());
+                            prefLabel.put(language, formatter.formatCellValue(row.getCell(header)));
                         });
                         final Map<String, String> definition = new LinkedHashMap<>();
                         definitionHeaders.forEach((language, header) -> {
-                            definition.put(language, row.getCell(header).getStringCellValue());
+                            definition.put(language, formatter.formatCellValue(row.getCell(header)));
                         });
                         final Map<String, String> description = new LinkedHashMap<>();
                         descriptionHeaders.forEach((language, header) -> {
-                            description.put(language, row.getCell(header).getStringCellValue());
+                            description.put(language, formatter.formatCellValue(row.getCell(header)));
                         });
                         final Map<String, String> changeNote = new LinkedHashMap<>();
                         changeNoteHeaders.forEach((language, header) -> {
-                            changeNote.put(language, row.getCell(header).getStringCellValue());
+                            changeNote.put(language, formatter.formatCellValue(row.getCell(header)));
                         });
-                        final String version = row.getCell(genericHeaders.get(CONTENT_HEADER_VERSION)).getStringCellValue();
-                        final String statusString = row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)).getStringCellValue();
+                        final String version = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_VERSION)));
+                        final String statusString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)));
                         final Status status;
                         if (!statusString.isEmpty()) {
                             status = Status.valueOf(statusString);
                         } else {
                             status = Status.DRAFT;
                         }
-                        final String source = row.getCell(genericHeaders.get(CONTENT_HEADER_SOURCE)).getStringCellValue();
-                        final String legalBase = row.getCell(genericHeaders.get(CONTENT_HEADER_LEGALBASE)).getStringCellValue();
-                        final String governancePolicy = row.getCell(genericHeaders.get(CONTENT_HEADER_GOVERNANCEPOLICY)).getStringCellValue();
-                        final String license = row.getCell(genericHeaders.get(CONTENT_HEADER_LICENSE)).getStringCellValue();
+                        final String source = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SOURCE)));
+                        final String legalBase = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_LEGALBASE)));
+                        final String governancePolicy = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_GOVERNANCEPOLICY)));
+                        final String license = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_LICENSE)));
                         final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
                         Date startDate = null;
-                        final String startDateString = row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)).getStringCellValue();
+                        final String startDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)));
                         if (!startDateString.isEmpty()) {
                             try {
                                 startDate = dateFormat.parse(startDateString);
@@ -244,7 +250,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             }
                         }
                         Date endDate = null;
-                        final String endDateString = row.getCell(genericHeaders.get(CONTENT_HEADER_ENDDATE)).getStringCellValue();
+                        final String endDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ENDDATE)));
                         if (!endDateString.isEmpty()) {
                             try {
                                 endDate = dateFormat.parse(endDateString);

@@ -22,10 +22,11 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -117,9 +118,13 @@ public class ExternalReferenceParser extends AbstractBaseParser {
      */
     public List<ExternalReference> parseExternalReferencesFromExcelInputStream(final InputStream inputStream) throws Exception {
         final List<ExternalReference> externalReferences = new ArrayList<>();
-        try (final Workbook workbook = new XSSFWorkbook(inputStream)) {
-            final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_PROPERTYTYPES);
-            final Iterator<Row> rowIterator = codesSheet.rowIterator();
+        try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
+            final DataFormatter formatter = new DataFormatter();
+            Sheet sheet = workbook.getSheet(EXCEL_SHEET_EXTERNALREFERENCES);
+            if (sheet == null) {
+                sheet = workbook.getSheetAt(0);
+            }
+            final Iterator<Row> rowIterator = sheet.rowIterator();
             final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
             final Map<String, Integer> titleHeaders = new LinkedHashMap<>();
             final Map<String, Integer> descriptionHeaders = new LinkedHashMap<>();
@@ -142,19 +147,19 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                     }
                     firstRow = false;
                 } else {
-                    final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
-                    final UUID parentCodeSchemeId = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_PARENTCODESCHEMEID)).getStringCellValue());
+                    final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
+                    final UUID parentCodeSchemeId = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_PARENTCODESCHEMEID))));
                     final CodeScheme parentCodeScheme = codeSchemeRepository.findById(parentCodeSchemeId);
-                    final String url = row.getCell(genericHeaders.get(CONTENT_HEADER_URL)).getStringCellValue();
-                    final String propertyTypeLocalName = row.getCell(genericHeaders.get(CONTENT_HEADER_PROPERTYTYPE)).getStringCellValue();
+                    final String url = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_URL)));
+                    final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_PROPERTYTYPE)));
                     final PropertyType propertyType = propertyTypeRepository.findByLocalName(propertyTypeLocalName);
                     final Map<String, String> title = new LinkedHashMap<>();
                     for (final String language : titleHeaders.keySet()) {
-                        title.put(language, row.getCell(titleHeaders.get(language)).getStringCellValue());
+                        title.put(language, formatter.formatCellValue(row.getCell(titleHeaders.get(language))));
                     }
                     final Map<String, String> description = new LinkedHashMap<>();
                     for (final String language : descriptionHeaders.keySet()) {
-                        description.put(language, row.getCell(descriptionHeaders.get(language)).getStringCellValue());
+                        description.put(language, formatter.formatCellValue(row.getCell(descriptionHeaders.get(language))));
                     }
                     final ExternalReference externalReference = createOrUpdateExternalReference(id, propertyType, url, parentCodeScheme, title, description);
                     if (externalReference != null) {

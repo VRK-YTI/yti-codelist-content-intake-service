@@ -21,10 +21,11 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -105,9 +106,13 @@ public class PropertyTypeParser extends AbstractBaseParser {
      */
     public List<PropertyType> parsePropertyTypesFromExcelInputStream(final InputStream inputStream) throws Exception {
         final List<PropertyType> propertyTypes = new ArrayList<>();
-        try (final Workbook workbook = new XSSFWorkbook(inputStream)) {
-            final Sheet codesSheet = workbook.getSheet(EXCEL_SHEET_PROPERTYTYPES);
-            final Iterator<Row> rowIterator = codesSheet.rowIterator();
+        try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
+            final DataFormatter formatter = new DataFormatter();
+            Sheet sheet = workbook.getSheet(EXCEL_SHEET_PROPERTYTYPES);
+            if (sheet == null) {
+                sheet = workbook.getSheetAt(0);
+            }
+            final Iterator<Row> rowIterator = sheet.rowIterator();
             final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
             final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
             final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
@@ -130,18 +135,18 @@ public class PropertyTypeParser extends AbstractBaseParser {
                     }
                     firstRow = false;
                 } else {
-                    final UUID id = parseUUIDFromString(row.getCell(genericHeaders.get(CONTENT_HEADER_ID)).getStringCellValue());
-                    final String localName = row.getCell(genericHeaders.get(CONTENT_HEADER_LOCALNAME)).getStringCellValue();
-                    final String propertyUri = row.getCell(genericHeaders.get(CONTENT_HEADER_PROPERTYURI)).getStringCellValue();
-                    final String context = row.getCell(genericHeaders.get(CONTENT_HEADER_CONTEXT)).getStringCellValue();
-                    final String type = row.getCell(genericHeaders.get(CONTENT_HEADER_TYPE)).getStringCellValue();
+                    final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
+                    final String localName = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_LOCALNAME)));
+                    final String propertyUri = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_PROPERTYURI)));
+                    final String context = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CONTEXT)));
+                    final String type = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_TYPE)));
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
                     for (final String language : prefLabelHeaders.keySet()) {
-                        prefLabel.put(language, row.getCell(prefLabelHeaders.get(language)).getStringCellValue());
+                        prefLabel.put(language, formatter.formatCellValue(row.getCell(prefLabelHeaders.get(language))));
                     }
                     final Map<String, String> definition = new LinkedHashMap<>();
                     for (final String language : definitionHeaders.keySet()) {
-                        definition.put(language, row.getCell(definitionHeaders.get(language)).getStringCellValue());
+                        definition.put(language, formatter.formatCellValue(row.getCell(definitionHeaders.get(language))));
                     }
                     final PropertyType propertyType = createOrUpdatePropertyType(id, propertyUri, context, localName, type, prefLabel, definition);
                     if (propertyType != null) {
