@@ -20,6 +20,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -70,10 +71,9 @@ public class ExternalReferenceParser extends AbstractBaseParser {
      */
     public List<ExternalReference> parseExternalReferencesFromCsvInputStream(final InputStream inputStream) {
         final List<ExternalReference> externalReferences = new ArrayList<>();
-        try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+        try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
-            FileUtils.skipBom(in);
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
             final Map<String, String> titleHeaders = new LinkedHashMap<>();
             final Map<String, String> descriptionHeaders = new LinkedHashMap<>();
