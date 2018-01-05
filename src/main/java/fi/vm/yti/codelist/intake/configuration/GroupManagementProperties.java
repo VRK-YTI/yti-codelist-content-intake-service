@@ -19,4 +19,15 @@ public class GroupManagementProperties {
     public void setUrl(final String url) {
         this.url = url;
     }
+
+    @NotNull
+    private String publicUrl;
+
+    public String getPublicUrl() {
+        return publicUrl;
+    }
+
+    public void setPublicUrl(final String publicUrl) {
+        this.publicUrl = publicUrl;
+    }
 }

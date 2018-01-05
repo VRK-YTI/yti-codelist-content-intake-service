@@ -42,11 +42,11 @@ public class ConfigurationResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Returns the configuration JSON element to the frontend related to this service.")
     public Response getConfig() throws IOException {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_CONFIGURATION);
-        final String groupManagementUrl = apiUtils.getGroupmanagementUrl();
+        final String groupManagementPublicUrl = apiUtils.getGroupmanagementPublicUrl();
         final ObjectMapper mapper = new ObjectMapper();
         final ObjectNode configJson = mapper.createObjectNode();
         final ObjectNode groupManagementConfig = mapper.createObjectNode();
-        groupManagementConfig.put("url", groupManagementUrl);
+        groupManagementConfig.put("url", groupManagementPublicUrl);
         configJson.set("groupManagementConfig", groupManagementConfig);
         return Response.ok(configJson).build();
     }

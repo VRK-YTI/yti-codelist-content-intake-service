@@ -64,8 +64,8 @@ public class ApiUtils {
         return builder.toString();
     }
 
-    public String getGroupmanagementUrl() {
-        return groupManagementProperties.getUrl();
+    public String getGroupmanagementPublicUrl() {
+        return groupManagementProperties.getPublicUrl();
     }
 
     private void appendPortToUrlIfNotEmpty(final String port, final StringBuilder builder) {
