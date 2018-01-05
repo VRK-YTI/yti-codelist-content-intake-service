@@ -152,10 +152,10 @@ public class CodeRegistryParser extends AbstractBaseParser {
                                                     final Map<String, String> prefLabel,
                                                     final Map<String, String> definition) {
         final Map<String, CodeRegistry> existingCodeRegistriesMap = parserUtils.getCodeRegistriesMap();
-        final String uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES, codeValue);
         final Date timeStamp = new Date(System.currentTimeMillis());
         CodeRegistry codeRegistry = existingCodeRegistriesMap.get(codeValue);
         if (codeRegistry != null) {
+            final String uri = apiUtils.createResourceUri(API_PATH_CODEREGISTRIES, codeValue);
             boolean hasChanges = false;
             if (!Objects.equals(codeRegistry.getUri(), uri)) {
                 codeRegistry.setUri(uri);
@@ -181,7 +181,6 @@ public class CodeRegistryParser extends AbstractBaseParser {
         } else {
             codeRegistry = new CodeRegistry();
             codeRegistry.setId(UUID.randomUUID());
-            codeRegistry.setUri(uri);
             codeRegistry.setCodeValue(codeValue);
             codeRegistry.setModified(timeStamp);
             for (final String language : prefLabel.keySet()) {
@@ -190,6 +189,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
             for (final String language : definition.keySet()) {
                 codeRegistry.setDefinition(language, definition.get(language));
             }
+            codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
         }
         return codeRegistry;
     }

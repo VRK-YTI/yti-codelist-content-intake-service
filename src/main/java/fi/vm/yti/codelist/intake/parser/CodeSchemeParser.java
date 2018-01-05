@@ -272,18 +272,15 @@ public class CodeSchemeParser extends AbstractBaseParser {
         if (id != null) {
             codeScheme = codeSchemeRepository.findById(id);
         }
-        String uri = null;
         if (Status.VALID == status) {
-            uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeValue);
-            final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeValueAndStatusAndCodeRegistry(codeValue, status.toString(), codeRegistry);
-            if (existingCodeScheme != codeScheme) {
+            final CodeScheme existingValidCodeScheme = codeSchemeRepository.findByCodeValueAndStatusAndCodeRegistry(codeValue, status.toString(), codeRegistry);
+            if (existingValidCodeScheme != codeScheme) {
                 LOG.error("Existing value already found, cancel update!");
                 throw new Exception("Existing value already found with status VALID for code scheme with code value: " + codeValue + ", cancel update!");
             }
-        } else if (id != null) {
-            uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, id.toString());
         }
         if (codeScheme != null) {
+            final String uri = apiUtils.createCodeSchemeUri(codeRegistry, codeScheme);
             boolean hasChanges = false;
             if (!Objects.equals(codeScheme.getStatus(), status.toString())) {
                 codeScheme.setStatus(status.toString());
@@ -370,12 +367,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 codeScheme.setId(id);
             } else {
                 final UUID uuid = UUID.randomUUID();
-                if (status != Status.VALID) {
-                    uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, uuid.toString());
-                }
                 codeScheme.setId(uuid);
             }
-            codeScheme.setUri(uri);
             codeScheme.setCodeValue(codeValue);
             codeScheme.setSource(source);
             codeScheme.setLegalBase(legalBase);
@@ -399,6 +392,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
             codeScheme.setStatus(status.toString());
             codeScheme.setStartDate(startDate);
             codeScheme.setEndDate(endDate);
+            codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
         }
         return codeScheme;
     }

@@ -122,8 +122,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     check(authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations()));
                     if (codeRegistry.getId() == null) {
                         codeRegistry.setId(UUID.randomUUID());
-                        final String uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES, codeRegistry.getCodeValue());
-                        codeRegistry.setUri(uri);
+                        codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
                         codeRegistry.setModified(new Date(System.currentTimeMillis()));
                     }
                 }
@@ -214,13 +213,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         check(authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations()));
                         if (codeScheme.getId() == null) {
                             codeScheme.setId(UUID.randomUUID());
-                            final String uri;
-                            if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
-                                uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeScheme.getCodeValue());
-                            } else {
-                                uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeScheme.getId().toString());
-                            }
-                            codeScheme.setUri(uri);
+                            codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
                         }
                         codeScheme.setCodeRegistry(codeRegistry);
                         final Set<ExternalReference> externalReferences = initializeExternalReferences(codeScheme.getExternalReferences(), codeScheme);
@@ -403,20 +396,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                             if (code.getId() == null) {
                                 code.setId(UUID.randomUUID());
                                 final String uri;
-                                if (code.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
-                                    if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
-                                        uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, code.getCodeValue());
-                                    } else {
-                                        uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getId().toString() + API_PATH_CODES, code.getCodeValue());
-                                    }
-                                } else {
-                                    if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
-                                        uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, code.getId().toString());
-                                    } else {
-                                        uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getId().toString() + API_PATH_CODES, code.getId().toString());
-                                    }
-                                }
-                                code.setUri(uri);
+                                code.setUri(apiUtils.createCodeUri(codeRegistry, codeScheme, code));
                                 code.setCodeScheme(codeScheme);
                                 code.setModified(new Date(System.currentTimeMillis()));
                             }
@@ -628,7 +608,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 if (externalReference.getId() == null) {
                     final UUID referenceUuid = UUID.randomUUID();
                     externalReference.setId(referenceUuid);
-                    externalReference.setUri(apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, referenceUuid.toString()));
+                    externalReference.setUri(apiUtils.createResourceUri(API_PATH_EXTERNALREFERENCES, referenceUuid.toString()));
                     hasChanges = true;
                 } else {
                     final ExternalReference existingExternalReference = externalReferenceRepository.findById(externalReference.getId());

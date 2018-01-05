@@ -177,7 +177,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
         String uri = null;
         if (id != null) {
             externalReference = externalReferenceRepository.findById(id);
-            uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, id.toString());
+            uri = apiUtils.createResourceUri(API_PATH_PROPERTYTYPES, id.toString());
         }
         if (externalReference != null) {
             boolean hasChanges = false;
@@ -222,7 +222,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 externalReference.setId(id);
             } else {
                 final UUID uuid = UUID.randomUUID();
-                uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, uuid.toString());
+                uri = apiUtils.createResourceUri(API_PATH_PROPERTYTYPES, uuid.toString());
                 externalReference.setId(uuid);
             }
             externalReference.setParentCodeScheme(parentCodeScheme);

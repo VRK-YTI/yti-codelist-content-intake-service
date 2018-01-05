@@ -165,7 +165,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
         String uri = null;
         if (id != null) {
             propertyType = propertyTypeRepository.findById(id);
-            uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, id.toString());
+            uri = apiUtils.createResourceUri(API_PATH_PROPERTYTYPES, id.toString());
         }
         if (propertyType != null) {
             if (!Objects.equals(propertyType.getPropertyUri(), propertyUri)) {
@@ -201,7 +201,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 propertyType.setId(id);
             } else {
                 final UUID uuid = UUID.randomUUID();
-                uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, uuid.toString());
+                uri = apiUtils.createResourceUri(API_PATH_PROPERTYTYPES, uuid.toString());
                 propertyType.setId(uuid);
             }
             propertyType.setContext(context);
