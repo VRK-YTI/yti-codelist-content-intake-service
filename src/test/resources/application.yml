@@ -14,6 +14,7 @@ thread:
 
 groupmanagement:
   url: https://rhp-dev.suomi.fi
+  publicUrl: https://rhp-dev.suomi.fi
 
 service:
   name: yti-codelist-content-intake-service
