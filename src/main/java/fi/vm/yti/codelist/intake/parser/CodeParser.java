@@ -103,7 +103,13 @@ public class CodeParser extends AbstractBaseParser {
                         description.put(language, record.get(header));
                     });
                     final String shortName = record.get(CONTENT_HEADER_SHORTNAME);
-                    final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
+                    final String statusString = record.get(CONTENT_HEADER_STATUS);
+                    final Status status;
+                    if (!statusString.isEmpty()) {
+                        status = Status.valueOf(statusString);
+                    } else {
+                        status = Status.DRAFT;
+                    }
                     final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
                     Date startDate = null;
                     final String startDateString = record.get(CONTENT_HEADER_STARTDATE);
@@ -189,7 +195,13 @@ public class CodeParser extends AbstractBaseParser {
                             description.put(language, row.getCell(header).getStringCellValue());
                         });
                         final String shortName = row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)).getStringCellValue();
-                        final Status status = Status.valueOf(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)).getStringCellValue());
+                        final String statusString = row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)).getStringCellValue();
+                        final Status status;
+                        if (!statusString.isEmpty()) {
+                            status = Status.valueOf(statusString);
+                        } else {
+                            status = Status.DRAFT;
+                        }
                         final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
                         Date startDate = null;
                         final String startDateString = row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)).getStringCellValue();

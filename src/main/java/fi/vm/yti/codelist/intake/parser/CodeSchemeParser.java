@@ -120,7 +120,13 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 final String dataClassificationCodes = record.get(CONTENT_HEADER_CLASSIFICATION);
                 final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
                 final String version = record.get(CONTENT_HEADER_VERSION);
-                final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
+                final String statusString = record.get(CONTENT_HEADER_STATUS);
+                final Status status;
+                if (!statusString.isEmpty()) {
+                    status = Status.valueOf(statusString);
+                } else {
+                    status = Status.DRAFT;
+                }
                 final String legalBase = record.get(CONTENT_HEADER_LEGALBASE);
                 final String governancePolicy = record.get(CONTENT_HEADER_GOVERNANCEPOLICY);
                 final String license = record.get(CONTENT_HEADER_LICENSE);
@@ -217,7 +223,13 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             changeNote.put(language, row.getCell(header).getStringCellValue());
                         });
                         final String version = row.getCell(genericHeaders.get(CONTENT_HEADER_VERSION)).getStringCellValue();
-                        final Status status = Status.valueOf(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)).getStringCellValue());
+                        final String statusString = row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)).getStringCellValue();
+                        final Status status;
+                        if (!statusString.isEmpty()) {
+                            status = Status.valueOf(statusString);
+                        } else {
+                            status = Status.DRAFT;
+                        }
                         final String source = row.getCell(genericHeaders.get(CONTENT_HEADER_SOURCE)).getStringCellValue();
                         final String legalBase = row.getCell(genericHeaders.get(CONTENT_HEADER_LEGALBASE)).getStringCellValue();
                         final String governancePolicy = row.getCell(genericHeaders.get(CONTENT_HEADER_GOVERNANCEPOLICY)).getStringCellValue();
