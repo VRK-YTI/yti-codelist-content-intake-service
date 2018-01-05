@@ -216,9 +216,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                             codeScheme.setId(UUID.randomUUID());
                             final String uri;
                             if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
-                                uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, codeScheme.getCodeValue());
+                                uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeScheme.getCodeValue());
                             } else {
-                                uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, codeScheme.getId().toString());
+                                uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeScheme.getId().toString());
                             }
                             codeScheme.setUri(uri);
                         }
@@ -404,9 +404,17 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                 code.setId(UUID.randomUUID());
                                 final String uri;
                                 if (code.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
-                                    uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, code.getCodeValue());
+                                    if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
+                                        uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, code.getCodeValue());
+                                    } else {
+                                        uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getId().toString() + API_PATH_CODES, code.getCodeValue());
+                                    }
                                 } else {
-                                    uri = apiUtils.createResourceUrl(API_PATH_CODESCHEMES, code.getId().toString());
+                                    if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
+                                        uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, code.getId().toString());
+                                    } else {
+                                        uri = apiUtils.createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getId().toString() + API_PATH_CODES, code.getId().toString());
+                                    }
                                 }
                                 code.setUri(uri);
                                 code.setCodeScheme(codeScheme);
