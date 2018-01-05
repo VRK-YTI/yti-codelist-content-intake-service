@@ -360,12 +360,10 @@ CREATE TABLE indexstatus (
 CREATE TABLE updatestatus (
   id uuid UNIQUE NOT NULL,
   datatype text NOT NULL,
+  identifier text NOT NULL,
   source text NOT NULL,
   status text NOT NULL,
   version text NOT NULL,
-  nextVersion text NULL,
-  startdate date NULL,
-  enddate date NULL,
   modified timestamp without time zone NOT NULL,
   CONSTRAINT updatestatus_pkey PRIMARY KEY (id)
 );

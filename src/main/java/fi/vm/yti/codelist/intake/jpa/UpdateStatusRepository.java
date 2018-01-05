@@ -15,6 +15,7 @@ import fi.vm.yti.codelist.common.model.UpdateStatus;
 @Transactional
 public interface UpdateStatusRepository extends CrudRepository<UpdateStatus, String> {
 
-    @Query(value = "SELECT u FROM UpdateStatus as u WHERE u.dataType = :dataType AND u.status = 'successful' ORDER BY u.modified DESC")
-    List<UpdateStatus> getLatestSuccessfulUpdatesForType(@Param("dataType") final String dataType);
+    @Query(value = "SELECT u FROM UpdateStatus as u WHERE u.dataType = :dataType AND u.identifier = :identifier AND u.status = 'successful' ORDER BY u.modified DESC")
+    List<UpdateStatus> getLatestSuccessfulUpdatesForType(@Param("dataType") final String dataType,
+                                                         @Param("identifier") final String idenfifier);
 }

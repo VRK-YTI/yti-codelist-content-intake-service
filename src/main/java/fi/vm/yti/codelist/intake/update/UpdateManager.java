@@ -28,8 +28,8 @@ public class UpdateManager {
         this.updateStatusRepository = updateStatusRepository;
     }
 
-    public boolean shouldUpdateData(final String dataType, final String version) {
-        final List<UpdateStatus> list = updateStatusRepository.getLatestSuccessfulUpdatesForType(dataType);
+    public boolean shouldUpdateData(final String dataType, final String identifier, final String version) {
+        final List<UpdateStatus> list = updateStatusRepository.getLatestSuccessfulUpdatesForType(dataType, identifier);
         if (!list.isEmpty()) {
             final UpdateStatus status = list.get(0);
             if (status.getVersion().equals(version)) {
@@ -40,23 +40,16 @@ public class UpdateManager {
     }
 
     public UpdateStatus createStatus(final String dataType,
+                                     final String identifier,
                                      final String source,
                                      final String version,
-                                     final String status) {
-        return createStatus(dataType, source, version, null, status);
-    }
-
-    public UpdateStatus createStatus(final String dataType,
-                                     final String source,
-                                     final String version,
-                                     final String nextVersion,
                                      final String status) {
         final UpdateStatus updateStatus = new UpdateStatus();
         updateStatus.setId(UUID.randomUUID());
         updateStatus.setDataType(dataType);
         updateStatus.setSource(source);
         updateStatus.setVersion(version);
-        updateStatus.setNextVersion(nextVersion);
+        updateStatus.setIdentifier(identifier);
         updateStatus.setStatus(status);
         updateStatus.setModified(new Date(System.currentTimeMillis()));
         updateStatusRepository.save(updateStatus);
@@ -70,15 +63,7 @@ public class UpdateManager {
     }
 
     public void updateSuccessStatus(final UpdateStatus updateStatus) {
-        updateSuccessStatus(updateStatus, null);
-    }
-
-    private void updateSuccessStatus(final UpdateStatus updateStatus,
-                                     final String nextVersion) {
         updateStatus.setStatus(UPDATE_SUCCESSFUL);
-        if (nextVersion != null) {
-            updateStatus.setNextVersion(nextVersion);
-        }
         updateStatus.setModified(new Date(System.currentTimeMillis()));
         updateStatusRepository.save(updateStatus);
     }

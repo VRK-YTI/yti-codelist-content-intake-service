@@ -47,8 +47,10 @@ public class YtiDataAccess {
 
     private static final String VRK_ORG_ID = "d9c76d52-03d3-4480-8c2c-b66e6d9c57f2";
     private static final String TEST_ORG_ID = "74a41211-8c99-4835-a519-7a61612b1098";
+    private static final String YTIXBRL_ORG_ID = "71837f4a-c503-4f3d-84dc-d645314528cf";
 
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
+    private static final String DEFAULT_YTIXBRLREGISTRY_FILENAME = "ytixbrlregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
     private static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
     private static final String DEFAULT_EXTERNALREFERENCE_FILENAME = "externalreferences.csv";
@@ -102,27 +104,36 @@ public class YtiDataAccess {
     public void initializeOrRefresh() {
         LOG.info("Initializing YTI DataAccess with mock/test data...");
         final Organization vrkOrganization = organizationRepository.findById(UUID.fromString(VRK_ORG_ID));
-        loadRegistryContent(DEFAULT_YTIREGISTRY_FILENAME, vrkOrganization);
+        loadRegistryContent(DEFAULT_YTIREGISTRY_FILENAME, "YTI", vrkOrganization);
         classifyDcat();
+        final Organization ytiXbrlOrganization = organizationRepository.findById(UUID.fromString(YTIXBRL_ORG_ID));
+        loadRegistryContent(DEFAULT_YTIXBRLREGISTRY_FILENAME, "YTIXBRL", ytiXbrlOrganization);
         final Organization testOrganization = organizationRepository.findById(UUID.fromString(TEST_ORG_ID));
-        loadRegistryContent(DEFAULT_CODEREGISTRY_FILENAME, testOrganization);
+        loadRegistryContent(DEFAULT_CODEREGISTRY_FILENAME, "TEST", testOrganization);
         loadDefaultPropertyTypes();
         loadDefaultExternalReferences();
     }
 
-    private void loadRegistryContent(final String filename, final Organization organization) {
-        final Set<CodeRegistry> coodeRegistries = loadDefaultCodeRegistries(filename, organization);
-        final Set<CodeScheme> codeSchemes = loadDefaultCodeSchemes(coodeRegistries);
-        loadDefaultCodes(codeSchemes);
+    private void loadRegistryContent(final String filename,
+                                     final String identifier,
+                                     final Organization organization) {
+        final Set<CodeRegistry> codeRegistries = loadDefaultCodeRegistries(filename, identifier, organization);
+        if (!codeRegistries.isEmpty()) {
+            final Set<CodeScheme> codeSchemes = loadDefaultCodeSchemes(codeRegistries);
+            if (!codeSchemes.isEmpty()) {
+                loadDefaultCodes(codeSchemes);
+            }
+        }
     }
 
     private Set<CodeRegistry> loadDefaultCodeRegistries(final String filename,
+                                                        final String identifier,
                                                         final Organization organization) {
         LOG.info("Loading default CodeRegistries from file: " + filename);
         final Set<CodeRegistry> codeRegistries = new HashSet<>();
         final Stopwatch watch = Stopwatch.createStarted();
-        if (updateManager.shouldUpdateData(DATA_CODEREGISTRIES, filename)) {
-            final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODEREGISTRIES, SOURCE_INTERNAL, filename, UpdateManager.UPDATE_RUNNING);
+        if (updateManager.shouldUpdateData(DATA_CODEREGISTRIES, identifier, filename)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODEREGISTRIES, identifier, SOURCE_INTERNAL, filename, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODEREGISTRIES + "/" + filename)) {
                 codeRegistries.addAll(codeRegistryParser.parseCodeRegistriesFromCsvInputStream(inputStream));
                 for (final CodeRegistry codeRegistry : codeRegistries) {
@@ -153,9 +164,9 @@ public class YtiDataAccess {
         final Stopwatch watch = Stopwatch.createStarted();
         codeRegistries.forEach(codeRegistry -> {
             final String identifier = codeRegistry.getCodeValue();
-            if (updateManager.shouldUpdateData(DATA_CODESCHEMES, identifier)) {
+            if (updateManager.shouldUpdateData(DATA_CODESCHEMES, identifier, identifier + ".csv")) {
                 LOG.info("Loading CodeSchemes from CodeRegistry: " + identifier);
-                final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
+                final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, identifier, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODESCHEMES + "/" + identifier + ".csv")) {
                     codeSchemes.addAll(codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream));
                 } catch (IOException e) {
@@ -184,10 +195,10 @@ public class YtiDataAccess {
         final Stopwatch watch = Stopwatch.createStarted();
         codeSchemes.forEach(codeScheme -> {
             final String identifier = codeScheme.getCodeRegistry().getCodeValue() + "_" + codeScheme.getCodeValue();
-            if (updateManager.shouldUpdateData(DATA_CODES, identifier)) {
+            if (updateManager.shouldUpdateData(DATA_CODES, identifier, identifier + ".csv")) {
                 LOG.info("Loading Codes from CodeScheme: " + identifier);
                 final Set<Code> codes = new HashSet<>();
-                final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODES, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
+                final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODES, identifier, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODES + "/" + identifier + ".csv")) {
                     codes.addAll(codeParser.parseCodesFromCsvInputStream(codeScheme, inputStream));
                 } catch (IOException e) {
@@ -213,8 +224,8 @@ public class YtiDataAccess {
     private void loadDefaultPropertyTypes() {
         LOG.info("Loading default PropertyTypes...");
         final Stopwatch watch = Stopwatch.createStarted();
-        if (updateManager.shouldUpdateData(DATA_PROPERTYTYPES, DEFAULT_PROPERTYTYPE_FILENAME)) {
-            final UpdateStatus updateStatus = updateManager.createStatus(DATA_PROPERTYTYPES, SOURCE_INTERNAL, DEFAULT_PROPERTYTYPE_FILENAME, UpdateManager.UPDATE_RUNNING);
+        if (updateManager.shouldUpdateData(DATA_PROPERTYTYPES, "default", DEFAULT_PROPERTYTYPE_FILENAME)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(DATA_PROPERTYTYPES, "default", SOURCE_INTERNAL, DEFAULT_PROPERTYTYPE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME)) {
                 final List<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(inputStream);
                 LOG.info("PropertyType data loaded: " + propertyTypes.size() + " PropertyTypes in " + watch);
@@ -236,8 +247,8 @@ public class YtiDataAccess {
     private void loadDefaultExternalReferences() {
         LOG.info("Loading default ExternalReferences...");
         final Stopwatch watch = Stopwatch.createStarted();
-        if (updateManager.shouldUpdateData(DATA_EXTERNALREFERENCES, DEFAULT_EXTERNALREFERENCE_FILENAME)) {
-            final UpdateStatus updateStatus = updateManager.createStatus(DATA_EXTERNALREFERENCES, SOURCE_INTERNAL, DEFAULT_EXTERNALREFERENCE_FILENAME, UpdateManager.UPDATE_RUNNING);
+        if (updateManager.shouldUpdateData(DATA_EXTERNALREFERENCES, "default", DEFAULT_EXTERNALREFERENCE_FILENAME)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(DATA_EXTERNALREFERENCES, "default", SOURCE_INTERNAL, DEFAULT_EXTERNALREFERENCE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_EXTERNALREFERENCES + "/" + DEFAULT_EXTERNALREFERENCE_FILENAME)) {
                 final List<ExternalReference> propertyTypes = externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream);
                 LOG.info("ExternalReference data loaded: " + propertyTypes.size() + " ExternalReferences in " + watch);
