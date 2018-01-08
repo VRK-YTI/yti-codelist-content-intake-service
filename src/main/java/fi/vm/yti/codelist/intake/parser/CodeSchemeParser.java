@@ -161,107 +161,119 @@ public class CodeSchemeParser extends AbstractBaseParser {
     }
 
     /*
-     * Parses the .xls CodeScheme Excel-file and returns the CodeSchemes as a set.
+     * Parses the .xls or .xlsx CodeScheme Excel-inputstream and returns the CodeSchemes as a set.
+     *
+     * @param codeRegistry CodeRegistry.
+     * @param inputStream The Code containing Excel -inputstream.
+     * @return List of Code objects.
+     */
+    public Set<CodeScheme> parseCodeSchemesFromExcelInputStream(final CodeRegistry codeRegistry,
+                                                                final InputStream inputStream) throws Exception {
+        try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
+            return parseCodeSchemesFromExcel(codeRegistry, workbook);
+        }
+    }
+
+    /*
+     * Parses the .xls or .xlsx CodeScheme Excel-file and returns the CodeSchemes as a set.
      *
      * @param codeRegistry CodeRegistry.
      * @param inputStream The Code containing Excel -file.
      * @return List of Code objects.
      */
-    public Set<CodeScheme> parseCodeSchemesFromExcelInputStream(final CodeRegistry codeRegistry,
-                                                                final InputStream inputStream) throws Exception {
+    public Set<CodeScheme> parseCodeSchemesFromExcel(final CodeRegistry codeRegistry,
+                                                     final Workbook workbook) throws Exception {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (codeRegistry != null) {
-            try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-                final DataFormatter formatter = new DataFormatter();
-                Sheet sheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);
-                if (sheet == null) {
-                    sheet = workbook.getSheetAt(0);
-                }
-                final Iterator<Row> rowIterator = sheet.rowIterator();
-                final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
-                final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
-                final Map<String, Integer> descriptionHeaders = new LinkedHashMap<>();
-                final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
-                final Map<String, Integer> changeNoteHeaders = new LinkedHashMap<>();
-                boolean firstRow = true;
-                while (rowIterator.hasNext()) {
-                    final Row row = rowIterator.next();
-                    if (firstRow) {
-                        final Iterator<Cell> cellIterator = row.cellIterator();
-                        while (cellIterator.hasNext()) {
-                            final Cell cell = cellIterator.next();
-                            final String value = cell.getStringCellValue();
-                            final Integer index = cell.getColumnIndex();
-                            if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                                prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), index);
-                            } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
-                                descriptionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DESCRIPTION_PREFIX, value), index);
-                            } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                                definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), index);
-                            } else if (value.startsWith(CONTENT_HEADER_CHANGENOTE_PREFIX)) {
-                                changeNoteHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_CHANGENOTE_PREFIX, value), index);
-                            } else {
-                                genericHeaders.put(value, index);
-                            }
-                        }
-                        firstRow = false;
-                    } else {
-                        final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
-                        final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
-                        final String dataClassificationCodes = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)));
-                        ;
-                        final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
-                        final Map<String, String> prefLabel = new LinkedHashMap<>();
-                        prefLabelHeaders.forEach((language, header) -> {
-                            prefLabel.put(language, formatter.formatCellValue(row.getCell(header)));
-                        });
-                        final Map<String, String> definition = new LinkedHashMap<>();
-                        definitionHeaders.forEach((language, header) -> {
-                            definition.put(language, formatter.formatCellValue(row.getCell(header)));
-                        });
-                        final Map<String, String> description = new LinkedHashMap<>();
-                        descriptionHeaders.forEach((language, header) -> {
-                            description.put(language, formatter.formatCellValue(row.getCell(header)));
-                        });
-                        final Map<String, String> changeNote = new LinkedHashMap<>();
-                        changeNoteHeaders.forEach((language, header) -> {
-                            changeNote.put(language, formatter.formatCellValue(row.getCell(header)));
-                        });
-                        final String version = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_VERSION)));
-                        final String statusString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)));
-                        final Status status;
-                        if (!statusString.isEmpty()) {
-                            status = Status.valueOf(statusString);
+            final DataFormatter formatter = new DataFormatter();
+            Sheet sheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);
+            if (sheet == null) {
+                sheet = workbook.getSheetAt(0);
+            }
+            final Iterator<Row> rowIterator = sheet.rowIterator();
+            final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> descriptionHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> changeNoteHeaders = new LinkedHashMap<>();
+            boolean firstRow = true;
+            while (rowIterator.hasNext()) {
+                final Row row = rowIterator.next();
+                if (firstRow) {
+                    final Iterator<Cell> cellIterator = row.cellIterator();
+                    while (cellIterator.hasNext()) {
+                        final Cell cell = cellIterator.next();
+                        final String value = cell.getStringCellValue();
+                        final Integer index = cell.getColumnIndex();
+                        if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                            prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), index);
+                        } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
+                            descriptionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DESCRIPTION_PREFIX, value), index);
+                        } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
+                            definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), index);
+                        } else if (value.startsWith(CONTENT_HEADER_CHANGENOTE_PREFIX)) {
+                            changeNoteHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_CHANGENOTE_PREFIX, value), index);
                         } else {
-                            status = Status.DRAFT;
+                            genericHeaders.put(value, index);
                         }
-                        final String source = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SOURCE)));
-                        final String legalBase = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_LEGALBASE)));
-                        final String governancePolicy = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_GOVERNANCEPOLICY)));
-                        final String license = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_LICENSE)));
-                        final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
-                        Date startDate = null;
-                        final String startDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)));
-                        if (!startDateString.isEmpty()) {
-                            try {
-                                startDate = dateFormat.parse(startDateString);
-                            } catch (ParseException e) {
-                                LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
-                            }
+                    }
+                    firstRow = false;
+                } else {
+                    final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
+                    final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
+                    final String dataClassificationCodes = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)));
+                    ;
+                    final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
+                    final Map<String, String> prefLabel = new LinkedHashMap<>();
+                    prefLabelHeaders.forEach((language, header) -> {
+                        prefLabel.put(language, formatter.formatCellValue(row.getCell(header)));
+                    });
+                    final Map<String, String> definition = new LinkedHashMap<>();
+                    definitionHeaders.forEach((language, header) -> {
+                        definition.put(language, formatter.formatCellValue(row.getCell(header)));
+                    });
+                    final Map<String, String> description = new LinkedHashMap<>();
+                    descriptionHeaders.forEach((language, header) -> {
+                        description.put(language, formatter.formatCellValue(row.getCell(header)));
+                    });
+                    final Map<String, String> changeNote = new LinkedHashMap<>();
+                    changeNoteHeaders.forEach((language, header) -> {
+                        changeNote.put(language, formatter.formatCellValue(row.getCell(header)));
+                    });
+                    final String version = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_VERSION)));
+                    final String statusString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)));
+                    final Status status;
+                    if (!statusString.isEmpty()) {
+                        status = Status.valueOf(statusString);
+                    } else {
+                        status = Status.DRAFT;
+                    }
+                    final String source = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SOURCE)));
+                    final String legalBase = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_LEGALBASE)));
+                    final String governancePolicy = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_GOVERNANCEPOLICY)));
+                    final String license = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_LICENSE)));
+                    final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
+                    Date startDate = null;
+                    final String startDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)));
+                    if (!startDateString.isEmpty()) {
+                        try {
+                            startDate = dateFormat.parse(startDateString);
+                        } catch (ParseException e) {
+                            LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
                         }
-                        Date endDate = null;
-                        final String endDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ENDDATE)));
-                        if (!endDateString.isEmpty()) {
-                            try {
-                                endDate = dateFormat.parse(endDateString);
-                            } catch (ParseException e) {
-                                LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
-                            }
+                    }
+                    Date endDate = null;
+                    final String endDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ENDDATE)));
+                    if (!endDateString.isEmpty()) {
+                        try {
+                            endDate = dateFormat.parse(endDateString);
+                        } catch (ParseException e) {
+                            LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                         }
-                        final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, license, startDate, endDate, prefLabel, description, definition, changeNote);
-                        if (codeScheme != null) {
-                            codeSchemes.add(codeScheme);
-                        }
+                    }
+                    final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, license, startDate, endDate, prefLabel, description, definition, changeNote);
+                    if (codeScheme != null) {
+                        codeSchemes.add(codeScheme);
                     }
                 }
             }

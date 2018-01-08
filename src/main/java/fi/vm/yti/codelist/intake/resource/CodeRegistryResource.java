@@ -20,6 +20,8 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -270,11 +272,17 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             Set<CodeScheme> codeSchemes = new HashSet<>();
+            Set<Code> codes = new HashSet<>();
             try {
                 if (FORMAT_CSV.equalsIgnoreCase(format)) {
                     codeSchemes = codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream);
                 } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
-                    codeSchemes = codeSchemeParser.parseCodeSchemesFromExcelInputStream(codeRegistry, inputStream);
+                    try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
+                        codeSchemes = codeSchemeParser.parseCodeSchemesFromExcel(codeRegistry, workbook);
+                        if (!codeSchemes.isEmpty() && codeSchemes.size() == 1) {
+                            codes = codeParser.parseCodesFromExcel(codeSchemes.iterator().next(), workbook);
+                        }
+                    }
                 }
             } catch (final Exception e) {
                 throw new WebApplicationException(e.getMessage());
@@ -289,6 +297,13 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme));
                     indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme));
                 }
+            }
+            for (final Code code : codes) {
+                LOG.debug("Code parsed from input: " + code.getCodeValue());
+            }
+            if (!codes.isEmpty()) {
+                domain.persistCodes(codes);
+                indexing.updateCodes(codes);
             }
             meta.setMessage("CodeSchemes added or modified: " + codeSchemes.size());
             meta.setCode(200);
@@ -407,7 +422,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                             } else {
                                 code.setExternalReferences(null);
                             }
-
                         }
                     }
                 } catch (Exception e) {

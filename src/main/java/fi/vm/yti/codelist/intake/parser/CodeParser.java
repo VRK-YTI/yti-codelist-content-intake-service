@@ -142,17 +142,30 @@ public class CodeParser extends AbstractBaseParser {
     }
 
     /**
-     * Parses the .xls Code-file and returns the codes as a set.
+     * Parses the .xls or .xlsx Code-inputstream and returns the codes as a set.
      *
      * @param codeScheme  CodeScheme for which these codes are for.
-     * @param inputStream The Code containing Excel -file.
+     * @param inputStream The Code containing Excel -inputstream.
      * @return Set of Code objects.
      */
     public Set<Code> parseCodesFromExcelInputStream(final CodeScheme codeScheme,
                                                     final InputStream inputStream) throws Exception {
+        try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
+            return parseCodesFromExcel(codeScheme, workbook);
+        }
+    }
+
+    /**
+     * Parses the .xls or .xlsx Code-file and returns the codes as a set.
+     *
+     * @param codeScheme  CodeScheme for which these codes are for.
+     * @param workbook The Code containing Excel -file.
+     * @return Set of Code objects.
+     */
+    public Set<Code> parseCodesFromExcel(final CodeScheme codeScheme,
+                                         final Workbook workbook) throws Exception {
         final Set<Code> codes = new HashSet<>();
         if (codeScheme != null) {
-            try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
                 final DataFormatter formatter = new DataFormatter();
                 Sheet sheet = workbook.getSheet(EXCEL_SHEET_CODES);
                 if (sheet == null) {
@@ -229,7 +242,6 @@ public class CodeParser extends AbstractBaseParser {
                         if (code != null) {
                             codes.add(code);
                         }
-                    }
                 }
             }
         }
