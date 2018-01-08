@@ -279,7 +279,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
                     try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
                         codeSchemes = codeSchemeParser.parseCodeSchemesFromExcel(codeRegistry, workbook);
-                        if (!codeSchemes.isEmpty() && codeSchemes.size() == 1) {
+                        if (!codeSchemes.isEmpty() && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODESCHEMES) != null) {
                             codes = codeParser.parseCodesFromExcel(codeSchemes.iterator().next(), workbook);
                         }
                     }
