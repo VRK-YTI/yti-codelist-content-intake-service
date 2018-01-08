@@ -1,4 +1,4 @@
-CODEVALUE,ID,STATUS,PREFLABEL_FI,PREFLABEL_SE,PREFLABEL_EN,DESCRIPTION_FI,DESCRIPTION_SE,DESCRIPTION_EN,SHORTNAME,STARTDATE,ENDDATE
+CODEVALUE,ID,STATUS,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,DESCRIPTION_FI,DESCRIPTION_SV,DESCRIPTION_EN,SHORTNAME,STARTDATE,ENDDATE
 AGRI,5104C0BC-DAB4-43B2-8733-714823EAFCB4,VALID,"Maatalous, kalastus, metsätalous ja elintarvikkeet","Jordbruk, fiske, skogsbruk och livsmedel","Agriculture, fisheries, forestry and food",,,"This concept identifies datasets covering such domains as agriculture, fisheries, forestry or food.",,,
 ECON,662870E0-2BF4-4A9D-8DD4-69346FCEDF30,VALID,Talous ja raha-asiat,Ekonomi och finans,Economy and finance,,,"This concept identifies datasets covering such domains as economy or finance.",,,
 EDUC,4852447B-339D-4C9A-A850-A621E3ED4C7D,VALID,"Koulutus, kulttuuri ja urheilu","Utbildning, kultur och sport","Education, culture and sport",,,"This concept identifies datasets covering such domains as education, culture or sport.",,,
