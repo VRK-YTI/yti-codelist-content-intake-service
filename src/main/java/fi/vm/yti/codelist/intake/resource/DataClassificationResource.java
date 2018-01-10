@@ -81,8 +81,8 @@ public class DataClassificationResource extends AbstractBaseResource {
         final Set<Code> codes = codeRepository.findByCodeScheme(dataClassificationsScheme);
         final Set<DataClassification> dataClassifications = new LinkedHashSet<>();
         final Map<String, Integer> statistics = new HashMap<>();
-        try (final Connection connection = dataSource.getConnection()) {
-            final ResultSet results = connection.prepareStatement("SELECT code_id, count(code_id) FROM service_codescheme_code GROUP BY code_id").executeQuery();
+        try (final Connection connection = dataSource.getConnection();
+             final ResultSet results = connection.prepareStatement("SELECT code_id, count(code_id) FROM service_codescheme_code GROUP BY code_id").executeQuery()) {
             while (results.next()) {
                 statistics.put(results.getString(1), results.getInt(2));
             }
