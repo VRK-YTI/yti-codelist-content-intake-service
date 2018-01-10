@@ -103,6 +103,7 @@ public class CodeParser extends AbstractBaseParser {
                         description.put(language, record.get(header));
                     });
                     final String shortName = record.get(CONTENT_HEADER_SHORTNAME);
+                    final String hierarchyLevel = record.get(CONTENT_HEADER_HIERARCHYLEVEL);
                     final String statusString = record.get(CONTENT_HEADER_STATUS);
                     final Status status;
                     if (!statusString.isEmpty()) {
@@ -129,7 +130,7 @@ public class CodeParser extends AbstractBaseParser {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                         }
                     }
-                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, startDate, endDate, prefLabel, description, definition);
+                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, hierarchyLevel, startDate, endDate, prefLabel, description, definition);
                     if (code != null) {
                         codes.add(code);
                     }
@@ -212,6 +213,7 @@ public class CodeParser extends AbstractBaseParser {
                             description.put(language, formatter.formatCellValue(row.getCell(header)));
                         });
                         final String shortName = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
+                        final String hierarchyLevel = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
                         final String statusString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)));
                         final Status status;
                         if (!statusString.isEmpty()) {
@@ -238,7 +240,7 @@ public class CodeParser extends AbstractBaseParser {
                                 LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
                             }
                         }
-                        final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, startDate, endDate, prefLabel, description, definition);
+                        final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, hierarchyLevel, startDate, endDate, prefLabel, description, definition);
                         if (code != null) {
                             codes.add(code);
                         }
@@ -253,6 +255,7 @@ public class CodeParser extends AbstractBaseParser {
                                     final String codeValue,
                                     final Status status,
                                     final String shortName,
+                                    final String hierarchyLevel,
                                     final Date startDate,
                                     final Date endDate,
                                     final Map<String, String> prefLabel,
@@ -286,6 +289,10 @@ public class CodeParser extends AbstractBaseParser {
             }
             if (!Objects.equals(code.getShortName(), shortName)) {
                 code.setShortName(shortName);
+                hasChanges = true;
+            }
+            if (!Objects.equals(code.getHierarchyLevel(), hierarchyLevel)) {
+                code.setHierarchyLevel(hierarchyLevel);
                 hasChanges = true;
             }
             for (final String language : prefLabel.keySet()) {
@@ -333,6 +340,7 @@ public class CodeParser extends AbstractBaseParser {
             code.setCodeScheme(codeScheme);
             code.setCodeValue(codeValue);
             code.setShortName(shortName);
+            code.setHierarchyLevel(hierarchyLevel);
             final Date timeStamp = new Date(System.currentTimeMillis());
             code.setModified(timeStamp);
             for (final String language : prefLabel.keySet()) {
