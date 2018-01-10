@@ -126,30 +126,28 @@
             </exclusions>
         </dependency>
 
-        <!-- Elastic Search related Log4J -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>2.8</version><!--$NO-MVN-MAN-VER$-->
         </dependency>
+
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.8</version><!--$NO-MVN-MAN-VER$-->
         </dependency>
 
         <!-- Elastic Search -->
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>6.1.1</version><!--$NO-MVN-MAN-VER$-->
+            <version>${elastic.version}</version><!--$NO-MVN-MAN-VER$-->
         </dependency>
 
         <!-- Elastic Search Transport client -->
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>transport</artifactId>
-            <version>6.1.1</version>
+            <version>${elastic.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.elasticsearch</groupId>
@@ -162,7 +160,7 @@
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>2.6.0</version><!--$NO-MVN-MAN-VER$-->
+            <version>2.7.4</version><!--$NO-MVN-MAN-VER$-->
         </dependency>
 
         <!-- Flyway database -->
@@ -202,21 +200,21 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.3</version><!--$NO-MVN-MAN-VER$-->
+            <version>${apache.httpclient.version}</version><!--$NO-MVN-MAN-VER$-->
         </dependency>
 
         <!-- Apache Fluent -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>fluent-hc</artifactId>
-            <version>4.5.3</version>
+            <version>${apache.httpclient.version}</version>
         </dependency>
 
         <!-- Apache CSV -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
-            <version>1.4</version>
+            <version>1.5</version>
         </dependency>
 
         <!-- Jersey Multipart -->
@@ -230,7 +228,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.10.2</version>
+            <version>1.11.2</version>
         </dependency>
 
         <!-- FindBugs Annotations -->
@@ -323,7 +321,6 @@
                 <configuration>
                     <imageName>yti-codelist-content-intake-service</imageName>
                     <dockerDirectory>docker</dockerDirectory>
-                    <useConfigFile>true</useConfigFile>
                     <pullOnBuild>false</pullOnBuild>
                     <resources>
                         <resource>
@@ -368,7 +365,7 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.22.1</version>
+                <version>0.23.0</version>
                 <configuration>
                     <skip>${skipTests}</skip>
                     <portPropertyFile>target/test-classes/test-port.properties</portPropertyFile>
@@ -507,7 +504,7 @@
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
-                <version>1.2.1</version>
+                <version>1.4.0</version>
                 <executions>
                     <execution>
                         <id>swagger-ui</id>
@@ -582,12 +579,14 @@
         <git.properties>git.properties</git.properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spotify-docker.version>0.4.13</spotify-docker.version>
-        <swagger.version>1.5.15</swagger.version>
-        <swagger-ui.version>3.1.5</swagger-ui.version>
-        <swagger-maven-plugin.version>3.1.5</swagger-maven-plugin.version>
+        <spotify-docker.version>1.0.0</spotify-docker.version>
+        <swagger.version>1.5.17</swagger.version>
+        <swagger-ui.version>3.1.6</swagger-ui.version>
+        <swagger-maven-plugin.version>3.1.6</swagger-maven-plugin.version>
         <postgresql.version>42.1.4</postgresql.version>
-        <flyway.version>4.1.1</flyway.version>
+        <flyway.version>5.0.5</flyway.version>
+        <elastic.version>6.1.1</elastic.version>
+        <apache.httpclient.version>4.5.4</apache.httpclient.version>
         <psql.host>localhost</psql.host>
         <psql.port>5432</psql.port>
         <project.db.name>yti_codelist</project.db.name>
