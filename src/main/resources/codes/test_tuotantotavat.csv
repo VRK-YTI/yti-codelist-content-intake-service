@@ -1,4 +1,4 @@
-CODEVALUE,ID,STATUS,NOTATION,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,DEFINITION_FI,DEFINITION_SV,DEFINITION_EN,DESCRIPTION_FI,DESCRIPTION_SV,DESCRIPTION_EN,SHORTNAME,STARTDATE,ENDDATE
-v4001,,VALID,TTP1,Itse tuotetut palvelut,Självproducerade tjänster,Self produced services,,,,,,,,,
-v4002,,VALID,TTP2,Ostopalvelut,Köpta tjänster,Procured services,,,,,,,,,
-v4003,,VALID,TTP3,Palvelusetelillä maksettavat palvelut,Servicesedeltjänster,Voucher services,,,,,,,,,
+CODEVALUE,ID,STATUS,HIERARCHYLEVEL,NOTATION,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,DEFINITION_FI,DEFINITION_SV,DEFINITION_EN,DESCRIPTION_FI,DESCRIPTION_SV,DESCRIPTION_EN,SHORTNAME,STARTDATE,ENDDATE
+v4001,84361FA7-567F-40A9-94DA-4CF3C6B3FA0F,VALID,,TTP1,Itse tuotetut palvelut,Självproducerade tjänster,Self produced services,,,,,,,,,
+v4002,B00C0312-AE7B-4EB4-BE59-D73285B7A6AA,VALID,,TTP2,Ostopalvelut,Köpta tjänster,Procured services,,,,,,,,,
+v4003,9F4B1ACF-0F4E-468D-8046-35BF019FA2BC,VALID,,TTP3,Palvelusetelillä maksettavat palvelut,Servicesedeltjänster,Voucher services,,,,,,,,,
