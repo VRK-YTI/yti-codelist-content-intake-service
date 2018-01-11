@@ -48,8 +48,10 @@ public class YtiDataAccess {
     private static final String VRK_ORG_ID = "d9c76d52-03d3-4480-8c2c-b66e6d9c57f2";
     private static final String TEST_ORG_ID = "74a41211-8c99-4835-a519-7a61612b1098";
     private static final String YTIXBRL_ORG_ID = "71837f4a-c503-4f3d-84dc-d645314528cf";
+    private static final String TK_ORG_ID = "88ce73b9-376c-4ff1-8c51-e4159b0af75c";
 
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
+    private static final String DEFAULT_TKREGISTRY_FILENAME = "tkregistries.csv";
     private static final String DEFAULT_YTIXBRLREGISTRY_FILENAME = "ytixbrlregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
     private static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
@@ -108,6 +110,8 @@ public class YtiDataAccess {
         classifyDcat();
         final Organization ytiXbrlOrganization = organizationRepository.findById(UUID.fromString(YTIXBRL_ORG_ID));
         loadRegistryContent(DEFAULT_YTIXBRLREGISTRY_FILENAME, "YTIXBRL", ytiXbrlOrganization);
+        final Organization tkOrganization = organizationRepository.findById(UUID.fromString(TK_ORG_ID));
+        loadRegistryContent(DEFAULT_TKREGISTRY_FILENAME, "TK", tkOrganization);
         final Organization testOrganization = organizationRepository.findById(UUID.fromString(TEST_ORG_ID));
         loadRegistryContent(DEFAULT_CODEREGISTRY_FILENAME, "TEST", testOrganization);
         loadDefaultPropertyTypes();
