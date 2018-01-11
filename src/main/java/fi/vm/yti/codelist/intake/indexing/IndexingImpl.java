@@ -174,7 +174,7 @@ public class IndexingImpl implements Indexing {
             LOG.error(BULK + type + " operation failed with errors: " + response.buildFailureMessage());
             return false;
         } else {
-            LOG.info(BULK + type + " operation successfully indexed " + response.getItems().length + " items in " + response.getIngestTookInMillis() + " ms.");
+            LOG.info(BULK + type + " operation successfully indexed " + response.getItems().length + " items in " + response.getTook().millis() + " ms.");
             return true;
         }
     }
