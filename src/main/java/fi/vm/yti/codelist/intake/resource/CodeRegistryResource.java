@@ -106,7 +106,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses CodeRegistries from JSON input data.")
+    @ApiOperation(value = "Parses CodeRegistries from JSON input.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
     public Response addOrUpdateCodeRegistriesFromJson(@ApiParam(value = "JSON playload for CodeRegistry data.", required = true) final String jsonPayload) {
@@ -193,7 +193,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Path("{codeRegistryCodeValue}/codeschemes/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses CodeSchemes from input data.")
+    @ApiOperation(value = "Parses CodeSchemes from JSON input.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
     public Response addOrUpdateCodeSchemesFromJson(@ApiParam(value = "Format for input.", required = false) @QueryParam("format") @DefaultValue("json") final String format,
@@ -385,6 +385,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/codes/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Parses Codes from JSON input.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
     public Response addOrUpdateCodesFromJson(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
@@ -454,6 +455,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/codes/")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Parses Codes from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
