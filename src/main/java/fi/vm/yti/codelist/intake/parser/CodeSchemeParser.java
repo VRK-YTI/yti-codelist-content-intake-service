@@ -264,6 +264,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             startDate = dateFormat.parse(startDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
+                            throw new Exception("STARTDATE header does not have valid value, import failed!");
                         }
                     }
                     Date endDate = null;
@@ -273,6 +274,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             endDate = dateFormat.parse(endDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
+                            throw new Exception("ENDDATE header does not have valid value, import failed!");
                         }
                     }
                     final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, license, startDate, endDate, prefLabel, description, definition, changeNote);

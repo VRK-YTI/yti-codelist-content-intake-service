@@ -232,6 +232,7 @@ public class CodeParser extends AbstractBaseParser {
                                 startDate = dateFormat.parse(startDateString);
                             } catch (ParseException e) {
                                 LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
+                                throw new Exception("STARTDATE header does not have valid value, import failed!");
                             }
                         }
                         Date endDate = null;
@@ -241,6 +242,7 @@ public class CodeParser extends AbstractBaseParser {
                                 endDate = dateFormat.parse(endDateString);
                             } catch (ParseException e) {
                                 LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
+                                throw new Exception("ENDDATE header does not have valid value, import failed!");
                             }
                         }
                         final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, hierarchyLevel, startDate, endDate, prefLabel, description, definition);
