@@ -411,7 +411,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         for (final Code code : codes) {
                             if (code.getId() == null) {
                                 code.setId(UUID.randomUUID());
-                                final String uri;
                                 code.setUri(apiUtils.createCodeUri(codeRegistry, codeScheme, code));
                                 code.setCodeScheme(codeScheme);
                                 code.setModified(new Date(System.currentTimeMillis()));
