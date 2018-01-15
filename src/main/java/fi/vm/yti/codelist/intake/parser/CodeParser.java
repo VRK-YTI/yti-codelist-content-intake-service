@@ -167,88 +167,88 @@ public class CodeParser extends AbstractBaseParser {
                                          final Workbook workbook) throws Exception {
         final Set<Code> codes = new HashSet<>();
         if (codeScheme != null) {
-                final DataFormatter formatter = new DataFormatter();
-                Sheet sheet = workbook.getSheet(EXCEL_SHEET_CODES);
-                if (sheet == null) {
-                    sheet = workbook.getSheetAt(0);
-                }
-                final Iterator<Row> rowIterator = sheet.rowIterator();
-                final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
-                final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
-                final Map<String, Integer> descriptionHeaders = new LinkedHashMap<>();
-                final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
-                boolean firstRow = true;
-                while (rowIterator.hasNext()) {
-                    final Row row = rowIterator.next();
-                    if (firstRow) {
-                        final Iterator<Cell> cellIterator = row.cellIterator();
-                        while (cellIterator.hasNext()) {
-                            final Cell cell = cellIterator.next();
-                            final String value = cell.getStringCellValue();
-                            final Integer index = cell.getColumnIndex();
-                            if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                                prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), index);
-                            } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
-                                descriptionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DESCRIPTION_PREFIX, value), index);
-                            } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                                definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), index);
-                            } else {
-                                genericHeaders.put(value, index);
-                            }
-                        }
-                        firstRow = false;
-                    } else {
-                        final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
-                        if (codeValue == null || codeValue.trim().isEmpty()) {
-                            continue;
-                        }
-                        final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
-                        final Map<String, String> prefLabel = new LinkedHashMap<>();
-                        prefLabelHeaders.forEach((language, header) -> {
-                            prefLabel.put(language, formatter.formatCellValue(row.getCell(header)));
-                        });
-                        final Map<String, String> definition = new LinkedHashMap<>();
-                        definitionHeaders.forEach((language, header) -> {
-                            definition.put(language, formatter.formatCellValue(row.getCell(header)));
-                        });
-                        final Map<String, String> description = new LinkedHashMap<>();
-                        descriptionHeaders.forEach((language, header) -> {
-                            description.put(language, formatter.formatCellValue(row.getCell(header)));
-                        });
-                        final String shortName = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
-                        final String hierarchyLevel = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
-                        final String statusString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)));
-                        final Status status;
-                        if (!statusString.isEmpty()) {
-                            status = Status.valueOf(statusString);
+            final DataFormatter formatter = new DataFormatter();
+            Sheet sheet = workbook.getSheet(EXCEL_SHEET_CODES);
+            if (sheet == null) {
+                sheet = workbook.getSheetAt(0);
+            }
+            final Iterator<Row> rowIterator = sheet.rowIterator();
+            final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> descriptionHeaders = new LinkedHashMap<>();
+            final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
+            boolean firstRow = true;
+            while (rowIterator.hasNext()) {
+                final Row row = rowIterator.next();
+                if (firstRow) {
+                    final Iterator<Cell> cellIterator = row.cellIterator();
+                    while (cellIterator.hasNext()) {
+                        final Cell cell = cellIterator.next();
+                        final String value = cell.getStringCellValue();
+                        final Integer index = cell.getColumnIndex();
+                        if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                            prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), index);
+                        } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
+                            descriptionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DESCRIPTION_PREFIX, value), index);
+                        } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
+                            definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), index);
                         } else {
-                            status = Status.DRAFT;
+                            genericHeaders.put(value, index);
                         }
-                        final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
-                        Date startDate = null;
-                        final String startDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)));
-                        if (!startDateString.isEmpty()) {
-                            try {
-                                startDate = dateFormat.parse(startDateString);
-                            } catch (ParseException e) {
-                                LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
-                                throw new Exception("STARTDATE header does not have valid value, import failed!");
-                            }
+                    }
+                    firstRow = false;
+                } else {
+                    final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
+                    if (codeValue == null || codeValue.trim().isEmpty()) {
+                        continue;
+                    }
+                    final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
+                    final Map<String, String> prefLabel = new LinkedHashMap<>();
+                    prefLabelHeaders.forEach((language, header) -> {
+                        prefLabel.put(language, formatter.formatCellValue(row.getCell(header)));
+                    });
+                    final Map<String, String> definition = new LinkedHashMap<>();
+                    definitionHeaders.forEach((language, header) -> {
+                        definition.put(language, formatter.formatCellValue(row.getCell(header)));
+                    });
+                    final Map<String, String> description = new LinkedHashMap<>();
+                    descriptionHeaders.forEach((language, header) -> {
+                        description.put(language, formatter.formatCellValue(row.getCell(header)));
+                    });
+                    final String shortName = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
+                    final String hierarchyLevel = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
+                    final String statusString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)));
+                    final Status status;
+                    if (!statusString.isEmpty()) {
+                        status = Status.valueOf(statusString);
+                    } else {
+                        status = Status.DRAFT;
+                    }
+                    final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
+                    Date startDate = null;
+                    final String startDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)));
+                    if (!startDateString.isEmpty()) {
+                        try {
+                            startDate = dateFormat.parse(startDateString);
+                        } catch (ParseException e) {
+                            LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
+                            throw new Exception("STARTDATE header does not have valid value, import failed!");
                         }
-                        Date endDate = null;
-                        final String endDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ENDDATE)));
-                        if (!endDateString.isEmpty()) {
-                            try {
-                                endDate = dateFormat.parse(endDateString);
-                            } catch (ParseException e) {
-                                LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
-                                throw new Exception("ENDDATE header does not have valid value, import failed!");
-                            }
+                    }
+                    Date endDate = null;
+                    final String endDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ENDDATE)));
+                    if (!endDateString.isEmpty()) {
+                        try {
+                            endDate = dateFormat.parse(endDateString);
+                        } catch (ParseException e) {
+                            LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
+                            throw new Exception("ENDDATE header does not have valid value, import failed!");
                         }
-                        final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, hierarchyLevel, startDate, endDate, prefLabel, description, definition);
-                        if (code != null) {
-                            codes.add(code);
-                        }
+                    }
+                    final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, hierarchyLevel, startDate, endDate, prefLabel, description, definition);
+                    if (code != null) {
+                        codes.add(code);
+                    }
                 }
             }
         }
