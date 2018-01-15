@@ -134,7 +134,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     firstRow = false;
                 } else {
                     final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
-                    if (codeValue == null || codeValue.isEmpty()) {
+                    if (codeValue == null || codeValue.trim().isEmpty()) {
                         continue;
                     }
                     final Map<String, String> prefLabel = new LinkedHashMap<>();

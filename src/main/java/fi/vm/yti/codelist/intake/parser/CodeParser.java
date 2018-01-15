@@ -199,7 +199,7 @@ public class CodeParser extends AbstractBaseParser {
                         firstRow = false;
                     } else {
                         final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
-                        if (codeValue == null || codeValue.isEmpty()) {
+                        if (codeValue == null || codeValue.trim().isEmpty()) {
                             continue;
                         }
                         final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
