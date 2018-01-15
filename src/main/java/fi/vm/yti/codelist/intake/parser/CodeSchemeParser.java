@@ -99,8 +99,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
             }
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
-                final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
                 final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
+                final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
                 final Map<String, String> prefLabel = new LinkedHashMap<>();
                 prefLabelHeaders.forEach((language, header) -> {
                     prefLabel.put(language, record.get(header));
@@ -139,6 +139,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                         startDate = dateFormat.parse(startDateString);
                     } catch (ParseException e) {
                         LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
+                        throw new Exception("STARTDATE header does not have valid value, import failed!");
                     }
                 }
                 Date endDate = null;
@@ -148,6 +149,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                         endDate = dateFormat.parse(endDateString);
                     } catch (ParseException e) {
                         LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
+                        throw new Exception("ENDDATE header does not have valid value, import failed!");
                     }
                 }
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status,
@@ -219,10 +221,12 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     }
                     firstRow = false;
                 } else {
-                    final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
                     final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
+                    if (codeValue == null || codeValue.isEmpty()) {
+                        continue;
+                    }
+                    final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
                     final String dataClassificationCodes = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)));
-                    ;
                     final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, header) -> {

@@ -76,7 +76,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
             }
             final List<CSVRecord> records = csvParser.getRecords();
             records.forEach(record -> {
-                final String code = record.get(CONTENT_HEADER_CODEVALUE);
+                final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
                 final Map<String, String> prefLabel = new LinkedHashMap<>();
                 prefLabelHeaders.forEach((language, header) -> {
                     prefLabel.put(language, record.get(header));
@@ -85,7 +85,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
                 definitionHeaders.forEach((language, header) -> {
                     definition.put(language, record.get(header));
                 });
-                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(code, prefLabel, definition);
+                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, prefLabel, definition);
                 if (codeRegistry != null) {
                     codeRegistries.add(codeRegistry);
                 }
@@ -134,6 +134,9 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     firstRow = false;
                 } else {
                     final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
+                    if (codeValue == null || codeValue.isEmpty()) {
+                        continue;
+                    }
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, header) -> {
                         prefLabel.put(language, formatter.formatCellValue(row.getCell(header)));

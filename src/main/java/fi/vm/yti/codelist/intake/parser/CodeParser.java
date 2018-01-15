@@ -198,8 +198,11 @@ public class CodeParser extends AbstractBaseParser {
                         }
                         firstRow = false;
                     } else {
-                        final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
                         final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
+                        if (codeValue == null || codeValue.isEmpty()) {
+                            continue;
+                        }
+                        final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
                         final Map<String, String> prefLabel = new LinkedHashMap<>();
                         prefLabelHeaders.forEach((language, header) -> {
                             prefLabel.put(language, formatter.formatCellValue(row.getCell(header)));
