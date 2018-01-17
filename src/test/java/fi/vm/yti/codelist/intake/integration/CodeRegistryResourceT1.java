@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.integration;
 
 import javax.transaction.Transactional;
 
+import fi.vm.yti.codelist.intake.ContentIntakeServiceApplication;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +21,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 
-import fi.vm.yti.codelist.intake.ContentIntakeServiceApplication;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
+
 import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODEREGISTRIES;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_CSV;
 import static org.junit.Assert.assertEquals;

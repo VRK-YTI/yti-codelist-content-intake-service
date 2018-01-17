@@ -5,8 +5,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
+import fi.vm.yti.codelist.common.model.Meta;
+import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
+import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,10 +23,13 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.jaxrs.cfg.EndpointConfigBase;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterModifier;
+import org.slf4j.LoggerFactory;
 
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 public abstract class AbstractBaseResource {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractBaseResource.class);
 
     public SimpleFilterProvider createSimpleFilterProvider(final String baseFilter,
                                                            final String expand) {
@@ -58,6 +66,21 @@ public abstract class AbstractBaseResource {
                               final String apiVersionPath,
                               final String apiPath) {
         logger.info(method + " " + apiVersionPath + apiPath + " requested!");
+    }
+
+    protected Response handleUnauthorizedAccess(Meta meta, ResponseWrapper wrapper, String logMessage) {
+        handleLoggingAndMetaForHttpCode(401, meta, logMessage);
+        return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
+    }
+
+    protected Response handleUnauthorizedAccess(Meta meta, MetaResponseWrapper wrapper, String logMessage) {
+        handleLoggingAndMetaForHttpCode(401, meta, logMessage);
+        return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
+    }
+
+    private void handleLoggingAndMetaForHttpCode(int code, Meta meta, String logMessage) {
+        LOG.error(logMessage, new WebApplicationException((code)));
+        meta.setCode(code);
     }
 
     static class FilterModifier extends ObjectWriterModifier {

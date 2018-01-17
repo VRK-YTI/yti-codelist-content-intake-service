@@ -14,6 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -42,12 +43,15 @@ public class PropertyTypeResource extends AbstractBaseResource {
 
     private final Indexing indexing;
     private final PropertyTypeRepository propertyTypeRepository;
+    private final AuthorizationManager authorizationManager;
 
     @Inject
     public PropertyTypeResource(final Indexing indexing,
-                                final PropertyTypeRepository propertyTypeRepository) {
+                                final PropertyTypeRepository propertyTypeRepository,
+                                final AuthorizationManager authorizationManager) {
         this.indexing = indexing;
         this.propertyTypeRepository = propertyTypeRepository;
+        this.authorizationManager = authorizationManager;
     }
 
     @POST
@@ -61,6 +65,10 @@ public class PropertyTypeResource extends AbstractBaseResource {
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
         final ObjectMapper mapper = createObjectMapper();
+        if (!authorizationManager.isSuperUser()) {
+            return handleUnauthorizedAccess(meta, wrapper,
+                    "Superuser rights are needed to addOrUpdatePropertyTypes.");
+        }
         try {
             final List<PropertyType> propertyTypes = mapper.readValue(jsonPayload, new TypeReference<List<PropertyType>>() {
             });
@@ -72,7 +80,7 @@ public class PropertyTypeResource extends AbstractBaseResource {
             meta.setCode(200);
             return Response.ok(wrapper).build();
         } catch (final IOException e) {
-            LOG.error("Error parsing PropertyTypes from JSON.", e.getMessage());
+            LOG.error("Error parsing PropertyTypes from JSON.", e);
             meta.setCode(400);
             return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
         }
@@ -91,6 +99,10 @@ public class PropertyTypeResource extends AbstractBaseResource {
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
         final ObjectMapper mapper = createObjectMapper();
+        if (!authorizationManager.isSuperUser()) {
+            return handleUnauthorizedAccess(meta, wrapper,
+                    "Superuser rights are needed to updatePropertyType.");
+        }
         final UUID uuid = UUID.fromString(propertyTypeId);
         final PropertyType existingPropertyType = propertyTypeRepository.findById(uuid);
         if (existingPropertyType != null) {
@@ -101,7 +113,7 @@ public class PropertyTypeResource extends AbstractBaseResource {
                 meta.setCode(200);
                 return Response.ok(wrapper).build();
             } catch (final IOException e) {
-                LOG.error("Error parsing PropertyType from JSON.", e.getMessage());
+                LOG.error("Error parsing PropertyType from JSON.", e);
                 meta.setCode(400);
                 return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
             }

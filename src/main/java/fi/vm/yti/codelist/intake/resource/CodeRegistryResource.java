@@ -57,7 +57,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.security.AuthorizationException.check;
 
 @Component
 @Path("/v1/coderegistries")
@@ -114,6 +113,10 @@ public class CodeRegistryResource extends AbstractBaseResource {
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
         final Meta meta = new Meta();
         final ResponseWrapper<CodeRegistry> wrapper = new ResponseWrapper<>(meta);
+        if (!authorizationManager.isSuperUser()) {
+            return handleUnauthorizedAccess(meta, wrapper,
+                    "Superuser rights are needed to addOrUpdateCodeRegistriesFromJson.");
+        }
         final ObjectMapper mapper = createObjectMapper();
         try {
             Set<CodeRegistry> codeRegistries = new HashSet<>();
@@ -121,7 +124,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 codeRegistries = mapper.readValue(jsonPayload, new TypeReference<Set<CodeRegistry>>() {
                 });
                 for (final CodeRegistry codeRegistry : codeRegistries) {
-                    check(authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations()));
                     if (codeRegistry.getId() == null) {
                         codeRegistry.setId(UUID.randomUUID());
                         codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
@@ -142,11 +144,13 @@ public class CodeRegistryResource extends AbstractBaseResource {
             wrapper.setResults(codeRegistries);
             return Response.ok(wrapper).build();
         } catch (Exception e) {
-            LOG.error("Error parsing CodeRegistries.", e.getMessage());
-            meta.setCode(400);
-            return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
+            LOG.error("Error parsing CodeRegistries.", e);
+            meta.setCode(500);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
         }
     }
+
+
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -163,6 +167,10 @@ public class CodeRegistryResource extends AbstractBaseResource {
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
         final Meta meta = new Meta();
         final ResponseWrapper<CodeRegistry> wrapper = new ResponseWrapper<>(meta);
+        if (!authorizationManager.isSuperUser()) {
+            return handleUnauthorizedAccess(meta, wrapper,
+                    "Superuser rights are needed to addOrUpdateCodeRegistriesFromFile.");
+        }
         try {
             Set<CodeRegistry> codeRegistries = new HashSet<>();
             if (FORMAT_CSV.equalsIgnoreCase(format)) {
@@ -183,9 +191,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
             wrapper.setResults(codeRegistries);
             return Response.ok(wrapper).build();
         } catch (Exception e) {
-            LOG.error("Error parsing CodeRegistries.", e.getMessage());
-            meta.setCode(400);
-            return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
+            LOG.error("Error parsing CodeRegistries.", e);
+            meta.setCode(500);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
         }
     }
 
@@ -202,9 +210,13 @@ public class CodeRegistryResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/");
         final Meta meta = new Meta();
         final ResponseWrapper<CodeScheme> responseWrapper = new ResponseWrapper<>(meta);
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry,code")));
+        ObjectWriterInjector.set(new FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry,code")));
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
+            if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
+                return handleUnauthorizedAccess(meta, responseWrapper,
+                        "Unauthorized call to  addOrUpdateCodeSchemesFromJson.");
+            }
             Set<CodeScheme> codeSchemes = new HashSet<>();
             try {
                 if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
@@ -212,7 +224,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     codeSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<CodeScheme>>() {
                     });
                     for (final CodeScheme codeScheme : codeSchemes) {
-                        check(authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations()));
                         if (codeScheme.getId() == null) {
                             codeScheme.setId(UUID.randomUUID());
                             codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
@@ -271,6 +282,10 @@ public class CodeRegistryResource extends AbstractBaseResource {
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry")));
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
+            if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
+                return handleUnauthorizedAccess(meta, responseWrapper,
+                        "Unauthorized call to  addOrUpdateCodeSchemesFromFile.");
+            }
             Set<CodeScheme> codeSchemes = new HashSet<>();
             Set<Code> codes = new HashSet<>();
             try {
@@ -331,6 +346,10 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
+            if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
+                return handleUnauthorizedAccess(meta, responseWrapper,
+                        "Unauthorized call to  addOrUpdateCodeSchemesFromFile.");
+            }
             final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (existingCodeScheme != null) {
                 try {
@@ -367,7 +386,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         meta.setCode(406);
                     }
                 } catch (Exception e) {
-                    LOG.error("Exception storing CodeScheme: " + e.getMessage());
+                    LOG.error("Exception storing CodeScheme: ", e);
                     throw new WebApplicationException(e.getMessage());
                 }
             } else {
@@ -399,9 +418,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODE, "codeRegistry,codeScheme")));
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
+            if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
+                return handleUnauthorizedAccess(meta, responseWrapper,
+                        "Unauthorized call to  addOrUpdateCodesFromJson.");
+            }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
-                check(authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations()));
                 Set<Code> codes = new HashSet<>();
                 try {
                     if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
@@ -471,6 +493,10 @@ public class CodeRegistryResource extends AbstractBaseResource {
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODE, "codeRegistry,codeScheme")));
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
+            if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
+                return handleUnauthorizedAccess(meta, responseWrapper,
+                        "Unauthorized call to addOrUpdateCodesFromFile.");
+            }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
                 Set<Code> codes = new HashSet<>();
@@ -526,9 +552,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
+            if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
+                return handleUnauthorizedAccess(meta, responseWrapper,
+                        "Unauthorized call to updateCode.");
+            }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
-                check(authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations()));
                 final Code existingCode = codeRepository.findByCodeSchemeAndId(codeScheme, UUID.fromString(codeId));
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
@@ -593,9 +622,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
+            if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
+                return handleUnauthorizedAccess(meta, responseWrapper,
+                        "Unauthorized call to retireCode.");
+            }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeId);
             if (codeScheme != null) {
-                check(authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations()));
                 final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeId);
                 if (code != null) {
                     code.setStatus(Status.RETIRED.toString());

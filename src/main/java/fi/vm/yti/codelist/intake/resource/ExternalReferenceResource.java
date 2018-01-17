@@ -14,6 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -42,12 +43,15 @@ public class ExternalReferenceResource extends AbstractBaseResource {
 
     private final Indexing indexing;
     private final ExternalReferenceRepository externalReferenceRepository;
+    private final AuthorizationManager authorizationManager;
 
     @Inject
     public ExternalReferenceResource(final Indexing indexing,
-                                     final ExternalReferenceRepository externalReferenceRepository) {
+                                     final ExternalReferenceRepository externalReferenceRepository,
+                                     final AuthorizationManager authorizationManager) {
         this.indexing = indexing;
         this.externalReferenceRepository = externalReferenceRepository;
+        this.authorizationManager = authorizationManager;
     }
 
     @POST
@@ -61,6 +65,10 @@ public class ExternalReferenceResource extends AbstractBaseResource {
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
         final ObjectMapper mapper = createObjectMapper();
+        if (!authorizationManager.isSuperUser()) {
+            return handleUnauthorizedAccess(meta, wrapper,
+                    "Superuser rights are needed to addOrUpdateExternalReferences.");
+        }
         try {
             final List<ExternalReference> externalReferences;
             externalReferences = mapper.readValue(jsonPayload, new TypeReference<List<ExternalReference>>() {
@@ -73,7 +81,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
             meta.setCode(200);
             return Response.ok(wrapper).build();
         } catch (final IOException e) {
-            LOG.error("Error parsing ExternalReferences from JSON.", e.getMessage());
+            LOG.error("Error parsing ExternalReferences from JSON.", e);
             meta.setCode(400);
             return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
         }
@@ -92,6 +100,10 @@ public class ExternalReferenceResource extends AbstractBaseResource {
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
         final ObjectMapper mapper = createObjectMapper();
+        if (!authorizationManager.isSuperUser()) {
+            return handleUnauthorizedAccess(meta, wrapper,
+                    "Superuser rights are needed to updateExternalReference.");
+        }
         final UUID uuid = UUID.fromString(externalReferenceId);
         final ExternalReference existingExternalReference = externalReferenceRepository.findById(uuid);
         if (existingExternalReference != null) {
@@ -102,7 +114,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
                 meta.setCode(200);
                 return Response.ok(wrapper).build();
             } catch (final IOException e) {
-                LOG.error("Error parsing ExternalReferences from JSON.", e.getMessage());
+                LOG.error("Error parsing ExternalReferences from JSON.", e);
                 meta.setCode(400);
                 return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
             }
