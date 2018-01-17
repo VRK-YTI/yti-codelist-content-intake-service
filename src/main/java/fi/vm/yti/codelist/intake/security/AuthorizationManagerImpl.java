@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 
@@ -17,6 +18,7 @@ import fi.vm.yti.security.AuthenticatedUserProvider;
 import fi.vm.yti.security.YtiUser;
 
 @Service
+@Profile("default")
 public class AuthorizationManagerImpl implements AuthorizationManager{
     
     private final AuthenticatedUserProvider userProvider;
