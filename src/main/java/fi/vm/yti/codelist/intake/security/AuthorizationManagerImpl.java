@@ -17,8 +17,22 @@ import fi.vm.yti.codelist.common.model.Organization;
 import fi.vm.yti.security.AuthenticatedUserProvider;
 import fi.vm.yti.security.YtiUser;
 
+/**
+ * This class is annotated with the "!test"-profile because during integration tests
+ * there is another class (also implementing the AuthorizationManager interface) being
+ * used instead of this as the AuthorizationManager (which always says "YES you are
+ * authorized") in order to let us test the API without auth-related hassle.
+ *
+ * The existence of that other class (which has been marked @Profile="test") requires that
+ * this class is marked with @Profile="!test" - otherwise this class is trying to get
+ * loaded during the tests as well and an error ensues.
+ *
+ * @see fi.vm.yti.codelist.intake.integration.AuthorizationManagerForTestsImpl which is the
+ * integrationtest-code counterpart for this class.
+ */
+
 @Service
-@Profile("default")
+@Profile("!test")
 public class AuthorizationManagerImpl implements AuthorizationManager{
     
     private final AuthenticatedUserProvider userProvider;
