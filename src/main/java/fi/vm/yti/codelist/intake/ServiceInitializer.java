@@ -129,7 +129,7 @@ public class ServiceInitializer {
                 fos.write(mapper.writeValueAsString(jsonObject).getBytes(StandardCharsets.UTF_8));
             }
         } catch (IOException e) {
-            LOG.error("Swagger JSON parsing failed: " + e.getMessage());
+            LOG.error("Swagger JSON parsing failed: ", e);
         }
     }
 

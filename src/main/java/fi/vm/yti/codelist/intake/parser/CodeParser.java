@@ -17,7 +17,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
 
+import fi.vm.yti.codelist.intake.exception.CodeParsingException;
+import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -88,6 +91,14 @@ public class CodeParser extends AbstractBaseParser {
                 });
                 final List<CSVRecord> records = csvParser.getRecords();
                 for (final CSVRecord record : records) {
+                    // This try-catch block prevents an ugly and large vomit of non-UTF-8 characters from polluting the log.
+                    // The problem emanates from Apache's CVSRecord itself so hacking around it for now like this.
+                    // This problem happens for example when the user specifies CSV but gives Excel with certain kind of data.
+                    try {
+                        record.get(CONTENT_HEADER_ID);
+                    } catch (IllegalArgumentException e) {
+                        throw new WebApplicationException("A serious problem with the CSV file (possibly erroneously an Excel-file was used).");
+                    }
                     final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
                     final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
@@ -119,6 +130,7 @@ public class CodeParser extends AbstractBaseParser {
                             startDate = dateFormat.parse(startDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
+                            throw e;
                         }
                     }
                     Date endDate = null;
@@ -128,6 +140,7 @@ public class CodeParser extends AbstractBaseParser {
                             endDate = dateFormat.parse(endDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
+                            throw e;
                         }
                     }
                     final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, hierarchyLevel, startDate, endDate, prefLabel, description, definition);
@@ -135,8 +148,6 @@ public class CodeParser extends AbstractBaseParser {
                         codes.add(code);
                     }
                 }
-            } catch (final IOException e) {
-                LOG.error("Parsing codes failed: " + e.getMessage());
             }
         }
         return codes;
@@ -232,7 +243,7 @@ public class CodeParser extends AbstractBaseParser {
                             startDate = dateFormat.parse(startDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
-                            throw new Exception("STARTDATE header does not have valid value, import failed!");
+                            throw new CodeParsingException("STARTDATE header does not have valid value, import failed!");
                         }
                     }
                     Date endDate = null;
@@ -242,7 +253,7 @@ public class CodeParser extends AbstractBaseParser {
                             endDate = dateFormat.parse(endDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
-                            throw new Exception("ENDDATE header does not have valid value, import failed!");
+                            throw new CodeParsingException("ENDDATE header does not have valid value, import failed!");
                         }
                     }
                     final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, hierarchyLevel, startDate, endDate, prefLabel, description, definition);
@@ -273,8 +284,7 @@ public class CodeParser extends AbstractBaseParser {
         if (Status.VALID == status) {
             final Code existingCode = codeRepository.findByCodeSchemeAndCodeValueAndStatus(codeScheme, codeValue, status.toString());
             if (existingCode != code) {
-                LOG.error("Existing value already found, cancel update!");
-                throw new Exception("Existing value already found with status VALID for code: " + codeValue + ", cancel update!");
+                throw new ExistingCodeException("Existing value already found with status VALID for code: " + codeValue + ", cancel update!");
             }
         }
         if (code != null) {

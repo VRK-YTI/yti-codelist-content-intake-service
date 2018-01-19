@@ -68,6 +68,16 @@ public abstract class AbstractBaseResource {
         logger.info(method + " " + apiVersionPath + apiPath + " requested!");
     }
 
+    protected Response handleInternalServerError(Meta meta, ResponseWrapper wrapper, String logMessage, Exception e) {
+        handleLoggingAndMetaForHttpCode(500, meta, logMessage, e);
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
+    }
+
+    protected Response handleInternalServerError(Meta meta, MetaResponseWrapper wrapper, String logMessage, Exception e) {
+        handleLoggingAndMetaForHttpCode(500, meta, logMessage, e);
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
+    }
+
     protected Response handleUnauthorizedAccess(Meta meta, ResponseWrapper wrapper, String logMessage) {
         handleLoggingAndMetaForHttpCode(401, meta, logMessage);
         return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
@@ -80,6 +90,11 @@ public abstract class AbstractBaseResource {
 
     private void handleLoggingAndMetaForHttpCode(int code, Meta meta, String logMessage) {
         LOG.error(logMessage, new WebApplicationException((code)));
+        meta.setCode(code);
+    }
+
+    private void handleLoggingAndMetaForHttpCode(int code, Meta meta, String logMessage, Exception e) {
+        LOG.error(logMessage, e);
         meta.setCode(code);
     }
 

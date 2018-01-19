@@ -153,7 +153,7 @@ public class YtiDataAccess {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
             } catch (IOException e) {
-                LOG.error("Issue with parsing CodeRegistry file. Message: " + e.getMessage());
+                LOG.error("Issue with parsing CodeRegistry file. Message: ", e);
                 updateManager.updateFailedStatus(updateStatus);
             }
         } else {
@@ -174,10 +174,10 @@ public class YtiDataAccess {
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODESCHEMES + "/" + identifier + ".csv")) {
                     codeSchemes.addAll(codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream));
                 } catch (IOException e) {
-                    LOG.error("Issue with parsing CodeScheme file. Message: " + e.getMessage());
+                    LOG.error("Issue with parsing CodeScheme file. ", e);
                     updateManager.updateFailedStatus(updateStatus);
                 } catch (Exception e) {
-                    LOG.error("Issue with existing CodeScheme found. Message: " + e.getMessage());
+                    LOG.error("Issue with existing CodeScheme found. ", e);
                     updateManager.updateFailedStatus(updateStatus);
                 }
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
@@ -206,10 +206,10 @@ public class YtiDataAccess {
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODES + "/" + identifier + ".csv")) {
                     codes.addAll(codeParser.parseCodesFromCsvInputStream(codeScheme, inputStream));
                 } catch (IOException e) {
-                    LOG.error("Issue with parsing Code file. Message: " + e.getMessage());
+                    LOG.error("Issue with parsing Code file. ", e);
                     updateManager.updateFailedStatus(updateStatus);
                 } catch (Exception e) {
-                    LOG.error("Issue with existing Code found. Message: " + e.getMessage());
+                    LOG.error("Issue with existing Code found. ", e);
                     updateManager.updateFailedStatus(updateStatus);
                 }
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
@@ -240,7 +240,7 @@ public class YtiDataAccess {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
             } catch (IOException e) {
-                LOG.error("Issue with parsing PropertyType file. Message: " + e.getMessage());
+                LOG.error("Issue with parsing PropertyType file. ", e);
                 updateManager.updateFailedStatus(updateStatus);
             }
         } else {
@@ -263,7 +263,7 @@ public class YtiDataAccess {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
             } catch (IOException e) {
-                LOG.error("Issue with parsing ExternalReference file. Message: " + e.getMessage());
+                LOG.error("Issue with parsing ExternalReference file. ", e);
                 updateManager.updateFailedStatus(updateStatus);
             }
         } else {

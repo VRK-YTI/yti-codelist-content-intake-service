@@ -69,7 +69,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
      * @param inputStream The ExternalReference -file.
      * @return List of ExternalReference objects.
      */
-    public List<ExternalReference> parseExternalReferencesFromCsvInputStream(final InputStream inputStream) {
+    public List<ExternalReference> parseExternalReferencesFromCsvInputStream(final InputStream inputStream) throws IOException {
         final List<ExternalReference> externalReferences = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -103,8 +103,6 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 final ExternalReference externalReference = createOrUpdateExternalReference(id, propertyType, url, parentCodeScheme, title, description);
                 externalReferences.add(externalReference);
             }
-        } catch (IOException e) {
-            LOG.error("Parsing ExternalReferences failed: " + e.getMessage());
         }
         return externalReferences;
     }

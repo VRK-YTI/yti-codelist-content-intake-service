@@ -87,7 +87,7 @@ public class DataClassificationResource extends AbstractBaseResource {
                 statistics.put(results.getString(1), results.getInt(2));
             }
         } catch (SQLException e) {
-            LOG.error("SQL query failed: " + e.getMessage());
+            LOG.error("SQL query failed: ", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
         codes.forEach(code -> {

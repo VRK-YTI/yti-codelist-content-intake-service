@@ -66,7 +66,7 @@ public class OrganizationUpdater {
             LOG.info("Organization data loaded: " + groupManagementOrganizations.size() + " Organizations in " + watch);
             watch.reset().start();
         } catch (IOException e) {
-            LOG.error("Organization fetching and prcessing failed!", e.getMessage());
+            LOG.error("Organization fetching and prcessing failed!", e);
         }
         final Set<Organization> organizations = new HashSet<>();
         for (final GroupManagementOrganization groupManagementOrganization : groupManagementOrganizations) {

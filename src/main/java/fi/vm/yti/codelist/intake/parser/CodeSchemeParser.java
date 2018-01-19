@@ -19,6 +19,8 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
+import fi.vm.yti.codelist.intake.exception.CodeParsingException;
+import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -139,7 +141,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                         startDate = dateFormat.parse(startDateString);
                     } catch (ParseException e) {
                         LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
-                        throw new Exception("STARTDATE header does not have valid value, import failed!");
+                        throw new CodeParsingException("STARTDATE header does not have valid value, import failed!");
                     }
                 }
                 Date endDate = null;
@@ -149,15 +151,13 @@ public class CodeSchemeParser extends AbstractBaseParser {
                         endDate = dateFormat.parse(endDateString);
                     } catch (ParseException e) {
                         LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
-                        throw new Exception("ENDDATE header does not have valid value, import failed!");
+                        throw new CodeParsingException("ENDDATE header does not have valid value, import failed!");
                     }
                 }
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status,
                     source, legalBase, governancePolicy, license, startDate, endDate, prefLabel, description, definition, changeNote);
                 codeSchemes.add(codeScheme);
             }
-        } catch (IOException e) {
-            LOG.error("Parsing codeschemes failed: " + e.getMessage());
         }
         return codeSchemes;
     }
@@ -264,7 +264,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             startDate = dateFormat.parse(startDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
-                            throw new Exception("STARTDATE header does not have valid value, import failed!");
+                            throw new CodeParsingException("STARTDATE header does not have valid value, import failed!");
                         }
                     }
                     Date endDate = null;
@@ -274,7 +274,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             endDate = dateFormat.parse(endDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
-                            throw new Exception("ENDDATE header does not have valid value, import failed!");
+                            throw new CodeParsingException("ENDDATE header does not have valid value, import failed!");
                         }
                     }
                     final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, license, startDate, endDate, prefLabel, description, definition, changeNote);
@@ -311,7 +311,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
             final CodeScheme existingValidCodeScheme = codeSchemeRepository.findByCodeValueAndStatusAndCodeRegistry(codeValue, status.toString(), codeRegistry);
             if (existingValidCodeScheme != codeScheme) {
                 LOG.error("Existing value already found, cancel update!");
-                throw new Exception("Existing value already found with status VALID for code scheme with code value: " + codeValue + ", cancel update!");
+                throw new ExistingCodeException("Existing value already found with status VALID for code scheme with code value: " + codeValue + ", cancel update!");
             }
         }
         if (codeScheme != null) {

@@ -42,7 +42,6 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 @Service
 public class CodeRegistryParser extends AbstractBaseParser {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryParser.class);
     private final ApiUtils apiUtils;
     private final ParserUtils parserUtils;
 
@@ -59,7 +58,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
      * @param inputStream The CodeRegistry-file.
      * @return Set of CodeRegistry objects.
      */
-    public Set<CodeRegistry> parseCodeRegistriesFromCsvInputStream(final InputStream inputStream) {
+    public Set<CodeRegistry> parseCodeRegistriesFromCsvInputStream(final InputStream inputStream) throws IOException {
         final Set<CodeRegistry> codeRegistries = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -90,8 +89,6 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     codeRegistries.add(codeRegistry);
                 }
             });
-        } catch (IOException e) {
-            LOG.error("Parsing coderegistries failed: " + e.getMessage());
         }
         return codeRegistries;
     }

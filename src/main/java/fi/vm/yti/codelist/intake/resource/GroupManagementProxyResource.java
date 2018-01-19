@@ -88,7 +88,7 @@ public class GroupManagementProxyResource extends AbstractBaseResource {
             wrapper.setResults(userRequests);
             return Response.ok(wrapper).build();
         } catch (IOException e) {
-            LOG.error("Error parsing userRequests from groupmanagement response!", e.getMessage());
+            LOG.error("Error parsing userRequests from groupmanagement response! ", e);
             meta.setMessage("Error parsing userRequests from groupmanagement!");
             meta.setCode(500);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();

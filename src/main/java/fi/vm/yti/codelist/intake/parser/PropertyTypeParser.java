@@ -58,7 +58,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
      * @param inputStream The PropertyType -file.
      * @return List of PropertyType objects.
      */
-    public List<PropertyType> parsePropertyTypesFromCsvInputStream(final InputStream inputStream) {
+    public List<PropertyType> parsePropertyTypesFromCsvInputStream(final InputStream inputStream) throws IOException {
         final List<PropertyType> propertyTypes = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -91,8 +91,6 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 final PropertyType propertyType = createOrUpdatePropertyType(id, propertyUri, context, localName, type, prefLabel, definition);
                 propertyTypes.add(propertyType);
             }
-        } catch (IOException e) {
-            LOG.error("Parsing PropertyTypes failed: " + e.getMessage());
         }
         return propertyTypes;
     }
