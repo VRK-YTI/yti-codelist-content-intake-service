@@ -1,0 +1,22 @@
+CODEVALUE,ID,STATUS,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,SHORTNAME,HIERARCHYLEVEL,STARTDATE,ENDDATE
+00,ffe094bb-838d-47f6-8833-417f981793f3,VALID,Ahvenanmaa,Åland,Åland,,,2018-01-01,2108-12-31
+03,415518fc-ac14-4ab7-9f36-29949b0ee088,VALID,Varsinais-Suomen SHP,Egentliga Finlands SVD,Varsinais-Suomi Hospital District,,,2018-01-01,2018-12-31
+04,c7fb2c58-a2b7-432a-8e23-93a68af4af4e,VALID,Satakunnan SHP,Satakunta SVD,Satakunta Hospital District,,,2018-01-01,2018-12-31
+05,ee5f0401-ba40-45bc-bd78-60634951e202,VALID,Kanta-Hämeen SHP,Centrala Tavastlands SVD,Kanta-Häme Hospital District,,,2018-01-01,2108-12-31
+06,541d90d7-26eb-44e4-b556-7d9784ddd2c7,VALID,Pirkanmaan SHP,Birkalands SVD,Pirkanmaa Hospital District,,,2018-01-01,2108-12-31
+07,5e8556a3-9f86-4d84-890c-c99927218061,VALID,Päijät-Hämeen SHP,Päijät-Häme SVD,Päijät-Häme Hospital District,,,2018-01-01,2108-12-31
+08,6e038d00-a278-49fe-b8e7-29227bc87c26,VALID,Kymenlaakson SHP,Kymmenedalens SVD,Kymenlaakso Hospital District,,,2018-01-01,2018-12-31
+09,b9e34964-ca3e-4819-a16c-ef30200fde17,VALID,Etelä-Karjalan SHP,Södra Karelens SVD,South Karelia Hospital District,,,2018-01-01,2108-12-31
+10,498d88ab-eb52-48b1-9f2f-9e6df7d4c504,VALID,Etelä-Savon SHP,Södra Savolax SVD,Etelä-Savo Hospital District,,,2018-01-01,1928-12-31
+11,adbf614d-b7d5-4536-a1d4-2c96bf398346,VALID,Itä-Savon SHP,Östra Savolax SVD,Itä-Savo Hospital District,,,2018-01-01,2108-12-31
+12,3c027b94-1fc1-4a69-b7c2-e97bdf2f0e79,VALID,Pohjois-Karjalan SHP,Norra Karelens SVD,North Karelia Hospital District,,,2018-01-01,2018-12-31
+13,25a77c42-28ed-45e8-9333-ab6c5276448f,VALID,Pohjois-Savon SHP,Norra Savolax SVD,Pohjois-Savo Hospital District,,,2018-01-01,2018-12-31
+14,24febafa-df0b-4f3c-b72f-9541778e8a1f,VALID,Keski-Suomen SHP,Mellersta Finlands SVD,Central Finland Hospital District,,,2018-01-01,2108-12-31
+15,44b7a156-3749-4bad-b76f-d5942d9d79a5,VALID,Etelä-Pohjanmaan SHP,Syd-Österbottens SVD,South Ostrobothnia Hospital District,,,2018-01-01,2018-12-31
+16,36ec9a50-4e61-4f0e-8850-a32043aedb40,VALID,Vaasan SHP,Vasa SVD,Vaasa Hospital District,,,2018-01-01,2108-12-31
+17,2e5618ca-e93c-4c3b-b53e-7edf506f8743,VALID,Keski-Pohjanmaan SHP,Mellersta Österbottens SVD,Central Ostrobothnia Hospital District,,,2018-01-01,2018-12-31
+18,8e1fe59a-d9be-4496-b827-746e9b1da029,VALID,Pohjois-Pohjanmaan SHP,Norra Österbottens SVD,North Ostrobothnia Hospital District,,,2018-01-01,2108-12-31
+19,d103630b-2f8a-4d0e-851c-c7aef965ebe7,VALID,Kainuun SHP,Kajanalands SVD,Kainuu Hospital District,,,2018-01-01,2018-12-31
+20,f03c5177-145d-4a8f-8a00-66c5eafe3ab0,VALID,Länsi-Pohjan SHP,Länsi-Pohja SVD,Länsi-Pohja Hospital District,,,2018-01-01,2018-12-31
+21,abcde04a-dd9c-4a75-93d2-593f6e8843be,VALID,Lapin SHP,Lapplands SVD,Lappi Hospital District,,,2018-01-01,2108-12-31
+25,60758214-7027-48e6-b038-c848c8366b6a,VALID,Helsingin ja Uudenmaan SHP,Helsingfors och Nylands SVD,Helsinki and Uusimaa Hospital District,,,2018-01-01,2018-12-31

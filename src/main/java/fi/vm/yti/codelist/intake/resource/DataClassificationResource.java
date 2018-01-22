@@ -47,7 +47,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 public class DataClassificationResource extends AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceResource.class);
-    private static final String YTI_REGISTRY_CODEVALUE = "yti";
+    private static final String EU_REGISTRY_CODEVALUE = "eu";
     private static final String YTI_DATACLASSIFICATION_SCHEME_CODEVALUE = "dcat";
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
@@ -76,7 +76,7 @@ public class DataClassificationResource extends AbstractBaseResource {
         final ResponseWrapper<DataClassification> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);
         final ObjectMapper mapper = createObjectMapper();
-        final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(YTI_REGISTRY_CODEVALUE);
+        final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(EU_REGISTRY_CODEVALUE);
         final CodeScheme dataClassificationsScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_SCHEME_CODEVALUE);
         final Set<Code> codes = codeRepository.findByCodeScheme(dataClassificationsScheme);
         final Set<DataClassification> dataClassifications = new LinkedHashSet<>();

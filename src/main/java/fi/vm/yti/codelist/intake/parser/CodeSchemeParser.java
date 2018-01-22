@@ -1,7 +1,6 @@
 package fi.vm.yti.codelist.intake.parser;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -434,7 +433,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
 
     private Set<Code> resolveDataClassifications(final String dataClassificationCodes) {
         final Set<Code> dataClassifications = new HashSet<>();
-        final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(YTI_REGISTRY);
+        final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(EU_REGISTRY);
         if (ytiRegistry != null) {
             final CodeScheme dataClassificationScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
             if (dataClassificationScheme != null) {

@@ -1,0 +1,20 @@
+CODEVALUE,ID,STATUS,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,SHORTNAME,HIERARCHYLEVEL,STARTDATE,ENDDATE
+01,f1d92733-94f8-488e-9ec2-503bc8d0b3f9,VALID,Uusimaa,Nyland,Uusimaa,,,2018-01-01,2018-12-31
+02,42b1240f-6f0b-4600-99c9-3f96c8ef5130,VALID,Varsinais-Suomi,Egentliga Finland,Varsinais-Suomi,,,2018-01-01,2018-12-31
+04,bc156071-0991-4a3c-b80c-3976b8bf6c76,VALID,Satakunta,Satakunta,Satakunta,,,2018-01-01,2018-12-31
+05,f005c35c-6bd0-4846-882b-213ef4ae6d97,VALID,Kanta-Häme,Egentliga Tavastland,Kanta-Häme,,,2018-01-01,2018-12-31
+06,abd2c7f6-9342-49f8-96be-1affd92cc31a,VALID,Pirkanmaa,Birkaland,Pirkanmaa,,,2018-01-01,2018-12-31
+07,e0e27c27-ee76-4163-8517-95074211c296,VALID,Päijät-Häme,Päijänne-Tavastland,Päijät-Häme,,,2018-01-01,2018-12-31
+08,8bc9ac49-17f0-462a-9412-08b541510d17,VALID,Kymenlaakso,Kymmenedalen,Kymenlaakso,,,2018-01-01,2018-12-31
+09,21d8db25-657e-450b-b7e5-f14cc7fa29a1,VALID,Etelä-Karjala,Södra Karelen,South Karelia,,,2018-01-01,2018-12-31
+10,931b69c4-b2d0-4e86-b446-2a2fd1af4d47,VALID,Etelä-Savo,Södra Savolax,Etelä-Savo,,,2018-01-01,2018-12-31
+11,9862f72d-1c15-4292-ae32-044fc6b244cb,VALID,Pohjois-Savo,Norra Savolax,Pohjois-Savo,,,2018-01-01,2018-12-31
+12,75734d34-76b1-4996-b02c-208b055b8633,VALID,Pohjois-Karjala,Norra Karelen,North Karelia,,,2018-01-01,2018-12-31
+13,f8ac7622-d33f-414f-ba4b-8e6e2d7f9c91,VALID,Keski-Suomi,Mellersta Finland,Central Finland,,,2018-01-01,2018-12-31
+14,d980ca38-0ed8-4d71-8c5b-f619901a26ad,VALID,Etelä-Pohjanmaa,Södra Österbotten,South Ostrobothnia,,,2018-01-01,2018-12-31
+15,52d8865c-6356-458f-a41d-ccb414121438,VALID,Pohjanmaa,Österbotten,Ostrobothnia,,,2018-01-01,2018-12-31
+16,934a955c-5df6-47e3-825f-cb92564688f1,VALID,Keski-Pohjanmaa,Mellersta Österbotten,Central Ostrobothnia,,,2018-01-01,2018-12-31
+17,decd6e91-0322-42e3-8491-293b807b6a69,VALID,Pohjois-Pohjanmaa,Norra Österbotten,North Ostrobothnia,,,2018-01-01,2018-12-31
+18,d0700e33-1c18-457f-aea8-4a1d252e9275,VALID,Kainuu,Kajanaland,Kainuu,,,2018-01-01,2018-12-31
+19,e3a3d242-211e-4d77-8a1e-8430d741bd4f,VALID,Lappi,Lappland,Lapland,,,2018-01-01,2018-12-31
+21,0a970771-d587-412d-8705-2beb3239261c,VALID,Ahvenanmaa - Åland,Åland,Åland,,,2018-01-01,2018-12-31

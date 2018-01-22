@@ -28,12 +28,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.model.CodeRegistry;
+import fi.vm.yti.codelist.common.model.Organization;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
@@ -44,12 +44,15 @@ public class CodeRegistryParser extends AbstractBaseParser {
 
     private final ApiUtils apiUtils;
     private final ParserUtils parserUtils;
+    private final OrganizationRepository organizationRepository;
 
     @Inject
     public CodeRegistryParser(final ApiUtils apiUtils,
-                              final ParserUtils parserUtils) {
+                              final ParserUtils parserUtils,
+                              final OrganizationRepository organizationRepository) {
         this.apiUtils = apiUtils;
         this.parserUtils = parserUtils;
+        this.organizationRepository = organizationRepository;
     }
 
     /**
@@ -76,6 +79,8 @@ public class CodeRegistryParser extends AbstractBaseParser {
             final List<CSVRecord> records = csvParser.getRecords();
             records.forEach(record -> {
                 final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
+                final String organizationsString = record.get(CONTENT_HEADER_ORGANIZATION);
+                final Set<Organization> organizations = resolveOrganizations(organizationsString);
                 final Map<String, String> prefLabel = new LinkedHashMap<>();
                 prefLabelHeaders.forEach((language, header) -> {
                     prefLabel.put(language, record.get(header));
@@ -84,7 +89,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
                 definitionHeaders.forEach((language, header) -> {
                     definition.put(language, record.get(header));
                 });
-                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, prefLabel, definition);
+                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, organizations, prefLabel, definition);
                 if (codeRegistry != null) {
                     codeRegistries.add(codeRegistry);
                 }
@@ -134,6 +139,8 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     if (codeValue == null || codeValue.trim().isEmpty()) {
                         continue;
                     }
+                    final String organizationsString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ORGANIZATION)));
+                    final Set<Organization> organizations = resolveOrganizations(organizationsString);
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, header) -> {
                         prefLabel.put(language, formatter.formatCellValue(row.getCell(header)));
@@ -142,7 +149,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     definitionHeaders.forEach((language, header) -> {
                         definition.put(language, formatter.formatCellValue(row.getCell(header)));
                     });
-                    final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, prefLabel, definition);
+                    final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, organizations, prefLabel, definition);
                     if (codeRegistry != null) {
                         codeRegistries.add(codeRegistry);
                     }
@@ -153,6 +160,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
     }
 
     private CodeRegistry createOrUpdateCodeRegistry(final String codeValue,
+                                                    final Set<Organization> organizations,
                                                     final Map<String, String> prefLabel,
                                                     final Map<String, String> definition) {
         final Map<String, CodeRegistry> existingCodeRegistriesMap = parserUtils.getCodeRegistriesMap();
@@ -187,6 +195,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
             codeRegistry.setId(UUID.randomUUID());
             codeRegistry.setCodeValue(codeValue);
             codeRegistry.setModified(timeStamp);
+            codeRegistry.setOrganizations(organizations);
             for (final String language : prefLabel.keySet()) {
                 codeRegistry.setPrefLabel(language, prefLabel.get(language));
             }
@@ -196,5 +205,18 @@ public class CodeRegistryParser extends AbstractBaseParser {
             codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
         }
         return codeRegistry;
+    }
+
+    final Set<Organization> resolveOrganizations(final String organizationsString) {
+        final Set<Organization> organizations = new HashSet<>();
+        if (organizationsString != null && !organizationsString.isEmpty()) {
+            for (final String organizationId : organizationsString.split(";")) {
+                final Organization organization = organizationRepository.findById(UUID.fromString(organizationId));
+                if (organization != null) {
+                    organizations.add(organization);
+                }
+            }
+        }
+        return organizations;
     }
 }

@@ -21,6 +21,10 @@ public class ContentIntakeServiceProperties {
     @NotNull
     private String contextPath;
 
+    private boolean initializeContent;
+
+    private boolean initializeTestContent;
+
     public String getHost() {
         return host;
     }
@@ -51,5 +55,21 @@ public class ContentIntakeServiceProperties {
 
     public void setContextPath(final String contextPath) {
         this.contextPath = contextPath;
+    }
+
+    public boolean getInitializeContent() {
+        return initializeContent;
+    }
+
+    public void setInitializeContent(final boolean initializeContent) {
+        this.initializeContent = initializeContent;
+    }
+
+    public boolean getInitializeTestContent() {
+        return initializeTestContent;
+    }
+
+    public void setInitializeTestContent(final boolean initializeTestContent) {
+        this.initializeTestContent = initializeTestContent;
     }
 }
