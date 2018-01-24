@@ -1,9 +1,9 @@
 package fi.vm.yti.codelist.intake.resource;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
@@ -86,6 +86,46 @@ public abstract class AbstractBaseResource {
     protected Response handleUnauthorizedAccess(Meta meta, MetaResponseWrapper wrapper, String logMessage) {
         handleLoggingAndMetaForHttpCode(401, meta, logMessage);
         return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
+    }
+
+    protected Response handleStartDateLaterThanEndDate(Meta meta, ResponseWrapper wrapper) {
+        return Response.status(Response.Status.NOT_ACCEPTABLE).entity(wrapper).build();
+    }
+
+    protected Response handleStartDateLaterThanEndDate(Meta meta, MetaResponseWrapper wrapper) {
+        return Response.status(Response.Status.NOT_ACCEPTABLE).entity(wrapper).build();
+    }
+
+    protected boolean startDateIsBeforeEndDateSanityCheck(Date startDate, Date endDate) {
+        if (startDate == null || endDate == null) {
+            return true; // if either one is null, everything is OK
+        }
+        if (startDate!= null && endDate != null &&
+                (startDate.before(endDate) || startAndEndDatesAreOnTheSameDay(startDate, endDate))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * This is needed to allow start and end date on the same day - the users might want to enable a code or
+     * a codescheme for one day.
+     */
+    private boolean startAndEndDatesAreOnTheSameDay(Date startDate, Date endDate) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date startDateWithoutTime = null;
+        Date endDateWithoutTime = null;
+        try {
+            startDateWithoutTime = sdf.parse(sdf.format(startDate));
+            endDateWithoutTime = sdf.parse(sdf.format(endDate));
+        } catch (ParseException e) {
+            return true; // should never ever happen, dates are never null here and are coming from datepicker
+        }
+        if (startDateWithoutTime.compareTo(endDate) == 0) {
+            return true;
+        }
+        return false;
     }
 
     private void handleLoggingAndMetaForHttpCode(int code, Meta meta, String logMessage) {

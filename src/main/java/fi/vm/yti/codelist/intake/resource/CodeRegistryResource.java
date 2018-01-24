@@ -220,6 +220,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     codeSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<CodeScheme>>() {
                     });
                     for (final CodeScheme codeScheme : codeSchemes) {
+                        if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
+                           return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                        }
                         if (codeScheme.getId() == null) {
                             codeScheme.setId(UUID.randomUUID());
                             codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
@@ -299,6 +302,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeSchemesFromFile.", e);
             }
             for (final CodeScheme codeScheme : codeSchemes) {
+                if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
+                    return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                }
                 LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
             }
             if (!codeSchemes.isEmpty()) {
@@ -310,6 +316,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 }
             }
             for (final Code code : codes) {
+                if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
+                    return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                }
                 LOG.debug("Code parsed from input: " + code.getCodeValue());
             }
             if (!codes.isEmpty()) {
@@ -352,6 +361,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         final ObjectMapper mapper = createObjectMapper();
                         final CodeScheme codeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
+                        if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
+                            return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                        }
                         // TODO Refactor this to use existing value as master when evaluating changes.
                         if (!codeScheme.getCodeValue().equalsIgnoreCase(existingCodeScheme.getCodeValue())) {
                             LOG.error("CodeScheme cannot be updated because codevalue changed: " + codeScheme.getCodeValue());
@@ -425,6 +437,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         codes = mapper.readValue(jsonPayload, new TypeReference<Set<Code>>() {
                         });
                         for (final Code code : codes) {
+                            if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
+                                return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                            }
                             if (code.getId() == null) {
                                 code.setId(UUID.randomUUID());
                                 code.setUri(apiUtils.createCodeUri(codeRegistry, codeScheme, code));
@@ -504,6 +519,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromFile." ,e);
                 }
                 for (final Code code : codes) {
+                    if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
+                        return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                    }
                     LOG.debug("Code parsed from input: " + code.getCodeValue());
                 }
                 if (!codes.isEmpty()) {
@@ -557,6 +575,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         final ObjectMapper mapper = createObjectMapper();
                         final Code code = mapper.readValue(jsonPayload, Code.class);
+                        if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
+                            return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                        }
                         if (!code.getCodeValue().equalsIgnoreCase(existingCode.getCodeValue())) {
                             LOG.error("Code cannot be updated because CodeValue changed: " + code.getCodeValue());
                             meta.setMessage("Code cannot be updated because CodeValue changed. " + code.getCodeValue());
