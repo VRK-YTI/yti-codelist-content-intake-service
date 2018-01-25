@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.PropertyType;
@@ -68,6 +69,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
      * @param inputStream The ExternalReference -file.
      * @return List of ExternalReference objects.
      */
+    @SuppressFBWarnings("UC_USELESS_OBJECT")
     public List<ExternalReference> parseExternalReferencesFromCsvInputStream(final InputStream inputStream) throws IOException {
         final List<ExternalReference> externalReferences = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
@@ -151,12 +153,12 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                     final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_PROPERTYTYPE)));
                     final PropertyType propertyType = propertyTypeRepository.findByLocalName(propertyTypeLocalName);
                     final Map<String, String> title = new LinkedHashMap<>();
-                    for (final String language : titleHeaders.keySet()) {
-                        title.put(language, formatter.formatCellValue(row.getCell(titleHeaders.get(language))));
+                    for (final Map.Entry<String, Integer> entry : titleHeaders.entrySet()) {
+                        title.put(entry.getKey(), formatter.formatCellValue(row.getCell(entry.getValue())));
                     }
                     final Map<String, String> description = new LinkedHashMap<>();
-                    for (final String language : descriptionHeaders.keySet()) {
-                        description.put(language, formatter.formatCellValue(row.getCell(descriptionHeaders.get(language))));
+                    for (final Map.Entry<String, Integer> entry : descriptionHeaders.entrySet()) {
+                        description.put(entry.getKey(), formatter.formatCellValue(row.getCell(entry.getValue())));
                     }
                     final ExternalReference externalReference = createOrUpdateExternalReference(id, propertyType, url, parentCodeScheme, title, description);
                     if (externalReference != null) {
@@ -199,15 +201,17 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 externalReference.setPropertyType(propertyType);
                 hasChanges = true;
             }
-            for (final String language : title.keySet()) {
-                final String value = title.get(language);
+            for (final Map.Entry<String, String> entry : title.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(externalReference.getTitle(language), value)) {
                     externalReference.setTitle(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : description.keySet()) {
-                final String value = description.get(language);
+            for (final Map.Entry<String, String> entry : description.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(externalReference.getDescription(language), value)) {
                     externalReference.setDescription(language, value);
                     hasChanges = true;
@@ -231,11 +235,11 @@ public class ExternalReferenceParser extends AbstractBaseParser {
             externalReference.setPropertyType(propertyType);
             externalReference.setUri(uri);
             externalReference.setUrl(url);
-            for (final String language : title.keySet()) {
-                externalReference.setTitle(language, title.get(language));
+            for (final Map.Entry<String, String> entry : title.entrySet()) {
+                externalReference.setTitle(entry.getKey(), entry.getValue());
             }
-            for (final String language : description.keySet()) {
-                externalReference.setDescription(language, description.get(language));
+            for (final Map.Entry<String, String> entry : description.entrySet()) {
+                externalReference.setDescription(entry.getKey(), entry.getValue());
             }
             final Date timeStamp = new Date(System.currentTimeMillis());
             externalReference.setModified(timeStamp);

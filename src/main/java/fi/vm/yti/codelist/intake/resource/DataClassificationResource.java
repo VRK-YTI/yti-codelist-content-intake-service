@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.resource;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -82,7 +83,8 @@ public class DataClassificationResource extends AbstractBaseResource {
         final Set<DataClassification> dataClassifications = new LinkedHashSet<>();
         final Map<String, Integer> statistics = new HashMap<>();
         try (final Connection connection = dataSource.getConnection();
-             final ResultSet results = connection.prepareStatement("SELECT code_id, count(code_id) FROM service_codescheme_code GROUP BY code_id").executeQuery()) {
+             final PreparedStatement ps = connection.prepareStatement("SELECT code_id, count(code_id) FROM service_codescheme_code GROUP BY code_id");
+             final ResultSet results = ps.executeQuery()) {
             while (results.next()) {
                 statistics.put(results.getString(1), results.getInt(2));
             }

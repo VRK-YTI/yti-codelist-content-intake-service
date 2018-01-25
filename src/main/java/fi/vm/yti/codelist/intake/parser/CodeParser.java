@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.Status;
@@ -173,6 +174,7 @@ public class CodeParser extends AbstractBaseParser {
      * @param workbook   The Code containing Excel -file.
      * @return Set of Code objects.
      */
+    @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<Code> parseCodesFromExcel(final CodeScheme codeScheme,
                                          final Workbook workbook) throws Exception {
         final Set<Code> codes = new HashSet<>();
@@ -309,22 +311,25 @@ public class CodeParser extends AbstractBaseParser {
                 code.setHierarchyLevel(hierarchyLevel);
                 hasChanges = true;
             }
-            for (final String language : prefLabel.keySet()) {
-                final String value = prefLabel.get(language);
+            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(code.getPrefLabel(language), value)) {
                     code.setPrefLabel(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : description.keySet()) {
-                final String value = description.get(language);
+            for (final Map.Entry<String, String> entry : description.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(code.getDescription(language), value)) {
                     code.setDescription(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : definition.keySet()) {
-                final String value = definition.get(language);
+            for (final Map.Entry<String, String> entry : definition.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(code.getDefinition(language), value)) {
                     code.setDefinition(language, value);
                     hasChanges = true;
@@ -357,14 +362,14 @@ public class CodeParser extends AbstractBaseParser {
             code.setHierarchyLevel(hierarchyLevel);
             final Date timeStamp = new Date(System.currentTimeMillis());
             code.setModified(timeStamp);
-            for (final String language : prefLabel.keySet()) {
-                code.setPrefLabel(language, prefLabel.get(language));
+            for (Map.Entry<String, String> entry : prefLabel.entrySet()) {
+                code.setPrefLabel(entry.getKey(), entry.getValue());
             }
-            for (final String language : description.keySet()) {
-                code.setDescription(language, description.get(language));
+            for (Map.Entry<String, String> entry : description.entrySet()) {
+                code.setDescription(entry.getKey(), entry.getValue());
             }
-            for (final String language : definition.keySet()) {
-                code.setDefinition(language, definition.get(language));
+            for (Map.Entry<String, String> entry : definition.entrySet()) {
+                code.setDefinition(entry.getKey(), entry.getValue());
             }
             code.setStartDate(startDate);
             code.setEndDate(endDate);

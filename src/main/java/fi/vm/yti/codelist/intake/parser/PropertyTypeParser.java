@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
@@ -57,6 +58,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
      * @param inputStream The PropertyType -file.
      * @return List of PropertyType objects.
      */
+    @SuppressFBWarnings("UC_USELESS_OBJECT")
     public List<PropertyType> parsePropertyTypesFromCsvInputStream(final InputStream inputStream) throws IOException {
         final List<PropertyType> propertyTypes = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
@@ -138,12 +140,12 @@ public class PropertyTypeParser extends AbstractBaseParser {
                     final String context = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CONTEXT)));
                     final String type = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_TYPE)));
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
-                    for (final String language : prefLabelHeaders.keySet()) {
-                        prefLabel.put(language, formatter.formatCellValue(row.getCell(prefLabelHeaders.get(language))));
+                    for (final Map.Entry<String, Integer> entry : prefLabelHeaders.entrySet()) {
+                        prefLabel.put(entry.getKey(), formatter.formatCellValue(row.getCell(entry.getValue())));
                     }
                     final Map<String, String> definition = new LinkedHashMap<>();
-                    for (final String language : definitionHeaders.keySet()) {
-                        definition.put(language, formatter.formatCellValue(row.getCell(definitionHeaders.get(language))));
+                    for (final Map.Entry<String, Integer> entry : definitionHeaders.entrySet()) {
+                        definition.put(entry.getKey(), formatter.formatCellValue(row.getCell(entry.getValue())));
                     }
                     final PropertyType propertyType = createOrUpdatePropertyType(id, propertyUri, context, localName, type, prefLabel, definition);
                     if (propertyType != null) {
@@ -184,14 +186,16 @@ public class PropertyTypeParser extends AbstractBaseParser {
             if (!Objects.equals(propertyType.getType(), type)) {
                 propertyType.setType(type);
             }
-            for (final String language : prefLabel.keySet()) {
-                final String value = prefLabel.get(language);
+            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(propertyType.getPrefLabel(language), value)) {
                     propertyType.setPrefLabel(language, value);
                 }
             }
-            for (final String language : definition.keySet()) {
-                final String value = definition.get(language);
+            for (final Map.Entry<String, String> entry : definition.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(propertyType.getDefinition(language), value)) {
                     propertyType.setDefinition(language, value);
                 }
@@ -210,11 +214,11 @@ public class PropertyTypeParser extends AbstractBaseParser {
             propertyType.setType(type);
             propertyType.setUri(uri);
             propertyType.setPropertyUri(propertyUri);
-            for (final String language : prefLabel.keySet()) {
-                propertyType.setPrefLabel(language, prefLabel.get(language));
+            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
+                propertyType.setPrefLabel(entry.getKey(), entry.getValue());
             }
-            for (final String language : definition.keySet()) {
-                propertyType.setDefinition(language, definition.get(language));
+            for (final Map.Entry<String, String> entry : definition.entrySet()) {
+                propertyType.setDefinition(entry.getKey(), entry.getValue());
             }
         }
         return propertyType;

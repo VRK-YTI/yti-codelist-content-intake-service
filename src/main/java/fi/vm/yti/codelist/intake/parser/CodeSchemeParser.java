@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import org.apache.commons.csv.CSVFormat;
@@ -76,6 +77,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
      * @param inputStream The CodeScheme -file.
      * @return List of CodeScheme objects.
      */
+    @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeScheme> parseCodeSchemesFromCsvInputStream(final CodeRegistry codeRegistry,
                                                               final InputStream inputStream) throws Exception {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
@@ -182,6 +184,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
      * @param inputStream The Code containing Excel -file.
      * @return List of Code objects.
      */
+    @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeScheme> parseCodeSchemesFromExcel(final CodeRegistry codeRegistry,
                                                      final Workbook workbook) throws Exception {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
@@ -348,29 +351,33 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 codeScheme.setLicense(license);
                 hasChanges = true;
             }
-            for (final String language : prefLabel.keySet()) {
-                final String value = prefLabel.get(language);
+            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(codeScheme.getPrefLabel(language), value)) {
                     codeScheme.setPrefLabel(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : description.keySet()) {
-                final String value = description.get(language);
+            for (final Map.Entry<String, String> entry : description.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(codeScheme.getDescription(language), value)) {
                     codeScheme.setDescription(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : definition.keySet()) {
-                final String value = definition.get(language);
+            for (final Map.Entry<String, String> entry : definition.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(codeScheme.getDefinition(language), value)) {
                     codeScheme.setDefinition(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : changeNote.keySet()) {
-                final String value = changeNote.get(language);
+            for (final Map.Entry<String, String> entry : changeNote.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(codeScheme.getChangeNote(language), value)) {
                     codeScheme.setChangeNote(language, value);
                     hasChanges = true;
@@ -410,17 +417,17 @@ public class CodeSchemeParser extends AbstractBaseParser {
             codeScheme.setLicense(license);
             final Date timeStamp = new Date(System.currentTimeMillis());
             codeScheme.setModified(timeStamp);
-            for (final String language : prefLabel.keySet()) {
-                codeScheme.setPrefLabel(language, prefLabel.get(language));
+            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
+                codeScheme.setPrefLabel(entry.getKey(), entry.getValue());
             }
-            for (final String language : description.keySet()) {
-                codeScheme.setDescription(language, description.get(language));
+            for (final Map.Entry<String, String> entry : description.entrySet()) {
+                codeScheme.setDescription(entry.getKey(), entry.getValue());
             }
-            for (final String language : definition.keySet()) {
-                codeScheme.setDefinition(language, definition.get(language));
+            for (final Map.Entry<String, String> entry : definition.entrySet()) {
+                codeScheme.setDefinition(entry.getKey(), entry.getValue());
             }
-            for (final String language : changeNote.keySet()) {
-                codeScheme.setChangeNote(language, changeNote.get(language));
+            for (final Map.Entry<String, String> entry : changeNote.entrySet()) {
+                codeScheme.setChangeNote(entry.getKey(), entry.getValue());
             }
             codeScheme.setVersion(version);
             codeScheme.setStatus(status.toString());

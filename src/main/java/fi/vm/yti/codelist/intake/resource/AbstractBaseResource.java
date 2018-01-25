@@ -9,6 +9,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
@@ -68,72 +69,65 @@ public abstract class AbstractBaseResource {
         logger.info(method + " " + apiVersionPath + apiPath + " requested!");
     }
 
-    protected Response handleInternalServerError(Meta meta, ResponseWrapper wrapper, String logMessage, Exception e) {
+    protected Response handleInternalServerError(final Meta meta, final ResponseWrapper wrapper, final String logMessage, final Exception e) {
         handleLoggingAndMetaForHttpCode(500, meta, logMessage, e);
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
     }
 
-    protected Response handleInternalServerError(Meta meta, MetaResponseWrapper wrapper, String logMessage, Exception e) {
+    protected Response handleInternalServerError(final Meta meta, final MetaResponseWrapper wrapper, final String logMessage, final Exception e) {
         handleLoggingAndMetaForHttpCode(500, meta, logMessage, e);
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
     }
 
-    protected Response handleUnauthorizedAccess(Meta meta, ResponseWrapper wrapper, String logMessage) {
+    protected Response handleUnauthorizedAccess(final Meta meta, final ResponseWrapper wrapper, final String logMessage) {
         handleLoggingAndMetaForHttpCode(401, meta, logMessage);
         return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
     }
 
-    protected Response handleUnauthorizedAccess(Meta meta, MetaResponseWrapper wrapper, String logMessage) {
+    protected Response handleUnauthorizedAccess(final Meta meta, final MetaResponseWrapper wrapper, final String logMessage) {
         handleLoggingAndMetaForHttpCode(401, meta, logMessage);
         return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
     }
 
-    protected Response handleStartDateLaterThanEndDate(Meta meta, ResponseWrapper wrapper) {
+    protected Response handleStartDateLaterThanEndDate(final Meta meta, final ResponseWrapper wrapper) {
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(wrapper).build();
     }
 
-    protected Response handleStartDateLaterThanEndDate(Meta meta, MetaResponseWrapper wrapper) {
+    protected Response handleStartDateLaterThanEndDate(final Meta meta, final MetaResponseWrapper wrapper) {
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(wrapper).build();
     }
 
-    protected boolean startDateIsBeforeEndDateSanityCheck(Date startDate, Date endDate) {
+    protected boolean startDateIsBeforeEndDateSanityCheck(final Date startDate, final Date endDate) {
         if (startDate == null || endDate == null) {
             return true; // if either one is null, everything is OK
         }
-        if (startDate!= null && endDate != null &&
-                (startDate.before(endDate) || startAndEndDatesAreOnTheSameDay(startDate, endDate))) {
-            return true;
-        } else {
-            return false;
-        }
+        return startDate.before(endDate) || startAndEndDatesAreOnTheSameDay(startDate, endDate);
     }
 
     /**
      * This is needed to allow start and end date on the same day - the users might want to enable a code or
      * a codescheme for one day.
      */
-    private boolean startAndEndDatesAreOnTheSameDay(Date startDate, Date endDate) {
+    @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
+    private boolean startAndEndDatesAreOnTheSameDay(final Date startDate, final Date endDate) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Date startDateWithoutTime = null;
-        Date endDateWithoutTime = null;
+        final Date startDateWithoutTime;
+        final Date endDateWithoutTime;
         try {
             startDateWithoutTime = sdf.parse(sdf.format(startDate));
             endDateWithoutTime = sdf.parse(sdf.format(endDate));
         } catch (ParseException e) {
             return true; // should never ever happen, dates are never null here and are coming from datepicker
         }
-        if (startDateWithoutTime.compareTo(endDate) == 0) {
-            return true;
-        }
-        return false;
+        return startDateWithoutTime.compareTo(endDate) == 0;
     }
 
-    private void handleLoggingAndMetaForHttpCode(int code, Meta meta, String logMessage) {
+    private void handleLoggingAndMetaForHttpCode(final int code, Meta meta, final String logMessage) {
         LOG.error(logMessage, new WebApplicationException(code));
         meta.setCode(code);
     }
 
-    private void handleLoggingAndMetaForHttpCode(int code, Meta meta, String logMessage, Exception e) {
+    private void handleLoggingAndMetaForHttpCode(final int code, Meta meta, final String logMessage, final Exception e) {
         LOG.error(logMessage, e);
         meta.setCode(code);
     }

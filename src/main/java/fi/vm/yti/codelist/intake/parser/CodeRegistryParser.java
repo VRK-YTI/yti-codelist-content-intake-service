@@ -30,6 +30,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.stereotype.Service;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.Organization;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
@@ -104,6 +105,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
      * @param inputStream The CodeRegistry containing Excel -file.
      * @return Set of CodeRegistry objects.
      */
+    @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeRegistry> parseCodeRegistriesFromExcelInputStream(final InputStream inputStream) throws Exception {
         final Set<CodeRegistry> codeRegistries = new HashSet<>();
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
@@ -173,15 +175,17 @@ public class CodeRegistryParser extends AbstractBaseParser {
                 codeRegistry.setUri(uri);
                 hasChanges = true;
             }
-            for (final String language : prefLabel.keySet()) {
-                final String value = prefLabel.get(language);
+            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(codeRegistry.getPrefLabel(language), value)) {
                     codeRegistry.setPrefLabel(language, value);
                     hasChanges = true;
                 }
             }
-            for (final String language : definition.keySet()) {
-                final String value = definition.get(language);
+            for (final Map.Entry<String, String> entry : definition.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
                 if (!Objects.equals(codeRegistry.getDefinition(language), value)) {
                     codeRegistry.setDefinition(language, value);
                     hasChanges = true;
@@ -196,11 +200,11 @@ public class CodeRegistryParser extends AbstractBaseParser {
             codeRegistry.setCodeValue(codeValue);
             codeRegistry.setModified(timeStamp);
             codeRegistry.setOrganizations(organizations);
-            for (final String language : prefLabel.keySet()) {
-                codeRegistry.setPrefLabel(language, prefLabel.get(language));
+            for (Map.Entry<String, String> entry : prefLabel.entrySet()) {
+                codeRegistry.setPrefLabel(entry.getKey(), entry.getValue());
             }
-            for (final String language : definition.keySet()) {
-                codeRegistry.setDefinition(language, definition.get(language));
+            for (Map.Entry<String, String> entry : definition.entrySet()) {
+                codeRegistry.setDefinition(entry.getKey(), entry.getValue());
             }
             codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
         }
