@@ -129,7 +129,7 @@ public abstract class AbstractBaseResource {
     }
 
     private void handleLoggingAndMetaForHttpCode(int code, Meta meta, String logMessage) {
-        LOG.error(logMessage, new WebApplicationException((code)));
+        LOG.error(logMessage, new WebApplicationException(code));
         meta.setCode(code);
     }
 
