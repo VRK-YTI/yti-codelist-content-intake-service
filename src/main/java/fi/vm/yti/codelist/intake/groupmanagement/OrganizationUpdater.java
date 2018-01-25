@@ -59,9 +59,9 @@ public class OrganizationUpdater {
         final String response = restTemplate.getForObject(getGroupManagementOrganizationsApiUrl(), String.class, vars);
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
-        List<GroupManagementOrganization> groupManagementOrganizations = new ArrayList<>();
+        Set<GroupManagementOrganization> groupManagementOrganizations = new HashSet<>();
         try {
-            groupManagementOrganizations = mapper.readValue(response, new TypeReference<List<GroupManagementOrganization>>() {
+            groupManagementOrganizations = mapper.readValue(response, new TypeReference<Set<GroupManagementOrganization>>() {
             });
             LOG.info("Organization data loaded: " + groupManagementOrganizations.size() + " Organizations in " + watch);
             watch.reset().start();
