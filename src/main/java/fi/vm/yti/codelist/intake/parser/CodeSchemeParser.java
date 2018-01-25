@@ -21,6 +21,8 @@ import javax.inject.Inject;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
+import fi.vm.yti.codelist.intake.exception.MissingCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -85,6 +87,12 @@ public class CodeSchemeParser extends AbstractBaseParser {
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
+            if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
+                throw new MissingHeaderException("Missing CODEVALUE header.");
+            }
+            if (!headerMap.containsKey(CONTENT_HEADER_STATUS)) {
+                throw new MissingHeaderException("Missing STATUS header.");
+            }
             final Map<String, String> prefLabelHeaders = new LinkedHashMap<>();
             final Map<String, String> descriptionHeaders = new LinkedHashMap<>();
             final Map<String, String> definitionHeaders = new LinkedHashMap<>();
@@ -102,6 +110,12 @@ public class CodeSchemeParser extends AbstractBaseParser {
             }
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
+                if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).equals("")) {
+                    throw new MissingCodeValueException("A row is missing the codevalue.");
+                }
+                if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).equals("")) {
+                    throw new MissingCodeValueException("A row is missing the status.");
+                }
                 final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
                 final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
                 final Map<String, String> prefLabel = new LinkedHashMap<>();
@@ -221,8 +235,22 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             genericHeaders.put(value, index);
                         }
                     }
+                    if (!genericHeaders.containsKey(CONTENT_HEADER_CODEVALUE) ) {
+                        throw new MissingHeaderException("Missing CODEVALUE header.");
+                    }
+                    if (!genericHeaders.containsKey(CONTENT_HEADER_STATUS)) {
+                        throw new MissingHeaderException("Missing STATUS header.");
+                    }
                     firstRow = false;
                 } else {
+                    if (formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE))) == null ||
+                            formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE))).equals("")) {
+                        throw new MissingCodeValueException("A row is missing the codevalue.");
+                    }
+                    if (formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS))) == null ||
+                            formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS))).equals("")) {
+                        throw new MissingCodeValueException("A row is missing the status.");
+                    }
                     final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
                     if (codeValue == null || codeValue.trim().isEmpty()) {
                         continue;
