@@ -41,7 +41,6 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 @Service
 public class PropertyTypeParser extends AbstractBaseParser {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParser.class);
     private final ApiUtils apiUtils;
     private final PropertyTypeRepository propertyTypeRepository;
 

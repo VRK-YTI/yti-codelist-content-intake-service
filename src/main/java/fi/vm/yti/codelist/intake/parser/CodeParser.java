@@ -1,7 +1,6 @@
 package fi.vm.yti.codelist.intake.parser;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -19,8 +18,6 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 
-import fi.vm.yti.codelist.intake.exception.CodeParsingException;
-import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -42,6 +39,8 @@ import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.exception.CodeParsingException;
+import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
@@ -170,8 +169,8 @@ public class CodeParser extends AbstractBaseParser {
     /**
      * Parses the .xls or .xlsx Code-file and returns the codes as a set.
      *
-     * @param codeScheme  CodeScheme for which these codes are for.
-     * @param workbook The Code containing Excel -file.
+     * @param codeScheme CodeScheme for which these codes are for.
+     * @param workbook   The Code containing Excel -file.
      * @return Set of Code objects.
      */
     public Set<Code> parseCodesFromExcel(final CodeScheme codeScheme,
