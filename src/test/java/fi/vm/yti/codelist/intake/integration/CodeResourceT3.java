@@ -66,6 +66,6 @@ public class CodeResourceT3 extends AbstractIntegrationTestBase {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(codeRegistry);
         assertNotNull(codeScheme);
-        assertEquals(9, codeRepository.findByCodeScheme(codeScheme).size());
+        assertEquals(8, codeRepository.findByCodeScheme(codeScheme).size());
     }
 }
