@@ -242,9 +242,6 @@ public class CodeParser extends AbstractBaseParser {
                     }
 
                     final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
-                    if (codeValue == null || codeValue.trim().isEmpty()) {
-                        continue;
-                    }
                     final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, header) -> {
@@ -261,12 +258,7 @@ public class CodeParser extends AbstractBaseParser {
                     final String shortName = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
                     final String hierarchyLevel = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
                     final String statusString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)));
-                    final Status status;
-                    if (!statusString.isEmpty()) {
-                        status = Status.valueOf(statusString);
-                    } else {
-                        status = Status.DRAFT;
-                    }
+                    final Status status = Status.valueOf(statusString);
                     final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
                     Date startDate = null;
                     final String startDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)));

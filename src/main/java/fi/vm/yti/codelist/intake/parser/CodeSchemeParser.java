@@ -137,13 +137,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 final String dataClassificationCodes = record.get(CONTENT_HEADER_CLASSIFICATION);
                 final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
                 final String version = record.get(CONTENT_HEADER_VERSION);
-                final String statusString = record.get(CONTENT_HEADER_STATUS);
-                final Status status;
-                if (!statusString.isEmpty()) {
-                    status = Status.valueOf(statusString);
-                } else {
-                    status = Status.DRAFT;
-                }
+                final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
                 final String legalBase = record.get(CONTENT_HEADER_LEGALBASE);
                 final String governancePolicy = record.get(CONTENT_HEADER_GOVERNANCEPOLICY);
                 final String license = record.get(CONTENT_HEADER_LICENSE);
