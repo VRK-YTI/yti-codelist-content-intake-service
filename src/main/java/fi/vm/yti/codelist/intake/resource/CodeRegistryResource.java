@@ -221,7 +221,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     });
                     for (final CodeScheme codeScheme : codeSchemes) {
                         if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                           return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                           return handleStartDateLaterThanEndDate(responseWrapper);
                         }
                         if (codeScheme.getId() == null) {
                             codeScheme.setId(UUID.randomUUID());
@@ -303,7 +303,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             }
             for (final CodeScheme codeScheme : codeSchemes) {
                 if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                    return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                    return handleStartDateLaterThanEndDate(responseWrapper);
                 }
                 LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
             }
@@ -317,7 +317,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             }
             for (final Code code : codes) {
                 if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                    return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                    return handleStartDateLaterThanEndDate(responseWrapper);
                 }
                 LOG.debug("Code parsed from input: " + code.getCodeValue());
             }
@@ -362,7 +362,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         final ObjectMapper mapper = createObjectMapper();
                         final CodeScheme codeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
                         if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                            return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                            return handleStartDateLaterThanEndDate(responseWrapper);
                         }
                         // TODO Refactor this to use existing value as master when evaluating changes.
                         if (!codeScheme.getCodeValue().equalsIgnoreCase(existingCodeScheme.getCodeValue())) {
@@ -438,7 +438,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         });
                         for (final Code code : codes) {
                             if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                                return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                                return handleStartDateLaterThanEndDate(responseWrapper);
                             }
                             if (code.getId() == null) {
                                 code.setId(UUID.randomUUID());
@@ -520,7 +520,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 }
                 for (final Code code : codes) {
                     if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                        return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                        return handleStartDateLaterThanEndDate(responseWrapper);
                     }
                     LOG.debug("Code parsed from input: " + code.getCodeValue());
                 }
@@ -576,7 +576,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         final ObjectMapper mapper = createObjectMapper();
                         final Code code = mapper.readValue(jsonPayload, Code.class);
                         if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                            return handleStartDateLaterThanEndDate(meta, responseWrapper);
+                            return handleStartDateLaterThanEndDate(responseWrapper);
                         }
                         if (!code.getCodeValue().equalsIgnoreCase(existingCode.getCodeValue())) {
                             LOG.error("Code cannot be updated because CodeValue changed: " + code.getCodeValue());

@@ -27,8 +27,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -94,13 +92,11 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 final PropertyType propertyType = propertyTypeRepository.findByLocalName(propertyTypeLocalName);
                 final String url = record.get(CONTENT_HEADER_URL);
                 final Map<String, String> title = new LinkedHashMap<>();
-                titleHeaders.forEach((language, header) -> {
-                    title.put(language, record.get(header));
-                });
+                titleHeaders.forEach((language, header) ->
+                    title.put(language, record.get(header)));
                 final Map<String, String> description = new LinkedHashMap<>();
-                descriptionHeaders.forEach((language, header) -> {
-                    description.put(language, record.get(header));
-                });
+                descriptionHeaders.forEach((language, header) ->
+                    description.put(language, record.get(header)));
                 final ExternalReference externalReference = createOrUpdateExternalReference(id, propertyType, url, parentCodeScheme, title, description);
                 externalReferences.add(externalReference);
             }

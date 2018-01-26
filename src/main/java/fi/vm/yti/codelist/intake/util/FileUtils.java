@@ -14,7 +14,6 @@ public abstract class FileUtils {
      */
     public static InputStream loadFileFromClassPath(final String fileName) throws IOException {
         final ClassPathResource classPathResource = new ClassPathResource(fileName);
-        final InputStream inputStream = classPathResource.getInputStream();
-        return inputStream;
+        return classPathResource.getInputStream();
     }
 }

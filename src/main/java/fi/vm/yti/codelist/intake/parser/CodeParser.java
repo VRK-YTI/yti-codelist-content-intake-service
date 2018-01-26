@@ -118,17 +118,14 @@ public class CodeParser extends AbstractBaseParser {
                     final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
                     final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
-                    prefLabelHeaders.forEach((language, header) -> {
-                        prefLabel.put(language, record.get(header));
-                    });
+                    prefLabelHeaders.forEach((language, header) ->
+                        prefLabel.put(language, record.get(header)));
                     final Map<String, String> definition = new LinkedHashMap<>();
-                    definitionHeaders.forEach((language, header) -> {
-                        definition.put(language, record.get(header));
-                    });
+                    definitionHeaders.forEach((language, header) ->
+                        definition.put(language, record.get(header)));
                     final Map<String, String> description = new LinkedHashMap<>();
-                    descriptionHeaders.forEach((language, header) -> {
-                        description.put(language, record.get(header));
-                    });
+                    descriptionHeaders.forEach((language, header) ->
+                        description.put(language, record.get(header)));
                     final String shortName = record.get(CONTENT_HEADER_SHORTNAME);
                     final String hierarchyLevel = record.get(CONTENT_HEADER_HIERARCHYLEVEL);
                     final String statusString = record.get(CONTENT_HEADER_STATUS);
@@ -244,17 +241,14 @@ public class CodeParser extends AbstractBaseParser {
                     final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
                     final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
-                    prefLabelHeaders.forEach((language, header) -> {
-                        prefLabel.put(language, formatter.formatCellValue(row.getCell(header)));
-                    });
+                    prefLabelHeaders.forEach((language, header) ->
+                        prefLabel.put(language, formatter.formatCellValue(row.getCell(header))));
                     final Map<String, String> definition = new LinkedHashMap<>();
-                    definitionHeaders.forEach((language, header) -> {
-                        definition.put(language, formatter.formatCellValue(row.getCell(header)));
-                    });
+                    definitionHeaders.forEach((language, header) ->
+                        definition.put(language, formatter.formatCellValue(row.getCell(header))));
                     final Map<String, String> description = new LinkedHashMap<>();
-                    descriptionHeaders.forEach((language, header) -> {
-                        description.put(language, formatter.formatCellValue(row.getCell(header)));
-                    });
+                    descriptionHeaders.forEach((language, header) ->
+                        description.put(language, formatter.formatCellValue(row.getCell(header))));
                     final String shortName = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
                     final String hierarchyLevel = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
                     final String statusString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)));

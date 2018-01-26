@@ -83,13 +83,11 @@ public class CodeRegistryParser extends AbstractBaseParser {
                 final String organizationsString = record.get(CONTENT_HEADER_ORGANIZATION);
                 final Set<Organization> organizations = resolveOrganizations(organizationsString);
                 final Map<String, String> prefLabel = new LinkedHashMap<>();
-                prefLabelHeaders.forEach((language, header) -> {
-                    prefLabel.put(language, record.get(header));
-                });
+                prefLabelHeaders.forEach((language, header) ->
+                    prefLabel.put(language, record.get(header)));
                 final Map<String, String> definition = new LinkedHashMap<>();
-                definitionHeaders.forEach((language, header) -> {
-                    definition.put(language, record.get(header));
-                });
+                definitionHeaders.forEach((language, header) ->
+                    definition.put(language, record.get(header)));
                 final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, organizations, prefLabel, definition);
                 if (codeRegistry != null) {
                     codeRegistries.add(codeRegistry);
@@ -144,17 +142,13 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     final String organizationsString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ORGANIZATION)));
                     final Set<Organization> organizations = resolveOrganizations(organizationsString);
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
-                    prefLabelHeaders.forEach((language, header) -> {
-                        prefLabel.put(language, formatter.formatCellValue(row.getCell(header)));
-                    });
+                    prefLabelHeaders.forEach((language, header) ->
+                        prefLabel.put(language, formatter.formatCellValue(row.getCell(header))));
                     final Map<String, String> definition = new LinkedHashMap<>();
-                    definitionHeaders.forEach((language, header) -> {
-                        definition.put(language, formatter.formatCellValue(row.getCell(header)));
-                    });
+                    definitionHeaders.forEach((language, header) ->
+                        definition.put(language, formatter.formatCellValue(row.getCell(header))));
                     final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeValue, organizations, prefLabel, definition);
-                    if (codeRegistry != null) {
-                        codeRegistries.add(codeRegistry);
-                    }
+                    codeRegistries.add(codeRegistry);
                 }
             }
         }

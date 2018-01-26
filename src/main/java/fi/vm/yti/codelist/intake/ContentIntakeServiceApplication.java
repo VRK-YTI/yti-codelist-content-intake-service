@@ -19,7 +19,7 @@ public class ContentIntakeServiceApplication {
 
     public static void main(final String[] args) {
         final ApplicationContext context = SpringApplication.run(ContentIntakeServiceApplication.class, args);
-        final ServiceInitializer serviceInitializer = (ServiceInitializer) context.getBean(ServiceInitializer.class);
+        final ServiceInitializer serviceInitializer = context.getBean(ServiceInitializer.class);
         serviceInitializer.printLogo();
         serviceInitializer.initialize();
     }

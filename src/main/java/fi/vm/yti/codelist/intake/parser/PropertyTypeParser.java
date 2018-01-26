@@ -82,13 +82,11 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 final String context = record.get(CONTENT_HEADER_CONTEXT);
                 final String type = record.get(CONTENT_HEADER_TYPE);
                 final Map<String, String> prefLabel = new LinkedHashMap<>();
-                prefLabelHeaders.forEach((language, header) -> {
-                    prefLabel.put(language, record.get(header));
-                });
+                prefLabelHeaders.forEach((language, header) ->
+                    prefLabel.put(language, record.get(header)));
                 final Map<String, String> definition = new LinkedHashMap<>();
-                definitionHeaders.forEach((language, header) -> {
-                    definition.put(language, record.get(header));
-                });
+                definitionHeaders.forEach((language, header) ->
+                    definition.put(language, record.get(header)));
                 final PropertyType propertyType = createOrUpdatePropertyType(id, propertyUri, context, localName, type, prefLabel, definition);
                 propertyTypes.add(propertyType);
             }
