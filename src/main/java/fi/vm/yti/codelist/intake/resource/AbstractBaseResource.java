@@ -89,11 +89,11 @@ public abstract class AbstractBaseResource {
         return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
     }
 
-    protected Response handleStartDateLaterThanEndDate(final Meta meta, final ResponseWrapper wrapper) {
+    protected Response handleStartDateLaterThanEndDate(final ResponseWrapper wrapper) {
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(wrapper).build();
     }
 
-    protected Response handleStartDateLaterThanEndDate(final Meta meta, final MetaResponseWrapper wrapper) {
+    protected Response handleStartDateLaterThanEndDate(final MetaResponseWrapper wrapper) {
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(wrapper).build();
     }
 
@@ -119,7 +119,7 @@ public abstract class AbstractBaseResource {
         } catch (ParseException e) {
             return true; // should never ever happen, dates are never null here and are coming from datepicker
         }
-        return startDateWithoutTime.compareTo(endDate) == 0;
+        return startDateWithoutTime.compareTo(endDateWithoutTime) == 0;
     }
 
     private void handleLoggingAndMetaForHttpCode(final int code, Meta meta, final String logMessage) {
