@@ -54,29 +54,33 @@ public class OrganizationUpdater {
         requestFactory.setReadTimeout(1000);
         final RestTemplate restTemplate = new RestTemplate(requestFactory);
         final Map<String, String> vars = new HashMap<>();
-        final String response = restTemplate.getForObject(getGroupManagementOrganizationsApiUrl(), String.class, vars);
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
-        Set<GroupManagementOrganization> groupManagementOrganizations = new HashSet<>();
         try {
-            groupManagementOrganizations = mapper.readValue(response, new TypeReference<Set<GroupManagementOrganization>>() {
-            });
-            LOG.info("Organization data loaded: " + groupManagementOrganizations.size() + " Organizations in " + watch);
-            watch.reset().start();
-        } catch (IOException e) {
-            LOG.error("Organization fetching and prcessing failed!", e);
-        }
-        final Set<Organization> organizations = new HashSet<>();
-        for (final GroupManagementOrganization groupManagementOrganization : groupManagementOrganizations) {
-            final Organization organization = new Organization();
-            organization.setId(groupManagementOrganization.getUuid());
-            organization.setUrl(groupManagementOrganization.getUrl());
-            organization.setPrefLabel(groupManagementOrganization.getPrefLabel());
-            organization.setDescription(groupManagementOrganization.getDescription());
-            organizations.add(organization);
-        }
-        if (!organizations.isEmpty()) {
-            organizationRepository.save(organizations);
+            final String response = restTemplate.getForObject(getGroupManagementOrganizationsApiUrl(), String.class, vars);
+            final ObjectMapper mapper = new ObjectMapper();
+            mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+            Set<GroupManagementOrganization> groupManagementOrganizations = new HashSet<>();
+            try {
+                groupManagementOrganizations = mapper.readValue(response, new TypeReference<Set<GroupManagementOrganization>>() {
+                });
+                LOG.info("Organization data loaded: " + groupManagementOrganizations.size() + " Organizations in " + watch);
+                watch.reset().start();
+            } catch (IOException e) {
+                LOG.error("Organization fetching and processing failed!", e);
+            }
+            final Set<Organization> organizations = new HashSet<>();
+            for (final GroupManagementOrganization groupManagementOrganization : groupManagementOrganizations) {
+                final Organization organization = new Organization();
+                organization.setId(groupManagementOrganization.getUuid());
+                organization.setUrl(groupManagementOrganization.getUrl());
+                organization.setPrefLabel(groupManagementOrganization.getPrefLabel());
+                organization.setDescription(groupManagementOrganization.getDescription());
+                organizations.add(organization);
+            }
+            if (!organizations.isEmpty()) {
+                organizationRepository.save(organizations);
+            }
+        } catch (Exception e) {
+            LOG.error("Organization fetching failed due to exception", e);
         }
     }
 
