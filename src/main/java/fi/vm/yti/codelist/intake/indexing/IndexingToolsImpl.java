@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.indexing;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -9,8 +10,6 @@ import javax.inject.Singleton;
 
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesResponse;
-import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
-import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
@@ -25,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.carrotsearch.hppc.cursors.ObjectCursor;
+import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
@@ -109,10 +108,13 @@ public class IndexingToolsImpl implements IndexingTools {
         final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
         if (exists) {
             final IndicesAliasesRequest request = new IndicesAliasesRequest();
-            final GetAliasesResponse aliasesResponse = client.admin().indices().getAliases(new GetAliasesRequest(aliasName)).actionGet();
-            final ImmutableOpenMap<String, List<AliasMetaData>> aliases = aliasesResponse.getAliases();
-            for (final ObjectCursor<?> cursor : aliases.keys()) {
-                request.addAliasAction(IndicesAliasesRequest.AliasActions.remove().alias(aliasName).index(cursor.value.toString()));
+            final ImmutableOpenMap<String, List<AliasMetaData>> aliases = client.admin().indices().prepareGetAliases(aliasName).get().getAliases();
+            final List<String> oldIndexNames = new ArrayList<>();
+            for (ObjectObjectCursor<String, List<AliasMetaData>> alias : aliases) {
+                if (!alias.value.isEmpty()) {
+                    request.addAliasAction(IndicesAliasesRequest.AliasActions.remove().alias(aliasName).index(alias.key));
+                    oldIndexNames.add(alias.key);
+                }
             }
             request.addAliasAction(IndicesAliasesRequest.AliasActions.add().alias(aliasName).index(indexName));
             final IndicesAliasesResponse response = client.admin().indices().aliases(request).actionGet();
@@ -120,8 +122,8 @@ public class IndexingToolsImpl implements IndexingTools {
                 logAliasFailed(indexName);
             } else {
                 logAliasSuccessful(indexName);
-                for (final ObjectCursor<?> cursor : aliases.keys()) {
-                    logAliasRemovedSuccessful(cursor.value.toString());
+                for (final String oldIndexName : oldIndexNames) {
+                    logAliasRemovedSuccessful(oldIndexName);
                 }
             }
         } else {

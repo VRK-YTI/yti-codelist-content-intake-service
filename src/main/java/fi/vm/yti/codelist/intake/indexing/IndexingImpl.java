@@ -36,7 +36,16 @@ import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.IndexStatusRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_INDEX_CODE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_INDEX_CODEREGISTRY;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_INDEX_CODESCHEME;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_INDEX_EXTERNALREFERENCE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_INDEX_PROPERTYTYPE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODEREGISTRY;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODESCHEME;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_EXTERNALREFERENCE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_PROPERTYTYPE;
 
 @Singleton
 @Service
@@ -184,11 +193,10 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateCodes(final Set<Code> codes) {
-        boolean success = true;
         if (!codes.isEmpty()) {
-            success = updateData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
+            return updateData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
         }
-        return success;
+        return true;
     }
 
     public boolean updateCode(final Code code) {
@@ -198,11 +206,10 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateCodeSchemes(final Set<CodeScheme> codeSchemes) {
-        boolean success = true;
         if (!codeSchemes.isEmpty()) {
             return updateData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
         }
-        return success;
+        return true;
     }
 
     public boolean updateCodeScheme(final CodeScheme codeScheme) {
@@ -212,11 +219,10 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateExternalReferences(final Set<ExternalReference> externalReferences) {
-        boolean success = true;
         if (!externalReferences.isEmpty()) {
             return updateData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
         }
-        return success;
+        return true;
     }
 
     public boolean reIndexEverything() {
@@ -259,7 +265,7 @@ public class IndexingImpl implements Indexing {
         status.setCreated(timeStamp);
         status.setModified(timeStamp);
         status.setStatus(INDEX_STATUS_RUNNING);
-        status.setIndexAlias(indexName);
+        status.setIndexAlias(indexAlias);
         status.setIndexName(indexName);
         indexStatusRepository.save(status);
 
@@ -293,11 +299,11 @@ public class IndexingImpl implements Indexing {
         if (success) {
             indexingTools.aliasIndex(indexName, indexAlias);
             final List<IndexStatus> earlierStatuses = indexStatusRepository.getLatestSuccessfulIndexStatusForIndexAlias(indexAlias);
-            earlierStatuses.forEach(index -> {
-                indexingTools.deleteIndex(index.getIndexName());
-                index.setModified(timeStamp);
-                index.setStatus(INDEX_STATUS_DELETED);
-                indexStatusRepository.save(index);
+            earlierStatuses.forEach(earlierIndex -> {
+                indexingTools.deleteIndex(earlierIndex.getIndexName());
+                earlierIndex.setModified(timeStamp);
+                earlierIndex.setStatus(INDEX_STATUS_DELETED);
+                indexStatusRepository.save(earlierIndex);
             });
             status.setStatus(INDEX_STATUS_SUCCESSFUL);
         } else {
