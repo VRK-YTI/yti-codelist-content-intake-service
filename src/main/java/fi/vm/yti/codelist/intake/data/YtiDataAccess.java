@@ -46,8 +46,8 @@ public class YtiDataAccess {
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
     private static final String DEFAULT_TESTREGISTRY_FILENAME = "testcoderegistries.csv";
-    private static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
-    private static final String DEFAULT_EXTERNALREFERENCE_FILENAME = "externalreferences.csv";
+    public static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
+    public static final String DEFAULT_EXTERNALREFERENCE_FILENAME = "externalreferences.csv";
 
     private static final Logger LOG = LoggerFactory.getLogger(YtiDataAccess.class);
 

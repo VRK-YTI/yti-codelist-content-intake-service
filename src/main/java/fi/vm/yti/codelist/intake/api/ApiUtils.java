@@ -63,6 +63,10 @@ public class ApiUtils {
         return createResourceUri(API_PATH_CODEREGISTRIES, codeRegistry.getCodeValue());
     }
 
+    public String createCodeSchemeUri(final CodeScheme codeScheme) {
+        return createCodeSchemeUri(codeScheme.getCodeRegistry(), codeScheme);
+    }
+
     public String createCodeSchemeUri(final CodeRegistry codeRegistry, final CodeScheme codeScheme) {
         final String uri;
         if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
@@ -71,6 +75,10 @@ public class ApiUtils {
             uri = createResourceUri(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeScheme.getId().toString());
         }
         return uri;
+    }
+
+    public String createCodeUri(final Code code) {
+        return createCodeUri(code.getCodeScheme().getCodeRegistry(), code.getCodeScheme(), code);
     }
 
     public String createCodeUri(final CodeRegistry codeRegistry, final CodeScheme codeScheme, final Code code) {

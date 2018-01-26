@@ -7,6 +7,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.intake.resource.AdminResource;
 import fi.vm.yti.codelist.intake.resource.AuthenticatedUserResource;
 import fi.vm.yti.codelist.intake.resource.CodeRegistryResource;
 import fi.vm.yti.codelist.intake.resource.ConfigurationResource;
@@ -66,6 +67,9 @@ public class JerseyConfig extends ResourceConfig {
 
         // GroupManagement
         register(GroupManagementProxyResource.class);
+
+        // Admin resources
+        register(AdminResource.class);
 
         // Generic resources
         register(VersionResource.class);
