@@ -119,21 +119,17 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
                 final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
                 final Map<String, String> prefLabel = new LinkedHashMap<>();
-                prefLabelHeaders.forEach((language, header) -> {
-                    prefLabel.put(language, record.get(header));
-                });
+                prefLabelHeaders.forEach((language, header) ->
+                    prefLabel.put(language, record.get(header)));
                 final Map<String, String> definition = new LinkedHashMap<>();
-                definitionHeaders.forEach((language, header) -> {
-                    definition.put(language, record.get(header));
-                });
+                definitionHeaders.forEach((language, header) ->
+                    definition.put(language, record.get(header)));
                 final Map<String, String> description = new LinkedHashMap<>();
-                descriptionHeaders.forEach((language, header) -> {
-                    description.put(language, record.get(header));
-                });
+                descriptionHeaders.forEach((language, header) ->
+                    description.put(language, record.get(header)));
                 final Map<String, String> changeNote = new LinkedHashMap<>();
-                changeNoteHeaders.forEach((language, header) -> {
-                    changeNote.put(language, record.get(header));
-                });
+                changeNoteHeaders.forEach((language, header) ->
+                    changeNote.put(language, record.get(header)));
                 final String dataClassificationCodes = record.get(CONTENT_HEADER_CLASSIFICATION);
                 final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
                 final String version = record.get(CONTENT_HEADER_VERSION);
@@ -253,21 +249,17 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     final String dataClassificationCodes = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)));
                     final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
-                    prefLabelHeaders.forEach((language, header) -> {
-                        prefLabel.put(language, formatter.formatCellValue(row.getCell(header)));
-                    });
+                    prefLabelHeaders.forEach((language, header) ->
+                        prefLabel.put(language, formatter.formatCellValue(row.getCell(header))));
                     final Map<String, String> definition = new LinkedHashMap<>();
-                    definitionHeaders.forEach((language, header) -> {
-                        definition.put(language, formatter.formatCellValue(row.getCell(header)));
-                    });
+                    definitionHeaders.forEach((language, header) ->
+                        definition.put(language, formatter.formatCellValue(row.getCell(header))));
                     final Map<String, String> description = new LinkedHashMap<>();
-                    descriptionHeaders.forEach((language, header) -> {
-                        description.put(language, formatter.formatCellValue(row.getCell(header)));
-                    });
+                    descriptionHeaders.forEach((language, header) ->
+                        description.put(language, formatter.formatCellValue(row.getCell(header))));
                     final Map<String, String> changeNote = new LinkedHashMap<>();
-                    changeNoteHeaders.forEach((language, header) -> {
-                        changeNote.put(language, formatter.formatCellValue(row.getCell(header)));
-                    });
+                    changeNoteHeaders.forEach((language, header) ->
+                        changeNote.put(language, formatter.formatCellValue(row.getCell(header))));
                     final String version = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_VERSION)));
                     final String statusString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)));
                     final Status status;
