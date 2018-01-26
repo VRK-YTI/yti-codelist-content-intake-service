@@ -269,10 +269,7 @@ public class IndexingImpl implements Indexing {
         status.setIndexName(indexName);
         indexStatusRepository.save(status);
 
-        final Set<String> types = new HashSet<>();
-        types.add(type);
-
-        indexingTools.createIndexWithNestedPrefLabel(indexName, types);
+        indexingTools.createIndexWithNestedPrefLabel(indexName, type);
 
         boolean success = true;
         switch (indexAlias) {

@@ -3,7 +3,6 @@ package fi.vm.yti.codelist.intake.indexing;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import javax.inject.Singleton;
@@ -159,9 +158,9 @@ public class IndexingToolsImpl implements IndexingTools {
      * Creates index with name.
      *
      * @param indexName The name of the index to be created.
-     * @param types     Set of types for this index.
+     * @param type     Type for this index.
      */
-    public void createIndexWithNestedPrefLabel(final String indexName, final Set<String> types) {
+    public void createIndexWithNestedPrefLabel(final String indexName, final String type) {
         final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
         if (!exists) {
             final CreateIndexRequestBuilder builder = client.admin().indices().prepareCreate(indexName);
@@ -182,12 +181,10 @@ public class IndexingToolsImpl implements IndexingTools {
             } catch (IOException e) {
                 LOG.error("Error parsing index request settings JSON!", e);
             }
-            for (final String type : types) {
-                if (ELASTIC_TYPE_CODESCHEME.equals(type)) {
-                    builder.addMapping(type, CODESCHEME_MAPPING, XContentType.JSON);
-                } else {
-                    builder.addMapping(type, NESTED_PREFLABEL_MAPPING_JSON, XContentType.JSON);
-                }
+            if (ELASTIC_TYPE_CODESCHEME.equals(type)) {
+                builder.addMapping(type, CODESCHEME_MAPPING, XContentType.JSON);
+            } else {
+                builder.addMapping(type, NESTED_PREFLABEL_MAPPING_JSON, XContentType.JSON);
             }
             final CreateIndexResponse response = builder.get();
             if (!response.isAcknowledged()) {

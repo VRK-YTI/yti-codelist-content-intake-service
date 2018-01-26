@@ -1,7 +1,5 @@
 package fi.vm.yti.codelist.intake.indexing;
 
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public interface IndexingTools {
@@ -10,7 +8,7 @@ public interface IndexingTools {
 
     void deleteIndex(final String indexName);
 
-    void createIndexWithNestedPrefLabel(final String indexName, final Set<String> type);
+    void createIndexWithNestedPrefLabel(final String indexName, final String type);
 
     ObjectMapper createObjectMapper();
 }
