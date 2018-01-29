@@ -56,7 +56,20 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODEREGISTRIES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODESCHEMES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_EXTERNALREFERENCES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_VERSION_V1;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_CODESCHEMES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_CODE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_CODEREGISTRY;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_CODESCHEME;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_CSV;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_EXCEL;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_JSON;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.METHOD_DELETE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.METHOD_POST;
 
 @Component
 @Path("/v1/coderegistries")
@@ -231,6 +244,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         final Set<ExternalReference> externalReferences = initializeExternalReferences(codeScheme.getExternalReferences(), codeScheme);
                         if (!externalReferences.isEmpty()) {
                             externalReferenceRepository.save(externalReferences);
+                            codeScheme.setExternalReferences(null);
+                            // This intermediate saving is necessary to avoid hibernate insertion issues with primary key constraint
+                            codeSchemeRepository.save(codeScheme);
                             codeScheme.setExternalReferences(externalReferences);
                         } else {
                             codeScheme.setExternalReferences(null);
@@ -373,13 +389,18 @@ public class CodeRegistryResource extends AbstractBaseResource {
                             final Set<ExternalReference> externalReferences = initializeExternalReferences(codeScheme.getExternalReferences(), codeScheme);
                             if (!externalReferences.isEmpty()) {
                                 externalReferenceRepository.save(externalReferences);
+                                codeScheme.setExternalReferences(null);
+                                // This intermediate saving is necessary to avoid hibernate insertion issues with primary key constraint
+                                codeSchemeRepository.save(codeScheme);
                                 codeScheme.setExternalReferences(externalReferences);
                             } else {
                                 codeScheme.setExternalReferences(null);
                             }
                             codeScheme.setModified(new Date(System.currentTimeMillis()));
                             codeSchemeRepository.save(codeScheme);
-                            if (indexing.updateCodeScheme(codeScheme) && indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme)) && indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme))) {
+                            if (indexing.updateCodeScheme(codeScheme) &&
+                                indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme)) &&
+                                indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme))) {
                                 meta.setMessage("CodeScheme " + codeSchemeId + " modified.");
                                 meta.setCode(200);
                                 return Response.ok(responseWrapper).build();
