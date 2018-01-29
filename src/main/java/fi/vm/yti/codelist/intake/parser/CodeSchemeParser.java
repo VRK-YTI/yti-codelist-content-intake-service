@@ -225,14 +225,14 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             genericHeaders.put(value, index);
                         }
                     }
-                    if (!genericHeaders.containsKey(CONTENT_HEADER_CODEVALUE) ) {
+                    if (!genericHeaders.containsKey(CONTENT_HEADER_CODEVALUE)) {
                         throw new MissingHeaderException("Missing CODEVALUE header.");
                     }
                     if (!genericHeaders.containsKey(CONTENT_HEADER_STATUS)) {
                         throw new MissingHeaderException("Missing STATUS header.");
                     }
                     firstRow = false;
-                } else {
+                } else if (row.getPhysicalNumberOfCells() > 0) {
                     if (formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE))) == null ||
                             formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE))).equals("")) {
                         throw new MissingCodeValueException("A row is missing the codevalue.");
