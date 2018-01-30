@@ -232,7 +232,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                         throw new MissingHeaderException("Missing STATUS header.");
                     }
                     firstRow = false;
-                } else if (row.getPhysicalNumberOfCells() > 0) {
+                } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
                     if (formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE))) == null ||
                             formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE))).equals("")) {
                         throw new MissingCodeValueException("A row is missing the codevalue.");

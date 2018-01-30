@@ -2,6 +2,10 @@ package fi.vm.yti.codelist.intake.parser;
 
 import java.util.UUID;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+
 public abstract class AbstractBaseParser {
 
     public static final String EU_REGISTRY = "eu";
@@ -20,6 +24,15 @@ public abstract class AbstractBaseParser {
             uuid = UUID.fromString(uuidString);
         }
         return uuid;
+    }
+
+    public static boolean isRowEmpty(final Row row) {
+        for (int cellIndex = row.getFirstCellNum(); cellIndex < row.getLastCellNum(); cellIndex++) {
+            final Cell cell = row.getCell(cellIndex);
+            if (cell != null && cell.getCellTypeEnum() != CellType.BLANK)
+                return false;
+        }
+        return true;
     }
 
 }
