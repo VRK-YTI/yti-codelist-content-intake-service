@@ -454,7 +454,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
 
     private Set<Code> resolveDataClassifications(final String dataClassificationCodes) {
         final Set<Code> dataClassifications = new HashSet<>();
-        final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(EU_REGISTRY);
+        final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(JUPO_REGISTRY);
         if (ytiRegistry != null) {
             final CodeScheme dataClassificationScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
             if (dataClassificationScheme != null) {

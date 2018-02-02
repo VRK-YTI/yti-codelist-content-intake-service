@@ -8,8 +8,8 @@ import org.apache.poi.ss.usermodel.Row;
 
 public abstract class AbstractBaseParser {
 
-    public static final String EU_REGISTRY = "eu";
-    public static final String YTI_DATACLASSIFICATION_CODESCHEME = "dcat";
+    public static final String JUPO_REGISTRY = "jupo";
+    public static final String YTI_DATACLASSIFICATION_CODESCHEME = "serviceclassification";
 
     public String resolveLanguageFromHeader(final String prefix,
                                             final String header) {

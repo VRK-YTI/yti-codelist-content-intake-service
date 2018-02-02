@@ -40,6 +40,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.JUPO_REGISTRY;
+import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
 
 @Component
 @Path("/v1/dataclassifications")
@@ -48,8 +50,6 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 public class DataClassificationResource extends AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceResource.class);
-    private static final String EU_REGISTRY_CODEVALUE = "eu";
-    private static final String YTI_DATACLASSIFICATION_SCHEME_CODEVALUE = "dcat";
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeRepository codeRepository;
@@ -77,8 +77,8 @@ public class DataClassificationResource extends AbstractBaseResource {
         final ResponseWrapper<DataClassification> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);
         final ObjectMapper mapper = createObjectMapper();
-        final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(EU_REGISTRY_CODEVALUE);
-        final CodeScheme dataClassificationsScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_SCHEME_CODEVALUE);
+        final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(JUPO_REGISTRY);
+        final CodeScheme dataClassificationsScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
         final Set<Code> codes = codeRepository.findByCodeScheme(dataClassificationsScheme);
         final Set<DataClassification> dataClassifications = new LinkedHashSet<>();
         final Map<String, Integer> statistics = new HashMap<>();

@@ -41,7 +41,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_CODESCHEMES;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_EXTERNALREFERENCES;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_PROPERTYTYPES;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.SOURCE_INTERNAL;
-import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.EU_REGISTRY;
+import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.JUPO_REGISTRY;
 import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
 
 @Service
@@ -52,6 +52,7 @@ public class YtiDataAccess {
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
     private static final String DEFAULT_TESTREGISTRY_FILENAME = "testcoderegistries.csv";
+    private static final String SERVICE_CLASSIFICATION_P9 = "P9";
     private static final Logger LOG = LoggerFactory.getLogger(YtiDataAccess.class);
 
     private final Domain domain;
@@ -103,8 +104,8 @@ public class YtiDataAccess {
         if (contentIntakeServiceProperties.getInitializeContent()) {
             loadDefaultPropertyTypes();
             loadDefaultExternalReferences();
-            loadRegistryContent(DEFAULT_YTIREGISTRY_FILENAME, "V1_YTI");
-            classifyDcat();
+            loadRegistryContent(DEFAULT_YTIREGISTRY_FILENAME, "V2_YTI");
+            classifyServiceClassification();
             loadRegistryContent(DEFAULT_CODEREGISTRY_FILENAME, "V1_DEFAULT");
         }
         if (contentIntakeServiceProperties.getInitializeTestContent()) {
@@ -258,10 +259,10 @@ public class YtiDataAccess {
         }
     }
 
-    private void classifyDcat() {
-        LOG.info("Ensuring DCAT classification belongs to GOVE classification.");
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(EU_REGISTRY);
-        classifyCodeSchemeWithCodeValue(codeRegistry, YTI_DATACLASSIFICATION_CODESCHEME, "GOVE");
+    private void classifyServiceClassification() {
+        LOG.info("Ensuring Service Classification CodeScheme belongs to P9 classification.");
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(JUPO_REGISTRY);
+        classifyCodeSchemeWithCodeValue(codeRegistry, YTI_DATACLASSIFICATION_CODESCHEME, SERVICE_CLASSIFICATION_P9);
     }
 
     private void classifyCodeSchemeWithCodeValue(final CodeRegistry codeRegistry, final String codeSchemeCodeValue, final String dataClassificationCodeValue) {
@@ -275,7 +276,7 @@ public class YtiDataAccess {
     }
 
     private Code getDataClassification(final String codeValue) {
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(EU_REGISTRY);
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(JUPO_REGISTRY);
         final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
         return codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeValue);
     }
