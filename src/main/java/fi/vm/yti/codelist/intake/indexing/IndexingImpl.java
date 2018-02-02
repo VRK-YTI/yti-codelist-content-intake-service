@@ -192,6 +192,12 @@ public class IndexingImpl implements Indexing {
         LOG.info(BULK + type + " operation ran, but there was no content to be indexed!");
     }
 
+    public boolean updateCode(final Code code) {
+        final Set<Code> codes = new HashSet<>();
+        codes.add(code);
+        return updateCodes(codes);
+    }
+
     public boolean updateCodes(final Set<Code> codes) {
         if (!codes.isEmpty()) {
             return updateData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
@@ -199,10 +205,10 @@ public class IndexingImpl implements Indexing {
         return true;
     }
 
-    public boolean updateCode(final Code code) {
-        final Set<Code> codes = new HashSet<>();
-        codes.add(code);
-        return updateCodes(codes);
+    public boolean updateCodeScheme(final CodeScheme codeScheme) {
+        final Set<CodeScheme> codeSchemes = new HashSet<>();
+        codeSchemes.add(codeScheme);
+        return updateCodeSchemes(codeSchemes);
     }
 
     public boolean updateCodeSchemes(final Set<CodeScheme> codeSchemes) {
@@ -212,10 +218,36 @@ public class IndexingImpl implements Indexing {
         return true;
     }
 
-    public boolean updateCodeScheme(final CodeScheme codeScheme) {
-        final Set<CodeScheme> codeSchemes = new HashSet<>();
-        codeSchemes.add(codeScheme);
-        return updateCodeSchemes(codeSchemes);
+    public boolean updateCodeRegistry(final CodeRegistry codeRegistry) {
+        final Set<CodeRegistry> codeRegistries = new HashSet<>();
+        codeRegistries.add(codeRegistry);
+        return updateCodeRegistries(codeRegistries);
+    }
+
+    public boolean updateCodeRegistries(final Set<CodeRegistry> codeRegistries) {
+        if (!codeRegistries.isEmpty()) {
+            return updateData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
+        }
+        return true;
+    }
+
+    public boolean updatePropertyType(final PropertyType propertyType) {
+        final Set<PropertyType> propertyTypes = new HashSet<>();
+        propertyTypes.add(propertyType);
+        return updatePropertyTypes(propertyTypes);
+    }
+
+    public boolean updatePropertyTypes(final Set<PropertyType> propertyTypes) {
+        if (!propertyTypes.isEmpty()) {
+            return updateData(propertyTypes, ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
+        }
+        return true;
+    }
+
+    public boolean updateExternalReference(final ExternalReference externalReference) {
+        final Set<ExternalReference> externalReferences = new HashSet<>();
+        externalReferences.add(externalReference);
+        return updateExternalReferences(externalReferences);
     }
 
     public boolean updateExternalReferences(final Set<ExternalReference> externalReferences) {

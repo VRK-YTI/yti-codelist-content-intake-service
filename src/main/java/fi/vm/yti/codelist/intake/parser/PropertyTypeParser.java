@@ -5,12 +5,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -26,15 +27,21 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_PROPERTYTYPES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_CONTEXT;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DEFINITION_PREFIX;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ID;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_LOCALNAME;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PREFLABEL_PREFIX;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PROPERTYURI;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_TYPE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_PROPERTYTYPES;
 
 /**
  * Class that handles parsing of PropertyTypes from source data.
@@ -59,8 +66,8 @@ public class PropertyTypeParser extends AbstractBaseParser {
      * @return List of PropertyType objects.
      */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public List<PropertyType> parsePropertyTypesFromCsvInputStream(final InputStream inputStream) throws IOException {
-        final List<PropertyType> propertyTypes = new ArrayList<>();
+    public Set<PropertyType> parsePropertyTypesFromCsvInputStream(final InputStream inputStream) throws IOException {
+        final Set<PropertyType> propertyTypes = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -101,8 +108,8 @@ public class PropertyTypeParser extends AbstractBaseParser {
      * @param inputStream The Code containing Excel -file.
      * @return List of Code objects.
      */
-    public List<PropertyType> parsePropertyTypesFromExcelInputStream(final InputStream inputStream) throws Exception {
-        final List<PropertyType> propertyTypes = new ArrayList<>();
+    public Set<PropertyType> parsePropertyTypesFromExcelInputStream(final InputStream inputStream) throws Exception {
+        final Set<PropertyType> propertyTypes = new HashSet<>();
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             final DataFormatter formatter = new DataFormatter();
             Sheet sheet = workbook.getSheet(EXCEL_SHEET_PROPERTYTYPES);

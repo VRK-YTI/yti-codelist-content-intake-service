@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -36,19 +35,23 @@ import fi.vm.yti.codelist.intake.parser.ExternalReferenceParser;
 import fi.vm.yti.codelist.intake.parser.PropertyTypeParser;
 import fi.vm.yti.codelist.intake.update.UpdateManager;
 import fi.vm.yti.codelist.intake.util.FileUtils;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_CODEREGISTRIES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_CODES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_CODESCHEMES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_EXTERNALREFERENCES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_PROPERTYTYPES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.SOURCE_INTERNAL;
 import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.EU_REGISTRY;
+import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
 
 @Service
 public class YtiDataAccess {
 
+    public static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
+    public static final String DEFAULT_EXTERNALREFERENCE_FILENAME = "externalreferences.csv";
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
     private static final String DEFAULT_TESTREGISTRY_FILENAME = "testcoderegistries.csv";
-    public static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
-    public static final String DEFAULT_EXTERNALREFERENCE_FILENAME = "externalreferences.csv";
-
     private static final Logger LOG = LoggerFactory.getLogger(YtiDataAccess.class);
 
     private final Domain domain;
@@ -215,7 +218,7 @@ public class YtiDataAccess {
         if (updateManager.shouldUpdateData(DATA_PROPERTYTYPES, "default", DEFAULT_PROPERTYTYPE_FILENAME)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_PROPERTYTYPES, "default", SOURCE_INTERNAL, DEFAULT_PROPERTYTYPE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME)) {
-                final List<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(inputStream);
+                final Set<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(inputStream);
                 LOG.info("PropertyType data loaded: " + propertyTypes.size() + " PropertyTypes in " + watch);
                 watch.reset().start();
                 propertyTypeRepository.save(propertyTypes);
@@ -238,7 +241,7 @@ public class YtiDataAccess {
         if (updateManager.shouldUpdateData(DATA_EXTERNALREFERENCES, "default", DEFAULT_EXTERNALREFERENCE_FILENAME)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_EXTERNALREFERENCES, "default", SOURCE_INTERNAL, DEFAULT_EXTERNALREFERENCE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_EXTERNALREFERENCES + "/" + DEFAULT_EXTERNALREFERENCE_FILENAME)) {
-                final List<ExternalReference> propertyTypes = externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream);
+                final Set<ExternalReference> propertyTypes = externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream);
                 LOG.info("ExternalReference data loaded: " + propertyTypes.size() + " ExternalReferences in " + watch);
                 watch.reset().start();
                 externalReferenceRepository.save(propertyTypes);

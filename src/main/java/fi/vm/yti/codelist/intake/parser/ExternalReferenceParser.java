@@ -5,13 +5,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -37,7 +38,14 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_EXTERNALREFERENCES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DESCRIPTION_PREFIX;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ID;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PARENTCODESCHEMEID;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PROPERTYTYPE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_TITLE_PREFIX;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_URL;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_EXTERNALREFERENCES;
 
 /**
  * Class that handles parsing of ExternalReferences from source data.
@@ -68,8 +76,8 @@ public class ExternalReferenceParser extends AbstractBaseParser {
      * @return List of ExternalReference objects.
      */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public List<ExternalReference> parseExternalReferencesFromCsvInputStream(final InputStream inputStream) throws IOException {
-        final List<ExternalReference> externalReferences = new ArrayList<>();
+    public Set<ExternalReference> parseExternalReferencesFromCsvInputStream(final InputStream inputStream) throws IOException {
+        final Set<ExternalReference> externalReferences = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -111,8 +119,8 @@ public class ExternalReferenceParser extends AbstractBaseParser {
      * @param inputStream The Code containing Excel -file.
      * @return List of Code objects.
      */
-    public List<ExternalReference> parseExternalReferencesFromExcelInputStream(final InputStream inputStream) throws Exception {
-        final List<ExternalReference> externalReferences = new ArrayList<>();
+    public Set<ExternalReference> parseExternalReferencesFromExcelInputStream(final InputStream inputStream) throws Exception {
+        final Set<ExternalReference> externalReferences = new HashSet<>();
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             final DataFormatter formatter = new DataFormatter();
             Sheet sheet = workbook.getSheet(EXCEL_SHEET_EXTERNALREFERENCES);

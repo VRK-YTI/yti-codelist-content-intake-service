@@ -2,7 +2,6 @@ package fi.vm.yti.codelist.intake.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -105,6 +104,7 @@ public class AdminResource extends AbstractBaseResource {
                 codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
             }
             codeRegistryRepository.save(codeRegistries);
+            indexing.reIndexEverything();
             LOG.info("CodeRegistry uris rewritten.");
             return Response.ok().build();
         } else {
@@ -125,6 +125,7 @@ public class AdminResource extends AbstractBaseResource {
                 codeScheme.setUri(apiUtils.createCodeSchemeUri(codeScheme));
             }
             codeSchemeRepository.save(codeSchemes);
+            indexing.reIndexEverything();
             LOG.info("CodeScheme uris rewritten.");
             return Response.ok().build();
         } else {
@@ -145,6 +146,7 @@ public class AdminResource extends AbstractBaseResource {
                 code.setUri(apiUtils.createCodeUri(code));
             }
             codeRepository.save(codes);
+            indexing.reIndexEverything();
             LOG.info("Code uris rewritten.");
             return Response.ok().build();
         } else {
@@ -161,9 +163,10 @@ public class AdminResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_EXTERNALREFERENCES + API_PATH_RELOAD);
         if (authorizationManager.isSuperUser()) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_EXTERNALREFERENCES + "/" + DEFAULT_EXTERNALREFERENCE_FILENAME)) {
-                final List<ExternalReference> externalReferences = externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream);
+                final Set<ExternalReference> externalReferences = externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream);
                 externalReferenceRepository.save(externalReferences);
-            } catch (IOException e) {
+                indexing.reIndexEverything();
+            } catch (final IOException e) {
                 LOG.error("Issue with parsing ExternalReference file. ", e);
             }
             LOG.info("ExternalReferences reloaded.");
@@ -182,9 +185,10 @@ public class AdminResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_PROPERTYTYPES + API_PATH_RELOAD);
         if (authorizationManager.isSuperUser()) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME)) {
-                final List<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(inputStream);
+                final Set<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(inputStream);
                 propertyTypeRepository.save(propertyTypes);
-            } catch (IOException e) {
+                indexing.reIndexEverything();
+            } catch (final IOException e) {
                 LOG.error("Issue with parsing PropertyType file. ", e);
             }
             LOG.info("PropertyTypes reloaded.");
