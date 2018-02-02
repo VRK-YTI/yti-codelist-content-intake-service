@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -75,7 +76,8 @@ public class CodeParser extends AbstractBaseParser {
      */
     public Set<Code> parseCodesFromCsvInputStream(final CodeScheme codeScheme,
                                                   final InputStream inputStream) throws Exception {
-        final Set<Code> codes = new HashSet<>();
+        final Map<String, Code> codes = new HashMap<>();
+        final Map<String, String> broaderCodeMapping = new HashMap<>();
         if (codeScheme != null) {
             try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
                  final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -126,8 +128,24 @@ public class CodeParser extends AbstractBaseParser {
                     final Map<String, String> description = new LinkedHashMap<>();
                     descriptionHeaders.forEach((language, header) ->
                         description.put(language, record.get(header)));
-                    final String shortName = record.get(CONTENT_HEADER_SHORTNAME);
-                    final String hierarchyLevel = record.get(CONTENT_HEADER_HIERARCHYLEVEL);
+                    final String shortName;
+                    if (headerMap.containsKey(CONTENT_HEADER_SHORTNAME)) {
+                        shortName = record.get(CONTENT_HEADER_SHORTNAME);
+                    } else {
+                        shortName = null;
+                    }
+                    if (headerMap.containsKey(CONTENT_HEADER_BROADER)) {
+                        final String broaderCodeCodeValue = record.get(CONTENT_HEADER_BROADER);
+                        if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
+                            broaderCodeMapping.put(codeValue, broaderCodeCodeValue);
+                        }
+                    }
+                    final String hierarchyLevel;
+                    if (headerMap.containsKey(CONTENT_HEADER_HIERARCHYLEVEL)) {
+                        hierarchyLevel = record.get(CONTENT_HEADER_HIERARCHYLEVEL);
+                    } else {
+                        hierarchyLevel = null;
+                    }
                     final String statusString = record.get(CONTENT_HEADER_STATUS);
                     final Status status;
                     if (!statusString.isEmpty()) {
@@ -158,12 +176,13 @@ public class CodeParser extends AbstractBaseParser {
                     }
                     final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, hierarchyLevel, startDate, endDate, prefLabel, description, definition);
                     if (code != null) {
-                        codes.add(code);
+                        codes.put(code.getCodeValue(), code);
                     }
                 }
             }
         }
-        return codes;
+        setBroaderCodes(broaderCodeMapping, codes);
+        return new HashSet<>(codes.values());
     }
 
     /**
@@ -190,7 +209,8 @@ public class CodeParser extends AbstractBaseParser {
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<Code> parseCodesFromExcel(final CodeScheme codeScheme,
                                          final Workbook workbook) throws Exception {
-        final Set<Code> codes = new HashSet<>();
+        final Map<String, Code> codes = new HashMap<>();
+        final Map<String, String> broaderCodeMapping = new HashMap<>();
         if (codeScheme != null) {
             final DataFormatter formatter = new DataFormatter();
             Sheet sheet = workbook.getSheet(EXCEL_SHEET_CODES);
@@ -249,8 +269,24 @@ public class CodeParser extends AbstractBaseParser {
                     final Map<String, String> description = new LinkedHashMap<>();
                     descriptionHeaders.forEach((language, header) ->
                         description.put(language, formatter.formatCellValue(row.getCell(header))));
-                    final String shortName = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
-                    final String hierarchyLevel = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
+                    final String shortName;
+                    if (genericHeaders.containsKey(CONTENT_HEADER_SHORTNAME)) {
+                        shortName = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SHORTNAME)));
+                    } else {
+                        shortName = null;
+                    }
+                    final String hierarchyLevel;
+                    if (genericHeaders.containsKey(CONTENT_HEADER_HIERARCHYLEVEL)) {
+                        hierarchyLevel = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_HIERARCHYLEVEL)));
+                    } else {
+                        hierarchyLevel = null;
+                    }
+                    if (genericHeaders.containsKey(CONTENT_HEADER_BROADER)) {
+                        final String broaderCodeCodeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_BROADER)));
+                        if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
+                            broaderCodeMapping.put(codeValue, broaderCodeCodeValue);
+                        }
+                    }
                     final String statusString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)));
                     final Status status = Status.valueOf(statusString);
                     final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
@@ -276,12 +312,13 @@ public class CodeParser extends AbstractBaseParser {
                     }
                     final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, hierarchyLevel, startDate, endDate, prefLabel, description, definition);
                     if (code != null) {
-                        codes.add(code);
+                        codes.put(code.getCodeValue(), code);
                     }
                 }
             }
         }
-        return codes;
+        setBroaderCodes(broaderCodeMapping, codes);
+        return new HashSet<>(codes.values());
     }
 
     private Code createOrUpdateCode(final CodeScheme codeScheme,
@@ -294,7 +331,7 @@ public class CodeParser extends AbstractBaseParser {
                                     final Date endDate,
                                     final Map<String, String> prefLabel,
                                     final Map<String, String> description,
-                                    final Map<String, String> definition) throws Exception {
+                                    final Map<String, String> definition) {
         Code code = null;
         if (id != null) {
             code = codeRepository.findById(id);
@@ -393,5 +430,16 @@ public class CodeParser extends AbstractBaseParser {
             code.setUri(apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, code));
         }
         return code;
+    }
+
+    private void setBroaderCodes(final Map<String, String> broaderCodeMapping,
+                                 final Map<String, Code> codes) {
+        broaderCodeMapping.forEach((codeCodeValue, broaderCodeCodeValue) -> {
+            final Code code = codes.get(codeCodeValue);
+            final Code broaderCode = codes.get(broaderCodeCodeValue);
+            if (broaderCode != null) {
+                code.setBroaderCodeId(broaderCode.getId());
+            }
+        });
     }
 }
