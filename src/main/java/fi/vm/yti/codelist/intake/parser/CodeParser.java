@@ -138,6 +138,8 @@ public class CodeParser extends AbstractBaseParser {
                         final String broaderCodeCodeValue = record.get(CONTENT_HEADER_BROADER);
                         if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
                             broaderCodeMapping.put(codeValue, broaderCodeCodeValue);
+                        } else {
+                            broaderCodeMapping.put(codeValue, null);
                         }
                     }
                     final String hierarchyLevel;
@@ -437,9 +439,7 @@ public class CodeParser extends AbstractBaseParser {
         broaderCodeMapping.forEach((codeCodeValue, broaderCodeCodeValue) -> {
             final Code code = codes.get(codeCodeValue);
             final Code broaderCode = codes.get(broaderCodeCodeValue);
-            if (broaderCode != null) {
-                code.setBroaderCodeId(broaderCode.getId());
-            }
+            code.setBroaderCodeId(broaderCode != null ? broaderCode.getId() : null);
         });
     }
 }
