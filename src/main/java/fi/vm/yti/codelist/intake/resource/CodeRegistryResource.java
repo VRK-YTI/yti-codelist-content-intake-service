@@ -1,10 +1,9 @@
 package fi.vm.yti.codelist.intake.resource;
 
 import java.io.InputStream;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -369,52 +368,51 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 return handleUnauthorizedAccess(meta, responseWrapper,
-                        "Unauthorized call to addOrUpdateCodeSchemesFromFile.");
+                        "Unauthorized call to updateCodeScheme.");
             }
             final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (existingCodeScheme != null) {
                 try {
-                    if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                        final ObjectMapper mapper = createObjectMapper();
-                        final CodeScheme codeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
-                        if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                            return handleStartDateLaterThanEndDate(responseWrapper);
-                        }
-                        // TODO Refactor this to use existing value as master when evaluating changes.
-                        if (!codeScheme.getCodeValue().equalsIgnoreCase(existingCodeScheme.getCodeValue())) {
-                            LOG.error("CodeScheme cannot be updated because codevalue changed: " + codeScheme.getCodeValue());
-                            meta.setMessage("CodeScheme cannot be updated because codeValue changed. " + codeScheme.getCodeValue());
-                            meta.setCode(406);
-                        } else {
-                            final Set<ExternalReference> externalReferences = initializeExternalReferences(codeScheme.getExternalReferences(), codeScheme);
-                            if (!externalReferences.isEmpty()) {
-                                externalReferenceRepository.save(externalReferences);
-                                codeScheme.setExternalReferences(null);
-                                // This intermediate saving is necessary to avoid hibernate insertion issues with primary key constraint
-                                codeSchemeRepository.save(codeScheme);
-                                codeScheme.setExternalReferences(externalReferences);
-                            } else {
-                                codeScheme.setExternalReferences(null);
-                            }
-                            codeScheme.setModified(new Date(System.currentTimeMillis()));
-                            codeSchemeRepository.save(codeScheme);
-                            if (indexing.updateCodeScheme(codeScheme) &&
-                                indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme)) &&
-                                indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme))) {
-                                meta.setMessage("CodeScheme " + codeSchemeId + " modified.");
-                                meta.setCode(200);
-                                return Response.ok(responseWrapper).build();
-                            } else {
-                                return handleInternalServerError(meta, responseWrapper,
-                                        "CodeScheme " + codeSchemeId + " modifification failed.", new WebApplicationException());
-                            }
-                        }
-                    } else {
-                        meta.setMessage("No JSON payload found.");
-                        meta.setCode(406);
+                    if (jsonPayload == null || jsonPayload.isEmpty()) {
+                        return handleBadRequest(
+                                meta,
+                                responseWrapper,
+                                "No JSON payload found.");
                     }
+
+                    final ObjectMapper mapper = createObjectMapper();
+                    final CodeScheme payload = mapper.readValue(jsonPayload, CodeScheme.class);
+
+                    if (!existingCodeScheme.getCodeValue().equalsIgnoreCase(payload.getCodeValue())) {
+                        return handleBadRequest(
+                                meta,
+                                responseWrapper,
+                                "CodeScheme cannot be updated because CodeValue changed: " + payload.getCodeValue());
+                    }
+
+                    updateCodeSchemeFromPayload(existingCodeScheme, payload);
+
+                    if (!startDateIsBeforeEndDateSanityCheck(
+                            existingCodeScheme.getStartDate(),
+                            existingCodeScheme.getEndDate())) {
+                        return handleStartDateLaterThanEndDate(responseWrapper);
+                    }
+
+                    codeSchemeRepository.save(existingCodeScheme);
+
+                    if (indexing.updateCodeScheme(existingCodeScheme) &&
+                        indexing.updateCodes(codeRepository.findByCodeScheme(existingCodeScheme)) &&
+                        indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(existingCodeScheme))) {
+                        meta.setMessage("CodeScheme " + codeSchemeId + " modified.");
+                        meta.setCode(200);
+                        return Response.ok(responseWrapper).build();
+                    } else {
+                        return handleInternalServerError(meta, responseWrapper,
+                                "CodeScheme " + codeSchemeId + " modification failed.", new WebApplicationException());
+                    }
+
                 } catch (Exception e) {
-                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeSchemesFromFile.", e);
+                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to updateCodeScheme.", e);
                 }
             } else {
                 meta.setMessage("CodeScheme: " + codeSchemeId + " does not exist yet, please create codeScheme first.");
@@ -715,4 +713,113 @@ public class CodeRegistryResource extends AbstractBaseResource {
             return new HashSet<ExternalReference>();
         }
     }
+
+
+    private void updateCodeSchemeFromPayload(final CodeScheme existing,
+                                             final CodeScheme payload) {
+        //From AbstractIdentifyableCode
+        //id
+
+        //From AbstractBaseCode
+        existing.setModified(new Date(System.currentTimeMillis()));
+        //uri
+
+        //From AbstractCommonCode
+        //codeValue
+
+        //From AbstractHistoricalCode
+        existing.setStartDate(payload.getStartDate());
+        existing.setEndDate(payload.getEndDate());
+        existing.setStatus(payload.getStatus());
+
+        //From CodeScheme
+        //codes
+        //codeRegistry
+        //version TODO - should version be updated also?
+        existing.setSource(payload.getSource());
+        existing.setLegalBase(existing.getLegalBase());
+        existing.setGovernancePolicy(payload.getGovernancePolicy());
+        existing.setLicense(payload.getLicense());
+        existing.setPrefLabel(payload.getPrefLabel());
+        existing.setDefinition(payload.getDefinition());
+        existing.setDescription(payload.getDescription());
+        existing.setChangeNote(payload.getChangeNote());
+        existing.setDataClassifications(
+                payload.getDataClassifications().stream()
+                    .map( it -> it.getId())
+                    .map( it -> codeRepository.findById(it))
+                    .collect(Collectors.toSet()));
+
+
+        Map<UUID, ExternalReference> existingExtRefs = existing.getExternalReferences().stream()
+                .collect(Collectors.toMap(ExternalReference::getId, Function.identity()));
+
+        Map<UUID, ExternalReference> payloadExtRefs = payload.getExternalReferences().stream()
+                .collect(Collectors.toMap(ExternalReference::getId, Function.identity()));
+
+        //Deleted & modified existing extRefs
+        Iterator<ExternalReference> existingExtRefsIterator = existing.getExternalReferences().iterator();
+        while (existingExtRefsIterator.hasNext()) {
+            ExternalReference existingExtRef = existingExtRefsIterator.next();
+            ExternalReference payloadExtRef = payloadExtRefs.get(existingExtRef.getId());
+
+            if (payloadExtRef == null) {
+                existingExtRefsIterator.remove();
+                if (!existingExtRef.getGlobal()) {
+                    externalReferenceRepository.delete(existingExtRef);
+                }
+            } else {
+                updateExternalReferenceFromPayload(existingExtRef, payloadExtRef);
+            }
+        }
+
+
+        //New created extRefs
+        existing.getExternalReferences().addAll(
+                payload.getExternalReferences().stream()
+                    .filter(it -> it.getId() == null)
+                    .peek(it -> {
+                        UUID uuid = UUID.randomUUID();
+                        it.setId(uuid);
+                        it.setUri(apiUtils.createResourceUri(API_PATH_EXTERNALREFERENCES, uuid.toString()));
+                        it.setParentCodeScheme(existing);
+                    })
+                    .collect(Collectors.toList()));
+
+
+        //Assigned global extRefs
+        existing.getExternalReferences().addAll(
+                payload.getExternalReferences().stream()
+                    .filter(it -> existingExtRefs.get(it.getId()) == null)
+                    .map(it -> it.getId())
+                    .map(it -> externalReferenceRepository.findById(it))
+                    .collect(Collectors.toList()));
+    }
+
+
+    private void updateExternalReferenceFromPayload(final ExternalReference existing,
+                                                    final ExternalReference payload) {
+        if (existing.getGlobal()){
+            return;
+        }
+
+        //From AbstractIdentifyableCode
+        //id
+
+        //From AbstractBaseCode
+        //uri
+        existing.setModified(new Date(System.currentTimeMillis()));
+
+
+        //From ExternalReference
+        //codeSchemes
+        //codes
+        //parentCodeScheme
+        //global
+        existing.setUrl(payload.getUrl());
+        existing.setTitle(payload.getTitle());
+        existing.setDescription(payload.getDescription());
+        existing.setPropertyType(payload.getPropertyType());
+    }
 }
+

@@ -89,6 +89,11 @@ public abstract class AbstractBaseResource {
         return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
     }
 
+    protected Response handleBadRequest(final Meta meta, final MetaResponseWrapper wrapper, final String logMessage) {
+        handleLoggingAndMetaForHttpCode(40, meta, logMessage);
+        return Response.status(Response.Status.BAD_REQUEST).entity(wrapper).build();
+    }
+
     protected Response handleStartDateLaterThanEndDate(final ResponseWrapper wrapper) {
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(wrapper).build();
     }
