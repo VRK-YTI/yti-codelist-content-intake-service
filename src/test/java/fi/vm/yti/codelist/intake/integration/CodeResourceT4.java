@@ -34,7 +34,7 @@ import static org.junit.Assert.assertNotNull;
 @SpringBootTest(classes = {ContentIntakeServiceApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"test"})
 @TestPropertySource(locations = "classpath:test-port.properties")
-public class CodeResourceT3 extends AbstractIntegrationTestBase {
+public class CodeResourceT4 extends AbstractIntegrationTestBase {
 
     private TestRestTemplate restTemplate = new TestRestTemplate();
 

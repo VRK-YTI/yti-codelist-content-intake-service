@@ -4,7 +4,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({CodeRegistryResourceT1.class, CodeSchemeResourceT2.class, CodeResourceT3.class})
+@Suite.SuiteClasses({InitializeDataT1.class, CodeRegistryResourceT2.class, CodeSchemeResourceT3.class, CodeResourceT4.class})
 public class IntakeTestSuiteIT {
 
 }

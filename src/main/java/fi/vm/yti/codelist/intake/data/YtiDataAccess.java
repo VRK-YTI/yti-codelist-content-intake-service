@@ -50,6 +50,7 @@ public class YtiDataAccess {
     public static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
     public static final String DEFAULT_EXTERNALREFERENCE_FILENAME = "externalreferences.csv";
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
+    private static final String DEFAULT_CLASSIFICATIONREGISTRY_FILENAME = "classificationregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
     private static final String DEFAULT_TESTREGISTRY_FILENAME = "testcoderegistries.csv";
     private static final String SERVICE_CLASSIFICATION_P9 = "P9";
@@ -102,15 +103,21 @@ public class YtiDataAccess {
     public void initializeOrRefresh() {
         LOG.info("Initializing data...");
         if (contentIntakeServiceProperties.getInitializeContent()) {
-            loadDefaultPropertyTypes();
-            loadDefaultExternalReferences();
+            initializeDefaultData();
             loadRegistryContent(DEFAULT_YTIREGISTRY_FILENAME, "V2_YTI");
-            classifyServiceClassification();
             loadRegistryContent(DEFAULT_CODEREGISTRY_FILENAME, "V1_DEFAULT");
         }
         if (contentIntakeServiceProperties.getInitializeTestContent()) {
             loadRegistryContent(DEFAULT_TESTREGISTRY_FILENAME, "V1_TEST");
         }
+    }
+
+    @Transactional
+    public void initializeDefaultData() {
+        loadDefaultPropertyTypes();
+        loadDefaultExternalReferences();
+        loadRegistryContent(DEFAULT_CLASSIFICATIONREGISTRY_FILENAME, "V1_CLASSIFICATION");
+        classifyServiceClassification();
     }
 
     private void loadRegistryContent(final String filename,
@@ -242,10 +249,10 @@ public class YtiDataAccess {
         if (updateManager.shouldUpdateData(DATA_EXTERNALREFERENCES, "default", DEFAULT_EXTERNALREFERENCE_FILENAME)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_EXTERNALREFERENCES, "default", SOURCE_INTERNAL, DEFAULT_EXTERNALREFERENCE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_EXTERNALREFERENCES + "/" + DEFAULT_EXTERNALREFERENCE_FILENAME)) {
-                final Set<ExternalReference> propertyTypes = externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream);
-                LOG.info("ExternalReference data loaded: " + propertyTypes.size() + " ExternalReferences in " + watch);
+                final Set<ExternalReference> externalReferences = externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream);
+                LOG.info("ExternalReference data loaded: " + externalReferences.size() + " ExternalReferences in " + watch);
                 watch.reset().start();
-                externalReferenceRepository.save(propertyTypes);
+                externalReferenceRepository.save(externalReferences);
                 LOG.info("ExternalReference data persisted in: " + watch);
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);

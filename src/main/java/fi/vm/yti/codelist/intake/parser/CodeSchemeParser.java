@@ -132,6 +132,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     changeNote.put(language, record.get(header)));
                 final String dataClassificationCodes = record.get(CONTENT_HEADER_CLASSIFICATION);
                 final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
+                if (dataClassifications.isEmpty() && !codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
+                    LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
+                    throw new CodeParsingException("CLASSIFICATION header does not have valid value, import failed!");
+                }
                 final String version = record.get(CONTENT_HEADER_VERSION);
                 final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
                 final String legalBase = record.get(CONTENT_HEADER_LEGALBASE);
@@ -144,7 +148,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     try {
                         startDate = dateFormat.parse(startDateString);
                     } catch (ParseException e) {
-                        LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
+                        LOG.error("Parsing startDate for codeScheme: " + codeValue + " failed from string: " + startDateString);
                         throw new CodeParsingException("STARTDATE header does not have valid value, import failed!");
                     }
                 }
@@ -154,7 +158,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     try {
                         endDate = dateFormat.parse(endDateString);
                     } catch (ParseException e) {
-                        LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
+                        LOG.error("Parsing endDate for codeScheme: " + codeValue + " failed from string: " + endDateString);
                         throw new CodeParsingException("ENDDATE header does not have valid value, import failed!");
                     }
                 }
@@ -247,6 +251,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
                     final String dataClassificationCodes = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)));
                     final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
+                    if (dataClassifications.isEmpty() && !codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
+                        LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
+                        throw new CodeParsingException("CLASSIFICATION header does not have valid value, import failed!");
+                    }
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, header) ->
                         prefLabel.put(language, formatter.formatCellValue(row.getCell(header))));
