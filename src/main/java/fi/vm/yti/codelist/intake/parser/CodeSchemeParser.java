@@ -136,7 +136,6 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
                 final String legalBase = record.get(CONTENT_HEADER_LEGALBASE);
                 final String governancePolicy = record.get(CONTENT_HEADER_GOVERNANCEPOLICY);
-                final String license = record.get(CONTENT_HEADER_LICENSE);
                 final String source = record.get(CONTENT_HEADER_SOURCE);
                 final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
                 Date startDate = null;
@@ -160,7 +159,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     }
                 }
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status,
-                    source, legalBase, governancePolicy, license, startDate, endDate, prefLabel, description, definition, changeNote);
+                    source, legalBase, governancePolicy, startDate, endDate, prefLabel, description, definition, changeNote);
                 codeSchemes.add(codeScheme);
             }
         }
@@ -271,7 +270,6 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     final String source = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SOURCE)));
                     final String legalBase = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_LEGALBASE)));
                     final String governancePolicy = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_GOVERNANCEPOLICY)));
-                    final String license = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_LICENSE)));
                     final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
                     Date startDate = null;
                     final String startDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)));
@@ -293,7 +291,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             throw new CodeParsingException("ENDDATE header does not have valid value, import failed!");
                         }
                     }
-                    final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, license, startDate, endDate, prefLabel, description, definition, changeNote);
+                    final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, startDate, endDate, prefLabel, description, definition, changeNote);
                     if (codeScheme != null) {
                         codeSchemes.add(codeScheme);
                     }
@@ -312,7 +310,6 @@ public class CodeSchemeParser extends AbstractBaseParser {
                                                 final String source,
                                                 final String legalBase,
                                                 final String governancePolicy,
-                                                final String license,
                                                 final Date startDate,
                                                 final Date endDate,
                                                 final Map<String, String> prefLabel,
@@ -359,10 +356,6 @@ public class CodeSchemeParser extends AbstractBaseParser {
             }
             if (!Objects.equals(codeScheme.getGovernancePolicy(), governancePolicy)) {
                 codeScheme.setGovernancePolicy(governancePolicy);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getLicense(), license)) {
-                codeScheme.setLicense(license);
                 hasChanges = true;
             }
             for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
@@ -428,7 +421,6 @@ public class CodeSchemeParser extends AbstractBaseParser {
             codeScheme.setSource(source);
             codeScheme.setLegalBase(legalBase);
             codeScheme.setGovernancePolicy(governancePolicy);
-            codeScheme.setLicense(license);
             final Date timeStamp = new Date(System.currentTimeMillis());
             codeScheme.setModified(timeStamp);
             for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
