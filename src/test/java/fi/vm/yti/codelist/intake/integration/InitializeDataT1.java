@@ -1,7 +1,5 @@
 package fi.vm.yti.codelist.intake.integration;
 
-import javax.transaction.Transactional;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +29,5 @@ public class InitializeDataT1 extends AbstractIntegrationTestBase {
     public void initializeDataTest() {
         ytiDataAccess.initializeDefaultData();
         assertEquals(1, codeRegistryRepository.findAll().size());
-        assertEquals("plaa", "plaa");
     }
 }
