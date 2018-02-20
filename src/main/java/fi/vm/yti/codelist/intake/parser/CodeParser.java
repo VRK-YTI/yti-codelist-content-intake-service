@@ -365,7 +365,7 @@ public class CodeParser extends AbstractBaseParser {
         } else {
             final Code existingCode = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeValue);
             if (existingCode != null) {
-                throw new ExistingCodeException("Existing Code already found in CodeScheme with this with codeValue: " + codeValue);
+                throw new ExistingCodeException("Existing Code already found in CodeScheme with this codeValue: " + codeValue);
             }
         }
         if (code != null) {
