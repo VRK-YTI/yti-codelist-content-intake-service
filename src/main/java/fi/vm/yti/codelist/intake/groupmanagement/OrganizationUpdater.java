@@ -69,12 +69,20 @@ public class OrganizationUpdater {
             }
             final Set<Organization> organizations = new HashSet<>();
             for (final GroupManagementOrganization groupManagementOrganization : groupManagementOrganizations) {
-                final Organization organization = new Organization();
-                organization.setId(groupManagementOrganization.getUuid());
-                organization.setUrl(groupManagementOrganization.getUrl());
-                organization.setPrefLabel(groupManagementOrganization.getPrefLabel());
-                organization.setDescription(groupManagementOrganization.getDescription());
-                organizations.add(organization);
+                final Organization existingOrganization = organizationRepository.findById(groupManagementOrganization.getUuid());
+                if (existingOrganization != null) {
+                    existingOrganization.setUrl(groupManagementOrganization.getUrl());
+                    existingOrganization.setPrefLabel(groupManagementOrganization.getPrefLabel());
+                    existingOrganization.setDescription(groupManagementOrganization.getDescription());
+                    organizations.add(existingOrganization);
+                } else {
+                    final Organization organization = new Organization();
+                    organization.setId(groupManagementOrganization.getUuid());
+                    organization.setUrl(groupManagementOrganization.getUrl());
+                    organization.setPrefLabel(groupManagementOrganization.getPrefLabel());
+                    organization.setDescription(groupManagementOrganization.getDescription());
+                    organizations.add(organization);
+                }
             }
             if (!organizations.isEmpty()) {
                 organizationRepository.save(organizations);

@@ -7,6 +7,7 @@ public class GroupManagementOrganization {
 
     private UUID uuid;
     private String url;
+    private Boolean removed;
     private Map<String, String> prefLabel;
     private Map<String, String> description;
 
@@ -40,5 +41,13 @@ public class GroupManagementOrganization {
 
     public void setDescription(final Map<String, String> description) {
         this.description = description;
+    }
+
+    public Boolean getRemoved() {
+        return removed;
+    }
+
+    public void setRemoved(final Boolean removed) {
+        this.removed = removed;
     }
 }
