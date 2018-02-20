@@ -328,9 +328,6 @@ public class CodeSchemeParser extends AbstractBaseParser {
         CodeScheme codeScheme = null;
         if (id != null) {
             codeScheme = codeSchemeRepository.findById(id);
-            if (codeScheme == null) {
-                throw new MissingEntityException("CodeScheme not found for ID: " + id);
-            }
         } else {
             final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeValue);
             if (existingCodeScheme != null) {

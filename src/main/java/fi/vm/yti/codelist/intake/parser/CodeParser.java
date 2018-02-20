@@ -359,9 +359,6 @@ public class CodeParser extends AbstractBaseParser {
         Code code = null;
         if (id != null) {
             code = codeRepository.findById(id);
-            if (code == null) {
-                throw new MissingEntityException("Code not found for ID: " + id);
-            }
         } else {
             final Code existingCode = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeValue);
             if (existingCode != null) {
