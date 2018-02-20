@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.parser;
 
+import fi.vm.yti.codelist.intake.exception.MissingEntityException;
 import fi.vm.yti.codelist.intake.exception.MissingCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderException;
 
@@ -358,11 +359,13 @@ public class CodeParser extends AbstractBaseParser {
         Code code = null;
         if (id != null) {
             code = codeRepository.findById(id);
-        }
-        if (Status.VALID == status) {
-            final Code existingCode = codeRepository.findByCodeSchemeAndCodeValueAndStatus(codeScheme, codeValue, status.toString());
-            if (existingCode != code) {
-                throw new ExistingCodeException("Existing value already found with status VALID for code: " + codeValue + ", cancel update!");
+            if (code == null) {
+                throw new MissingEntityException("Code not found for ID: " + id);
+            }
+        } else {
+            final Code existingCode = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeValue);
+            if (existingCode != null) {
+                throw new ExistingCodeException("Existing Code already found in CodeScheme with this with codeValue: " + codeValue);
             }
         }
         if (code != null) {

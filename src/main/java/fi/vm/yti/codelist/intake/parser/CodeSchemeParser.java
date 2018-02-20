@@ -22,6 +22,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import fi.vm.yti.codelist.intake.exception.MissingCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingEntityException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -323,16 +324,17 @@ public class CodeSchemeParser extends AbstractBaseParser {
                                                 final Map<String, String> prefLabel,
                                                 final Map<String, String> description,
                                                 final Map<String, String> definition,
-                                                final Map<String, String> changeNote) throws Exception {
+                                                final Map<String, String> changeNote) {
         CodeScheme codeScheme = null;
         if (id != null) {
             codeScheme = codeSchemeRepository.findById(id);
-        }
-        if (Status.VALID == status) {
-            final CodeScheme existingValidCodeScheme = codeSchemeRepository.findByCodeValueAndStatusAndCodeRegistry(codeValue, status.toString(), codeRegistry);
-            if (existingValidCodeScheme != codeScheme) {
-                LOG.error("Existing value already found, cancel update!");
-                throw new ExistingCodeException("Existing value already found with status VALID for code scheme with code value: " + codeValue + ", cancel update!");
+            if (codeScheme == null) {
+                throw new MissingEntityException("CodeScheme not found for ID: " + id);
+            }
+        } else {
+            final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeValue);
+            if (existingCodeScheme != null) {
+                throw new ExistingCodeException("Existing CodeScheme already found in CodeRegistry with this with codeValue: " + codeValue);
             }
         }
         if (codeScheme != null) {
