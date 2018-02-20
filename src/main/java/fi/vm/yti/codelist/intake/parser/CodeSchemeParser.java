@@ -459,7 +459,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
             final CodeScheme dataClassificationScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
             if (dataClassificationScheme != null) {
                 Arrays.asList(dataClassificationCodes.split(";")).forEach(dataClassificationCode -> {
-                    final Code code = codeRepository.findByCodeSchemeAndCodeValue(dataClassificationScheme, dataClassificationCode);
+                    final Code code = codeRepository.findByCodeSchemeAndCodeValueAndBroaderCodeId(dataClassificationScheme, dataClassificationCode, null);
                     if (code != null) {
                         dataClassifications.add(code);
                     }

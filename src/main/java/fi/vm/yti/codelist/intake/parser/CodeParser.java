@@ -22,7 +22,6 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 
-import fi.vm.yti.codelist.intake.exception.*;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -142,9 +141,18 @@ public class CodeParser extends AbstractBaseParser {
                             broaderCodeMapping.put(codeValue, null);
                         }
                     }
-                    final String hierarchyLevel;
+                    final Integer hierarchyLevel;
                     if (headerMap.containsKey(CONTENT_HEADER_HIERARCHYLEVEL)) {
-                        hierarchyLevel = record.get(CONTENT_HEADER_HIERARCHYLEVEL);
+                        final String hierarchyLevelString = record.get(CONTENT_HEADER_HIERARCHYLEVEL);
+                        if (!hierarchyLevelString.isEmpty()) {
+                            try {
+                                hierarchyLevel = Integer.parseInt(hierarchyLevelString);
+                            } catch (final NumberFormatException e) {
+                                throw new CodeParsingException("HIERARCHYLEVEL header does not have valid value, import failed!");
+                            }
+                        } else {
+                            hierarchyLevel = null;
+                        }
                     } else {
                         hierarchyLevel = null;
                     }
@@ -184,7 +192,9 @@ public class CodeParser extends AbstractBaseParser {
             }
         }
         setBroaderCodes(broaderCodeMapping, codes);
-        return new HashSet<>(codes.values());
+        final Set<Code> codeSet = new HashSet<>(codes.values());
+        evaluateAndSetHierarchyLevels(codeSet);
+        return codeSet;
     }
 
     /**
@@ -277,9 +287,18 @@ public class CodeParser extends AbstractBaseParser {
                     } else {
                         shortName = null;
                     }
-                    final String hierarchyLevel;
+                    final Integer hierarchyLevel;
                     if (genericHeaders.containsKey(CONTENT_HEADER_HIERARCHYLEVEL)) {
-                        hierarchyLevel = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_HIERARCHYLEVEL)));
+                        final String hierarchyLevelString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_HIERARCHYLEVEL)));
+                        if (!hierarchyLevelString.isEmpty()) {
+                            try {
+                                hierarchyLevel = Integer.parseInt(hierarchyLevelString);
+                            } catch (final NumberFormatException e) {
+                                throw new CodeParsingException("HIERARCHYLEVEL header does not have valid value, import failed!");
+                            }
+                        } else {
+                            hierarchyLevel = null;
+                        }
                     } else {
                         hierarchyLevel = null;
                     }
@@ -320,7 +339,9 @@ public class CodeParser extends AbstractBaseParser {
             }
         }
         setBroaderCodes(broaderCodeMapping, codes);
-        return new HashSet<>(codes.values());
+        final Set<Code> codeSet = new HashSet<>(codes.values());
+        evaluateAndSetHierarchyLevels(codeSet);
+        return codeSet;
     }
 
     private Code createOrUpdateCode(final CodeScheme codeScheme,
@@ -328,7 +349,7 @@ public class CodeParser extends AbstractBaseParser {
                                     final String codeValue,
                                     final Status status,
                                     final String shortName,
-                                    final String hierarchyLevel,
+                                    final Integer hierarchyLevel,
                                     final Date startDate,
                                     final Date endDate,
                                     final Map<String, String> prefLabel,
@@ -441,5 +462,47 @@ public class CodeParser extends AbstractBaseParser {
             final Code broaderCode = codes.get(broaderCodeCodeValue);
             code.setBroaderCodeId(broaderCode != null ? broaderCode.getId() : null);
         });
+    }
+
+    public void evaluateAndSetHierarchyLevels(final Set<Code> codes) {
+        final Set<Code> codesToEvaluate = new HashSet<>(codes);
+        final Map<Integer, Set<UUID>> hierarchyMapping = new HashMap<>();
+        int initialHierarchy = 0;
+        while (!codesToEvaluate.isEmpty()) {
+            final int hierarchyLevel = ++initialHierarchy;
+            // Resolve base hierarchy
+            if (hierarchyMapping.isEmpty() && initialHierarchy == 1) {
+                final Set<Code> toRemove = new HashSet<>();
+                codesToEvaluate.forEach(code -> {
+                    if (code.getBroaderCodeId() == null) {
+                        code.setHierarchyLevel(hierarchyLevel);
+                        Set<UUID> uuids = hierarchyMapping.get(hierarchyLevel);
+                        if (uuids == null) {
+                            uuids = new HashSet<>();
+                            hierarchyMapping.put(hierarchyLevel, uuids);
+                        }
+                        uuids.add(code.getId());
+                        toRemove.add(code);
+                    }
+                });
+                codesToEvaluate.removeAll(toRemove);
+            // Resolve nth hierarchies
+            } else {
+                final Set<Code> toRemove = new HashSet<>();
+                codesToEvaluate.forEach(code -> {
+                    if (hierarchyMapping.get(hierarchyLevel - 1).contains(code.getBroaderCodeId())) {
+                        code.setHierarchyLevel(hierarchyLevel);
+                        Set<UUID> uuids = hierarchyMapping.get(hierarchyLevel);
+                        if (uuids == null) {
+                            uuids = new HashSet<>();
+                            hierarchyMapping.put(hierarchyLevel, uuids);
+                        }
+                        uuids.add(code.getId());
+                        toRemove.add(code);
+                    }
+                });
+                codesToEvaluate.removeAll(toRemove);
+            }
+        }
     }
 }

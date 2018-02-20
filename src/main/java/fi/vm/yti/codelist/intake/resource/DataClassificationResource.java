@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
@@ -68,8 +69,8 @@ public class DataClassificationResource extends AbstractBaseResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Data classification API.")
-    @ApiResponse(code = 200, message = "Returns data classifications.")
+    @ApiOperation(value = "Data classification API for listing codes and counts.")
+    @ApiResponse(code = 200, message = "Returns data classifications and counts.")
     public Response getDataClassifications(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand) {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_DATACLASSIFICATIONS + "/");
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_DATACLASSIFICATION, expand)));
@@ -79,7 +80,7 @@ public class DataClassificationResource extends AbstractBaseResource {
         final ObjectMapper mapper = createObjectMapper();
         final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(JUPO_REGISTRY);
         final CodeScheme dataClassificationsScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
-        final Set<Code> codes = codeRepository.findByCodeScheme(dataClassificationsScheme);
+        final Set<Code> codes = codeRepository.findByCodeSchemeAndBroaderCodeId(dataClassificationsScheme, null);
         final Set<DataClassification> dataClassifications = new LinkedHashSet<>();
         final Map<String, Integer> statistics = new HashMap<>();
         try (final Connection connection = dataSource.getConnection();

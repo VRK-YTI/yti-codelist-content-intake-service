@@ -21,9 +21,13 @@ public interface CodeRepository extends CrudRepository<Code, String> {
 
     Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme, final String codeValue);
 
+    Code findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme, final String codeValue, final UUID broaderCodeId);
+
     Code findById(final UUID id);
 
     Set<Code> findByCodeScheme(final CodeScheme codeScheme);
+
+    Set<Code> findByCodeSchemeAndBroaderCodeId(final CodeScheme codeScheme, final UUID broaderCodeId);
 
     Set<Code> findAll();
 }
