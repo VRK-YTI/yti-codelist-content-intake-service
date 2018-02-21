@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
@@ -37,6 +38,7 @@ import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.common.model.Status;
+import fi.vm.yti.codelist.common.model.Views;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
@@ -434,6 +436,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @ApiOperation(value = "Parses Codes from JSON input.")
     @ApiResponse(code = 200, message = "Returns success.")
     @Transactional
+    @JsonView({Views.ExtendedCode.class, Views.Normal.class})
     public Response addOrUpdateCodesFromJson(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
                                              @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                              @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
@@ -485,10 +488,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 }
                 meta.setMessage("Codes added or modified: " + codes.size());
                 meta.setCode(200);
-                // Hack for removing cyclic dependency issue in response.
-                for (final Code code : codes) {
-                    code.setCodeScheme(null);
-                }
                 responseWrapper.setResults(codes);
                 return Response.ok(responseWrapper).build();
             } else {
@@ -511,6 +510,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @ApiImplicitParams({
         @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
     })
+    @JsonView({Views.ExtendedCode.class, Views.Normal.class})
     @Transactional
     public Response addOrUpdateCodesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("csv") final String format,
                                              @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
@@ -551,10 +551,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 }
                 meta.setMessage("Codes added or modified: " + codes.size());
                 meta.setCode(200);
-                // Hack for removing cyclic dependency issue in response.
-                for (final Code code : codes) {
-                    code.setCodeScheme(null);
-                }
                 responseWrapper.setResults(codes);
                 return Response.ok(responseWrapper).build();
             } else {

@@ -5,14 +5,19 @@ import java.util.Set;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.fasterxml.jackson.annotation.JsonView;
+
 import fi.vm.yti.codelist.common.model.Meta;
+import fi.vm.yti.codelist.common.model.Views;
 
 @XmlRootElement
 @XmlType(propOrder = {"meta", "results"})
 public class ResponseWrapper<T> {
 
+    @JsonView(Views.Normal.class)
     private Meta meta;
 
+    @JsonView(Views.Normal.class)
     private Set<T> results;
 
     public ResponseWrapper() {
