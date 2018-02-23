@@ -13,7 +13,7 @@ public interface OrganizationRepository extends CrudRepository<Organization, Str
 
     Organization findById(final UUID id);
 
-    Set<Organization> findByRemovedIsNull();
+    Set<Organization> findByRemovedIsFalse();
 
     Set<Organization> findAll();
 }

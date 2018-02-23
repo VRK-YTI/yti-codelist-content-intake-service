@@ -53,7 +53,7 @@ public class OrganizationResource extends AbstractBaseResource {
         final ResponseWrapper<Organization> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);
         final ObjectMapper mapper = createObjectMapper();
-        final Set<Organization> organizations = organizationRepository.findByRemovedIsNull();
+        final Set<Organization> organizations = organizationRepository.findByRemovedIsFalse();
         meta.setCode(200);
         meta.setResultCount(organizations.size());
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));

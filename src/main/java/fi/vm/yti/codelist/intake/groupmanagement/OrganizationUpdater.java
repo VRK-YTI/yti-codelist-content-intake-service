@@ -74,6 +74,7 @@ public class OrganizationUpdater {
                     existingOrganization.setUrl(groupManagementOrganization.getUrl());
                     existingOrganization.setPrefLabel(groupManagementOrganization.getPrefLabel());
                     existingOrganization.setDescription(groupManagementOrganization.getDescription());
+                    existingOrganization.setRemoved(groupManagementOrganization.getRemoved());
                     organizations.add(existingOrganization);
                 } else {
                     final Organization organization = new Organization();
@@ -81,6 +82,7 @@ public class OrganizationUpdater {
                     organization.setUrl(groupManagementOrganization.getUrl());
                     organization.setPrefLabel(groupManagementOrganization.getPrefLabel());
                     organization.setDescription(groupManagementOrganization.getDescription());
+                    organization.setRemoved(groupManagementOrganization.getRemoved());
                     organizations.add(organization);
                 }
             }
