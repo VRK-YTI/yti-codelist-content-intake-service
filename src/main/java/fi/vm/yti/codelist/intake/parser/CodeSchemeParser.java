@@ -94,6 +94,9 @@ public class CodeSchemeParser extends AbstractBaseParser {
             if (!headerMap.containsKey(CONTENT_HEADER_STATUS)) {
                 throw new MissingHeaderException("Missing STATUS header.");
             }
+            if (!headerMap.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
+                throw new MissingHeaderException("Missing CLASSIFICATION header.");
+            }
             final Map<String, String> prefLabelHeaders = new LinkedHashMap<>();
             final Map<String, String> descriptionHeaders = new LinkedHashMap<>();
             final Map<String, String> definitionHeaders = new LinkedHashMap<>();
@@ -231,6 +234,9 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     }
                     if (!genericHeaders.containsKey(CONTENT_HEADER_CODEVALUE)) {
                         throw new MissingHeaderException("Missing CODEVALUE header.");
+                    }
+                    if (!genericHeaders.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
+                        throw new MissingHeaderException("Missing CLASSIFICATION header.");
                     }
                     if (!genericHeaders.containsKey(CONTENT_HEADER_STATUS)) {
                         throw new MissingHeaderException("Missing STATUS header.");
