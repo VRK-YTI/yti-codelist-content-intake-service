@@ -130,7 +130,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final ResponseWrapper<CodeRegistry> wrapper = new ResponseWrapper<>(meta);
         if (!authorizationManager.isSuperUser()) {
             return handleUnauthorizedAccess(meta, wrapper,
-                    "Superuser rights are needed to addOrUpdateCodeRegistriesFromJson.");
+                "Superuser rights are needed to addOrUpdateCodeRegistriesFromJson.");
         }
         final ObjectMapper mapper = createObjectMapper();
         try {
@@ -163,8 +163,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
         }
     }
 
-
-
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
@@ -182,7 +180,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final ResponseWrapper<CodeRegistry> wrapper = new ResponseWrapper<>(meta);
         if (!authorizationManager.isSuperUser()) {
             return handleUnauthorizedAccess(meta, wrapper,
-                    "Superuser rights are needed to addOrUpdateCodeRegistriesFromFile.");
+                "Superuser rights are needed to addOrUpdateCodeRegistriesFromFile.");
         }
         try {
             Set<CodeRegistry> codeRegistries = new HashSet<>();
@@ -226,7 +224,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 return handleUnauthorizedAccess(meta, responseWrapper,
-                        "Unauthorized call to addOrUpdateCodeSchemesFromJson.");
+                    "Unauthorized call to addOrUpdateCodeSchemesFromJson.");
             }
             Set<CodeScheme> codeSchemes = new HashSet<>();
             try {
@@ -235,8 +233,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     codeSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<CodeScheme>>() {
                     });
                     for (final CodeScheme codeScheme : codeSchemes) {
+                        validateCodeSchemeForCodeRegistry(codeRegistry, codeScheme);
                         if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                           return handleStartDateLaterThanEndDate(responseWrapper);
+                            return handleStartDateLaterThanEndDate(responseWrapper);
                         }
                         if (codeScheme.getId() == null) {
                             codeScheme.setId(UUID.randomUUID());
@@ -253,20 +252,16 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         codeScheme.setModified(new Date(System.currentTimeMillis()));
                     }
                 }
+                for (final CodeScheme codeScheme : codeSchemes) {
+                    LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
+                }
+                if (!codeSchemes.isEmpty()) {
+                    domain.persistCodeSchemes(codeSchemes);
+                }
             } catch (final Exception e) {
                 return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeSchemesFromJson.", e);
             }
-            for (final CodeScheme codeScheme : codeSchemes) {
-                LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
-            }
-            if (!codeSchemes.isEmpty()) {
-                domain.persistCodeSchemes(codeSchemes);
-                indexing.updateCodeSchemes(codeSchemes);
-                for (final CodeScheme codeScheme : codeSchemes) {
-                    indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme));
-                    indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme));
-                }
-            }
+            indexCodeSchemes(codeSchemes);
             meta.setMessage("CodeSchemes added or modified: " + codeSchemes.size());
             meta.setCode(200);
             responseWrapper.setResults(codeSchemes);
@@ -298,7 +293,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 return handleUnauthorizedAccess(meta, responseWrapper,
-                        "Unauthorized call to addOrUpdateCodeSchemesFromFile.");
+                    "Unauthorized call to addOrUpdateCodeSchemesFromFile.");
             }
             Set<CodeScheme> codeSchemes = new HashSet<>();
             Set<Code> codes = new HashSet<>();
@@ -313,39 +308,35 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         }
                     }
                 }
+                for (final CodeScheme codeScheme : codeSchemes) {
+                    if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
+                        return handleStartDateLaterThanEndDate(responseWrapper);
+                    }
+                    LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
+                }
+                if (!codeSchemes.isEmpty()) {
+                    domain.persistCodeSchemes(codeSchemes);
+                }
+                for (final Code code : codes) {
+                    if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
+                        return handleStartDateLaterThanEndDate(responseWrapper);
+                    }
+                    LOG.debug("Code parsed from input: " + code.getCodeValue());
+                }
+                if (!codes.isEmpty()) {
+                    domain.persistCodes(codes);
+                }
             } catch (final Exception e) {
                 return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeSchemesFromFile.", e);
             }
-            for (final CodeScheme codeScheme : codeSchemes) {
-                if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                    return handleStartDateLaterThanEndDate(responseWrapper);
-                }
-                LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
-            }
-            if (!codeSchemes.isEmpty()) {
-                domain.persistCodeSchemes(codeSchemes);
-                indexing.updateCodeSchemes(codeSchemes);
-                for (final CodeScheme codeScheme : codeSchemes) {
-                    indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme));
-                    indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme));
-                }
-            }
-            for (final Code code : codes) {
-                if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                    return handleStartDateLaterThanEndDate(responseWrapper);
-                }
-                LOG.debug("Code parsed from input: " + code.getCodeValue());
-            }
-            if (!codes.isEmpty()) {
-                domain.persistCodes(codes);
-                indexing.updateCodes(codes);
-            }
+            indexCodeSchemes(codeSchemes);
+            indexCodes(codes);
             meta.setMessage("CodeSchemes added or modified: " + codeSchemes.size());
             meta.setCode(200);
             responseWrapper.setResults(codeSchemes);
             return Response.ok(responseWrapper).build();
         }
-        meta.setMessage("CodeScheme with code: " + codeRegistryCodeValue + " does not exist yet, please creater register first.");
+        meta.setMessage("CodeScheme with code: " + codeRegistryCodeValue + " does not exist yet, please create a register first.");
         meta.setCode(404);
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
     }
@@ -368,7 +359,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 return handleUnauthorizedAccess(meta, responseWrapper,
-                        "Unauthorized call to addOrUpdateCodeSchemesFromFile.");
+                    "Unauthorized call to addOrUpdateCodeSchemesFromFile.");
             }
             final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (existingCodeScheme != null) {
@@ -402,7 +393,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                 return Response.ok(responseWrapper).build();
                             } else {
                                 return handleInternalServerError(meta, responseWrapper,
-                                        "CodeScheme " + codeSchemeId + " modifification failed.", new WebApplicationException());
+                                    "CodeScheme " + codeSchemeId + " modifification failed.", new WebApplicationException());
                             }
                         }
                     } else {
@@ -444,7 +435,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 return handleUnauthorizedAccess(meta, responseWrapper,
-                        "Unauthorized call to addOrUpdateCodesFromJson.");
+                    "Unauthorized call to addOrUpdateCodesFromJson.");
             }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
@@ -455,6 +446,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         codes = mapper.readValue(jsonPayload, new TypeReference<Set<Code>>() {
                         });
                         for (final Code code : codes) {
+                            validateCodeForCodeScheme(codeScheme, code);
                             if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
                                 return handleStartDateLaterThanEndDate(responseWrapper);
                             }
@@ -473,13 +465,13 @@ public class CodeRegistryResource extends AbstractBaseResource {
                             }
                         }
                     }
+                    if (!codes.isEmpty()) {
+                        domain.persistCodes(codes);
+                    }
                 } catch (Exception e) {
-                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromJson.",e);
+                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromJson.", e);
                 }
-                if (!codes.isEmpty()) {
-                    domain.persistCodes(codes);
-                    indexing.updateCodes(codes);
-                }
+                indexing.updateCodes(codes);
                 meta.setMessage("Codes added or modified: " + codes.size());
                 meta.setCode(200);
                 responseWrapper.setResults(codes);
@@ -519,7 +511,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 return handleUnauthorizedAccess(meta, responseWrapper,
-                        "Unauthorized call to addOrUpdateCodesFromFile.");
+                    "Unauthorized call to addOrUpdateCodesFromFile.");
             }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
@@ -531,7 +523,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         codes = codeParser.parseCodesFromExcelInputStream(codeScheme, inputStream);
                     }
                 } catch (Exception e) {
-                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromFile." ,e);
+                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromFile.", e);
                 }
                 for (final Code code : codes) {
                     if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
@@ -541,7 +533,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 }
                 if (!codes.isEmpty()) {
                     domain.persistCodes(codes);
-                    indexing.updateCodes(codes);
+                    indexCodes(codes);
                 }
                 meta.setMessage("Codes added or modified: " + codes.size());
                 meta.setCode(200);
@@ -577,7 +569,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 return handleUnauthorizedAccess(meta, responseWrapper,
-                        "Unauthorized call to updateCode.");
+                    "Unauthorized call to updateCode.");
             }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
@@ -612,7 +604,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                 return Response.ok(responseWrapper).build();
                             } else {
                                 return handleInternalServerError(meta, responseWrapper,
-                                        "Code " + codeId + " modifification failed.", new WebApplicationException());
+                                    "Code " + codeId + " modifification failed.", new WebApplicationException());
                             }
                         }
                     } else {
@@ -649,7 +641,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 return handleUnauthorizedAccess(meta, responseWrapper,
-                        "Unauthorized call to retireCode.");
+                    "Unauthorized call to retireCode.");
             }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeId);
             if (codeScheme != null) {
@@ -702,7 +694,45 @@ public class CodeRegistryResource extends AbstractBaseResource {
             });
             return externalReferences;
         } else {
-            return new HashSet<ExternalReference>();
+            return new HashSet<>();
+        }
+    }
+
+    private void indexCodeSchemes(final Set<CodeScheme> codeSchemes) {
+        if (!codeSchemes.isEmpty()) {
+            indexing.updateCodeSchemes(codeSchemes);
+            for (final CodeScheme codeScheme : codeSchemes) {
+                indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme));
+                indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme));
+            }
+        }
+    }
+
+    private void indexCodes(final Set<Code> codes) {
+        if (!codes.isEmpty()) {
+            indexing.updateCodes(codes);
+        }
+    }
+
+    private void validateCodeSchemeForCodeRegistry(final CodeRegistry codeRegistry, final CodeScheme codeScheme) {
+        if (codeScheme.getId() != null) {
+            final CodeScheme existingCodeScheme = codeSchemeRepository.findById(codeScheme.getId());
+            if (existingCodeScheme.getCodeValue().equalsIgnoreCase(codeScheme.getCodeValue())) {
+                throw new WebApplicationException("CodeScheme value does not match existing values in the database!");
+            }
+        } else if (codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeScheme.getCodeValue()) != null) {
+            throw new WebApplicationException("CodeScheme with CodeValue already found in Registry!");
+        }
+    }
+
+    private void validateCodeForCodeScheme(final CodeScheme codeScheme, final Code code) {
+        if (code.getId() != null) {
+            final CodeScheme existingCodeScheme = codeSchemeRepository.findById(code.getId());
+            if (existingCodeScheme.getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
+                throw new WebApplicationException("CodeScheme value does not match existing values in the database!");
+            }
+        } else if (codeRepository.findByCodeSchemeAndCodeValue(codeScheme, code.getCodeValue()) != null) {
+            throw new WebApplicationException("CodeScheme with CodeValue already found in Registry!");
         }
     }
 }
