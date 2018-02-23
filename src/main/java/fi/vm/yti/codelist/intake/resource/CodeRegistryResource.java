@@ -246,9 +246,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         final Set<ExternalReference> externalReferences = initializeExternalReferences(codeScheme.getExternalReferences(), codeScheme);
                         if (!externalReferences.isEmpty()) {
                             externalReferenceRepository.save(externalReferences);
-                            codeScheme.setExternalReferences(null);
-                            // This intermediate saving is necessary to avoid hibernate insertion issues with primary key constraint
-                            codeSchemeRepository.save(codeScheme);
                             codeScheme.setExternalReferences(externalReferences);
                         } else {
                             codeScheme.setExternalReferences(null);
@@ -391,9 +388,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                             final Set<ExternalReference> externalReferences = initializeExternalReferences(codeScheme.getExternalReferences(), codeScheme);
                             if (!externalReferences.isEmpty()) {
                                 externalReferenceRepository.save(externalReferences);
-                                codeScheme.setExternalReferences(null);
-                                // This intermediate saving is necessary to avoid hibernate insertion issues with primary key constraint
-                                codeSchemeRepository.save(codeScheme);
                                 codeScheme.setExternalReferences(externalReferences);
                             } else {
                                 codeScheme.setExternalReferences(null);
