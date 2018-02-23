@@ -128,7 +128,7 @@ public class IndexingImpl implements Indexing {
             for (final T item : set) {
                 try {
                     final AbstractIdentifyableCode identifyableCode = (AbstractIdentifyableCode) item;
-                    bulkRequest.add(client.prepareIndex(elasticIndex, elasticType, identifyableCode.getId().toString()).setSource(mapper.writerWithView(jsonViewClass).writeValueAsString(item), XContentType.JSON));
+                    bulkRequest.add(client.prepareIndex(elasticIndex, elasticType, identifyableCode.getId().toString()).setSource(mapper.writerWithView(jsonViewClass).writeValueAsString(item).replace("\\\\n", "\\n"), XContentType.JSON));
                     bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
                 } catch (JsonProcessingException e) {
                     logBulkErrorWithException(name, e);
@@ -156,7 +156,7 @@ public class IndexingImpl implements Indexing {
             for (final T item : set) {
                 try {
                     final AbstractIdentifyableCode identifyableCode = (AbstractIdentifyableCode) item;
-                    final String doc = mapper.writerWithView(jsonViewClass).writeValueAsString(item);
+                    final String doc = mapper.writerWithView(jsonViewClass).writeValueAsString(item).replace("\\\\n", "\\n");
                     bulkRequest.add(client.prepareUpdate(elasticIndex, elasticType, identifyableCode.getId().toString()).setDoc(doc, XContentType.JSON).setUpsert(doc, XContentType.JSON));
                     bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
                 } catch (JsonProcessingException e) {
