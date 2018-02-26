@@ -105,7 +105,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
             }
             if (!headerMap.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
                 throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                    ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS));
+                    ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
             }
             final Map<String, String> prefLabelHeaders = new LinkedHashMap<>();
             final Map<String, String> descriptionHeaders = new LinkedHashMap<>();
@@ -256,7 +256,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     }
                     if (!genericHeaders.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
                         throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
+                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
                     }
                     if (!genericHeaders.containsKey(CONTENT_HEADER_STATUS)) {
                         throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
