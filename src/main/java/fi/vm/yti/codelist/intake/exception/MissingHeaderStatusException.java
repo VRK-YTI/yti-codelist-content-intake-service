@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import fi.vm.yti.codelist.common.model.ErrorModel;
 
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-public class CodeParsingException extends YtiCodeListException {
-    public CodeParsingException(ErrorModel errorModel) {
+public class MissingHeaderStatusException extends YtiCodeListException {
+    public MissingHeaderStatusException(ErrorModel errorModel) {
         super(errorModel);
     }
 }

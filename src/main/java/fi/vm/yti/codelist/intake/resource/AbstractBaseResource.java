@@ -69,31 +69,50 @@ public abstract class AbstractBaseResource {
         logger.info(method + " " + apiVersionPath + apiPath + " requested!");
     }
 
-    protected Response handleInternalServerError(final Meta meta, final ResponseWrapper wrapper, final String logMessage, final Exception e) {
-        handleLoggingAndMetaForHttpCode(500, meta, logMessage, e);
+    protected Response handleInternalServerError(final Meta meta,
+                                                 final ResponseWrapper wrapper,
+                                                 final String logMessage,
+                                                 final Exception e,
+                                                 final String msgToUser) {
+        handleLoggingAndMetaForHttpCode(500, meta, logMessage, e, Optional.of(msgToUser));
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
+        // return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorModel).build();
+    }
+
+    protected Response handleInternalServerError(final Meta meta,
+                                                 final MetaResponseWrapper wrapper,
+                                                 final String logMessage,
+                                                 final Exception e,
+                                                 final String msgToUser) {
+        handleLoggingAndMetaForHttpCode(500, meta, logMessage, e, Optional.of(msgToUser));
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
     }
 
-    protected Response handleInternalServerError(final Meta meta, final MetaResponseWrapper wrapper, final String logMessage, final Exception e) {
-        handleLoggingAndMetaForHttpCode(500, meta, logMessage, e);
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
-    }
-
-    protected Response handleUnauthorizedAccess(final Meta meta, final ResponseWrapper wrapper, final String logMessage) {
-        handleLoggingAndMetaForHttpCode(401, meta, logMessage);
+    protected Response handleUnauthorizedAccess(final Meta meta,
+                                                final ResponseWrapper wrapper,
+                                                final String logMessage) {
+        handleLoggingAndMetaForHttpCode(401, meta, logMessage, Optional.of(logMessage));
         return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
     }
 
-    protected Response handleUnauthorizedAccess(final Meta meta, final MetaResponseWrapper wrapper, final String logMessage) {
-        handleLoggingAndMetaForHttpCode(401, meta, logMessage);
+    protected Response handleUnauthorizedAccess(final Meta meta,
+                                                final MetaResponseWrapper wrapper,
+                                                final String logMessage) {
+        handleLoggingAndMetaForHttpCode(401, meta, logMessage, Optional.of(logMessage));
         return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
     }
 
-    protected Response handleStartDateLaterThanEndDate(final ResponseWrapper wrapper) {
+    protected Response handleStartDateLaterThanEndDate(final Meta meta,
+                                                       final ResponseWrapper wrapper,
+                                                       final String messageToUser) {
+        handleLoggingAndMetaForHttpCode(406, meta, messageToUser, Optional.of(messageToUser));
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(wrapper).build();
     }
 
-    protected Response handleStartDateLaterThanEndDate(final MetaResponseWrapper wrapper) {
+    protected Response handleStartDateLaterThanEndDate(final Meta meta,
+                                                       final MetaResponseWrapper wrapper,
+                                                       final String messageToUser) {
+        handleLoggingAndMetaForHttpCode(406, meta, messageToUser, Optional.of(messageToUser));
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(wrapper).build();
     }
 
@@ -122,14 +141,27 @@ public abstract class AbstractBaseResource {
         return startDateWithoutTime.compareTo(endDateWithoutTime) == 0;
     }
 
-    private void handleLoggingAndMetaForHttpCode(final int code, Meta meta, final String logMessage) {
+    private void handleLoggingAndMetaForHttpCode(final int code,
+                                                 Meta meta,
+                                                 final String logMessage,
+                                                 Optional<String>  msgToUser) {
         LOG.error(logMessage, new WebApplicationException(code));
         meta.setCode(code);
+        if (msgToUser.isPresent()) {
+            meta.setMessage(msgToUser.get());
+        }
     }
 
-    private void handleLoggingAndMetaForHttpCode(final int code, Meta meta, final String logMessage, final Exception e) {
+    private void handleLoggingAndMetaForHttpCode(final int code,
+                                                 Meta meta,
+                                                 final String logMessage,
+                                                 final Exception e,
+                                                 Optional<String>  msgToUser) {
         LOG.error(logMessage, e);
         meta.setCode(code);
+        if (msgToUser.isPresent()) {
+            meta.setMessage(msgToUser.get());
+        }
     }
 
     static class FilterModifier extends ObjectWriterModifier {

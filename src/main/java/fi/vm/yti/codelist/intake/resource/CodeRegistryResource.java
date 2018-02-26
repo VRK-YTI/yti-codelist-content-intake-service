@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.resource;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashSet;
@@ -20,11 +21,21 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fi.vm.yti.codelist.common.model.ErrorModel;
+import fi.vm.yti.codelist.intake.exception.CodeParsingException;
+import fi.vm.yti.codelist.intake.exception.ErrorConstants;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -159,7 +170,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             wrapper.setResults(codeRegistries);
             return Response.ok(wrapper).build();
         } catch (Exception e) {
-            return handleInternalServerError(meta, wrapper, "Error parsing CodeRegistries.", e);
+            return handleInternalServerError(meta, wrapper, "Error parsing CodeRegistries.", e, ErrorConstants.ERR_MSG_USER_500);
         }
     }
 
@@ -201,8 +212,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
             meta.setCode(200);
             wrapper.setResults(codeRegistries);
             return Response.ok(wrapper).build();
-        } catch (Exception e) {
-            return handleInternalServerError(meta, wrapper, "Error parsing CodeRegistries.", e);
+        }
+        catch (Exception e) {
+            return handleInternalServerError(meta, wrapper, "Error parsing CodeRegistries.", e, ErrorConstants.ERR_MSG_USER_500);
         }
     }
 
@@ -235,7 +247,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     for (final CodeScheme codeScheme : codeSchemes) {
                         validateCodeSchemeForCodeRegistry(codeRegistry, codeScheme);
                         if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                            return handleStartDateLaterThanEndDate(responseWrapper);
+                           return handleStartDateLaterThanEndDate(meta,
+                               responseWrapper,
+                               ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
                         }
                         if (codeScheme.getId() == null) {
                             codeScheme.setId(UUID.randomUUID());
@@ -252,14 +266,21 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         codeScheme.setModified(new Date(System.currentTimeMillis()));
                     }
                 }
+            } catch (final Exception e) {
+                return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeSchemesFromJson.", e, ErrorConstants.ERR_MSG_USER_500);
+            }
+            for (final CodeScheme codeScheme : codeSchemes) {
+                LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
+            }
+            if (!codeSchemes.isEmpty()) {
+                domain.persistCodeSchemes(codeSchemes);
+                indexing.updateCodeSchemes(codeSchemes);
                 for (final CodeScheme codeScheme : codeSchemes) {
                     LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
                 }
                 if (!codeSchemes.isEmpty()) {
                     domain.persistCodeSchemes(codeSchemes);
                 }
-            } catch (final Exception e) {
-                return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeSchemesFromJson.", e);
             }
             indexCodeSchemes(codeSchemes);
             meta.setMessage("CodeSchemes added or modified: " + codeSchemes.size());
@@ -268,7 +289,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             return Response.ok(responseWrapper).build();
         }
         meta.setMessage("CodeScheme with code: " + codeRegistryCodeValue + " does not exist yet, please creater register first.");
-        meta.setCode(404);
+        meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
     }
 
@@ -284,7 +305,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Transactional
     public Response addOrUpdateCodeSchemesFromFile(@ApiParam(value = "Format for input.", required = false) @QueryParam("format") @DefaultValue("csv") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                                   @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+                                                   @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) throws YtiCodeListException {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/");
         final Meta meta = new Meta();
         final ResponseWrapper<CodeScheme> responseWrapper = new ResponseWrapper<>(meta);
@@ -297,37 +318,48 @@ public class CodeRegistryResource extends AbstractBaseResource {
             }
             Set<CodeScheme> codeSchemes = new HashSet<>();
             Set<Code> codes = new HashSet<>();
-            try {
-                if (FORMAT_CSV.equalsIgnoreCase(format)) {
-                    codeSchemes = codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream);
-                } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
-                    try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-                        codeSchemes = codeSchemeParser.parseCodeSchemesFromExcel(codeRegistry, workbook);
-                        if (!codeSchemes.isEmpty() && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODESCHEMES) != null) {
-                            codes = codeParser.parseCodesFromExcel(codeSchemes.iterator().next(), workbook);
-                        }
+            if (FORMAT_CSV.equalsIgnoreCase(format)) {
+                codeSchemes = codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream);
+            } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
+                try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
+                    codeSchemes = codeSchemeParser.parseCodeSchemesFromExcel(codeRegistry, workbook);
+                    if (!codeSchemes.isEmpty() && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODESCHEMES) != null) {
+                        codes = codeParser.parseCodesFromExcel(codeSchemes.iterator().next(), workbook);
                     }
                 }
+                catch (YtiCodeListException e) {
+                    throw e;
+                }
+                catch (IOException | InvalidFormatException e) {
+                    throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                        ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
+                }
+            }
+            for (final CodeScheme codeScheme : codeSchemes) {
+                if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
+                    return handleStartDateLaterThanEndDate(meta, responseWrapper, ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
+                }
+                LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
+            }
+            if (!codeSchemes.isEmpty()) {
+                domain.persistCodeSchemes(codeSchemes);
+                indexing.updateCodeSchemes(codeSchemes);
                 for (final CodeScheme codeScheme : codeSchemes) {
                     if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                        return handleStartDateLaterThanEndDate(responseWrapper);
+                        return handleStartDateLaterThanEndDate(meta, responseWrapper, ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
                     }
                     LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
                 }
-                if (!codeSchemes.isEmpty()) {
-                    domain.persistCodeSchemes(codeSchemes);
-                }
-                for (final Code code : codes) {
-                    if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                        return handleStartDateLaterThanEndDate(responseWrapper);
-                    }
-                    LOG.debug("Code parsed from input: " + code.getCodeValue());
+            }
+            for (final Code code : codes) {
+                if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
+                    return handleStartDateLaterThanEndDate(meta,
+                        responseWrapper,
+                        ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
                 }
                 if (!codes.isEmpty()) {
                     domain.persistCodes(codes);
                 }
-            } catch (final Exception e) {
-                return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeSchemesFromFile.", e);
             }
             indexCodeSchemes(codeSchemes);
             indexCodes(codes);
@@ -336,8 +368,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
             responseWrapper.setResults(codeSchemes);
             return Response.ok(responseWrapper).build();
         }
-        meta.setMessage("CodeScheme with code: " + codeRegistryCodeValue + " does not exist yet, please create a register first.");
-        meta.setCode(404);
+        meta.setMessage("CodeScheme with code: " + codeRegistryCodeValue + " does not exist yet, please creater register first.");
+        meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
     }
 
@@ -368,13 +400,15 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         final ObjectMapper mapper = createObjectMapper();
                         final CodeScheme codeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
                         if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                            return handleStartDateLaterThanEndDate(responseWrapper);
+                            return handleStartDateLaterThanEndDate(meta,
+                                responseWrapper,
+                                ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
                         }
                         // TODO Refactor this to use existing value as master when evaluating changes.
                         if (!codeScheme.getCodeValue().equalsIgnoreCase(existingCodeScheme.getCodeValue())) {
                             LOG.error("CodeScheme cannot be updated because codevalue changed: " + codeScheme.getCodeValue());
                             meta.setMessage("CodeScheme cannot be updated because codeValue changed. " + codeScheme.getCodeValue());
-                            meta.setCode(406);
+                            meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
                         } else {
                             final Set<ExternalReference> externalReferences = initializeExternalReferences(codeScheme.getExternalReferences(), codeScheme);
                             if (!externalReferences.isEmpty()) {
@@ -393,23 +427,23 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                 return Response.ok(responseWrapper).build();
                             } else {
                                 return handleInternalServerError(meta, responseWrapper,
-                                    "CodeScheme " + codeSchemeId + " modifification failed.", new WebApplicationException());
+                                        "CodeScheme " + codeSchemeId + " modifification failed.", new WebApplicationException(), ErrorConstants.ERR_MSG_USER_500);
                             }
                         }
                     } else {
                         meta.setMessage("No JSON payload found.");
-                        meta.setCode(406);
+                        meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
                     }
                 } catch (Exception e) {
-                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeSchemesFromFile.", e);
+                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeSchemesFromFile.", e, ErrorConstants.ERR_MSG_USER_500);
                 }
             } else {
                 meta.setMessage("CodeScheme: " + codeSchemeId + " does not exist yet, please create codeScheme first.");
-                meta.setCode(406);
+                meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
             }
         } else {
             meta.setMessage("CodeRegistry with code: " + codeRegistryCodeValue + " does not exist yet, please create registry first.");
-            meta.setCode(406);
+            meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
         }
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
     }
@@ -448,7 +482,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         for (final Code code : codes) {
                             validateCodeForCodeScheme(codeScheme, code);
                             if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                                return handleStartDateLaterThanEndDate(responseWrapper);
+                                return handleStartDateLaterThanEndDate(meta,
+                                    responseWrapper,
+                                    ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
                             }
                             if (code.getId() == null) {
                                 code.setId(UUID.randomUUID());
@@ -469,7 +505,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         domain.persistCodes(codes);
                     }
                 } catch (Exception e) {
-                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromJson.", e);
+                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromJson.",e, ErrorConstants.ERR_MSG_USER_500);
+                }
+                if (!codes.isEmpty()) {
+                    domain.persistCodes(codes);
+                    indexing.updateCodes(codes);
                 }
                 indexing.updateCodes(codes);
                 meta.setMessage("Codes added or modified: " + codes.size());
@@ -478,11 +518,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 return Response.ok(responseWrapper).build();
             } else {
                 meta.setMessage("CodeScheme with id: " + codeSchemeId + " does not exist yet, please create codeScheme first.");
-                meta.setCode(406);
+                meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
             }
         } else {
             meta.setMessage("CodeRegistry with id: " + codeRegistryCodeValue + " does not exist yet, please create registry first.");
-            meta.setCode(406);
+            meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
         }
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
     }
@@ -522,12 +562,29 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
                         codes = codeParser.parseCodesFromExcelInputStream(codeScheme, inputStream);
                     }
-                } catch (Exception e) {
-                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromFile.", e);
+                }
+                catch (MissingRowValueCodeValueException e) {
+                    return handleInternalServerError(meta, responseWrapper, "Error parsing CodeRegistries.", e,
+                        ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE);
+                }
+                catch (MissingRowValueStatusException e) {
+                    return handleInternalServerError(meta, responseWrapper, "Error parsing CodeRegistries.", e,
+                        ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS);
+                }
+                catch (MissingHeaderCodeValueException e) {
+                    return handleInternalServerError(meta, responseWrapper, "Error parsing CodeRegistries.", e,
+                        ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE);
+                }
+                catch (MissingHeaderStatusException e) {
+                    return handleInternalServerError(meta, responseWrapper, "Error parsing CodeRegistries.", e,
+                        ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS);
+                }
+                catch (Exception e) {
+                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromFile." ,e, ErrorConstants.ERR_MSG_USER_500);
                 }
                 for (final Code code : codes) {
                     if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                        return handleStartDateLaterThanEndDate(responseWrapper);
+                        return handleStartDateLaterThanEndDate(meta, responseWrapper, ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
                     }
                     LOG.debug("Code parsed from input: " + code.getCodeValue());
                 }
@@ -541,11 +598,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 return Response.ok(responseWrapper).build();
             } else {
                 meta.setMessage("CodeScheme with id: " + codeSchemeId + " does not exist yet, please create CodeScheme first.");
-                meta.setCode(406);
+                meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
             }
         } else {
             meta.setMessage("CodeRegistry with id: " + codeRegistryCodeValue + " does not exist yet, please create CodeRegistry first.");
-            meta.setCode(406);
+            meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
         }
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
     }
@@ -579,12 +636,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         final ObjectMapper mapper = createObjectMapper();
                         final Code code = mapper.readValue(jsonPayload, Code.class);
                         if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                            return handleStartDateLaterThanEndDate(responseWrapper);
+                            return handleStartDateLaterThanEndDate(meta, responseWrapper, ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
                         }
                         if (!code.getCodeValue().equalsIgnoreCase(existingCode.getCodeValue())) {
                             LOG.error("Code cannot be updated because CodeValue changed: " + code.getCodeValue());
                             meta.setMessage("Code cannot be updated because CodeValue changed. " + code.getCodeValue());
-                            meta.setCode(406);
+                            meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
                         } else {
                             final Set<ExternalReference> externalReferences = initializeExternalReferences(code.getExternalReferences(), codeScheme);
                             if (!externalReferences.isEmpty()) {
@@ -604,23 +661,23 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                 return Response.ok(responseWrapper).build();
                             } else {
                                 return handleInternalServerError(meta, responseWrapper,
-                                    "Code " + codeId + " modifification failed.", new WebApplicationException());
+                                        "Code " + codeId + " modifification failed.", new WebApplicationException(), ErrorConstants.ERR_MSG_USER_500);
                             }
                         }
                     } else {
                         meta.setMessage("No JSON payload found.");
-                        meta.setCode(406);
+                        meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
                     }
                 } catch (Exception e) {
-                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to updateCode.", e);
+                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to updateCode.", e, ErrorConstants.ERR_MSG_USER_500);
                 }
             } else {
                 meta.setMessage("CodeScheme with id: " + codeSchemeId + " does not exist yet, please create codeScheme first.");
-                meta.setCode(406);
+                meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
             }
         } else {
             meta.setMessage("CodeRegistry with CodeValue: " + codeRegistryCodeValue + " does not exist yet, please create registry first.");
-            meta.setCode(406);
+            meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
         }
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(responseWrapper).build();
     }
@@ -655,15 +712,15 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     return Response.ok(responseWrapper).build();
                 } else {
                     meta.setMessage("Code " + codeId + " not found!");
-                    meta.setCode(404);
+                    meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
                 }
             } else {
                 meta.setMessage("CodeScheme with id: " + codeSchemeId + " not found!");
-                meta.setCode(404);
+                meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
             }
         } else {
             meta.setMessage("CodeRegistry with codeValue: " + codeRegistryCodeValue + " not found!");
-            meta.setCode(404);
+            meta.setCode(HttpStatus.NOT_FOUND.value());
         }
         return Response.status(Response.Status.NOT_FOUND).entity(responseWrapper).build();
     }

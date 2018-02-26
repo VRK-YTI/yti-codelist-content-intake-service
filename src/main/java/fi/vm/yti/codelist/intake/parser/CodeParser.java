@@ -1,9 +1,11 @@
 package fi.vm.yti.codelist.intake.parser;
 
-import fi.vm.yti.codelist.intake.exception.MissingEntityException;
-import fi.vm.yti.codelist.intake.exception.MissingCodeValueException;
-import fi.vm.yti.codelist.intake.exception.MissingHeaderException;
+import fi.vm.yti.codelist.intake.exception.ErrorConstants;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 
+import fi.vm.yti.codelist.common.model.ErrorModel;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -23,6 +25,8 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 
+import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -36,6 +40,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
@@ -75,7 +80,7 @@ public class CodeParser extends AbstractBaseParser {
      * @return Set of Code objects.
      */
     public Set<Code> parseCodesFromCsvInputStream(final CodeScheme codeScheme,
-                                                  final InputStream inputStream) throws Exception {
+                                                  final InputStream inputStream) throws YtiCodeListException {
         final Map<String, Code> codes = new HashMap<>();
         final Map<String, String> broaderCodeMapping = new HashMap<>();
         if (codeScheme != null) {
@@ -84,10 +89,12 @@ public class CodeParser extends AbstractBaseParser {
                  final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
                 final Map<String, Integer> headerMap = csvParser.getHeaderMap();
                 if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
-                    throw new MissingHeaderException("Missing CODEVALUE header.");
+                    throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                        ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
                 }
                 if (!headerMap.containsKey(CONTENT_HEADER_STATUS)) {
-                    throw new MissingHeaderException("Missing STATUS header.");
+                    throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                        ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS));
                 }
                 final Map<String, String> prefLabelHeaders = new LinkedHashMap<>();
                 final Map<String, String> descriptionHeaders = new LinkedHashMap<>();
@@ -112,10 +119,12 @@ public class CodeParser extends AbstractBaseParser {
                         throw new WebApplicationException("A serious problem with the CSV file (possibly erroneously an Excel-file was used).");
                     }
                     if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).equals("")) {
-                        throw new MissingCodeValueException("A row is missing the codevalue.");
+                        throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE));
                     }
                     if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).equals("")) {
-                        throw new MissingCodeValueException("A row is missing the status.");
+                        throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS));
                     }
                     final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
                     final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
@@ -149,7 +158,8 @@ public class CodeParser extends AbstractBaseParser {
                             try {
                                 hierarchyLevel = Integer.parseInt(hierarchyLevelString);
                             } catch (final NumberFormatException e) {
-                                throw new CodeParsingException("HIERARCHYLEVEL header does not have valid value, import failed!");
+                                throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                    ErrorConstants.ERR_MSG_USER_HIERARCHY_LEVEL_INVALID_VALUE));
                             }
                         } else {
                             hierarchyLevel = null;
@@ -172,7 +182,8 @@ public class CodeParser extends AbstractBaseParser {
                             startDate = dateFormat.parse(startDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
-                            throw e;
+                            throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                ErrorConstants.ERR_MSG_USER_ERRONEOUS_START_DATE));
                         }
                     }
                     Date endDate = null;
@@ -182,7 +193,8 @@ public class CodeParser extends AbstractBaseParser {
                             endDate = dateFormat.parse(endDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
-                            throw e;
+                            throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                ErrorConstants.ERR_MSG_USER_ERRONEOUS_END_DATE));
                         }
                     }
                     final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, hierarchyLevel, startDate, endDate, prefLabel, description, definition);
@@ -190,6 +202,9 @@ public class CodeParser extends AbstractBaseParser {
                         codes.put(code.getCodeValue(), code);
                     }
                 }
+            } catch (java.io.IOException e) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    ErrorConstants.ERR_MSG_USER_500));
             }
         }
         setBroaderCodes(broaderCodeMapping, codes);
@@ -221,7 +236,7 @@ public class CodeParser extends AbstractBaseParser {
      */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<Code> parseCodesFromExcel(final CodeScheme codeScheme,
-                                         final Workbook workbook) throws Exception {
+                                         final Workbook workbook) throws YtiCodeListException {
         final Map<String, Code> codes = new HashMap<>();
         final Map<String, String> broaderCodeMapping = new HashMap<>();
         if (codeScheme != null) {
@@ -255,20 +270,24 @@ public class CodeParser extends AbstractBaseParser {
                         }
                     }
                     if (!genericHeaders.containsKey(CONTENT_HEADER_CODEVALUE) ) {
-                        throw new MissingHeaderException("Missing CODEVALUE header.");
+                        throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                                                        ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
                     }
                     if (!genericHeaders.containsKey(CONTENT_HEADER_STATUS)) {
-                        throw new MissingHeaderException("Missing STATUS header.");
+                        throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS));
                     }
                     firstRow = false;
                 } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
                     if (formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE))) == null ||
                             formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE))).equals("")) {
-                        throw new MissingCodeValueException("A row is missing the codevalue.");
+                        throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                                                            ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE));
                     }
                     if (formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS))) == null ||
                             formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS))).equals("")) {
-                        throw new MissingCodeValueException("A row is missing the status.");
+                        throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                                                                        ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS));
                     }
 
                     final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
@@ -295,7 +314,8 @@ public class CodeParser extends AbstractBaseParser {
                             try {
                                 hierarchyLevel = Integer.parseInt(hierarchyLevelString);
                             } catch (final NumberFormatException e) {
-                                throw new CodeParsingException("HIERARCHYLEVEL header does not have valid value, import failed!");
+                                throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                    ErrorConstants.ERR_MSG_USER_HIERARCHY_LEVEL_INVALID_VALUE));
                             }
                         } else {
                             hierarchyLevel = null;
@@ -319,7 +339,8 @@ public class CodeParser extends AbstractBaseParser {
                             startDate = dateFormat.parse(startDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
-                            throw new CodeParsingException("STARTDATE header does not have valid value, import failed!");
+                            throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                ErrorConstants.ERR_MSG_USER_ERRONEOUS_START_DATE));
                         }
                     }
                     Date endDate = null;
@@ -329,7 +350,8 @@ public class CodeParser extends AbstractBaseParser {
                             endDate = dateFormat.parse(endDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
-                            throw new CodeParsingException("ENDDATE header does not have valid value, import failed!");
+                            throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                ErrorConstants.ERR_MSG_USER_ERRONEOUS_END_DATE));
                         }
                     }
                     final Code code = createOrUpdateCode(codeScheme, id, codeValue, status, shortName, hierarchyLevel, startDate, endDate, prefLabel, description, definition);
@@ -362,7 +384,8 @@ public class CodeParser extends AbstractBaseParser {
         } else {
             final Code existingCode = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeValue);
             if (existingCode != null) {
-                throw new ExistingCodeException("Existing Code already found in CodeScheme with this codeValue: " + codeValue);
+                throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                    ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE));
             }
         }
         if (code != null) {

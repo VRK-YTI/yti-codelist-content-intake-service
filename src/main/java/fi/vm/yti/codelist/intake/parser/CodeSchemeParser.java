@@ -1,6 +1,9 @@
 package fi.vm.yti.codelist.intake.parser;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import fi.vm.yti.codelist.common.model.ErrorModel;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -20,10 +23,13 @@ import javax.inject.Inject;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
+import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
-import fi.vm.yti.codelist.intake.exception.MissingCodeValueException;
-import fi.vm.yti.codelist.intake.exception.MissingEntityException;
-import fi.vm.yti.codelist.intake.exception.MissingHeaderException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -37,6 +43,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
@@ -82,20 +89,23 @@ public class CodeSchemeParser extends AbstractBaseParser {
      */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeScheme> parseCodeSchemesFromCsvInputStream(final CodeRegistry codeRegistry,
-                                                              final InputStream inputStream) throws Exception {
+                                                              final InputStream inputStream) throws YtiCodeListException {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
             if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
-                throw new MissingHeaderException("Missing CODEVALUE header.");
+                throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                    ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
             }
             if (!headerMap.containsKey(CONTENT_HEADER_STATUS)) {
-                throw new MissingHeaderException("Missing STATUS header.");
+                throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                    ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS));
             }
             if (!headerMap.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
-                throw new MissingHeaderException("Missing CLASSIFICATION header.");
+                throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                    ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS));
             }
             final Map<String, String> prefLabelHeaders = new LinkedHashMap<>();
             final Map<String, String> descriptionHeaders = new LinkedHashMap<>();
@@ -115,10 +125,12 @@ public class CodeSchemeParser extends AbstractBaseParser {
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
                 if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).equals("")) {
-                    throw new MissingCodeValueException("A row is missing the codevalue.");
+                    throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                        ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE));
                 }
                 if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).equals("")) {
-                    throw new MissingCodeValueException("A row is missing the status.");
+                    throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                        ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS));
                 }
                 final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
                 final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
@@ -138,7 +150,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
                 if (dataClassifications.isEmpty() && !codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                     LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
-                    throw new CodeParsingException("CLASSIFICATION header does not have valid value, import failed!");
+                    throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                        ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
                 }
                 final String version = record.get(CONTENT_HEADER_VERSION);
                 final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
@@ -153,7 +166,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                         startDate = dateFormat.parse(startDateString);
                     } catch (ParseException e) {
                         LOG.error("Parsing startDate for codeScheme: " + codeValue + " failed from string: " + startDateString);
-                        throw new CodeParsingException("STARTDATE header does not have valid value, import failed!");
+                        throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ErrorConstants.ERR_MSG_USER_ERRONEOUS_START_DATE));
                     }
                 }
                 Date endDate = null;
@@ -163,13 +177,17 @@ public class CodeSchemeParser extends AbstractBaseParser {
                         endDate = dateFormat.parse(endDateString);
                     } catch (ParseException e) {
                         LOG.error("Parsing endDate for codeScheme: " + codeValue + " failed from string: " + endDateString);
-                        throw new CodeParsingException("ENDDATE header does not have valid value, import failed!");
+                        throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ErrorConstants.ERR_MSG_USER_ERRONEOUS_END_DATE));
                     }
                 }
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status,
                     source, legalBase, governancePolicy, startDate, endDate, prefLabel, description, definition, changeNote);
                 codeSchemes.add(codeScheme);
             }
+        } catch( IOException e) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                ErrorConstants.ERR_MSG_USER_500));
         }
         return codeSchemes;
     }
@@ -197,7 +215,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
      */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeScheme> parseCodeSchemesFromExcel(final CodeRegistry codeRegistry,
-                                                     final Workbook workbook) throws Exception {
+                                                     final Workbook workbook) throws YtiCodeListException {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (codeRegistry != null) {
             final DataFormatter formatter = new DataFormatter();
@@ -232,35 +250,48 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             genericHeaders.put(value, index);
                         }
                     }
-                    if (!genericHeaders.containsKey(CONTENT_HEADER_CODEVALUE)) {
-                        throw new MissingHeaderException("Missing CODEVALUE header.");
+                    if (!genericHeaders.containsKey(CONTENT_HEADER_CODEVALUE) ) {
+                        throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
                     }
                     if (!genericHeaders.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
-                        throw new MissingHeaderException("Missing CLASSIFICATION header.");
+                        throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
                     }
                     if (!genericHeaders.containsKey(CONTENT_HEADER_STATUS)) {
-                        throw new MissingHeaderException("Missing STATUS header.");
+                        throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS));
                     }
                     firstRow = false;
                 } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
                     if (formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE))) == null ||
                             formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE))).equals("")) {
-                        throw new MissingCodeValueException("A row is missing the codevalue.");
+                        throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE));
                     }
                     if (formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS))) == null ||
                             formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS))).equals("")) {
-                        throw new MissingCodeValueException("A row is missing the status.");
+                        throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS));
                     }
                     final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
                     if (codeValue == null || codeValue.trim().isEmpty()) {
                         continue;
                     }
                     final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
-                    final String dataClassificationCodes = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)));
+                    final String dataClassificationCodes;
+                    try {
+                        dataClassificationCodes = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)));
+                    } catch (NullPointerException e) {
+                        LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
+                        throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
+                    }
                     final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
                     if (dataClassifications.isEmpty() && !codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                         LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
-                        throw new CodeParsingException("CLASSIFICATION header does not have valid value, import failed!");
+                        throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
                     }
                     final Map<String, String> prefLabel = new LinkedHashMap<>();
                     prefLabelHeaders.forEach((language, header) ->
@@ -293,7 +324,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             startDate = dateFormat.parse(startDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
-                            throw new CodeParsingException("STARTDATE header does not have valid value, import failed!");
+                            throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                ErrorConstants.ERR_MSG_USER_ERRONEOUS_START_DATE));
                         }
                     }
                     Date endDate = null;
@@ -303,7 +335,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                             endDate = dateFormat.parse(endDateString);
                         } catch (ParseException e) {
                             LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
-                            throw new CodeParsingException("ENDDATE header does not have valid value, import failed!");
+                            throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                ErrorConstants.ERR_MSG_USER_ERRONEOUS_END_DATE));
                         }
                     }
                     final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, startDate, endDate, prefLabel, description, definition, changeNote);
@@ -337,7 +370,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
         } else {
             final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeValue);
             if (existingCodeScheme != null) {
-                throw new ExistingCodeException("Existing CodeScheme already found in CodeRegistry with this codeValue: " + codeValue);
+                throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                    ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME));
             }
         }
         if (codeScheme != null) {

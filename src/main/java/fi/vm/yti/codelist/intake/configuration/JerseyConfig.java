@@ -91,5 +91,13 @@ public class JerseyConfig extends ResourceConfig {
         register(ExternalReferenceResource.class);
         register(PropertyTypeResource.class);
         register(DataClassificationResource.class);
+
+        // ExceptionMappers
+        register(fi.vm.yti.codelist.intake.exception.exceptionmapping.MissingHeaderCodeValueExceptionMapper.class);
+        register(fi.vm.yti.codelist.intake.exception.exceptionmapping.MissingHeaderStatusExceptionMapper.class);
+        register(fi.vm.yti.codelist.intake.exception.exceptionmapping.MissingRowValueCodeValueExceptionMapper.class);
+        register(fi.vm.yti.codelist.intake.exception.exceptionmapping.MissingRowValueStatusExceptionMapper.class);
+        register(fi.vm.yti.codelist.intake.exception.exceptionmapping.CodeParsingExceptionMapper.class);
+
     }
 }
