@@ -22,7 +22,7 @@ import static fi.vm.yti.codelist.intake.ServiceInitializer.LOCAL_SWAGGER_DATA_DI
 
 @Component
 @Path("/swagger.json")
-@Api(value = "swagger.json", description = "Operation that outputs environment specific dynamic swagger.json.")
+@Api(value = "swagger.json")
 @Produces("text/plain")
 public class SwaggerResource extends AbstractBaseResource {
 

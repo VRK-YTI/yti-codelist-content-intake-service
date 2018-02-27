@@ -30,7 +30,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Component
 @Path("/v1/organizations")
-@Api(value = "organizations", description = "Operations for data organizations.")
+@Api(value = "organizations")
 @Produces(MediaType.APPLICATION_JSON)
 public class OrganizationResource extends AbstractBaseResource {
 

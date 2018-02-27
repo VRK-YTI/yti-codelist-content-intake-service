@@ -52,7 +52,7 @@ import static fi.vm.yti.codelist.intake.data.YtiDataAccess.DEFAULT_PROPERTYTYPE_
 
 @Component
 @Path("/admin")
-@Api(value = "admin", description = "Operations for data administration and maintenance.")
+@Api(value = "admin")
 @Produces("text/plain")
 public class AdminResource extends AbstractBaseResource {
 

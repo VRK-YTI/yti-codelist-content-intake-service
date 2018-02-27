@@ -1,7 +1,7 @@
 package fi.vm.yti.codelist.intake.resource;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -14,28 +14,30 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
+import fi.vm.yti.codelist.intake.parser.PropertyTypeParser;
+import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_PROPERTYTYPES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_VERSION_V1;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_INDEX_PROPERTYTYPE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_PROPERTYTYPE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.METHOD_POST;
 
 @Component
 @Path("/v1/propertytypes")
-@Api(value = "propertytypes", description = "Operations for creating, deleting and updating PropertyTypes.")
+@Api(value = "propertytypes")
 @Produces(MediaType.APPLICATION_JSON)
 public class PropertyTypeResource extends AbstractBaseResource {
 
@@ -43,14 +45,17 @@ public class PropertyTypeResource extends AbstractBaseResource {
 
     private final Indexing indexing;
     private final PropertyTypeRepository propertyTypeRepository;
+    private final PropertyTypeParser propertyTypeParser;
     private final AuthorizationManager authorizationManager;
 
     @Inject
     public PropertyTypeResource(final Indexing indexing,
                                 final PropertyTypeRepository propertyTypeRepository,
+                                final PropertyTypeParser propertyTypeParser,
                                 final AuthorizationManager authorizationManager) {
         this.indexing = indexing;
         this.propertyTypeRepository = propertyTypeRepository;
+        this.propertyTypeParser = propertyTypeParser;
         this.authorizationManager = authorizationManager;
     }
 
@@ -64,14 +69,12 @@ public class PropertyTypeResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_PROPERTYTYPES);
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
-        final ObjectMapper mapper = createObjectMapper();
         if (!authorizationManager.isSuperUser()) {
             return handleUnauthorizedAccess(meta, wrapper,
-                    "Superuser rights are needed to addOrUpdatePropertyTypes.");
+                "Superuser rights are needed to addOrUpdatePropertyTypes.");
         }
         try {
-            final List<PropertyType> propertyTypes = mapper.readValue(jsonPayload, new TypeReference<List<PropertyType>>() {
-            });
+            final Set<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromJson(jsonPayload);
             if (!propertyTypes.isEmpty()) {
                 propertyTypeRepository.save(propertyTypes);
                 indexing.reIndex(ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE);
@@ -98,16 +101,15 @@ public class PropertyTypeResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_PROPERTYTYPES + "/" + propertyTypeId);
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
-        final ObjectMapper mapper = createObjectMapper();
         if (!authorizationManager.isSuperUser()) {
             return handleUnauthorizedAccess(meta, wrapper,
-                    "Superuser rights are needed to updatePropertyType.");
+                "Superuser rights are needed to updatePropertyType.");
         }
         final UUID uuid = UUID.fromString(propertyTypeId);
         final PropertyType existingPropertyType = propertyTypeRepository.findById(uuid);
         if (existingPropertyType != null) {
             try {
-                final PropertyType propertyType = mapper.readValue(jsonPayload, PropertyType.class);
+                final PropertyType propertyType = propertyTypeParser.parsePropertyTypeFromJson(jsonPayload);
                 propertyTypeRepository.save(propertyType);
                 indexing.reIndex(ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE);
                 meta.setCode(200);

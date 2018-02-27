@@ -18,7 +18,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.METHOD_GET;
 
 @Component
 @Path("/authenticated-user")
-@Api(value = "authenticated-user", description = "Operation for fetching authenticated user to the frontend.")
+@Api(value = "authenticated-user")
 @Produces(MediaType.APPLICATION_JSON)
 public class AuthenticatedUserResource extends AbstractBaseResource {
 

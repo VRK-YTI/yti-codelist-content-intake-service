@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,7 +21,6 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -30,10 +28,12 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.ExternalReference;
-import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
@@ -69,6 +69,23 @@ public class ExternalReferenceParser extends AbstractBaseParser {
         this.codeSchemeRepository = codeSchemeRepository;
     }
 
+    public ExternalReference parseExternalReferenceFromJson(final String jsonPayload) throws IOException {
+        final ObjectMapper mapper = createObjectMapper();
+        final ExternalReference fromExternalReference = mapper.readValue(jsonPayload, ExternalReference.class);
+        return createOrUpdateExternalReference(fromExternalReference);
+    }
+
+    public Set<ExternalReference> parseExternalReferencesFromJson(final String jsonPayload) throws IOException {
+        final Set<ExternalReference> externalReferences = new HashSet<>();
+        final ObjectMapper mapper = createObjectMapper();
+        final Set<ExternalReference> fromExternalReferences = mapper.readValue(jsonPayload, new TypeReference<List<ExternalReference>>() {
+        });
+        for (final ExternalReference fromExternalReference : fromExternalReferences) {
+            externalReferences.add(createOrUpdateExternalReference(fromExternalReference));
+        }
+        return externalReferences;
+    }
+
     /**
      * Parses the .csv ExternalReference-file and returns the ExternalReference as an ArrayList.
      *
@@ -82,30 +99,23 @@ public class ExternalReferenceParser extends AbstractBaseParser {
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
-            final Map<String, String> titleHeaders = new LinkedHashMap<>();
-            final Map<String, String> descriptionHeaders = new LinkedHashMap<>();
-            for (final String value : headerMap.keySet()) {
-                if (value.startsWith(CONTENT_HEADER_TITLE_PREFIX)) {
-                    titleHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_TITLE_PREFIX, value), value);
-                } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
-                    descriptionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DESCRIPTION_PREFIX, value), value);
-                }
-            }
+            final Map<String, Integer> titleHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_TITLE_PREFIX);
+            final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
+                final ExternalReference fromExternalReference = new ExternalReference();
                 final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
+                fromExternalReference.setId(id);
                 final UUID parentCodeSchemeId = parseUUIDFromString(record.get(CONTENT_HEADER_PARENTCODESCHEMEID));
                 final CodeScheme parentCodeScheme = codeSchemeRepository.findById(parentCodeSchemeId);
+                fromExternalReference.setParentCodeScheme(parentCodeScheme);
                 final String propertyTypeLocalName = record.get(CONTENT_HEADER_PROPERTYTYPE);
-                final PropertyType propertyType = propertyTypeRepository.findByLocalName(propertyTypeLocalName);
+                fromExternalReference.setPropertyType(propertyTypeRepository.findByLocalName(propertyTypeLocalName));
                 final String url = record.get(CONTENT_HEADER_URL);
-                final Map<String, String> title = new LinkedHashMap<>();
-                titleHeaders.forEach((language, header) ->
-                    title.put(language, record.get(header)));
-                final Map<String, String> description = new LinkedHashMap<>();
-                descriptionHeaders.forEach((language, header) ->
-                    description.put(language, record.get(header)));
-                final ExternalReference externalReference = createOrUpdateExternalReference(id, propertyType, url, parentCodeScheme, title, description);
+                fromExternalReference.setUrl(url);
+                fromExternalReference.setTitle(parseLocalizedValueFromCsvRecord(titleHeaders, record));
+                fromExternalReference.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
+                final ExternalReference externalReference = createOrUpdateExternalReference(fromExternalReference);
                 externalReferences.add(externalReference);
             }
         }
@@ -128,43 +138,31 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 sheet = workbook.getSheetAt(0);
             }
             final Iterator<Row> rowIterator = sheet.rowIterator();
-            final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
-            final Map<String, Integer> titleHeaders = new LinkedHashMap<>();
-            final Map<String, Integer> descriptionHeaders = new LinkedHashMap<>();
+            Map<String, Integer> headerMap = null;
+            Map<String, Integer> titleHeaders = null;
+            Map<String, Integer> descriptionHeaders = null;
             boolean firstRow = true;
             while (rowIterator.hasNext()) {
                 final Row row = rowIterator.next();
                 if (firstRow) {
-                    final Iterator<Cell> cellIterator = row.cellIterator();
-                    while (cellIterator.hasNext()) {
-                        final Cell cell = cellIterator.next();
-                        final String value = cell.getStringCellValue();
-                        final Integer index = cell.getColumnIndex();
-                        if (value.startsWith(CONTENT_HEADER_TITLE_PREFIX)) {
-                            titleHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_TITLE_PREFIX, value), index);
-                        } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
-                            descriptionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DESCRIPTION_PREFIX, value), index);
-                        } else {
-                            genericHeaders.put(value, index);
-                        }
-                    }
+                    headerMap = resolveHeaderMap(row);
+                    titleHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_TITLE_PREFIX);
+                    descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
                     firstRow = false;
                 } else {
-                    final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
-                    final UUID parentCodeSchemeId = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_PARENTCODESCHEMEID))));
+                    final ExternalReference fromExternalReference = new ExternalReference();
+                    final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID))));
+                    fromExternalReference.setId(id);
+                    final UUID parentCodeSchemeId = parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PARENTCODESCHEMEID))));
                     final CodeScheme parentCodeScheme = codeSchemeRepository.findById(parentCodeSchemeId);
-                    final String url = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_URL)));
-                    final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_PROPERTYTYPE)));
-                    final PropertyType propertyType = propertyTypeRepository.findByLocalName(propertyTypeLocalName);
-                    final Map<String, String> title = new LinkedHashMap<>();
-                    for (final Map.Entry<String, Integer> entry : titleHeaders.entrySet()) {
-                        title.put(entry.getKey(), formatter.formatCellValue(row.getCell(entry.getValue())));
-                    }
-                    final Map<String, String> description = new LinkedHashMap<>();
-                    for (final Map.Entry<String, Integer> entry : descriptionHeaders.entrySet()) {
-                        description.put(entry.getKey(), formatter.formatCellValue(row.getCell(entry.getValue())));
-                    }
-                    final ExternalReference externalReference = createOrUpdateExternalReference(id, propertyType, url, parentCodeScheme, title, description);
+                    fromExternalReference.setParentCodeScheme(parentCodeScheme);
+                    final String url = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_URL)));
+                    fromExternalReference.setUrl(url);
+                    final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE)));
+                    fromExternalReference.setPropertyType(propertyTypeRepository.findByLocalName(propertyTypeLocalName));
+                    fromExternalReference.setTitle(parseLocalizedValueFromExcelRow(titleHeaders, row, formatter));
+                    fromExternalReference.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
+                    final ExternalReference externalReference = createOrUpdateExternalReference(fromExternalReference);
                     if (externalReference != null) {
                         externalReferences.add(externalReference);
                     }
@@ -174,80 +172,90 @@ public class ExternalReferenceParser extends AbstractBaseParser {
         return externalReferences;
     }
 
-    private ExternalReference createOrUpdateExternalReference(final UUID id,
-                                                              final PropertyType propertyType,
-                                                              final String url,
-                                                              final CodeScheme parentCodeScheme,
-                                                              final Map<String, String> title,
-                                                              final Map<String, String> description) {
-        ExternalReference externalReference = null;
-        String uri = null;
-        if (id != null) {
-            externalReference = externalReferenceRepository.findById(id);
-            uri = apiUtils.createResourceUri(API_PATH_EXTERNALREFERENCES, id.toString());
-        }
-        if (externalReference != null) {
-            boolean hasChanges = false;
-            if (!Objects.equals(externalReference.getUri(), uri)) {
-                externalReference.setUri(uri);
-                hasChanges = true;
-            }
-            if (!Objects.equals(externalReference.getUrl(), url)) {
-                externalReference.setUrl(url);
-                hasChanges = true;
-            }
-            if (!Objects.equals(externalReference.getParentCodeScheme(), parentCodeScheme)) {
-                externalReference.setParentCodeScheme(parentCodeScheme);
-                externalReference.setGlobal(parentCodeScheme == null);
-                hasChanges = true;
-            }
-            if (!Objects.equals(externalReference.getPropertyType(), propertyType)) {
-                externalReference.setPropertyType(propertyType);
-                hasChanges = true;
-            }
-            for (final Map.Entry<String, String> entry : title.entrySet()) {
-                final String language = entry.getKey();
-                final String value = entry.getValue();
-                if (!Objects.equals(externalReference.getTitle(language), value)) {
-                    externalReference.setTitle(language, value);
-                    hasChanges = true;
-                }
-            }
-            for (final Map.Entry<String, String> entry : description.entrySet()) {
-                final String language = entry.getKey();
-                final String value = entry.getValue();
-                if (!Objects.equals(externalReference.getDescription(language), value)) {
-                    externalReference.setDescription(language, value);
-                    hasChanges = true;
-                }
-            }
-            if (hasChanges) {
-                final Date timeStamp = new Date(System.currentTimeMillis());
-                externalReference.setModified(timeStamp);
-            }
+    public ExternalReference createOrUpdateExternalReference(final ExternalReference fromExternalReference) {
+        final ExternalReference existingExternalReference;
+        if (fromExternalReference.getId() != null) {
+            existingExternalReference = externalReferenceRepository.findById(fromExternalReference.getId());
         } else {
-            externalReference = new ExternalReference();
-            if (id != null) {
-                externalReference.setId(id);
-            } else {
-                final UUID uuid = UUID.randomUUID();
-                uri = apiUtils.createResourceUri(API_PATH_EXTERNALREFERENCES, uuid.toString());
-                externalReference.setId(uuid);
-            }
-            externalReference.setParentCodeScheme(parentCodeScheme);
-            externalReference.setGlobal(parentCodeScheme == null);
-            externalReference.setPropertyType(propertyType);
-            externalReference.setUri(uri);
-            externalReference.setUrl(url);
-            for (final Map.Entry<String, String> entry : title.entrySet()) {
-                externalReference.setTitle(entry.getKey(), entry.getValue());
-            }
-            for (final Map.Entry<String, String> entry : description.entrySet()) {
-                externalReference.setDescription(entry.getKey(), entry.getValue());
-            }
-            final Date timeStamp = new Date(System.currentTimeMillis());
-            externalReference.setModified(timeStamp);
+            existingExternalReference = null;
         }
+        final ExternalReference externalReference;
+        if (existingExternalReference != null) {
+            externalReference = updateExternalReference(existingExternalReference, fromExternalReference);
+        } else {
+            externalReference = createExternalReference(fromExternalReference);
+        }
+        return externalReference;
+    }
+
+    private ExternalReference updateExternalReference(final ExternalReference existingExternalReference,
+                                                      final ExternalReference fromExternalReference) {
+        final String uri = apiUtils.createResourceUri(API_PATH_EXTERNALREFERENCES, fromExternalReference.getId().toString());
+        boolean hasChanges = false;
+        if (!Objects.equals(existingExternalReference.getUri(), uri)) {
+            existingExternalReference.setUri(uri);
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingExternalReference.getUrl(), fromExternalReference.getUrl())) {
+            existingExternalReference.setUrl(fromExternalReference.getUrl());
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingExternalReference.getParentCodeScheme(), fromExternalReference.getParentCodeScheme())) {
+            existingExternalReference.setParentCodeScheme(fromExternalReference.getParentCodeScheme());
+            existingExternalReference.setGlobal(fromExternalReference.getParentCodeScheme() == null);
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingExternalReference.getPropertyType(), fromExternalReference.getPropertyType())) {
+            existingExternalReference.setPropertyType(fromExternalReference.getPropertyType());
+            hasChanges = true;
+        }
+        for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
+            final String language = entry.getKey();
+            final String value = entry.getValue();
+            if (!Objects.equals(existingExternalReference.getTitle(language), value)) {
+                existingExternalReference.setTitle(language, value);
+                hasChanges = true;
+            }
+        }
+        for (final Map.Entry<String, String> entry : fromExternalReference.getDescription().entrySet()) {
+            final String language = entry.getKey();
+            final String value = entry.getValue();
+            if (!Objects.equals(existingExternalReference.getDescription(language), value)) {
+                existingExternalReference.setDescription(language, value);
+                hasChanges = true;
+            }
+        }
+        if (hasChanges) {
+            final Date timeStamp = new Date(System.currentTimeMillis());
+            existingExternalReference.setModified(timeStamp);
+        }
+        return existingExternalReference;
+    }
+
+    private ExternalReference createExternalReference(final ExternalReference fromExternalReference) {
+        final ExternalReference externalReference = new ExternalReference();
+        final String uri;
+        if (fromExternalReference.getId() != null) {
+            uri = apiUtils.createResourceUri(API_PATH_EXTERNALREFERENCES, fromExternalReference.getId().toString());
+            externalReference.setId(fromExternalReference.getId());
+        } else {
+            final UUID uuid = UUID.randomUUID();
+            uri = apiUtils.createResourceUri(API_PATH_EXTERNALREFERENCES, uuid.toString());
+            externalReference.setId(uuid);
+        }
+        externalReference.setParentCodeScheme(fromExternalReference.getParentCodeScheme());
+        externalReference.setGlobal(fromExternalReference.getParentCodeScheme() == null);
+        externalReference.setPropertyType(fromExternalReference.getPropertyType());
+        externalReference.setUri(uri);
+        externalReference.setUrl(fromExternalReference.getUrl());
+        for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
+            externalReference.setTitle(entry.getKey(), entry.getValue());
+        }
+        for (final Map.Entry<String, String> entry : fromExternalReference.getDescription().entrySet()) {
+            externalReference.setDescription(entry.getKey(), entry.getValue());
+        }
+        final Date timeStamp = new Date(System.currentTimeMillis());
+        externalReference.setModified(timeStamp);
         return externalReference;
     }
 }

@@ -1,7 +1,7 @@
 package fi.vm.yti.codelist.intake.resource;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -14,28 +14,30 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
+import fi.vm.yti.codelist.intake.parser.ExternalReferenceParser;
+import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_EXTERNALREFERENCES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_VERSION_V1;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_INDEX_EXTERNALREFERENCE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_EXTERNALREFERENCE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.METHOD_POST;
 
 @Component
 @Path("/v1/externalreferences")
-@Api(value = "externalreferences", description = "Operations for creating, deleting and updating externalreferences.")
+@Api(value = "externalreferences")
 @Produces(MediaType.APPLICATION_JSON)
 public class ExternalReferenceResource extends AbstractBaseResource {
 
@@ -43,14 +45,17 @@ public class ExternalReferenceResource extends AbstractBaseResource {
 
     private final Indexing indexing;
     private final ExternalReferenceRepository externalReferenceRepository;
+    private final ExternalReferenceParser externalreferenceParser;
     private final AuthorizationManager authorizationManager;
 
     @Inject
     public ExternalReferenceResource(final Indexing indexing,
                                      final ExternalReferenceRepository externalReferenceRepository,
+                                     final ExternalReferenceParser externalReferenceParser,
                                      final AuthorizationManager authorizationManager) {
         this.indexing = indexing;
         this.externalReferenceRepository = externalReferenceRepository;
+        this.externalreferenceParser = externalReferenceParser;
         this.authorizationManager = authorizationManager;
     }
 
@@ -64,15 +69,12 @@ public class ExternalReferenceResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
-        final ObjectMapper mapper = createObjectMapper();
         if (!authorizationManager.isSuperUser()) {
             return handleUnauthorizedAccess(meta, wrapper,
-                    "Superuser rights are needed to addOrUpdateExternalReferences.");
+                "Superuser rights are needed to addOrUpdateExternalReferences.");
         }
         try {
-            final List<ExternalReference> externalReferences;
-            externalReferences = mapper.readValue(jsonPayload, new TypeReference<List<ExternalReference>>() {
-            });
+            final Set<ExternalReference> externalReferences = externalreferenceParser.parseExternalReferencesFromJson(jsonPayload);
             if (!externalReferences.isEmpty()) {
                 externalReferenceRepository.save(externalReferences);
                 indexing.reIndex(ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE);
@@ -99,16 +101,15 @@ public class ExternalReferenceResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/" + externalReferenceId + "/");
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
-        final ObjectMapper mapper = createObjectMapper();
         if (!authorizationManager.isSuperUser()) {
             return handleUnauthorizedAccess(meta, wrapper,
-                    "Superuser rights are needed to updateExternalReference.");
+                "Superuser rights are needed to updateExternalReference.");
         }
         final UUID uuid = UUID.fromString(externalReferenceId);
         final ExternalReference existingExternalReference = externalReferenceRepository.findById(uuid);
         if (existingExternalReference != null) {
             try {
-                final ExternalReference externalReference = mapper.readValue(jsonPayload, ExternalReference.class);
+                final ExternalReference externalReference = externalreferenceParser.parseExternalReferenceFromJson(jsonPayload);
                 externalReferenceRepository.save(externalReference);
                 indexing.reIndex(ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE);
                 meta.setCode(200);

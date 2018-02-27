@@ -168,10 +168,10 @@ public class YtiDataAccess {
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, identifier, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODESCHEMES + "/" + identifier + ".csv")) {
                     codeSchemes.addAll(codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream));
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     LOG.error("Issue with parsing CodeScheme file. ", e);
                     updateManager.updateFailedStatus(updateStatus);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     LOG.error("Issue with existing CodeScheme found. ", e);
                     updateManager.updateFailedStatus(updateStatus);
                 }
@@ -200,10 +200,10 @@ public class YtiDataAccess {
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODES, identifier, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODES + "/" + identifier + ".csv")) {
                     codes.addAll(codeParser.parseCodesFromCsvInputStream(codeScheme, inputStream));
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     LOG.error("Issue with parsing Code file. ", e);
                     updateManager.updateFailedStatus(updateStatus);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     LOG.error("Issue with existing Code found. ", e);
                     updateManager.updateFailedStatus(updateStatus);
                 }

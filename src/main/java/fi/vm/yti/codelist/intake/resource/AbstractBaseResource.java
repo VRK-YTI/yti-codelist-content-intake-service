@@ -3,17 +3,18 @@ package fi.vm.yti.codelist.intake.resource;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import fi.vm.yti.codelist.common.model.Meta;
-import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
-import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -24,9 +25,20 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.jaxrs.cfg.EndpointConfigBase;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterModifier;
-import org.slf4j.LoggerFactory;
 
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import fi.vm.yti.codelist.common.model.Meta;
+import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
+import fi.vm.yti.codelist.intake.api.ResponseWrapper;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FIELD_NAME_ID;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FIELD_NAME_URI;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_CODE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_CODEREGISTRY;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_CODESCHEME;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_DATACLASSIFICATION;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_EXTERNALREFERENCE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_ORGANIZATION;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_PROPERTYTYPE;
 
 public abstract class AbstractBaseResource {
 
@@ -76,7 +88,6 @@ public abstract class AbstractBaseResource {
                                                  final String msgToUser) {
         handleLoggingAndMetaForHttpCode(500, meta, logMessage, e, Optional.of(msgToUser));
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
-        // return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorModel).build();
     }
 
     protected Response handleInternalServerError(final Meta meta,
@@ -144,7 +155,7 @@ public abstract class AbstractBaseResource {
     private void handleLoggingAndMetaForHttpCode(final int code,
                                                  Meta meta,
                                                  final String logMessage,
-                                                 Optional<String>  msgToUser) {
+                                                 Optional<String> msgToUser) {
         LOG.error(logMessage, new WebApplicationException(code));
         meta.setCode(code);
         if (msgToUser.isPresent()) {
@@ -156,7 +167,7 @@ public abstract class AbstractBaseResource {
                                                  Meta meta,
                                                  final String logMessage,
                                                  final Exception e,
-                                                 Optional<String>  msgToUser) {
+                                                 Optional<String> msgToUser) {
         LOG.error(logMessage, e);
         meta.setCode(code);
         if (msgToUser.isPresent()) {

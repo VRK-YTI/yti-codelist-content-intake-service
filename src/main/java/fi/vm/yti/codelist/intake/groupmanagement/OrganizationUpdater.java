@@ -89,7 +89,7 @@ public class OrganizationUpdater {
             if (!organizations.isEmpty()) {
                 organizationRepository.save(organizations);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOG.error("Organization fetching failed due to exception", e);
         }
     }

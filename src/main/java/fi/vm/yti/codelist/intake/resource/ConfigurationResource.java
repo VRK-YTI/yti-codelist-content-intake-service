@@ -24,7 +24,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Component
 @Path("/v1/configuration")
-@Api(value = "configuration", description = "Operations for fetching configuration values to frontend.")
+@Api(value = "configuration")
 @Produces("text/plain")
 public class ConfigurationResource extends AbstractBaseResource {
 

@@ -1,18 +1,15 @@
 package fi.vm.yti.codelist.intake.parser;
 
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import fi.vm.yti.codelist.common.model.ErrorModel;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,22 +17,13 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import fi.vm.yti.codelist.intake.exception.CodeParsingException;
-import fi.vm.yti.codelist.intake.exception.ErrorConstants;
-import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
-import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
-import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
-import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
-import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
-import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -46,17 +34,45 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.CodeScheme;
+import fi.vm.yti.codelist.common.model.ErrorModel;
+import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.exception.CodeParsingException;
+import fi.vm.yti.codelist.intake.exception.ErrorConstants;
+import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderClassificationException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_CHANGENOTE_PREFIX;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_CLASSIFICATION;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_CODEVALUE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DEFINITION_PREFIX;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DESCRIPTION_PREFIX;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ENDDATE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_GOVERNANCEPOLICY;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ID;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_LEGALBASE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PREFLABEL_PREFIX;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_SOURCE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_STARTDATE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_STATUS;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_VERSION;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_CODESCHEMES;
 
 /**
  * Class that handles parsing of CodeSchemes from source data.
@@ -69,16 +85,62 @@ public class CodeSchemeParser extends AbstractBaseParser {
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeRepository codeRepository;
     private final CodeRegistryRepository codeRegistryRepository;
+    private final ExternalReferenceRepository externalReferenceRepository;
+    private final ExternalReferenceParser externalReferenceParser;
 
     @Inject
     public CodeSchemeParser(final ApiUtils apiUtils,
                             final CodeRegistryRepository codeRegistryRepository,
                             final CodeSchemeRepository codeSchemeRepository,
-                            final CodeRepository codeRepository) {
+                            final CodeRepository codeRepository,
+                            final ExternalReferenceRepository externalReferenceRepository,
+                            final ExternalReferenceParser externalReferenceParser) {
         this.apiUtils = apiUtils;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeRepository = codeRepository;
+        this.externalReferenceRepository = externalReferenceRepository;
+        this.externalReferenceParser = externalReferenceParser;
+    }
+
+    public CodeScheme parseCodeSchemeFromJsonInput(final CodeRegistry codeRegistry,
+                                                   final String jsonPayload) throws IOException {
+        final ObjectMapper mapper = createObjectMapper();
+        final CodeScheme codeScheme;
+        final CodeScheme fromCodeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
+        codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
+        // TODO Refactor
+        if (fromCodeScheme.getExternalReferences() != null) {
+            final Set<ExternalReference> externalReferences = initializeExternalReferences(fromCodeScheme.getExternalReferences(), externalReferenceParser);
+            if (!externalReferences.isEmpty()) {
+                externalReferenceRepository.save(externalReferences);
+                codeScheme.setExternalReferences(externalReferences);
+            } else {
+                codeScheme.setExternalReferences(null);
+            }
+        }
+        return codeScheme;
+    }
+
+    public Set<CodeScheme> parseCodeSchemesFromJsonInput(final CodeRegistry codeRegistry,
+                                                         final String jsonPayload) throws IOException {
+        final ObjectMapper mapper = createObjectMapper();
+        final Set<CodeScheme> codeSchemes = new HashSet<>();
+        final Set<CodeScheme> fromCodeSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<CodeScheme>>() {
+        });
+        for (final CodeScheme fromCodeScheme : fromCodeSchemes) {
+            final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
+            codeSchemes.add(codeScheme);
+            // TODO Refactor
+            final Set<ExternalReference> externalReferences = initializeExternalReferences(fromCodeScheme.getExternalReferences(), externalReferenceParser);
+            if (!externalReferences.isEmpty()) {
+                externalReferenceRepository.save(externalReferences);
+                codeScheme.setExternalReferences(externalReferences);
+            } else {
+                codeScheme.setExternalReferences(null);
+            }
+        }
+        return codeSchemes;
     }
 
     /**
@@ -89,103 +151,46 @@ public class CodeSchemeParser extends AbstractBaseParser {
      */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeScheme> parseCodeSchemesFromCsvInputStream(final CodeRegistry codeRegistry,
-                                                              final InputStream inputStream) throws YtiCodeListException {
+                                                              final InputStream inputStream) {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
-            if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
-                throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                    ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
-            }
-            if (!headerMap.containsKey(CONTENT_HEADER_STATUS)) {
-                throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                    ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS));
-            }
-            if (!headerMap.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
-                throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                    ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
-            }
-            final Map<String, String> prefLabelHeaders = new LinkedHashMap<>();
-            final Map<String, String> descriptionHeaders = new LinkedHashMap<>();
-            final Map<String, String> definitionHeaders = new LinkedHashMap<>();
-            final Map<String, String> changeNoteHeaders = new LinkedHashMap<>();
-            for (final String value : headerMap.keySet()) {
-                if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                    prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), value);
-                } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
-                    descriptionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DESCRIPTION_PREFIX, value), value);
-                } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                    definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), value);
-                } else if (value.startsWith(CONTENT_HEADER_CHANGENOTE_PREFIX)) {
-                    changeNoteHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_CHANGENOTE_PREFIX, value), value);
-                }
-            }
+            final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
+            final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
+            final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
+            final Map<String, Integer> changeNoteHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_CHANGENOTE_PREFIX);
+            validateRequiredSchemeHeaders(headerMap);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
-                if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).equals("")) {
-                    throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                        ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE));
-                }
-                if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).equals("")) {
-                    throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                        ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS));
-                }
+                validateRequiredDataOnRecord(record);
+                final CodeScheme fromCodeScheme = new CodeScheme();
                 final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
-                final UUID id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
-                final Map<String, String> prefLabel = new LinkedHashMap<>();
-                prefLabelHeaders.forEach((language, header) ->
-                    prefLabel.put(language, record.get(header)));
-                final Map<String, String> definition = new LinkedHashMap<>();
-                definitionHeaders.forEach((language, header) ->
-                    definition.put(language, record.get(header)));
-                final Map<String, String> description = new LinkedHashMap<>();
-                descriptionHeaders.forEach((language, header) ->
-                    description.put(language, record.get(header)));
-                final Map<String, String> changeNote = new LinkedHashMap<>();
-                changeNoteHeaders.forEach((language, header) ->
-                    changeNote.put(language, record.get(header)));
+                fromCodeScheme.setCodeValue(codeValue);
+                fromCodeScheme.setId(parseUUIDFromString(record.get(CONTENT_HEADER_ID)));
+                fromCodeScheme.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
+                fromCodeScheme.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
+                fromCodeScheme.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
+                fromCodeScheme.setChangeNote(parseLocalizedValueFromCsvRecord(changeNoteHeaders, record));
                 final String dataClassificationCodes = record.get(CONTENT_HEADER_CLASSIFICATION);
-                final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
+                final Set<Code> dataClassifications = resolveDataClassificationsFromString(dataClassificationCodes);
                 if (dataClassifications.isEmpty() && !codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                     LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
                     throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                         ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
                 }
-                final String version = record.get(CONTENT_HEADER_VERSION);
-                final Status status = Status.valueOf(record.get(CONTENT_HEADER_STATUS));
-                final String legalBase = record.get(CONTENT_HEADER_LEGALBASE);
-                final String governancePolicy = record.get(CONTENT_HEADER_GOVERNANCEPOLICY);
-                final String source = record.get(CONTENT_HEADER_SOURCE);
-                final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
-                Date startDate = null;
-                final String startDateString = record.get(CONTENT_HEADER_STARTDATE);
-                if (!startDateString.isEmpty()) {
-                    try {
-                        startDate = dateFormat.parse(startDateString);
-                    } catch (ParseException e) {
-                        LOG.error("Parsing startDate for codeScheme: " + codeValue + " failed from string: " + startDateString);
-                        throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ErrorConstants.ERR_MSG_USER_ERRONEOUS_START_DATE));
-                    }
-                }
-                Date endDate = null;
-                final String endDateString = record.get(CONTENT_HEADER_ENDDATE);
-                if (!endDateString.isEmpty()) {
-                    try {
-                        endDate = dateFormat.parse(endDateString);
-                    } catch (ParseException e) {
-                        LOG.error("Parsing endDate for codeScheme: " + codeValue + " failed from string: " + endDateString);
-                        throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ErrorConstants.ERR_MSG_USER_ERRONEOUS_END_DATE));
-                    }
-                }
-                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status,
-                    source, legalBase, governancePolicy, startDate, endDate, prefLabel, description, definition, changeNote);
+                fromCodeScheme.setVersion(record.get(CONTENT_HEADER_VERSION));
+                fromCodeScheme.setStatus(Status.valueOf(record.get(CONTENT_HEADER_STATUS)).toString());
+                fromCodeScheme.setLegalBase(record.get(CONTENT_HEADER_LEGALBASE));
+                fromCodeScheme.setGovernancePolicy(record.get(CONTENT_HEADER_GOVERNANCEPOLICY));
+                fromCodeScheme.setSource(record.get(CONTENT_HEADER_SOURCE));
+                fromCodeScheme.setStartDate(parseStartDateFromString(record.get(CONTENT_HEADER_STARTDATE)));
+                fromCodeScheme.setEndDate(parseEndDateString(record.get(CONTENT_HEADER_ENDDATE)));
+                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
                 codeSchemes.add(codeScheme);
             }
-        } catch( IOException e) {
+        } catch (IOException e) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 ErrorConstants.ERR_MSG_USER_500));
         }
@@ -224,122 +229,58 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 sheet = workbook.getSheetAt(0);
             }
             final Iterator<Row> rowIterator = sheet.rowIterator();
-            final Map<String, Integer> genericHeaders = new LinkedHashMap<>();
-            final Map<String, Integer> prefLabelHeaders = new LinkedHashMap<>();
-            final Map<String, Integer> descriptionHeaders = new LinkedHashMap<>();
-            final Map<String, Integer> definitionHeaders = new LinkedHashMap<>();
-            final Map<String, Integer> changeNoteHeaders = new LinkedHashMap<>();
+            Map<String, Integer> headerMap = null;
+            Map<String, Integer> prefLabelHeaders = null;
+            Map<String, Integer> definitionHeaders = null;
+            Map<String, Integer> descriptionHeaders = null;
+            Map<String, Integer> changeNoteHeaders = null;
             boolean firstRow = true;
             while (rowIterator.hasNext()) {
                 final Row row = rowIterator.next();
                 if (firstRow) {
-                    final Iterator<Cell> cellIterator = row.cellIterator();
-                    while (cellIterator.hasNext()) {
-                        final Cell cell = cellIterator.next();
-                        final String value = cell.getStringCellValue();
-                        final Integer index = cell.getColumnIndex();
-                        if (value.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
-                            prefLabelHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_PREFLABEL_PREFIX, value), index);
-                        } else if (value.startsWith(CONTENT_HEADER_DESCRIPTION_PREFIX)) {
-                            descriptionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DESCRIPTION_PREFIX, value), index);
-                        } else if (value.startsWith(CONTENT_HEADER_DEFINITION_PREFIX)) {
-                            definitionHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_DEFINITION_PREFIX, value), index);
-                        } else if (value.startsWith(CONTENT_HEADER_CHANGENOTE_PREFIX)) {
-                            changeNoteHeaders.put(resolveLanguageFromHeader(CONTENT_HEADER_CHANGENOTE_PREFIX, value), index);
-                        } else {
-                            genericHeaders.put(value, index);
-                        }
-                    }
-                    if (!genericHeaders.containsKey(CONTENT_HEADER_CODEVALUE) ) {
-                        throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
-                    }
-                    if (!genericHeaders.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
-                        throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
-                    }
-                    if (!genericHeaders.containsKey(CONTENT_HEADER_STATUS)) {
-                        throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS));
-                    }
                     firstRow = false;
+                    headerMap = resolveHeaderMap(row);
+                    prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
+                    definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
+                    descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
+                    changeNoteHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_CHANGENOTE_PREFIX);
+                    validateRequiredSchemeHeaders(headerMap);
                 } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
-                    if (formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE))) == null ||
-                            formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE))).equals("")) {
-                        throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE));
-                    }
-                    if (formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS))) == null ||
-                            formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS))).equals("")) {
-                        throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS));
-                    }
-                    final String codeValue = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CODEVALUE)));
+                    validateRequiredDataOnRow(row, headerMap, formatter);
+                    final CodeScheme fromCodeScheme = new CodeScheme();
+                    final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
                     if (codeValue == null || codeValue.trim().isEmpty()) {
                         continue;
                     }
-                    final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ID))));
+                    fromCodeScheme.setCodeValue(codeValue);
+                    fromCodeScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                     final String dataClassificationCodes;
                     try {
-                        dataClassificationCodes = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CLASSIFICATION)));
+                        dataClassificationCodes = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CLASSIFICATION)));
                     } catch (NullPointerException e) {
                         LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
                         throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                             ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
                     }
-                    final Set<Code> dataClassifications = resolveDataClassifications(dataClassificationCodes);
+                    final Set<Code> dataClassifications = resolveDataClassificationsFromString(dataClassificationCodes);
                     if (dataClassifications.isEmpty() && !codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                         LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
                         throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                             ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
                     }
-                    final Map<String, String> prefLabel = new LinkedHashMap<>();
-                    prefLabelHeaders.forEach((language, header) ->
-                        prefLabel.put(language, formatter.formatCellValue(row.getCell(header))));
-                    final Map<String, String> definition = new LinkedHashMap<>();
-                    definitionHeaders.forEach((language, header) ->
-                        definition.put(language, formatter.formatCellValue(row.getCell(header))));
-                    final Map<String, String> description = new LinkedHashMap<>();
-                    descriptionHeaders.forEach((language, header) ->
-                        description.put(language, formatter.formatCellValue(row.getCell(header))));
-                    final Map<String, String> changeNote = new LinkedHashMap<>();
-                    changeNoteHeaders.forEach((language, header) ->
-                        changeNote.put(language, formatter.formatCellValue(row.getCell(header))));
-                    final String version = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_VERSION)));
-                    final String statusString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STATUS)));
-                    final Status status;
-                    if (!statusString.isEmpty()) {
-                        status = Status.valueOf(statusString);
-                    } else {
-                        status = Status.DRAFT;
-                    }
-                    final String source = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_SOURCE)));
-                    final String legalBase = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_LEGALBASE)));
-                    final String governancePolicy = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_GOVERNANCEPOLICY)));
-                    final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
-                    Date startDate = null;
-                    final String startDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_STARTDATE)));
-                    if (!startDateString.isEmpty()) {
-                        try {
-                            startDate = dateFormat.parse(startDateString);
-                        } catch (ParseException e) {
-                            LOG.error("Parsing startDate for code: " + codeValue + " failed from string: " + startDateString);
-                            throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                                ErrorConstants.ERR_MSG_USER_ERRONEOUS_START_DATE));
-                        }
-                    }
-                    Date endDate = null;
-                    final String endDateString = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_ENDDATE)));
-                    if (!endDateString.isEmpty()) {
-                        try {
-                            endDate = dateFormat.parse(endDateString);
-                        } catch (ParseException e) {
-                            LOG.error("Parsing endDate for code: " + codeValue + " failed from string: " + endDateString);
-                            throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                                ErrorConstants.ERR_MSG_USER_ERRONEOUS_END_DATE));
-                        }
-                    }
-                    final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, dataClassifications, id, codeValue, version, status, source, legalBase, governancePolicy, startDate, endDate, prefLabel, description, definition, changeNote);
+                    fromCodeScheme.setDataClassifications(dataClassifications);
+                    fromCodeScheme.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
+                    fromCodeScheme.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
+                    fromCodeScheme.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
+                    fromCodeScheme.setChangeNote(parseLocalizedValueFromExcelRow(changeNoteHeaders, row, formatter));
+                    fromCodeScheme.setVersion(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_VERSION))));
+                    fromCodeScheme.setStatus(parseStatus(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))).toString());
+                    fromCodeScheme.setSource(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SOURCE))));
+                    fromCodeScheme.setLegalBase(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LEGALBASE))));
+                    fromCodeScheme.setGovernancePolicy(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_GOVERNANCEPOLICY))));
+                    fromCodeScheme.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE)))));
+                    fromCodeScheme.setEndDate(parseEndDateString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE)))));
+                    final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
                     if (codeScheme != null) {
                         codeSchemes.add(codeScheme);
                     }
@@ -349,155 +290,211 @@ public class CodeSchemeParser extends AbstractBaseParser {
         return codeSchemes;
     }
 
-    private CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
-                                                final Set<Code> dataClassifications,
-                                                final UUID id,
-                                                final String codeValue,
-                                                final String version,
-                                                final Status status,
-                                                final String source,
-                                                final String legalBase,
-                                                final String governancePolicy,
-                                                final Date startDate,
-                                                final Date endDate,
-                                                final Map<String, String> prefLabel,
-                                                final Map<String, String> description,
-                                                final Map<String, String> definition,
-                                                final Map<String, String> changeNote) {
-        CodeScheme codeScheme = null;
-        if (id != null) {
-            codeScheme = codeSchemeRepository.findById(id);
-        } else {
-            final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeValue);
-            if (existingCodeScheme != null) {
-                throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                    ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME));
-            }
+    private void validateRequiredDataOnRow(final Row row,
+                                           final Map<String, Integer> headerMap,
+                                           final DataFormatter formatter) {
+        if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))) == null ||
+            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).equals("")) {
+            throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE));
         }
-        if (codeScheme != null) {
-            final String uri = apiUtils.createCodeSchemeUri(codeRegistry, codeScheme);
-            boolean hasChanges = false;
-            if (!Objects.equals(codeScheme.getStatus(), status.toString())) {
-                codeScheme.setStatus(status.toString());
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getCodeRegistry(), codeRegistry)) {
-                codeScheme.setCodeRegistry(codeRegistry);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getDataClassifications(), dataClassifications)) {
-                codeScheme.setDataClassifications(dataClassifications);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getUri(), uri)) {
-                codeScheme.setUri(uri);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getSource(), source)) {
-                codeScheme.setSource(source);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getLegalBase(), legalBase)) {
-                codeScheme.setLegalBase(legalBase);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getGovernancePolicy(), governancePolicy)) {
-                codeScheme.setGovernancePolicy(governancePolicy);
-                hasChanges = true;
-            }
-            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
-                final String language = entry.getKey();
-                final String value = entry.getValue();
-                if (!Objects.equals(codeScheme.getPrefLabel(language), value)) {
-                    codeScheme.setPrefLabel(language, value);
-                    hasChanges = true;
-                }
-            }
-            for (final Map.Entry<String, String> entry : description.entrySet()) {
-                final String language = entry.getKey();
-                final String value = entry.getValue();
-                if (!Objects.equals(codeScheme.getDescription(language), value)) {
-                    codeScheme.setDescription(language, value);
-                    hasChanges = true;
-                }
-            }
-            for (final Map.Entry<String, String> entry : definition.entrySet()) {
-                final String language = entry.getKey();
-                final String value = entry.getValue();
-                if (!Objects.equals(codeScheme.getDefinition(language), value)) {
-                    codeScheme.setDefinition(language, value);
-                    hasChanges = true;
-                }
-            }
-            for (final Map.Entry<String, String> entry : changeNote.entrySet()) {
-                final String language = entry.getKey();
-                final String value = entry.getValue();
-                if (!Objects.equals(codeScheme.getChangeNote(language), value)) {
-                    codeScheme.setChangeNote(language, value);
-                    hasChanges = true;
-                }
-            }
-            if (!Objects.equals(codeScheme.getVersion(), version)) {
-                codeScheme.setVersion(version);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getStartDate(), startDate)) {
-                codeScheme.setStartDate(startDate);
-                hasChanges = true;
-            }
-            if (!Objects.equals(codeScheme.getEndDate(), endDate)) {
-                codeScheme.setEndDate(endDate);
-                hasChanges = true;
-            }
-            if (hasChanges) {
-                final Date timeStamp = new Date(System.currentTimeMillis());
-                codeScheme.setModified(timeStamp);
-            }
+        if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))) == null ||
+            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))).equals("")) {
+            throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS));
+        }
+    }
+
+    private void validateRequiredDataOnRecord(final CSVRecord record) {
+        if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).equals("")) {
+            throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE));
+        }
+        if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).equals("")) {
+            throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS));
+        }
+    }
+
+    private void validateRequiredSchemeHeaders(final Map<String, Integer> headerMap) {
+        if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
+            throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
+        }
+        if (!headerMap.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
+            throw new MissingHeaderClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
+        }
+        if (!headerMap.containsKey(CONTENT_HEADER_STATUS)) {
+            throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS));
+        }
+    }
+
+    private CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
+                                                final CodeScheme fromCodeScheme) {
+        validateCodeSchemeForCodeRegistry(codeRegistry, fromCodeScheme);
+        final CodeScheme existingCodeScheme;
+        if (fromCodeScheme.getId() != null) {
+            existingCodeScheme = codeSchemeRepository.findById(fromCodeScheme.getId());
         } else {
-            codeScheme = new CodeScheme();
-            codeScheme.setId(UUID.randomUUID());
-            codeScheme.setCodeRegistry(codeRegistry);
-            codeScheme.setDataClassifications(dataClassifications);
-            if (id != null) {
-                codeScheme.setId(id);
-            } else {
-                final UUID uuid = UUID.randomUUID();
-                codeScheme.setId(uuid);
-            }
-            codeScheme.setCodeValue(codeValue);
-            codeScheme.setSource(source);
-            codeScheme.setLegalBase(legalBase);
-            codeScheme.setGovernancePolicy(governancePolicy);
-            final Date timeStamp = new Date(System.currentTimeMillis());
-            codeScheme.setModified(timeStamp);
-            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
-                codeScheme.setPrefLabel(entry.getKey(), entry.getValue());
-            }
-            for (final Map.Entry<String, String> entry : description.entrySet()) {
-                codeScheme.setDescription(entry.getKey(), entry.getValue());
-            }
-            for (final Map.Entry<String, String> entry : definition.entrySet()) {
-                codeScheme.setDefinition(entry.getKey(), entry.getValue());
-            }
-            for (final Map.Entry<String, String> entry : changeNote.entrySet()) {
-                codeScheme.setChangeNote(entry.getKey(), entry.getValue());
-            }
-            codeScheme.setVersion(version);
-            codeScheme.setStatus(status.toString());
-            codeScheme.setStartDate(startDate);
-            codeScheme.setEndDate(endDate);
-            codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
+            checkForExistingCodeSchemeInRegistry(codeRegistry, fromCodeScheme);
+            existingCodeScheme = null;
+        }
+        final CodeScheme codeScheme;
+        if (existingCodeScheme != null) {
+            codeScheme = updateCodeScheme(codeRegistry, existingCodeScheme, fromCodeScheme);
+        } else {
+            codeScheme = createCodeScheme(codeRegistry, fromCodeScheme);
         }
         return codeScheme;
     }
 
-    private Set<Code> resolveDataClassifications(final String dataClassificationCodes) {
+    private void checkForExistingCodeSchemeInRegistry(final CodeRegistry codeRegistry,
+                                                      final CodeScheme codeScheme) {
+        final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeScheme.getCodeValue());
+        if (existingCodeScheme != null) {
+            throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME));
+        }
+    }
+
+    private CodeScheme updateCodeScheme(final CodeRegistry codeRegistry,
+                                        final CodeScheme existingCodeScheme,
+                                        final CodeScheme fromCodeScheme) {
+        final String uri = apiUtils.createCodeSchemeUri(codeRegistry, existingCodeScheme);
+        boolean hasChanges = false;
+        if (!Objects.equals(existingCodeScheme.getStatus(), fromCodeScheme.getStatus().toString())) {
+            if (Status.valueOf(existingCodeScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCodeScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
+                throw new WebApplicationException("Trying to update content with status: " + existingCodeScheme.getStatus() + " to status: " + fromCodeScheme.getStatus());
+            }
+            existingCodeScheme.setStatus(fromCodeScheme.getStatus().toString());
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingCodeScheme.getCodeRegistry(), codeRegistry)) {
+            existingCodeScheme.setCodeRegistry(codeRegistry);
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingCodeScheme.getDataClassifications(), fromCodeScheme.getDataClassifications())) {
+            existingCodeScheme.setDataClassifications(resolveClassificationsFromCodes(fromCodeScheme.getDataClassifications()));
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingCodeScheme.getUri(), uri)) {
+            existingCodeScheme.setUri(uri);
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingCodeScheme.getSource(), fromCodeScheme.getSource())) {
+            existingCodeScheme.setSource(fromCodeScheme.getSource());
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingCodeScheme.getLegalBase(), fromCodeScheme.getLegalBase())) {
+            existingCodeScheme.setLegalBase(fromCodeScheme.getLegalBase());
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingCodeScheme.getGovernancePolicy(), fromCodeScheme.getGovernancePolicy())) {
+            existingCodeScheme.setGovernancePolicy(fromCodeScheme.getGovernancePolicy());
+            hasChanges = true;
+        }
+        for (final Map.Entry<String, String> entry : fromCodeScheme.getPrefLabel().entrySet()) {
+            final String language = entry.getKey();
+            final String value = entry.getValue();
+            if (!Objects.equals(existingCodeScheme.getPrefLabel(language), value)) {
+                existingCodeScheme.setPrefLabel(language, value);
+                hasChanges = true;
+            }
+        }
+        for (final Map.Entry<String, String> entry : fromCodeScheme.getDescription().entrySet()) {
+            final String language = entry.getKey();
+            final String value = entry.getValue();
+            if (!Objects.equals(existingCodeScheme.getDescription(language), value)) {
+                existingCodeScheme.setDescription(language, value);
+                hasChanges = true;
+            }
+        }
+        for (final Map.Entry<String, String> entry : fromCodeScheme.getDefinition().entrySet()) {
+            final String language = entry.getKey();
+            final String value = entry.getValue();
+            if (!Objects.equals(existingCodeScheme.getDefinition(language), value)) {
+                existingCodeScheme.setDefinition(language, value);
+                hasChanges = true;
+            }
+        }
+        for (final Map.Entry<String, String> entry : fromCodeScheme.getChangeNote().entrySet()) {
+            final String language = entry.getKey();
+            final String value = entry.getValue();
+            if (!Objects.equals(existingCodeScheme.getChangeNote(language), value)) {
+                existingCodeScheme.setChangeNote(language, value);
+                hasChanges = true;
+            }
+        }
+        if (!Objects.equals(existingCodeScheme.getVersion(), fromCodeScheme.getVersion())) {
+            existingCodeScheme.setVersion(fromCodeScheme.getVersion());
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingCodeScheme.getStartDate(), fromCodeScheme.getStartDate())) {
+            existingCodeScheme.setStartDate(fromCodeScheme.getStartDate());
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingCodeScheme.getEndDate(), fromCodeScheme.getEndDate())) {
+            existingCodeScheme.setEndDate(fromCodeScheme.getEndDate());
+            hasChanges = true;
+        }
+        if (hasChanges) {
+            final Date timeStamp = new Date(System.currentTimeMillis());
+            existingCodeScheme.setModified(timeStamp);
+        }
+        return existingCodeScheme;
+    }
+
+    private CodeScheme createCodeScheme(final CodeRegistry codeRegistry,
+                                        final CodeScheme fromCodeScheme) {
+        final CodeScheme codeScheme = new CodeScheme();
+        codeScheme.setCodeRegistry(codeRegistry);
+        codeScheme.setDataClassifications(fromCodeScheme.getDataClassifications());
+        if (fromCodeScheme.getId() != null) {
+            codeScheme.setId(fromCodeScheme.getId());
+        } else {
+            final UUID uuid = UUID.randomUUID();
+            codeScheme.setId(uuid);
+        }
+        codeScheme.setCodeValue(fromCodeScheme.getCodeValue());
+        codeScheme.setSource(fromCodeScheme.getSource());
+        codeScheme.setLegalBase(fromCodeScheme.getLegalBase());
+        codeScheme.setGovernancePolicy(fromCodeScheme.getGovernancePolicy());
+        final Date timeStamp = new Date(System.currentTimeMillis());
+        codeScheme.setModified(timeStamp);
+        for (final Map.Entry<String, String> entry : fromCodeScheme.getPrefLabel().entrySet()) {
+            codeScheme.setPrefLabel(entry.getKey(), entry.getValue());
+        }
+        for (final Map.Entry<String, String> entry : fromCodeScheme.getDescription().entrySet()) {
+            codeScheme.setDescription(entry.getKey(), entry.getValue());
+        }
+        for (final Map.Entry<String, String> entry : fromCodeScheme.getDefinition().entrySet()) {
+            codeScheme.setDefinition(entry.getKey(), entry.getValue());
+        }
+        for (final Map.Entry<String, String> entry : fromCodeScheme.getChangeNote().entrySet()) {
+            codeScheme.setChangeNote(entry.getKey(), entry.getValue());
+        }
+        codeScheme.setVersion(fromCodeScheme.getVersion());
+        codeScheme.setStatus(fromCodeScheme.getStatus().toString());
+        codeScheme.setStartDate(fromCodeScheme.getStartDate());
+        codeScheme.setEndDate(fromCodeScheme.getEndDate());
+        codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
+        return codeScheme;
+    }
+
+    private Set<Code> resolveDataClassificationsFromString(final String dataClassificationCodes) {
+        final List<String> codes = Arrays.asList(dataClassificationCodes.split(";"));
+        return resolveDataClassificationsFromCodeValues(codes);
+    }
+
+    private Set<Code> resolveDataClassificationsFromCodeValues(final List<String> codes) {
         final Set<Code> dataClassifications = new HashSet<>();
         final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(JUPO_REGISTRY);
         if (ytiRegistry != null) {
             final CodeScheme dataClassificationScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
             if (dataClassificationScheme != null) {
-                Arrays.asList(dataClassificationCodes.split(";")).forEach(dataClassificationCode -> {
+                codes.forEach(dataClassificationCode -> {
                     final Code code = codeRepository.findByCodeSchemeAndCodeValueAndBroaderCodeId(dataClassificationScheme, dataClassificationCode, null);
                     if (code != null) {
                         dataClassifications.add(code);
@@ -506,5 +503,24 @@ public class CodeSchemeParser extends AbstractBaseParser {
             }
         }
         return dataClassifications;
+    }
+
+    private void validateCodeSchemeForCodeRegistry(final CodeRegistry codeRegistry, final CodeScheme codeScheme) {
+        if (codeScheme.getId() != null) {
+            final CodeScheme existingCodeScheme = codeSchemeRepository.findById(codeScheme.getId());
+            if (existingCodeScheme != null && !existingCodeScheme.getCodeValue().equalsIgnoreCase(codeScheme.getCodeValue())) {
+                throw new WebApplicationException("CodeScheme codeValue does not match existing values in the database!");
+            }
+        } else if (codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeScheme.getCodeValue()) != null) {
+            throw new WebApplicationException("CodeScheme with CodeValue already found in Registry!");
+        }
+    }
+
+    private Set<Code> resolveClassificationsFromCodes(final Set<Code> fromClassifications) {
+        final List<String> codes = new ArrayList<>();
+        for (final Code fromClassification : fromClassifications) {
+            codes.add(fromClassification.getCodeValue());
+        }
+        return resolveDataClassificationsFromCodeValues(codes);
     }
 }

@@ -43,7 +43,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Component
 @Path("/v1/groupmanagement")
-@Api(value = "groupmanagement", description = "Operations related to proxying GroupManagement APIs.")
+@Api(value = "groupmanagement")
 public class GroupManagementProxyResource extends AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(GroupManagementProxyResource.class);

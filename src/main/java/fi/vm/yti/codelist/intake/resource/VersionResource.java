@@ -17,7 +17,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.METHOD_GET;
 
 @Component
 @Path("/version")
-@Api(value = "version", description = "Returns version information of the running application.")
+@Api(value = "version")
 @Produces("text/plain")
 public class VersionResource extends AbstractBaseResource {
 

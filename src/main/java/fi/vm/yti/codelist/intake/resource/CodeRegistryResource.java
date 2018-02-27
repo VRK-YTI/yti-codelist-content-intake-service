@@ -2,7 +2,6 @@ package fi.vm.yti.codelist.intake.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -21,14 +20,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import fi.vm.yti.codelist.common.model.ErrorModel;
-import fi.vm.yti.codelist.intake.exception.CodeParsingException;
-import fi.vm.yti.codelist.intake.exception.ErrorConstants;
-import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
-import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
-import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
-import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
-import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
@@ -39,21 +30,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.CodeScheme;
-import fi.vm.yti.codelist.common.model.ExternalReference;
+import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.common.model.Views;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.domain.Domain;
+import fi.vm.yti.codelist.intake.exception.CodeParsingException;
+import fi.vm.yti.codelist.intake.exception.ErrorConstants;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
@@ -72,7 +67,6 @@ import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODEREGISTRIES;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODES;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODESCHEMES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_EXTERNALREFERENCES;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_VERSION_V1;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_CODESCHEMES;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_CODE;
@@ -86,14 +80,13 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.METHOD_POST;
 
 @Component
 @Path("/v1/coderegistries")
-@Api(value = "coderegistries", description = "Operations for creating, deleting and updating coderegistries, codeschemes and codes.")
+@Api(value = "coderegistries")
 @Produces("text/plain")
 public class CodeRegistryResource extends AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryResource.class);
     private final Domain domain;
     private final Indexing indexing;
-    private final ApiUtils apiUtils;
     private final CodeRegistryParser codeRegistryParser;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeParser codeSchemeParser;
@@ -106,7 +99,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Inject
     public CodeRegistryResource(final Domain domain,
                                 final Indexing indexing,
-                                final ApiUtils apiUtils,
                                 final CodeRegistryParser codeRegistryParser,
                                 final CodeRegistryRepository codeRegistryRepository,
                                 final CodeSchemeParser codeSchemeParser,
@@ -117,7 +109,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                 final AuthorizationManager authorizationManager) {
         this.domain = domain;
         this.indexing = indexing;
-        this.apiUtils = apiUtils;
         this.codeRegistryParser = codeRegistryParser;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeParser = codeSchemeParser;
@@ -143,19 +134,10 @@ public class CodeRegistryResource extends AbstractBaseResource {
             return handleUnauthorizedAccess(meta, wrapper,
                 "Superuser rights are needed to addOrUpdateCodeRegistriesFromJson.");
         }
-        final ObjectMapper mapper = createObjectMapper();
         try {
             Set<CodeRegistry> codeRegistries = new HashSet<>();
             if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                codeRegistries = mapper.readValue(jsonPayload, new TypeReference<Set<CodeRegistry>>() {
-                });
-                for (final CodeRegistry codeRegistry : codeRegistries) {
-                    if (codeRegistry.getId() == null) {
-                        codeRegistry.setId(UUID.randomUUID());
-                        codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
-                        codeRegistry.setModified(new Date(System.currentTimeMillis()));
-                    }
-                }
+                codeRegistries = codeRegistryParser.parseCodeRegistriesFromJson(jsonPayload);
             }
             for (final CodeRegistry register : codeRegistries) {
                 LOG.debug("CodeRegistry parsed from input: " + register.getCodeValue());
@@ -169,7 +151,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             meta.setCode(200);
             wrapper.setResults(codeRegistries);
             return Response.ok(wrapper).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             return handleInternalServerError(meta, wrapper, "Error parsing CodeRegistries.", e, ErrorConstants.ERR_MSG_USER_500);
         }
     }
@@ -212,8 +194,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             meta.setCode(200);
             wrapper.setResults(codeRegistries);
             return Response.ok(wrapper).build();
-        }
-        catch (Exception e) {
+        } catch (final Exception e) {
             return handleInternalServerError(meta, wrapper, "Error parsing CodeRegistries.", e, ErrorConstants.ERR_MSG_USER_500);
         }
     }
@@ -241,30 +222,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             Set<CodeScheme> codeSchemes = new HashSet<>();
             try {
                 if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
-                    final ObjectMapper mapper = createObjectMapper();
-                    codeSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<CodeScheme>>() {
-                    });
-                    for (final CodeScheme codeScheme : codeSchemes) {
-                        validateCodeSchemeForCodeRegistry(codeRegistry, codeScheme);
-                        if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                           return handleStartDateLaterThanEndDate(meta,
-                               responseWrapper,
-                               ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
-                        }
-                        if (codeScheme.getId() == null) {
-                            codeScheme.setId(UUID.randomUUID());
-                            codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
-                        }
-                        codeScheme.setCodeRegistry(codeRegistry);
-                        final Set<ExternalReference> externalReferences = initializeExternalReferences(codeScheme.getExternalReferences(), codeScheme);
-                        if (!externalReferences.isEmpty()) {
-                            externalReferenceRepository.save(externalReferences);
-                            codeScheme.setExternalReferences(externalReferences);
-                        } else {
-                            codeScheme.setExternalReferences(null);
-                        }
-                        codeScheme.setModified(new Date(System.currentTimeMillis()));
-                    }
+                    codeSchemes = codeSchemeParser.parseCodeSchemesFromJsonInput(codeRegistry, jsonPayload);
                 }
             } catch (final Exception e) {
                 return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeSchemesFromJson.", e, ErrorConstants.ERR_MSG_USER_500);
@@ -305,7 +263,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Transactional
     public Response addOrUpdateCodeSchemesFromFile(@ApiParam(value = "Format for input.", required = false) @QueryParam("format") @DefaultValue("csv") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                                   @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) throws YtiCodeListException {
+                                                   @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/");
         final Meta meta = new Meta();
         final ResponseWrapper<CodeScheme> responseWrapper = new ResponseWrapper<>(meta);
@@ -326,11 +284,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     if (!codeSchemes.isEmpty() && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODESCHEMES) != null) {
                         codes = codeParser.parseCodesFromExcel(codeSchemes.iterator().next(), workbook);
                     }
-                }
-                catch (YtiCodeListException e) {
+                } catch (final YtiCodeListException e) {
                     throw e;
-                }
-                catch (IOException | InvalidFormatException e) {
+                } catch (final IOException | InvalidFormatException e) {
                     throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                         ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
                 }
@@ -382,7 +338,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Transactional
     public Response updateCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
-                                     @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) throws WebApplicationException {
+                                     @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
 
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeId + "/");
         final Meta meta = new Meta();
@@ -397,45 +353,24 @@ public class CodeRegistryResource extends AbstractBaseResource {
             if (existingCodeScheme != null) {
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                        final ObjectMapper mapper = createObjectMapper();
-                        final CodeScheme codeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
-                        if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                            return handleStartDateLaterThanEndDate(meta,
-                                responseWrapper,
-                                ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
-                        }
-                        // TODO Refactor this to use existing value as master when evaluating changes.
-                        if (!codeScheme.getCodeValue().equalsIgnoreCase(existingCodeScheme.getCodeValue())) {
-                            LOG.error("CodeScheme cannot be updated because codevalue changed: " + codeScheme.getCodeValue());
-                            meta.setMessage("CodeScheme cannot be updated because codeValue changed. " + codeScheme.getCodeValue());
-                            meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
+                        final CodeScheme codeScheme = codeSchemeParser.parseCodeSchemeFromJsonInput(codeRegistry, jsonPayload);
+                        codeSchemeRepository.save(codeScheme);
+                        if (indexing.updateCodeScheme(codeScheme) &&
+                            indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme)) &&
+                            indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme))) {
+                            meta.setMessage("CodeScheme " + codeSchemeId + " modified.");
+                            meta.setCode(200);
+                            return Response.ok(responseWrapper).build();
                         } else {
-                            final Set<ExternalReference> externalReferences = initializeExternalReferences(codeScheme.getExternalReferences(), codeScheme);
-                            if (!externalReferences.isEmpty()) {
-                                externalReferenceRepository.save(externalReferences);
-                                codeScheme.setExternalReferences(externalReferences);
-                            } else {
-                                codeScheme.setExternalReferences(null);
-                            }
-                            codeScheme.setModified(new Date(System.currentTimeMillis()));
-                            codeSchemeRepository.save(codeScheme);
-                            if (indexing.updateCodeScheme(codeScheme) &&
-                                indexing.updateCodes(codeRepository.findByCodeScheme(codeScheme)) &&
-                                indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme))) {
-                                meta.setMessage("CodeScheme " + codeSchemeId + " modified.");
-                                meta.setCode(200);
-                                return Response.ok(responseWrapper).build();
-                            } else {
-                                return handleInternalServerError(meta, responseWrapper,
-                                        "CodeScheme " + codeSchemeId + " modifification failed.", new WebApplicationException(), ErrorConstants.ERR_MSG_USER_500);
-                            }
+                            return handleInternalServerError(meta, responseWrapper,
+                                "CodeScheme " + codeSchemeId + " modifification failed.", new WebApplicationException(), ErrorConstants.ERR_MSG_USER_500);
                         }
                     } else {
                         meta.setMessage("No JSON payload found.");
                         meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
                     }
-                } catch (Exception e) {
-                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeSchemesFromFile.", e, ErrorConstants.ERR_MSG_USER_500);
+                } catch (final Exception e) {
+                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeScheme.", e, ErrorConstants.ERR_MSG_USER_500);
                 }
             } else {
                 meta.setMessage("CodeScheme: " + codeSchemeId + " does not exist yet, please create codeScheme first.");
@@ -476,36 +411,10 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 Set<Code> codes = new HashSet<>();
                 try {
                     if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
-                        final ObjectMapper mapper = createObjectMapper();
-                        codes = mapper.readValue(jsonPayload, new TypeReference<Set<Code>>() {
-                        });
-                        for (final Code code : codes) {
-                            validateCodeForCodeScheme(codeScheme, code);
-                            if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                                return handleStartDateLaterThanEndDate(meta,
-                                    responseWrapper,
-                                    ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
-                            }
-                            if (code.getId() == null) {
-                                code.setId(UUID.randomUUID());
-                                code.setUri(apiUtils.createCodeUri(codeRegistry, codeScheme, code));
-                                code.setCodeScheme(codeScheme);
-                                code.setModified(new Date(System.currentTimeMillis()));
-                            }
-                            final Set<ExternalReference> externalReferences = initializeExternalReferences(code.getExternalReferences(), codeScheme);
-                            if (!externalReferences.isEmpty()) {
-                                externalReferenceRepository.save(externalReferences);
-                                code.setExternalReferences(externalReferences);
-                            } else {
-                                code.setExternalReferences(null);
-                            }
-                        }
+                        codes = codeParser.parseCodesFromJsonData(codeScheme, jsonPayload);
                     }
-                    if (!codes.isEmpty()) {
-                        domain.persistCodes(codes);
-                    }
-                } catch (Exception e) {
-                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromJson.",e, ErrorConstants.ERR_MSG_USER_500);
+                } catch (final Exception e) {
+                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromJson.", e, ErrorConstants.ERR_MSG_USER_500);
                 }
                 if (!codes.isEmpty()) {
                     domain.persistCodes(codes);
@@ -562,25 +471,20 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
                         codes = codeParser.parseCodesFromExcelInputStream(codeScheme, inputStream);
                     }
-                }
-                catch (MissingRowValueCodeValueException e) {
+                } catch (MissingRowValueCodeValueException e) {
                     return handleInternalServerError(meta, responseWrapper, "Error parsing CodeRegistries.", e,
                         ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE);
-                }
-                catch (MissingRowValueStatusException e) {
+                } catch (MissingRowValueStatusException e) {
                     return handleInternalServerError(meta, responseWrapper, "Error parsing CodeRegistries.", e,
                         ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS);
-                }
-                catch (MissingHeaderCodeValueException e) {
+                } catch (MissingHeaderCodeValueException e) {
                     return handleInternalServerError(meta, responseWrapper, "Error parsing CodeRegistries.", e,
                         ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE);
-                }
-                catch (MissingHeaderStatusException e) {
+                } catch (MissingHeaderStatusException e) {
                     return handleInternalServerError(meta, responseWrapper, "Error parsing CodeRegistries.", e,
                         ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS);
-                }
-                catch (Exception e) {
-                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromFile." ,e, ErrorConstants.ERR_MSG_USER_500);
+                } catch (final Exception e) {
+                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromFile.", e, ErrorConstants.ERR_MSG_USER_500);
                 }
                 for (final Code code : codes) {
                     if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
@@ -630,45 +534,26 @@ public class CodeRegistryResource extends AbstractBaseResource {
             }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
-                final Code existingCode = codeRepository.findByCodeSchemeAndId(codeScheme, UUID.fromString(codeId));
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                        final ObjectMapper mapper = createObjectMapper();
-                        final Code code = mapper.readValue(jsonPayload, Code.class);
-                        if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                            return handleStartDateLaterThanEndDate(meta, responseWrapper, ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
-                        }
-                        if (!code.getCodeValue().equalsIgnoreCase(existingCode.getCodeValue())) {
-                            LOG.error("Code cannot be updated because CodeValue changed: " + code.getCodeValue());
-                            meta.setMessage("Code cannot be updated because CodeValue changed. " + code.getCodeValue());
-                            meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
+                        final Code code = codeParser.parseCodeFromJsonData(codeScheme, jsonPayload);
+                        codeRepository.save(code);
+                        codeSchemeRepository.save(codeScheme);
+                        if (indexing.updateCode(code) &&
+                            indexing.updateCodeScheme(codeScheme) &&
+                            indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme))) {
+                            meta.setMessage("Code " + codeId + " modified.");
+                            meta.setCode(200);
+                            return Response.ok(responseWrapper).build();
                         } else {
-                            final Set<ExternalReference> externalReferences = initializeExternalReferences(code.getExternalReferences(), codeScheme);
-                            if (!externalReferences.isEmpty()) {
-                                externalReferenceRepository.save(externalReferences);
-                                code.setExternalReferences(externalReferences);
-                            } else {
-                                code.setExternalReferences(null);
-                            }
-                            code.setModified(new Date(System.currentTimeMillis()));
-                            codeRepository.save(code);
-                            codeSchemeRepository.save(codeScheme);
-                            if (indexing.updateCode(code) &&
-                                indexing.updateCodeScheme(codeScheme) &&
-                                indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme))) {
-                                meta.setMessage("Code " + codeId + " modified.");
-                                meta.setCode(200);
-                                return Response.ok(responseWrapper).build();
-                            } else {
-                                return handleInternalServerError(meta, responseWrapper,
-                                        "Code " + codeId + " modifification failed.", new WebApplicationException(), ErrorConstants.ERR_MSG_USER_500);
-                            }
+                            return handleInternalServerError(meta, responseWrapper,
+                                "Code " + codeId + " modifification failed.", new WebApplicationException(), ErrorConstants.ERR_MSG_USER_500);
                         }
                     } else {
                         meta.setMessage("No JSON payload found.");
                         meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     return handleInternalServerError(meta, responseWrapper, "Internal server error during call to updateCode.", e, ErrorConstants.ERR_MSG_USER_500);
                 }
             } else {
@@ -725,36 +610,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
         return Response.status(Response.Status.NOT_FOUND).entity(responseWrapper).build();
     }
 
-    private Set<ExternalReference> initializeExternalReferences(final Set<ExternalReference> externalReferences,
-                                                                final CodeScheme codeScheme) {
-        if (externalReferences != null) {
-            externalReferences.forEach(externalReference -> {
-                boolean hasChanges = false;
-                if (externalReference.getId() == null) {
-                    final UUID referenceUuid = UUID.randomUUID();
-                    externalReference.setId(referenceUuid);
-                    externalReference.setUri(apiUtils.createResourceUri(API_PATH_EXTERNALREFERENCES, referenceUuid.toString()));
-                    hasChanges = true;
-                } else {
-                    final ExternalReference existingExternalReference = externalReferenceRepository.findById(externalReference.getId());
-                    if (existingExternalReference != null) {
-                        externalReference.setModified(existingExternalReference.getModified());
-                    }
-                }
-                if (externalReference.getParentCodeScheme() == null) {
-                    externalReference.setParentCodeScheme(codeScheme);
-                    hasChanges = true;
-                }
-                if (hasChanges) {
-                    externalReference.setModified(new Date(System.currentTimeMillis()));
-                }
-            });
-            return externalReferences;
-        } else {
-            return new HashSet<>();
-        }
-    }
-
     private void indexCodeSchemes(final Set<CodeScheme> codeSchemes) {
         if (!codeSchemes.isEmpty()) {
             indexing.updateCodeSchemes(codeSchemes);
@@ -768,28 +623,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
     private void indexCodes(final Set<Code> codes) {
         if (!codes.isEmpty()) {
             indexing.updateCodes(codes);
-        }
-    }
-
-    private void validateCodeSchemeForCodeRegistry(final CodeRegistry codeRegistry, final CodeScheme codeScheme) {
-        if (codeScheme.getId() != null) {
-            final CodeScheme existingCodeScheme = codeSchemeRepository.findById(codeScheme.getId());
-            if (existingCodeScheme.getCodeValue().equalsIgnoreCase(codeScheme.getCodeValue())) {
-                throw new WebApplicationException("CodeScheme value does not match existing values in the database!");
-            }
-        } else if (codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeScheme.getCodeValue()) != null) {
-            throw new WebApplicationException("CodeScheme with CodeValue already found in Registry!");
-        }
-    }
-
-    private void validateCodeForCodeScheme(final CodeScheme codeScheme, final Code code) {
-        if (code.getId() != null) {
-            final CodeScheme existingCodeScheme = codeSchemeRepository.findById(code.getId());
-            if (existingCodeScheme.getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
-                throw new WebApplicationException("CodeScheme value does not match existing values in the database!");
-            }
-        } else if (codeRepository.findByCodeSchemeAndCodeValue(codeScheme, code.getCodeValue()) != null) {
-            throw new WebApplicationException("CodeScheme with CodeValue already found in Registry!");
         }
     }
 }
