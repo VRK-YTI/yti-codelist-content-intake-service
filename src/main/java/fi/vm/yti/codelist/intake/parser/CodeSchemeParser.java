@@ -379,7 +379,11 @@ public class CodeSchemeParser extends AbstractBaseParser {
             hasChanges = true;
         }
         if (!Objects.equals(existingCodeScheme.getDataClassifications(), fromCodeScheme.getDataClassifications())) {
-            existingCodeScheme.setDataClassifications(resolveClassificationsFromCodes(fromCodeScheme.getDataClassifications()));
+            if (fromCodeScheme.getDataClassifications() != null && !fromCodeScheme.getDataClassifications().isEmpty()) {
+                existingCodeScheme.setDataClassifications(resolveClassificationsFromCodes(fromCodeScheme.getDataClassifications()));
+            } else {
+                existingCodeScheme.setDataClassifications(null);
+            }
             hasChanges = true;
         }
         if (!Objects.equals(existingCodeScheme.getUri(), uri)) {
