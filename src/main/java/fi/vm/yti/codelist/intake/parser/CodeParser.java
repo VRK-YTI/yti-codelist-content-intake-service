@@ -324,7 +324,7 @@ public class CodeParser extends AbstractBaseParser {
             final Code fromCode = mapper.readValue(jsonPayload, Code.class);
             code = createOrUpdateCode(codeScheme, fromCode);
             // TODO: Refactor
-            final Set<ExternalReference> externalReferences = initializeExternalReferences(code.getExternalReferences(), externalReferenceParser);
+            final Set<ExternalReference> externalReferences = initializeExternalReferences(fromCode.getExternalReferences(), externalReferenceParser);
             if (!externalReferences.isEmpty()) {
                 externalReferenceRepository.save(externalReferences);
                 code.setExternalReferences(externalReferences);
@@ -347,7 +347,7 @@ public class CodeParser extends AbstractBaseParser {
             for (final Code fromCode : fromCodes) {
                 final Code code = createOrUpdateCode(codeScheme, fromCode);
                 // TODO: Refactor
-                final Set<ExternalReference> externalReferences = initializeExternalReferences(code.getExternalReferences(), externalReferenceParser);
+                final Set<ExternalReference> externalReferences = initializeExternalReferences(fromCode.getExternalReferences(), externalReferenceParser);
                 if (!externalReferences.isEmpty()) {
                     externalReferenceRepository.save(externalReferences);
                     code.setExternalReferences(externalReferences);
