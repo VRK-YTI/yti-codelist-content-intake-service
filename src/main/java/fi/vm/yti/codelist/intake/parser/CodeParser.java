@@ -23,6 +23,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -240,7 +241,7 @@ public class CodeParser extends AbstractBaseParser {
      * @return Set of Code objects.
      */
     public Set<Code> parseCodesFromExcelInputStream(final CodeScheme codeScheme,
-                                                    final InputStream inputStream) throws Exception {
+                                                    final InputStream inputStream) throws IOException, InvalidFormatException {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             return parseCodesFromExcel(codeScheme, workbook);
         }
@@ -255,7 +256,7 @@ public class CodeParser extends AbstractBaseParser {
      */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<Code> parseCodesFromExcel(final CodeScheme codeScheme,
-                                         final Workbook workbook) throws YtiCodeListException {
+                                         final Workbook workbook) {
         final Map<String, Code> codes = new HashMap<>();
         final Map<String, String> broaderCodeMapping = new HashMap<>();
         if (codeScheme != null) {
@@ -364,8 +365,7 @@ public class CodeParser extends AbstractBaseParser {
                                     final Code fromCode) {
         validateCodeForCodeScheme(codeScheme, fromCode);
         if (!startDateIsBeforeEndDateSanityCheck(fromCode.getStartDate(), fromCode.getEndDate())) {
-            // TODO: Refactor to use proper exception mechanism
-            throw new WebApplicationException(ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE));
         }
         final Code existingCode;
         if (fromCode.getId() != null) {

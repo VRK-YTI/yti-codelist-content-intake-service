@@ -369,7 +369,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         meta.setMessage("No JSON payload found.");
                         meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
                     }
-                } catch (final Exception e) {
+                } catch (final IOException e) {
                     return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodeScheme.", e, ErrorConstants.ERR_MSG_USER_500);
                 }
             } else {

@@ -335,8 +335,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                                                 final CodeScheme fromCodeScheme) {
         validateCodeSchemeForCodeRegistry(codeRegistry, fromCodeScheme);
         if (!startDateIsBeforeEndDateSanityCheck(fromCodeScheme.getStartDate(), fromCodeScheme.getEndDate())) {
-            // TODO: Refactor to use proper exception mechanism
-            throw new WebApplicationException(ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE));
         }
         final CodeScheme existingCodeScheme;
         if (fromCodeScheme.getId() != null) {

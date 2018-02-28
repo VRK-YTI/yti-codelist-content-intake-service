@@ -7,6 +7,12 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.intake.exception.exceptionmapping.CodeParsingExceptionMapper;
+import fi.vm.yti.codelist.intake.exception.exceptionmapping.MissingHeaderCodeValueExceptionMapper;
+import fi.vm.yti.codelist.intake.exception.exceptionmapping.MissingHeaderStatusExceptionMapper;
+import fi.vm.yti.codelist.intake.exception.exceptionmapping.MissingRowValueCodeValueExceptionMapper;
+import fi.vm.yti.codelist.intake.exception.exceptionmapping.MissingRowValueStatusExceptionMapper;
+import fi.vm.yti.codelist.intake.exception.exceptionmapping.YtiCodeListExceptionMapper;
 import fi.vm.yti.codelist.intake.resource.AdminResource;
 import fi.vm.yti.codelist.intake.resource.AuthenticatedUserResource;
 import fi.vm.yti.codelist.intake.resource.CodeRegistryResource;
@@ -93,11 +99,11 @@ public class JerseyConfig extends ResourceConfig {
         register(DataClassificationResource.class);
 
         // ExceptionMappers
-        register(fi.vm.yti.codelist.intake.exception.exceptionmapping.MissingHeaderCodeValueExceptionMapper.class);
-        register(fi.vm.yti.codelist.intake.exception.exceptionmapping.MissingHeaderStatusExceptionMapper.class);
-        register(fi.vm.yti.codelist.intake.exception.exceptionmapping.MissingRowValueCodeValueExceptionMapper.class);
-        register(fi.vm.yti.codelist.intake.exception.exceptionmapping.MissingRowValueStatusExceptionMapper.class);
-        register(fi.vm.yti.codelist.intake.exception.exceptionmapping.CodeParsingExceptionMapper.class);
-
+        register(MissingHeaderCodeValueExceptionMapper.class);
+        register(MissingHeaderStatusExceptionMapper.class);
+        register(MissingRowValueCodeValueExceptionMapper.class);
+        register(MissingRowValueStatusExceptionMapper.class);
+        register(CodeParsingExceptionMapper.class);
+        register(YtiCodeListExceptionMapper.class);
     }
 }
