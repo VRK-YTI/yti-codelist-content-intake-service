@@ -413,7 +413,7 @@ public class CodeParser extends AbstractBaseParser {
             existingCode.setHierarchyLevel(fromCode.getHierarchyLevel());
             hasChanges = true;
         }
-        if (!existingCode.getBroaderCodeId().equals(fromCode.getBroaderCodeId())) {
+        if (!Objects.equals(existingCode.getBroaderCodeId(), fromCode.getBroaderCodeId())) {
             existingCode.setBroaderCodeId(fromCode.getBroaderCodeId());
             hasChanges = true;
         }
