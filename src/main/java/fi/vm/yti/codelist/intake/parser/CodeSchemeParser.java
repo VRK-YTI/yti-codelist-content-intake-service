@@ -334,6 +334,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
     private CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
                                                 final CodeScheme fromCodeScheme) {
         validateCodeSchemeForCodeRegistry(codeRegistry, fromCodeScheme);
+        if (!startDateIsBeforeEndDateSanityCheck(fromCodeScheme.getStartDate(), fromCodeScheme.getEndDate())) {
+            // TODO: Refactor to use proper exception mechanism
+            throw new WebApplicationException(ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
+        }
         final CodeScheme existingCodeScheme;
         if (fromCodeScheme.getId() != null) {
             existingCodeScheme = codeSchemeRepository.findById(fromCodeScheme.getId());
