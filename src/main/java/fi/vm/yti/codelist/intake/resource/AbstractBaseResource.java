@@ -113,45 +113,6 @@ public abstract class AbstractBaseResource {
         return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
     }
 
-    protected Response handleStartDateLaterThanEndDate(final Meta meta,
-                                                       final ResponseWrapper wrapper,
-                                                       final String messageToUser) {
-        handleLoggingAndMetaForHttpCode(406, meta, messageToUser, Optional.of(messageToUser));
-        return Response.status(Response.Status.NOT_ACCEPTABLE).entity(wrapper).build();
-    }
-
-    protected Response handleStartDateLaterThanEndDate(final Meta meta,
-                                                       final MetaResponseWrapper wrapper,
-                                                       final String messageToUser) {
-        handleLoggingAndMetaForHttpCode(406, meta, messageToUser, Optional.of(messageToUser));
-        return Response.status(Response.Status.NOT_ACCEPTABLE).entity(wrapper).build();
-    }
-
-    protected boolean startDateIsBeforeEndDateSanityCheck(final Date startDate, final Date endDate) {
-        if (startDate == null || endDate == null) {
-            return true; // if either one is null, everything is OK
-        }
-        return startDate.before(endDate) || startAndEndDatesAreOnTheSameDay(startDate, endDate);
-    }
-
-    /**
-     * This is needed to allow start and end date on the same day - the users might want to enable a code or
-     * a codescheme for one day.
-     */
-    @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
-    private boolean startAndEndDatesAreOnTheSameDay(final Date startDate, final Date endDate) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        final Date startDateWithoutTime;
-        final Date endDateWithoutTime;
-        try {
-            startDateWithoutTime = sdf.parse(sdf.format(startDate));
-            endDateWithoutTime = sdf.parse(sdf.format(endDate));
-        } catch (ParseException e) {
-            return true; // should never ever happen, dates are never null here and are coming from datepicker
-        }
-        return startDateWithoutTime.compareTo(endDateWithoutTime) == 0;
-    }
-
     private void handleLoggingAndMetaForHttpCode(final int code,
                                                  Meta meta,
                                                  final String logMessage,

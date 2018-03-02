@@ -291,31 +291,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
                 }
             }
-            for (final CodeScheme codeScheme : codeSchemes) {
-                if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                    return handleStartDateLaterThanEndDate(meta, responseWrapper, ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
-                }
-                LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
-            }
             if (!codeSchemes.isEmpty()) {
                 domain.persistCodeSchemes(codeSchemes);
                 indexing.updateCodeSchemes(codeSchemes);
-                for (final CodeScheme codeScheme : codeSchemes) {
-                    if (!startDateIsBeforeEndDateSanityCheck(codeScheme.getStartDate(), codeScheme.getEndDate())) {
-                        return handleStartDateLaterThanEndDate(meta, responseWrapper, ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
-                    }
-                    LOG.debug("CodeScheme parsed from input: " + codeScheme.getCodeValue());
-                }
             }
-            for (final Code code : codes) {
-                if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                    return handleStartDateLaterThanEndDate(meta,
-                        responseWrapper,
-                        ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
-                }
-                if (!codes.isEmpty()) {
-                    domain.persistCodes(codes);
-                }
+            if (!codes.isEmpty()) {
+                domain.persistCodes(codes);
             }
             indexCodeSchemes(codeSchemes);
             indexCodes(codes);
@@ -485,12 +466,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                         ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS);
                 } catch (final Exception e) {
                     return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromFile.", e, ErrorConstants.ERR_MSG_USER_500);
-                }
-                for (final Code code : codes) {
-                    if (!startDateIsBeforeEndDateSanityCheck(code.getStartDate(), code.getEndDate())) {
-                        return handleStartDateLaterThanEndDate(meta, responseWrapper, ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE);
-                    }
-                    LOG.debug("Code parsed from input: " + code.getCodeValue());
                 }
                 if (!codes.isEmpty()) {
                     domain.persistCodes(codes);

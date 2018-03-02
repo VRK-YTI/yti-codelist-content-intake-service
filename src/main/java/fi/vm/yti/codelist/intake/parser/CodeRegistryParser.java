@@ -222,7 +222,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
         return codeRegistry;
     }
 
-    final Set<Organization> resolveOrganizations(final String organizationsString) {
+    private Set<Organization> resolveOrganizations(final String organizationsString) {
         final Set<Organization> organizations = new HashSet<>();
         if (organizationsString != null && !organizationsString.isEmpty()) {
             for (final String organizationId : organizationsString.split(";")) {
