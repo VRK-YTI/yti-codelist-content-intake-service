@@ -179,20 +179,23 @@ public class ExternalReferenceParser extends AbstractBaseParser {
 
     public ExternalReference createOrUpdateExternalReference(final ExternalReference fromExternalReference,
                                                              final CodeScheme codeScheme) {
+        final boolean isGlobal = fromExternalReference.getGlobal() != null ? fromExternalReference.getGlobal() : true;
         final ExternalReference existingExternalReference;
-        if (fromExternalReference.getId() != null && codeScheme != null && !fromExternalReference.getGlobal()) {
+        if (fromExternalReference.getId() != null && codeScheme != null && !isGlobal) {
             existingExternalReference = externalReferenceRepository.findByIdAndParentCodeScheme(fromExternalReference.getId(), codeScheme);
-        } else if (fromExternalReference.getId() != null && fromExternalReference.getGlobal()) {
+        } else if (fromExternalReference.getId() != null && isGlobal) {
             existingExternalReference = externalReferenceRepository.findById(fromExternalReference.getId());
         } else {
             existingExternalReference = null;
         }
         final ExternalReference externalReference;
-        if (existingExternalReference != null && existingExternalReference.getGlobal()) {
+        if (existingExternalReference != null && isGlobal) {
             externalReference = existingExternalReference;
-        } else if (existingExternalReference != null && !existingExternalReference.getGlobal()) {
+        } else if (existingExternalReference != null && !isGlobal) {
             externalReference = updateExternalReference(existingExternalReference, fromExternalReference);
-        } else if (!fromExternalReference.getGlobal()){
+        } else if (!isGlobal) {
+            externalReference = createExternalReference(fromExternalReference);
+        } else if (codeScheme == null) {
             externalReference = createExternalReference(fromExternalReference);
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Issue with global non existing ExternalReference!"));
