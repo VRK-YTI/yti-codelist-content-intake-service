@@ -69,7 +69,7 @@ public abstract class AbstractBaseParser {
         return mapper;
     }
 
-    public Date parseStartDateFromString(final String dateString) {
+    public Date parseStartDateFromString(final String dateString, final String rowIdentifier) {
         Date date = null;
         final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
         if (!dateString.isEmpty()) {
@@ -78,13 +78,13 @@ public abstract class AbstractBaseParser {
             } catch (ParseException e) {
                 LOG.error("Parsing startDate failed from string: " + dateString);
                 throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                    ErrorConstants.ERR_MSG_USER_ERRONEOUS_START_DATE));
+                    ErrorConstants.ERR_MSG_USER_ERRONEOUS_START_DATE, rowIdentifier));
             }
         }
         return date;
     }
 
-    public Date parseEndDateString(final String dateString) {
+    public Date parseEndDateString(final String dateString, final String rowIdentifier) {
         Date date = null;
         final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
         if (!dateString.isEmpty()) {
@@ -93,7 +93,7 @@ public abstract class AbstractBaseParser {
             } catch (ParseException e) {
                 LOG.error("Parsing endDate failed from string: " + dateString);
                 throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                    ErrorConstants.ERR_MSG_USER_ERRONEOUS_END_DATE));
+                    ErrorConstants.ERR_MSG_USER_ERRONEOUS_END_DATE, rowIdentifier));
             }
         }
         return date;

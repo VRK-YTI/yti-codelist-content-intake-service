@@ -12,6 +12,7 @@ public class BaseExceptionMapper {
         Meta meta = new Meta();
         meta.setMessage(ex.getErrorModel().getMessage());
         meta.setCode(ex.getErrorModel().getHttpStatusCode());
+        meta.setEntityIdentifier(ex.getErrorModel().getEntityIdentifier());
         wrapper.setMeta(meta);
         return Response.status(ex.getErrorModel().getHttpStatusCode()).entity(wrapper).build();
     }

@@ -51,7 +51,6 @@ import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
-import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_BROADER;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_CODEVALUE;
@@ -76,19 +75,16 @@ public class CodeParser extends AbstractBaseParser {
 
     private final ApiUtils apiUtils;
     private final CodeRepository codeRepository;
-    private final CodeSchemeRepository codeSchemeRepository;
     private final ExternalReferenceRepository externalReferenceRepository;
     private final ExternalReferenceParser externalReferenceParser;
 
     @Inject
     public CodeParser(final ApiUtils apiUtils,
                       final CodeRepository codeRepository,
-                      final CodeSchemeRepository codeSchemeRepository,
                       final ExternalReferenceRepository externalReferenceRepository,
                       final ExternalReferenceParser externalReferenceParser) {
         this.apiUtils = apiUtils;
         this.codeRepository = codeRepository;
-        this.codeSchemeRepository = codeSchemeRepository;
         this.externalReferenceRepository = externalReferenceRepository;
         this.externalReferenceParser = externalReferenceParser;
     }
@@ -134,8 +130,8 @@ public class CodeParser extends AbstractBaseParser {
                     }
                     fromCode.setHierarchyLevel(resolveHierarchyLevelFromCsvRecord(headerMap, record));
                     fromCode.setStatus(parseStatus(record.get(CONTENT_HEADER_STATUS)).toString());
-                    fromCode.setStartDate(parseStartDateFromString(record.get(CONTENT_HEADER_STARTDATE)));
-                    fromCode.setEndDate(parseEndDateString(record.get(CONTENT_HEADER_ENDDATE)));
+                    fromCode.setStartDate(parseStartDateFromString(record.get(CONTENT_HEADER_STARTDATE), String.valueOf(record.getRecordNumber())));
+                    fromCode.setEndDate(parseEndDateString(record.get(CONTENT_HEADER_ENDDATE), String.valueOf(record.getRecordNumber())));
                     final Code code = createOrUpdateCode(codeScheme, fromCode);
                     if (code != null) {
                         codes.put(code.getCodeValue(), code);
@@ -207,12 +203,12 @@ public class CodeParser extends AbstractBaseParser {
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).equals("")) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE));
+                ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(row.getRowNum())));
         }
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))).equals("")) {
             throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS));
+                ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(row.getRowNum())));
         }
     }
 
@@ -227,11 +223,11 @@ public class CodeParser extends AbstractBaseParser {
         }
         if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).equals("")) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE));
+                ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(record.getRecordNumber())));
         }
         if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).equals("")) {
             throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS));
+                ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(record.getRecordNumber())));
         }
     }
 
@@ -285,7 +281,6 @@ public class CodeParser extends AbstractBaseParser {
                 } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
                     validateRequiredDataOnRow(row, headerMap, formatter);
                     final Code fromCode = new Code();
-
                     final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
                     fromCode.setCodeValue(codeValue);
                     final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID))));
@@ -302,8 +297,8 @@ public class CodeParser extends AbstractBaseParser {
                         }
                     }
                     fromCode.setStatus(parseStatus(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))).toString());
-                    fromCode.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE)))));
-                    fromCode.setEndDate(parseEndDateString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE)))));
+                    fromCode.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
+                    fromCode.setEndDate(parseEndDateString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
                     final Code code = createOrUpdateCode(codeScheme, fromCode);
                     if (code != null) {
                         codes.put(code.getCodeValue(), code);
