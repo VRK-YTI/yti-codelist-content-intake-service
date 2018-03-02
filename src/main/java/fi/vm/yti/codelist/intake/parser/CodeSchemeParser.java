@@ -181,6 +181,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                         ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
                 }
+                fromCodeScheme.setDataClassifications(dataClassifications);
                 fromCodeScheme.setVersion(record.get(CONTENT_HEADER_VERSION));
                 fromCodeScheme.setStatus(Status.valueOf(record.get(CONTENT_HEADER_STATUS)).toString());
                 fromCodeScheme.setLegalBase(record.get(CONTENT_HEADER_LEGALBASE));
