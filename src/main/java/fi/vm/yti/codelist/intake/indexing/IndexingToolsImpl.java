@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
@@ -20,7 +21,6 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
@@ -91,7 +91,7 @@ public class IndexingToolsImpl implements IndexingTools {
 
     private Client client;
 
-    @Autowired
+    @Inject
     public IndexingToolsImpl(final Client client) {
         this.client = client;
     }
@@ -158,7 +158,7 @@ public class IndexingToolsImpl implements IndexingTools {
      * Creates index with name.
      *
      * @param indexName The name of the index to be created.
-     * @param type     Type for this index.
+     * @param type      Type for this index.
      */
     public void createIndexWithNestedPrefLabel(final String indexName, final String type) {
         final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();

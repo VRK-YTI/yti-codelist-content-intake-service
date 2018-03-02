@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.resource;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -7,7 +8,6 @@ import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.security.AuthenticatedUserProvider;
@@ -25,7 +25,7 @@ public class AuthenticatedUserResource extends AbstractBaseResource {
     private static final Logger LOG = LoggerFactory.getLogger(AuthenticatedUserResource.class);
     private final AuthenticatedUserProvider userProvider;
 
-    @Autowired
+    @Inject
     public AuthenticatedUserResource(AuthenticatedUserProvider userProvider) {
         this.userProvider = userProvider;
     }

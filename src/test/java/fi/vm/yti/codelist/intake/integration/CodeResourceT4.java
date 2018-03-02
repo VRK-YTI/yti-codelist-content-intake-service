@@ -1,10 +1,10 @@
 package fi.vm.yti.codelist.intake.integration;
 
+import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -26,7 +26,10 @@ import fi.vm.yti.codelist.intake.ContentIntakeServiceApplication;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODEREGISTRIES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODESCHEMES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_CSV;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -41,13 +44,13 @@ public class CodeResourceT4 extends AbstractIntegrationTestBase {
     @LocalServerPort
     private int randomServerPort;
 
-    @Autowired
+    @Inject
     private CodeRegistryRepository codeRegistryRepository;
 
-    @Autowired
+    @Inject
     private CodeSchemeRepository codeSchemeRepository;
 
-    @Autowired
+    @Inject
     private CodeRepository codeRepository;
 
     @Test

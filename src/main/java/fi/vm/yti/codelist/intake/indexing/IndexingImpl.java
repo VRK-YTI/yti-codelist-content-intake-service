@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -15,7 +16,6 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -71,7 +71,7 @@ public class IndexingImpl implements Indexing {
     private final Client client;
     private IndexingTools indexingTools;
 
-    @Autowired
+    @Inject
     public IndexingImpl(final IndexingTools indexingTools,
                         final Client client,
                         final IndexStatusRepository indexStatusRepository,

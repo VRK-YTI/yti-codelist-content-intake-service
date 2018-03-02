@@ -1,8 +1,9 @@
 package fi.vm.yti.codelist.intake.integration;
 
+import javax.inject.Inject;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -19,10 +20,10 @@ import static org.junit.Assert.assertEquals;
 @TestPropertySource(locations = "classpath:test-port.properties")
 public class InitializeDataT1 extends AbstractIntegrationTestBase {
 
-    @Autowired
+    @Inject
     private YtiDataAccess ytiDataAccess;
 
-    @Autowired
+    @Inject
     private CodeRegistryRepository codeRegistryRepository;
 
     @Test
