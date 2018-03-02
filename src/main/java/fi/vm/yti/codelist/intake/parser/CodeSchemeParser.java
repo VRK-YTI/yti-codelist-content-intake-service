@@ -109,16 +109,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         final CodeScheme codeScheme;
         final CodeScheme fromCodeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
         codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
-        // TODO Refactor
-        if (fromCodeScheme.getExternalReferences() != null) {
-            final Set<ExternalReference> externalReferences = initializeExternalReferences(fromCodeScheme.getExternalReferences(), externalReferenceParser);
-            if (!externalReferences.isEmpty()) {
-                externalReferenceRepository.save(externalReferences);
-                codeScheme.setExternalReferences(externalReferences);
-            } else {
-                codeScheme.setExternalReferences(null);
-            }
-        }
+        updateExternalReferences(fromCodeScheme, codeScheme);
         return codeScheme;
     }
 
@@ -131,8 +122,15 @@ public class CodeSchemeParser extends AbstractBaseParser {
         for (final CodeScheme fromCodeScheme : fromCodeSchemes) {
             final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
             codeSchemes.add(codeScheme);
-            // TODO Refactor
-            final Set<ExternalReference> externalReferences = initializeExternalReferences(fromCodeScheme.getExternalReferences(), externalReferenceParser);
+            updateExternalReferences(fromCodeScheme, codeScheme);
+        }
+        return codeSchemes;
+    }
+
+    private void updateExternalReferences(final CodeScheme fromCodeScheme,
+                                          final CodeScheme codeScheme) {
+        if (fromCodeScheme.getExternalReferences() != null) {
+            final Set<ExternalReference> externalReferences = initializeExternalReferences(fromCodeScheme.getExternalReferences(), codeScheme, externalReferenceParser);
             if (!externalReferences.isEmpty()) {
                 externalReferenceRepository.save(externalReferences);
                 codeScheme.setExternalReferences(externalReferences);
@@ -140,7 +138,6 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 codeScheme.setExternalReferences(null);
             }
         }
-        return codeSchemes;
     }
 
     /**

@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Status;
@@ -176,11 +177,15 @@ public abstract class AbstractBaseParser {
     }
 
     public Set<ExternalReference> initializeExternalReferences(final Set<ExternalReference> fromExternalReferences,
+                                                               final CodeScheme codeScheme,
                                                                final ExternalReferenceParser externalReferenceParser) {
         final Set<ExternalReference> externalReferences = new HashSet<>();
         if (fromExternalReferences != null) {
             fromExternalReferences.forEach(fromExternalReference -> {
-                final ExternalReference externalReference = externalReferenceParser.createOrUpdateExternalReference(fromExternalReference);
+                if (!fromExternalReference.getGlobal()) {
+                    fromExternalReference.setParentCodeScheme(codeScheme);
+                }
+                final ExternalReference externalReference = externalReferenceParser.createOrUpdateExternalReference(fromExternalReference, codeScheme);
                 externalReferences.add(externalReference);
             });
         }

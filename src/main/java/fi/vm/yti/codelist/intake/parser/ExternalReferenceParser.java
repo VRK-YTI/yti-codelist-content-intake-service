@@ -26,6 +26,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -33,8 +34,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.model.CodeScheme;
+import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
@@ -69,19 +72,21 @@ public class ExternalReferenceParser extends AbstractBaseParser {
         this.codeSchemeRepository = codeSchemeRepository;
     }
 
-    public ExternalReference parseExternalReferenceFromJson(final String jsonPayload) throws IOException {
+    public ExternalReference parseExternalReferenceFromJson(final String jsonPayload,
+                                                            final CodeScheme codeScheme) throws IOException {
         final ObjectMapper mapper = createObjectMapper();
         final ExternalReference fromExternalReference = mapper.readValue(jsonPayload, ExternalReference.class);
-        return createOrUpdateExternalReference(fromExternalReference);
+        return createOrUpdateExternalReference(fromExternalReference, codeScheme);
     }
 
-    public Set<ExternalReference> parseExternalReferencesFromJson(final String jsonPayload) throws IOException {
+    public Set<ExternalReference> parseExternalReferencesFromJson(final String jsonPayload,
+                                                                  final CodeScheme codeScheme) throws IOException {
         final Set<ExternalReference> externalReferences = new HashSet<>();
         final ObjectMapper mapper = createObjectMapper();
         final Set<ExternalReference> fromExternalReferences = mapper.readValue(jsonPayload, new TypeReference<List<ExternalReference>>() {
         });
         for (final ExternalReference fromExternalReference : fromExternalReferences) {
-            externalReferences.add(createOrUpdateExternalReference(fromExternalReference));
+            externalReferences.add(createOrUpdateExternalReference(fromExternalReference, codeScheme));
         }
         return externalReferences;
     }
@@ -115,7 +120,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 fromExternalReference.setUrl(url);
                 fromExternalReference.setTitle(parseLocalizedValueFromCsvRecord(titleHeaders, record));
                 fromExternalReference.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
-                final ExternalReference externalReference = createOrUpdateExternalReference(fromExternalReference);
+                final ExternalReference externalReference = createOrUpdateExternalReference(fromExternalReference, null);
                 externalReferences.add(externalReference);
             }
         }
@@ -162,7 +167,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                     fromExternalReference.setPropertyType(propertyTypeRepository.findByLocalName(propertyTypeLocalName));
                     fromExternalReference.setTitle(parseLocalizedValueFromExcelRow(titleHeaders, row, formatter));
                     fromExternalReference.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
-                    final ExternalReference externalReference = createOrUpdateExternalReference(fromExternalReference);
+                    final ExternalReference externalReference = createOrUpdateExternalReference(fromExternalReference, null);
                     if (externalReference != null) {
                         externalReferences.add(externalReference);
                     }
@@ -172,18 +177,25 @@ public class ExternalReferenceParser extends AbstractBaseParser {
         return externalReferences;
     }
 
-    public ExternalReference createOrUpdateExternalReference(final ExternalReference fromExternalReference) {
+    public ExternalReference createOrUpdateExternalReference(final ExternalReference fromExternalReference,
+                                                             final CodeScheme codeScheme) {
         final ExternalReference existingExternalReference;
-        if (fromExternalReference.getId() != null) {
+        if (fromExternalReference.getId() != null && codeScheme != null && !fromExternalReference.getGlobal()) {
+            existingExternalReference = externalReferenceRepository.findByIdAndParentCodeScheme(fromExternalReference.getId(), codeScheme);
+        } else if (fromExternalReference.getId() != null && fromExternalReference.getGlobal()) {
             existingExternalReference = externalReferenceRepository.findById(fromExternalReference.getId());
         } else {
             existingExternalReference = null;
         }
         final ExternalReference externalReference;
-        if (existingExternalReference != null) {
+        if (existingExternalReference != null && existingExternalReference.getGlobal()) {
+            externalReference = existingExternalReference;
+        } else if (existingExternalReference != null && !existingExternalReference.getGlobal()) {
             externalReference = updateExternalReference(existingExternalReference, fromExternalReference);
-        } else {
+        } else if (!fromExternalReference.getGlobal()){
             externalReference = createExternalReference(fromExternalReference);
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Issue with global non existing ExternalReference!"));
         }
         return externalReference;
     }

@@ -74,7 +74,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
                 "Superuser rights are needed to addOrUpdateExternalReferences.");
         }
         try {
-            final Set<ExternalReference> externalReferences = externalreferenceParser.parseExternalReferencesFromJson(jsonPayload);
+            final Set<ExternalReference> externalReferences = externalreferenceParser.parseExternalReferencesFromJson(jsonPayload, null);
             if (!externalReferences.isEmpty()) {
                 externalReferenceRepository.save(externalReferences);
                 indexing.reIndex(ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE);
@@ -109,7 +109,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
         final ExternalReference existingExternalReference = externalReferenceRepository.findById(uuid);
         if (existingExternalReference != null) {
             try {
-                final ExternalReference externalReference = externalreferenceParser.parseExternalReferenceFromJson(jsonPayload);
+                final ExternalReference externalReference = externalreferenceParser.parseExternalReferenceFromJson(jsonPayload, null);
                 externalReferenceRepository.save(externalReference);
                 indexing.reIndex(ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE);
                 meta.setCode(200);
