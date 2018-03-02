@@ -522,8 +522,8 @@ public class CodeParser extends AbstractBaseParser {
 
     private void validateCodeForCodeScheme(final CodeScheme codeScheme, final Code code) {
         if (code.getId() != null) {
-            final CodeScheme existingCodeScheme = codeSchemeRepository.findById(code.getId());
-            if (existingCodeScheme != null && !existingCodeScheme.getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
+            final Code existingCode = codeRepository.findById(code.getId());
+            if (existingCode != null && !existingCode.getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
                 throw new WebApplicationException("CodeScheme value does not match existing values in the database!");
             }
         } else if (codeRepository.findByCodeSchemeAndCodeValue(codeScheme, code.getCodeValue()) != null) {
