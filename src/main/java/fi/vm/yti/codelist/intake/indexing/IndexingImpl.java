@@ -143,35 +143,6 @@ public class IndexingImpl implements Indexing {
         return success;
     }
 
-    private <T> boolean updateData(final Set<T> set,
-                                   final String elasticIndex,
-                                   final String elasticType,
-                                   final String name,
-                                   final Class<?> jsonViewClass) {
-        boolean success;
-        if (!set.isEmpty()) {
-            final ObjectMapper mapper = indexingTools.createObjectMapper();
-            mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
-            final BulkRequestBuilder bulkRequest = client.prepareBulk();
-            for (final T item : set) {
-                try {
-                    final AbstractIdentifyableCode identifyableCode = (AbstractIdentifyableCode) item;
-                    final String doc = mapper.writerWithView(jsonViewClass).writeValueAsString(item).replace("\\\\n", "\\n");
-                    bulkRequest.add(client.prepareUpdate(elasticIndex, elasticType, identifyableCode.getId().toString()).setDoc(doc, XContentType.JSON).setUpsert(doc, XContentType.JSON));
-                    bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
-                } catch (JsonProcessingException e) {
-                    logBulkErrorWithException(name, e);
-                }
-            }
-            final BulkResponse response = bulkRequest.get();
-            success = logBulkResponse(name, response);
-        } else {
-            noContent(name);
-            success = true;
-        }
-        return success;
-    }
-
     private void logBulkErrorWithException(final String name,
                                            final JsonProcessingException e) {
         LOG.error("Indexing " + name + " failed.", e);
@@ -200,7 +171,7 @@ public class IndexingImpl implements Indexing {
 
     public boolean updateCodes(final Set<Code> codes) {
         if (!codes.isEmpty()) {
-            return updateData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
+            return indexData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
         }
         return true;
     }
@@ -213,7 +184,7 @@ public class IndexingImpl implements Indexing {
 
     public boolean updateCodeSchemes(final Set<CodeScheme> codeSchemes) {
         if (!codeSchemes.isEmpty()) {
-            return updateData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
+            return indexData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
         }
         return true;
     }
@@ -226,7 +197,7 @@ public class IndexingImpl implements Indexing {
 
     public boolean updateCodeRegistries(final Set<CodeRegistry> codeRegistries) {
         if (!codeRegistries.isEmpty()) {
-            return updateData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
+            return indexData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
         }
         return true;
     }
@@ -239,7 +210,7 @@ public class IndexingImpl implements Indexing {
 
     public boolean updatePropertyTypes(final Set<PropertyType> propertyTypes) {
         if (!propertyTypes.isEmpty()) {
-            return updateData(propertyTypes, ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
+            return indexData(propertyTypes, ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
         }
         return true;
     }
@@ -252,7 +223,7 @@ public class IndexingImpl implements Indexing {
 
     public boolean updateExternalReferences(final Set<ExternalReference> externalReferences) {
         if (!externalReferences.isEmpty()) {
-            return updateData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
+            return indexData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
         }
         return true;
     }
