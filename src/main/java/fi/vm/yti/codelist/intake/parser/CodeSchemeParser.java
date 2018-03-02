@@ -24,6 +24,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -74,6 +75,8 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ST
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_STATUS;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_VERSION;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_CODESCHEMES;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_EXISTING_CODE_MISMATCH;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME;
 
 /**
  * Class that handles parsing of CodeSchemes from source data.
@@ -195,15 +198,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
         return codeSchemes;
     }
 
-    /*
-     * Parses the .xls or .xlsx CodeScheme Excel-inputstream and returns the CodeSchemes as a set.
-     *
-     * @param codeRegistry CodeRegistry.
-     * @param inputStream The Code containing Excel -inputstream.
-     * @return List of Code objects.
-     */
     public Set<CodeScheme> parseCodeSchemesFromExcelInputStream(final CodeRegistry codeRegistry,
-                                                                final InputStream inputStream) throws Exception {
+                                                                final InputStream inputStream) throws IOException, InvalidFormatException {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             return parseCodeSchemesFromExcel(codeRegistry, workbook);
         }
@@ -218,7 +214,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
      */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeScheme> parseCodeSchemesFromExcel(final CodeRegistry codeRegistry,
-                                                     final Workbook workbook) throws YtiCodeListException {
+                                                     final Workbook workbook) {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (codeRegistry != null) {
             final DataFormatter formatter = new DataFormatter();
@@ -356,7 +352,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeScheme.getCodeValue());
         if (existingCodeScheme != null) {
             throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME));
+                ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME));
         }
     }
 
@@ -516,10 +512,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
         if (codeScheme.getId() != null) {
             final CodeScheme existingCodeScheme = codeSchemeRepository.findById(codeScheme.getId());
             if (existingCodeScheme != null && !existingCodeScheme.getCodeValue().equalsIgnoreCase(codeScheme.getCodeValue())) {
-                throw new WebApplicationException("CodeScheme codeValue does not match existing values in the database!");
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),ERR_MSG_EXISTING_CODE_MISMATCH));
             }
         } else if (codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeScheme.getCodeValue()) != null) {
-            throw new WebApplicationException("CodeScheme with CodeValue already found in Registry!");
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME));
         }
     }
 

@@ -65,6 +65,8 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_SH
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_STARTDATE;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_STATUS;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_CODES;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_EXISTING_CODE_MISMATCH;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE;
 
 /**
  * Class that handles parsing of codes from source data.
@@ -330,7 +332,7 @@ public class CodeParser extends AbstractBaseParser {
             } else {
                 code.setExternalReferences(null);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new WebApplicationException("JSON parsing codes failed!");
         }
         return code;
@@ -355,7 +357,7 @@ public class CodeParser extends AbstractBaseParser {
                 }
                 codes.add(code);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new WebApplicationException("JSON parsing codes failed!");
         }
         return codes;
@@ -524,10 +526,10 @@ public class CodeParser extends AbstractBaseParser {
         if (code.getId() != null) {
             final Code existingCode = codeRepository.findById(code.getId());
             if (existingCode != null && !existingCode.getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
-                throw new WebApplicationException("CodeScheme value does not match existing values in the database!");
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_EXISTING_CODE_MISMATCH));
             }
         } else if (codeRepository.findByCodeSchemeAndCodeValue(codeScheme, code.getCodeValue()) != null) {
-            throw new WebApplicationException("CodeScheme with CodeValue already found in Registry!");
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ALREADY_EXISTING_CODE));
         }
     }
 
@@ -535,7 +537,7 @@ public class CodeParser extends AbstractBaseParser {
         final Code justCode = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, fromCode.getCodeValue());
         if (justCode != null) {
             throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE));
+                ERR_MSG_USER_ALREADY_EXISTING_CODE));
         }
     }
 
