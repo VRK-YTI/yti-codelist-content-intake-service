@@ -328,7 +328,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 return handleUnauthorizedAccess(meta, responseWrapper,
-                    "Unauthorized call to addOrUpdateCodeSchemesFromFile.");
+                    "Unauthorized call to addOrUpdateCodeScheme.");
             }
             final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (existingCodeScheme != null) {
