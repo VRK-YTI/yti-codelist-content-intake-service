@@ -45,6 +45,7 @@ import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.exception.BadClassificationException;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
@@ -254,7 +255,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     final String dataClassificationCodes;
                     try {
                         dataClassificationCodes = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CLASSIFICATION)));
-                    } catch (NullPointerException e) {
+                    } catch (final NullPointerException e) {
                         LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
                         throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                             ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
@@ -502,6 +503,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     final Code code = codeRepository.findByCodeSchemeAndCodeValueAndBroaderCodeId(dataClassificationScheme, dataClassificationCode, null);
                     if (code != null) {
                         dataClassifications.add(code);
+                    } else {
+                        throw new BadClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ErrorConstants.ERR_MSG_USER_BAD_CLASSIFICATION));
                     }
                 });
             }
