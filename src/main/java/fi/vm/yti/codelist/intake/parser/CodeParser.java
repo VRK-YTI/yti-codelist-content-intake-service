@@ -137,15 +137,15 @@ public class CodeParser extends AbstractBaseParser {
                         codes.put(code.getCodeValue(), code);
                     }
                 }
+                if (headerMap.containsKey(CONTENT_HEADER_BROADER)) {
+                    setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes);
+                }
             } catch (final IOException e) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     ErrorConstants.ERR_MSG_USER_500));
             }
         }
-        setBroaderCodes(broaderCodeMapping, codes);
-        final Set<Code> codeSet = new HashSet<>(codes.values());
-        evaluateAndSetHierarchyLevels(codeSet);
-        return codeSet;
+        return new HashSet<>(codes.values());
     }
 
     private Integer resolveHierarchyLevelFromCsvRecord(final Map<String, Integer> headerMap,
@@ -305,11 +305,11 @@ public class CodeParser extends AbstractBaseParser {
                     }
                 }
             }
+            if (headerMap != null && headerMap.containsKey(CONTENT_HEADER_BROADER)) {
+                setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes);
+            }
         }
-        setBroaderCodes(broaderCodeMapping, codes);
-        final Set<Code> codeSet = new HashSet<>(codes.values());
-        evaluateAndSetHierarchyLevels(codeSet);
-        return codeSet;
+        return new HashSet<>(codes.values());
     }
 
     public Code parseCodeFromJsonData(final CodeScheme codeScheme,
@@ -481,6 +481,12 @@ public class CodeParser extends AbstractBaseParser {
         code.setEndDate(fromCode.getEndDate());
         code.setUri(apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, code));
         return code;
+    }
+
+    private void setBroaderCodesAndEvaluateHierarchyLevels(final Map<String, String> broaderCodeMapping,
+                                                           final Map<String, Code> codes) {
+        setBroaderCodes(broaderCodeMapping, codes);
+        evaluateAndSetHierarchyLevels(new HashSet<>(codes.values()));
     }
 
     private void setBroaderCodes(final Map<String, String> broaderCodeMapping,
