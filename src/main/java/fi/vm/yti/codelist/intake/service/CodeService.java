@@ -117,7 +117,7 @@ public class CodeService {
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         code = codeParser.parseCodeFromJsonData(codeScheme, jsonPayload);
-                        if (code.getId().toString().equalsIgnoreCase(codeId)) {
+                        if (!code.getId().toString().equalsIgnoreCase(codeId)) {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Id mismatch with API call and incoming data!"));
                         }
                         codeRepository.save(code);

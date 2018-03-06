@@ -97,13 +97,15 @@ public class CodeSchemeService {
             try {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     codeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(codeRegistry, jsonPayload);
-                    if (codeScheme.getId().toString().equalsIgnoreCase(codeSchemeId)) {
+                    if (!codeScheme.getId().toString().equalsIgnoreCase(codeSchemeId)) {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Id mismatch with API call and incoming data!"));
                     }
                     codeSchemeRepository.save(codeScheme);
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "No JSON payload found."));
                 }
+            } catch (final YtiCodeListException e) {
+                throw e;
             } catch (final Exception e) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ErrorConstants.ERR_MSG_USER_500));
             }

@@ -86,13 +86,15 @@ public class PropertyTypeService {
             try {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     propertyType = propertyTypeParser.parsePropertyTypeFromJson(jsonPayload);
-                    if (existingPropertyType.getId().toString().equalsIgnoreCase(PropertyTypeId)) {
+                    if (!existingPropertyType.getId().toString().equalsIgnoreCase(PropertyTypeId)) {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Id mismatch with API call and incoming data!"));
                     }
                     propertyTypeRepository.save(propertyType);
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "No JSON payload found."));
                 }
+            } catch (final YtiCodeListException e) {
+                throw e;
             } catch (final Exception e) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ErrorConstants.ERR_MSG_USER_500));
             }

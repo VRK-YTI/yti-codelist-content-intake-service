@@ -89,13 +89,15 @@ public class ExternalReferenceService {
             try {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     externalReference = externalReferenceParser.parseExternalReferenceFromJson(jsonPayload, codeScheme);
-                    if (existingExternalReference.getId().toString().equalsIgnoreCase(externalReferenceId)) {
+                    if (!existingExternalReference.getId().toString().equalsIgnoreCase(externalReferenceId)) {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Id mismatch with API call and incoming data!"));
                     }
                     externalRefernceRepository.save(externalReference);
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "No JSON payload found."));
                 }
+            } catch (final YtiCodeListException e) {
+                throw e;
             } catch (final Exception e) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ErrorConstants.ERR_MSG_USER_500));
             }
