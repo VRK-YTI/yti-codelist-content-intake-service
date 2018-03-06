@@ -151,7 +151,7 @@ public class CodeParser extends AbstractBaseParser {
     private Integer resolveHierarchyLevelFromCsvRecord(final Map<String, Integer> headerMap,
                                                        final CSVRecord record) {
         final Integer hierarchyLevel;
-        if (headerMap.containsKey(CONTENT_HEADER_HIERARCHYLEVEL) && headerMap.containsKey(CONTENT_HEADER_BROADER)) {
+        if (headerMap.containsKey(CONTENT_HEADER_HIERARCHYLEVEL) && !headerMap.containsKey(CONTENT_HEADER_BROADER)) {
             hierarchyLevel = resolveHierarchyLevelFromString(record.get(CONTENT_HEADER_HIERARCHYLEVEL));
         } else {
             hierarchyLevel = null;
@@ -163,7 +163,7 @@ public class CodeParser extends AbstractBaseParser {
                                                       final Row row,
                                                       final DataFormatter formatter) {
         final Integer hierarchyLevel;
-        if (headerMap.containsKey(CONTENT_HEADER_HIERARCHYLEVEL) && headerMap.containsKey(CONTENT_HEADER_BROADER)) {
+        if (headerMap.containsKey(CONTENT_HEADER_HIERARCHYLEVEL) && !headerMap.containsKey(CONTENT_HEADER_BROADER)) {
             hierarchyLevel = resolveHierarchyLevelFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HIERARCHYLEVEL))));
         } else {
             hierarchyLevel = null;
