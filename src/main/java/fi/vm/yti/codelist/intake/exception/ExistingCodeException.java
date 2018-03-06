@@ -7,8 +7,8 @@ import fi.vm.yti.codelist.common.model.ErrorModel;
 
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
 public class ExistingCodeException extends YtiCodeListException {
+
     public ExistingCodeException(ErrorModel errorModel) {
         super(errorModel);
     }
-
 }

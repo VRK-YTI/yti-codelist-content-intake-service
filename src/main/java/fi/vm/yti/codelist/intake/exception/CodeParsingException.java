@@ -7,6 +7,7 @@ import fi.vm.yti.codelist.common.model.ErrorModel;
 
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
 public class CodeParsingException extends YtiCodeListException {
+
     public CodeParsingException(ErrorModel errorModel) {
         super(errorModel);
     }
