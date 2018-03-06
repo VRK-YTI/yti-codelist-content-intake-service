@@ -14,8 +14,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fi.vm.yti.codelist.common.model.ErrorModel;
+import fi.vm.yti.codelist.intake.exception.ErrorConstants;
+import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.model.ExternalReference;
@@ -70,8 +74,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
         if (!authorizationManager.isSuperUser()) {
-            return handleUnauthorizedAccess(meta, wrapper,
-                "Superuser rights are needed to addOrUpdateExternalReferences.");
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
         }
         try {
             final Set<ExternalReference> externalReferences = externalreferenceParser.parseExternalReferencesFromJson(jsonPayload, null);
@@ -102,8 +105,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
         final Meta meta = new Meta();
         final MetaResponseWrapper wrapper = new MetaResponseWrapper(meta);
         if (!authorizationManager.isSuperUser()) {
-            return handleUnauthorizedAccess(meta, wrapper,
-                "Superuser rights are needed to updateExternalReference.");
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
         }
         final UUID uuid = UUID.fromString(externalReferenceId);
         final ExternalReference existingExternalReference = externalReferenceRepository.findById(uuid);

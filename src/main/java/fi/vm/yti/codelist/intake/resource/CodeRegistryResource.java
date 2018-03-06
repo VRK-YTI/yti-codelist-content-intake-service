@@ -20,6 +20,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fi.vm.yti.codelist.intake.exception.*;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
@@ -42,13 +43,6 @@ import fi.vm.yti.codelist.common.model.Views;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.domain.Domain;
-import fi.vm.yti.codelist.intake.exception.CodeParsingException;
-import fi.vm.yti.codelist.intake.exception.ErrorConstants;
-import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
-import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
-import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
-import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
-import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
@@ -131,8 +125,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final Meta meta = new Meta();
         final ResponseWrapper<CodeRegistry> wrapper = new ResponseWrapper<>(meta);
         if (!authorizationManager.isSuperUser()) {
-            return handleUnauthorizedAccess(meta, wrapper,
-                "Superuser rights are needed to addOrUpdateCodeRegistriesFromJson.");
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
         }
         try {
             Set<CodeRegistry> codeRegistries = new HashSet<>();
@@ -172,8 +165,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final Meta meta = new Meta();
         final ResponseWrapper<CodeRegistry> wrapper = new ResponseWrapper<>(meta);
         if (!authorizationManager.isSuperUser()) {
-            return handleUnauthorizedAccess(meta, wrapper,
-                "Superuser rights are needed to addOrUpdateCodeRegistriesFromFile.");
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
         }
         try {
             Set<CodeRegistry> codeRegistries = new HashSet<>();
@@ -216,8 +208,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                return handleUnauthorizedAccess(meta, responseWrapper,
-                    "Unauthorized call to addOrUpdateCodeSchemesFromJson.");
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
             }
             Set<CodeScheme> codeSchemes = new HashSet<>();
             try {
@@ -271,8 +262,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                return handleUnauthorizedAccess(meta, responseWrapper,
-                    "Unauthorized call to addOrUpdateCodeSchemesFromFile.");
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
             }
             Set<CodeScheme> codeSchemes = new HashSet<>();
             Set<Code> codes = new HashSet<>();
@@ -327,8 +317,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                return handleUnauthorizedAccess(meta, responseWrapper,
-                    "Unauthorized call to addOrUpdateCodeScheme.");
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
             }
             final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (existingCodeScheme != null) {
@@ -384,19 +373,20 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                return handleUnauthorizedAccess(meta, responseWrapper,
-                    "Unauthorized call to addOrUpdateCodesFromJson.");
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
             }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
                 Set<Code> codes = new HashSet<>();
-                try {
+                //try {
                     if (FORMAT_JSON.equalsIgnoreCase(format) && jsonPayload != null && !jsonPayload.isEmpty()) {
                         codes = codeParser.parseCodesFromJsonData(codeScheme, jsonPayload);
                     }
+                /*
                 } catch (final Exception e) {
                     return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromJson.", e, ErrorConstants.ERR_MSG_USER_500);
                 }
+                */
                 if (!codes.isEmpty()) {
                     domain.persistCodes(codes);
                     indexing.updateCodes(codes);
@@ -440,8 +430,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                return handleUnauthorizedAccess(meta, responseWrapper,
-                    "Unauthorized call to addOrUpdateCodesFromFile.");
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
             }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
@@ -452,21 +441,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     } else if (FORMAT_EXCEL.equalsIgnoreCase(format)) {
                         codes = codeParser.parseCodesFromExcelInputStream(codeScheme, inputStream);
                     }
-                } catch (MissingRowValueCodeValueException e) {
-                    return handleInternalServerError(meta, responseWrapper, "Error parsing CodeRegistries.", e,
-                        ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE);
-                } catch (MissingRowValueStatusException e) {
-                    return handleInternalServerError(meta, responseWrapper, "Error parsing CodeRegistries.", e,
-                        ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS);
-                } catch (MissingHeaderCodeValueException e) {
-                    return handleInternalServerError(meta, responseWrapper, "Error parsing CodeRegistries.", e,
-                        ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE);
-                } catch (MissingHeaderStatusException e) {
-                    return handleInternalServerError(meta, responseWrapper, "Error parsing CodeRegistries.", e,
-                        ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS);
-                } catch (final Exception e) {
-                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to addOrUpdateCodesFromFile.", e, ErrorConstants.ERR_MSG_USER_500);
                 }
+                catch (final IOException | InvalidFormatException e) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ErrorConstants.ERR_MSG_USER_500));
+                }
+
                 if (!codes.isEmpty()) {
                     domain.persistCodes(codes);
                     indexCodes(codes);
@@ -504,12 +483,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                return handleUnauthorizedAccess(meta, responseWrapper,
-                    "Unauthorized call to updateCode.");
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
             }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
             if (codeScheme != null) {
-                try {
+                //try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         final Code code = codeParser.parseCodeFromJsonData(codeScheme, jsonPayload);
                         codeRepository.save(code);
@@ -521,16 +499,13 @@ public class CodeRegistryResource extends AbstractBaseResource {
                             meta.setCode(200);
                             return Response.ok(responseWrapper).build();
                         } else {
-                            return handleInternalServerError(meta, responseWrapper,
-                                "Code " + codeId + " modifification failed.", new WebApplicationException(), ErrorConstants.ERR_MSG_USER_500);
+                            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),ErrorConstants.ERR_MSG_USER_500 ));
                         }
                     } else {
                         meta.setMessage("No JSON payload found.");
                         meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
                     }
-                } catch (final Exception e) {
-                    return handleInternalServerError(meta, responseWrapper, "Internal server error during call to updateCode.", e, ErrorConstants.ERR_MSG_USER_500);
-                }
+                //}
             } else {
                 meta.setMessage("CodeScheme with id: " + codeSchemeId + " does not exist yet, please create codeScheme first.");
                 meta.setCode(HttpStatus.NOT_ACCEPTABLE.value());
@@ -557,8 +532,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                return handleUnauthorizedAccess(meta, responseWrapper,
-                    "Unauthorized call to retireCode.");
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
             }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeId);
             if (codeScheme != null) {

@@ -95,20 +95,6 @@ public abstract class AbstractBaseResource {
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
     }
 
-    protected Response handleUnauthorizedAccess(final Meta meta,
-                                                final ResponseWrapper wrapper,
-                                                final String logMessage) {
-        handleLoggingAndMetaForHttpCode(401, meta, logMessage, Optional.of(logMessage));
-        return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
-    }
-
-    protected Response handleUnauthorizedAccess(final Meta meta,
-                                                final MetaResponseWrapper wrapper,
-                                                final String logMessage) {
-        handleLoggingAndMetaForHttpCode(401, meta, logMessage, Optional.of(logMessage));
-        return Response.status(Response.Status.UNAUTHORIZED).entity(wrapper).build();
-    }
-
     private void handleLoggingAndMetaForHttpCode(final int code,
                                                  Meta meta,
                                                  final String logMessage,

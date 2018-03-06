@@ -328,7 +328,7 @@ public class CodeParser extends AbstractBaseParser {
                 code.setExternalReferences(null);
             }
         } catch (final IOException e) {
-            throw new WebApplicationException("JSON parsing codes failed!");
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ErrorConstants.ERR_MSG_USER_500));
         }
         return code;
     }
@@ -530,7 +530,7 @@ public class CodeParser extends AbstractBaseParser {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_EXISTING_CODE_MISMATCH));
             }
         } else if (codeRepository.findByCodeSchemeAndCodeValue(codeScheme, code.getCodeValue()) != null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ALREADY_EXISTING_CODE));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ALREADY_EXISTING_CODE, code.getCodeValue()));
         }
     }
 
@@ -538,7 +538,7 @@ public class CodeParser extends AbstractBaseParser {
         final Code justCode = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, fromCode.getCodeValue());
         if (justCode != null) {
             throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ALREADY_EXISTING_CODE));
+                ERR_MSG_USER_ALREADY_EXISTING_CODE, justCode.getCodeValue()));
         }
     }
 

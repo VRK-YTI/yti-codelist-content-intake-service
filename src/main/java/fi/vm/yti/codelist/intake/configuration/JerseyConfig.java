@@ -99,11 +99,6 @@ public class JerseyConfig extends ResourceConfig {
         register(DataClassificationResource.class);
 
         // ExceptionMappers
-        register(MissingHeaderCodeValueExceptionMapper.class);
-        register(MissingHeaderStatusExceptionMapper.class);
-        register(MissingRowValueCodeValueExceptionMapper.class);
-        register(MissingRowValueStatusExceptionMapper.class);
-        register(CodeParsingExceptionMapper.class);
         register(YtiCodeListExceptionMapper.class);
     }
 }
