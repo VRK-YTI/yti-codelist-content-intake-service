@@ -22,7 +22,6 @@ import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.common.model.UpdateStatus;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
-import fi.vm.yti.codelist.intake.domain.Domain;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
@@ -35,12 +34,7 @@ import fi.vm.yti.codelist.intake.parser.ExternalReferenceParser;
 import fi.vm.yti.codelist.intake.parser.PropertyTypeParser;
 import fi.vm.yti.codelist.intake.update.UpdateManager;
 import fi.vm.yti.codelist.intake.util.FileUtils;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_CODEREGISTRIES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_CODES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_CODESCHEMES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_EXTERNALREFERENCES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.DATA_PROPERTYTYPES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.SOURCE_INTERNAL;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.JUPO_REGISTRY;
 import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
 
@@ -56,7 +50,6 @@ public class YtiDataAccess {
     private static final String SERVICE_CLASSIFICATION_P9 = "P9";
     private static final Logger LOG = LoggerFactory.getLogger(YtiDataAccess.class);
 
-    private final Domain domain;
     private final ContentIntakeServiceProperties contentIntakeServiceProperties;
     private final UpdateManager updateManager;
     private final CodeRegistryParser codeRegistryParser;
@@ -71,8 +64,7 @@ public class YtiDataAccess {
     private final CodeRepository codeRepository;
 
     @Inject
-    public YtiDataAccess(final Domain domain,
-                         final ContentIntakeServiceProperties contentIntakeServiceProperties,
+    public YtiDataAccess(final ContentIntakeServiceProperties contentIntakeServiceProperties,
                          final UpdateManager updateManager,
                          final CodeSchemeParser codeSchemeParser,
                          final CodeRegistryParser codeRegistryParser,
@@ -84,7 +76,6 @@ public class YtiDataAccess {
                          final CodeRegistryRepository codeRegistryRepository,
                          final CodeSchemeRepository codeSchemeRepository,
                          final CodeRepository codeRepository) {
-        this.domain = domain;
         this.contentIntakeServiceProperties = contentIntakeServiceProperties;
         this.updateManager = updateManager;
         this.codeSchemeParser = codeSchemeParser;
@@ -142,12 +133,12 @@ public class YtiDataAccess {
                 codeRegistries.addAll(codeRegistryParser.parseCodeRegistriesFromCsvInputStream(inputStream));
                 LOG.info("CodeRegistry data loaded: " + codeRegistries.size() + " CodeRegistries in " + watch);
                 watch.reset().start();
-                domain.persistCodeRegistries(codeRegistries);
+                codeRegistryRepository.save(codeRegistries);
                 LOG.info("CodeRegistry data persisted in: " + watch);
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 LOG.error("Issue with parsing CodeRegistry file. Message: ", e);
                 updateManager.updateFailedStatus(updateStatus);
             }
@@ -178,7 +169,7 @@ public class YtiDataAccess {
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     LOG.info("CodeScheme data loaded: " + codeSchemes.size() + " CodeSchemes in " + watch);
                     watch.reset().start();
-                    domain.persistCodeSchemes(codeSchemes);
+                    codeSchemeRepository.save(codeSchemes);
                     LOG.info("CodeScheme data persisted in: " + watch);
                     updateManager.updateSuccessStatus(updateStatus);
                 }
@@ -210,7 +201,7 @@ public class YtiDataAccess {
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     LOG.info("Code data loaded: " + codes.size() + " Codes in " + watch);
                     watch.reset().start();
-                    domain.persistCodes(codes);
+                    codeRepository.save(codes);
                     LOG.info("Code data persisted in: " + watch);
                     updateManager.updateSuccessStatus(updateStatus);
                 }
@@ -234,7 +225,7 @@ public class YtiDataAccess {
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 LOG.error("Issue with parsing PropertyType file. ", e);
                 updateManager.updateFailedStatus(updateStatus);
             }
@@ -257,7 +248,7 @@ public class YtiDataAccess {
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 LOG.error("Issue with parsing ExternalReference file. ", e);
                 updateManager.updateFailedStatus(updateStatus);
             }

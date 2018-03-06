@@ -26,10 +26,7 @@ import fi.vm.yti.codelist.intake.ContentIntakeServiceApplication;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODEREGISTRIES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODESCHEMES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_CSV;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 

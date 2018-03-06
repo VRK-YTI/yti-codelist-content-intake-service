@@ -23,6 +23,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.poi.POIXMLException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -43,7 +44,9 @@ import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
+import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
+import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
@@ -52,18 +55,7 @@ import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_BROADER;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_CODEVALUE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DEFINITION_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DESCRIPTION_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ENDDATE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_HIERARCHYLEVEL;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ID;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PREFLABEL_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_SHORTNAME;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_STARTDATE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_STATUS;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_CODES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_EXISTING_CODE_MISMATCH;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE;
 
@@ -89,13 +81,6 @@ public class CodeParser extends AbstractBaseParser {
         this.externalReferenceParser = externalReferenceParser;
     }
 
-    /**
-     * Parses the .csv Code-file and returns the codes as a set.
-     *
-     * @param codeScheme  CodeScheme codeValue identifier.
-     * @param inputStream The Code -file.
-     * @return Set of Code objects.
-     */
     public Set<Code> parseCodesFromCsvInputStream(final CodeScheme codeScheme,
                                                   final InputStream inputStream) {
         final Map<String, Code> codes = new HashMap<>();
@@ -141,8 +126,7 @@ public class CodeParser extends AbstractBaseParser {
                     setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes);
                 }
             } catch (final IOException e) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    ErrorConstants.ERR_MSG_USER_500));
+                throw new CsvParsingException("CSV parsing failed!");
             }
         }
         return new HashSet<>(codes.values());
@@ -239,22 +223,17 @@ public class CodeParser extends AbstractBaseParser {
      * @return Set of Code objects.
      */
     public Set<Code> parseCodesFromExcelInputStream(final CodeScheme codeScheme,
-                                                    final InputStream inputStream) throws IOException, InvalidFormatException {
+                                                    final InputStream inputStream) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             return parseCodesFromExcel(codeScheme, workbook);
+        } catch (final InvalidFormatException | IOException | POIXMLException e) {
+            throw new ExcelParsingException("Error parsing Excel file.");
         }
     }
 
-    /**
-     * Parses the .xls or .xlsx Code-file and returns the codes as a set.
-     *
-     * @param codeScheme CodeScheme for which these codes are for.
-     * @param workbook   The Code containing Excel -file.
-     * @return Set of Code objects.
-     */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public Set<Code> parseCodesFromExcel(final CodeScheme codeScheme,
-                                         final Workbook workbook) {
+    private Set<Code> parseCodesFromExcel(final CodeScheme codeScheme,
+                                          final Workbook workbook) {
         final Map<String, Code> codes = new HashMap<>();
         final Map<String, String> broaderCodeMapping = new HashMap<>();
         if (codeScheme != null) {
@@ -513,9 +492,9 @@ public class CodeParser extends AbstractBaseParser {
                                                   final Integer hierarchyLevel) {
         final Set<Code> toRemove = new HashSet<>();
         codesToEvaluate.forEach(code -> {
-            if (hierarchyLevel == 1 && code.getBroaderCodeId() == null || (hierarchyLevel > 1 && code.getBroaderCodeId() != null && hierarchyMapping.get(hierarchyLevel - 1).contains(code.getBroaderCodeId()))) {
+            if (hierarchyLevel == 1 && code.getBroaderCodeId() == null || hierarchyLevel > 1 && code.getBroaderCodeId() != null && hierarchyMapping.get(hierarchyLevel - 1).contains(code.getBroaderCodeId())) {
                 code.setHierarchyLevel(hierarchyLevel);
-                Set<UUID> uuids = hierarchyMapping.computeIfAbsent(hierarchyLevel, k -> new HashSet<>());
+                final Set<UUID> uuids = hierarchyMapping.computeIfAbsent(hierarchyLevel, k -> new HashSet<>());
                 uuids.add(code.getId());
                 toRemove.add(code);
             }
@@ -563,5 +542,4 @@ public class CodeParser extends AbstractBaseParser {
         }
         return shortName;
     }
-
 }

@@ -7,7 +7,8 @@ import fi.vm.yti.codelist.common.model.ErrorModel;
 
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
 public class MissingHeaderCodeValueException extends YtiCodeListException {
-    public MissingHeaderCodeValueException(ErrorModel errorModel) {
+
+    public MissingHeaderCodeValueException(final ErrorModel errorModel) {
         super(errorModel);
     }
 }

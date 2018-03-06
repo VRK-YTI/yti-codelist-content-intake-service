@@ -8,9 +8,9 @@ import javax.ws.rs.ext.Provider;
 
 @Provider
 public class CodeParsingExceptionMapper extends BaseExceptionMapper implements ExceptionMapper<CodeParsingException> {
+
     @Override
     public Response toResponse(CodeParsingException ex) {
         return getResponse(ex);
     }
 }
-

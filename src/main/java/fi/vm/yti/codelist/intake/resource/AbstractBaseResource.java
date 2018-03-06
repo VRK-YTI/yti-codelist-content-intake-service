@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -26,15 +25,7 @@ import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterModifier;
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FIELD_NAME_ID;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FIELD_NAME_URI;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_CODE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_CODEREGISTRY;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_CODESCHEME;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_DATACLASSIFICATION;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_EXTERNALREFERENCE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_ORGANIZATION;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_PROPERTYTYPE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 public abstract class AbstractBaseResource {
 
@@ -93,17 +84,6 @@ public abstract class AbstractBaseResource {
                                                  final String msgToUser) {
         handleLoggingAndMetaForHttpCode(500, meta, logMessage, e, Optional.of(msgToUser));
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
-    }
-
-    private void handleLoggingAndMetaForHttpCode(final int code,
-                                                 Meta meta,
-                                                 final String logMessage,
-                                                 Optional<String> msgToUser) {
-        LOG.error(logMessage, new WebApplicationException(code));
-        meta.setCode(code);
-        if (msgToUser.isPresent()) {
-            meta.setMessage(msgToUser.get());
-        }
     }
 
     private void handleLoggingAndMetaForHttpCode(final int code,

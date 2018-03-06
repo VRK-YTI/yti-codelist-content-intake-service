@@ -21,6 +21,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.poi.POIXMLException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -38,15 +39,13 @@ import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.Organization;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
+import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
+import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_CODEREGISTRIES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_CODEVALUE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DEFINITION_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ORGANIZATION;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PREFLABEL_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_CODEREGISTRIES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
  * Class that handles parsing of CodeRegistries from source data.
@@ -67,10 +66,26 @@ public class CodeRegistryParser extends AbstractBaseParser {
         this.organizationRepository = organizationRepository;
     }
 
-    public Set<CodeRegistry> parseCodeRegistriesFromJson(final String jsonPayload) throws IOException {
+    public CodeRegistry parseCodeRegistryFromJsonData(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final Set<CodeRegistry> fromCodeRegistries = mapper.readValue(jsonPayload, new TypeReference<Set<CodeRegistry>>() {
-        });
+        final CodeRegistry fromCodeRegistry;
+        try {
+            fromCodeRegistry = mapper.readValue(jsonPayload, CodeRegistry.class);
+        } catch (final IOException e) {
+            throw new JsonParsingException("JSON parsing failed");
+        }
+        return createOrUpdateCodeRegistry(fromCodeRegistry);
+    }
+
+    public Set<CodeRegistry> parseCodeRegistriesFromJsonData(final String jsonPayload) {
+        final ObjectMapper mapper = createObjectMapper();
+        final Set<CodeRegistry> fromCodeRegistries;
+        try {
+            fromCodeRegistries = mapper.readValue(jsonPayload, new TypeReference<Set<CodeRegistry>>() {
+            });
+        } catch (final IOException e) {
+            throw new JsonParsingException("JSON parsing failed");
+        }
         final Set<CodeRegistry> codeRegistries = new HashSet<>();
         for (final CodeRegistry fromRegistry : fromCodeRegistries) {
             codeRegistries.add(createOrUpdateCodeRegistry(fromRegistry));
@@ -78,13 +93,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
         return codeRegistries;
     }
 
-    /**
-     * Parses the .csv CodeRegistry-file and returns the coderegistries as a set.
-     *
-     * @param inputStream The CodeRegistry-file.
-     * @return Set of CodeRegistry objects.
-     */
-    public Set<CodeRegistry> parseCodeRegistriesFromCsvInputStream(final InputStream inputStream) throws IOException {
+    public Set<CodeRegistry> parseCodeRegistriesFromCsvInputStream(final InputStream inputStream) {
         final Set<CodeRegistry> codeRegistries = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -104,18 +113,14 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     codeRegistries.add(codeRegistry);
                 }
             });
+        } catch (final IOException e) {
+            throw new CsvParsingException("CSV parsing failed!");
         }
         return codeRegistries;
     }
 
-    /**
-     * Parses the .xls CodeRegistry Excel-file and returns the CodeRegistries as a set.
-     *
-     * @param inputStream The CodeRegistry containing Excel -file.
-     * @return Set of CodeRegistry objects.
-     */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public Set<CodeRegistry> parseCodeRegistriesFromExcelInputStream(final InputStream inputStream) throws IOException, InvalidFormatException {
+    public Set<CodeRegistry> parseCodeRegistriesFromExcelInputStream(final InputStream inputStream) {
         final Set<CodeRegistry> codeRegistries = new HashSet<>();
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             final DataFormatter formatter = new DataFormatter();
@@ -151,6 +156,8 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     codeRegistries.add(codeRegistry);
                 }
             }
+        } catch (final InvalidFormatException | IOException | POIXMLException e) {
+            throw new ExcelParsingException("Error parsing Excel file.");
         }
         return codeRegistries;
     }

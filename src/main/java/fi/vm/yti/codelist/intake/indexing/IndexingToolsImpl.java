@@ -178,7 +178,7 @@ public class IndexingToolsImpl implements IndexingTools {
                     .endObject()
                     .endObject().string(), XContentType.JSON)
                     .put(MAX_RESULT_WINDOW, MAX_RESULT_WINDOW_SIZE));
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 LOG.error("Error parsing index request settings JSON!", e);
             }
             if (ELASTIC_TYPE_CODESCHEME.equals(type)) {

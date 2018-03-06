@@ -7,7 +7,8 @@ import fi.vm.yti.codelist.common.model.ErrorModel;
 
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
 public class MissingHeaderClassificationException extends YtiCodeListException {
-    public MissingHeaderClassificationException(ErrorModel errorModel) {
+
+    public MissingHeaderClassificationException(final ErrorModel errorModel) {
         super(errorModel);
     }
 }

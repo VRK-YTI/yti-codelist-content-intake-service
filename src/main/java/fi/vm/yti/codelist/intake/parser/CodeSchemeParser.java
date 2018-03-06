@@ -24,6 +24,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.poi.POIXMLException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -48,8 +49,11 @@ import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.exception.BadClassificationException;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
+import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
+import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
+import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderClassificationException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
@@ -60,23 +64,10 @@ import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_CHANGENOTE_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_CLASSIFICATION;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_CODEVALUE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DEFINITION_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DESCRIPTION_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ENDDATE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_GOVERNANCEPOLICY;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ID;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_LEGALBASE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PREFLABEL_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_SOURCE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_STARTDATE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_STATUS;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_VERSION;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_CODESCHEMES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_EXISTING_CODE_MISMATCH;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION;
 
 /**
  * Class that handles parsing of CodeSchemes from source data.
@@ -107,22 +98,32 @@ public class CodeSchemeParser extends AbstractBaseParser {
         this.externalReferenceParser = externalReferenceParser;
     }
 
-    public CodeScheme parseCodeSchemeFromJsonInput(final CodeRegistry codeRegistry,
-                                                   final String jsonPayload) throws IOException {
+    public CodeScheme parseCodeSchemeFromJsonData(final CodeRegistry codeRegistry,
+                                                  final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
         final CodeScheme codeScheme;
-        final CodeScheme fromCodeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
+        final CodeScheme fromCodeScheme;
+        try {
+            fromCodeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
+        } catch (final IOException e) {
+            throw new JsonParsingException("JSON parsing failed");
+        }
         codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
         updateExternalReferences(fromCodeScheme, codeScheme);
         return codeScheme;
     }
 
-    public Set<CodeScheme> parseCodeSchemesFromJsonInput(final CodeRegistry codeRegistry,
-                                                         final String jsonPayload) throws IOException {
+    public Set<CodeScheme> parseCodeSchemesFromJsonData(final CodeRegistry codeRegistry,
+                                                        final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
         final Set<CodeScheme> codeSchemes = new HashSet<>();
-        final Set<CodeScheme> fromCodeSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<CodeScheme>>() {
-        });
+        final Set<CodeScheme> fromCodeSchemes;
+        try {
+            fromCodeSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<CodeScheme>>() {
+            });
+        } catch (final IOException e) {
+            throw new JsonParsingException("JSON parsing failed");
+        }
         for (final CodeScheme fromCodeScheme : fromCodeSchemes) {
             final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
             codeSchemes.add(codeScheme);
@@ -144,12 +145,6 @@ public class CodeSchemeParser extends AbstractBaseParser {
         }
     }
 
-    /**
-     * Parses the .csv CodeScheme-file and returns the codeschemes as a set.
-     *
-     * @param inputStream The CodeScheme -file.
-     * @return List of CodeScheme objects.
-     */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeScheme> parseCodeSchemesFromCsvInputStream(final CodeRegistry codeRegistry,
                                                               final InputStream inputStream) {
@@ -179,7 +174,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 if (dataClassifications.isEmpty() && !codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                     LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
                     throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                        ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
+                        ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
                 }
                 fromCodeScheme.setDataClassifications(dataClassifications);
                 fromCodeScheme.setVersion(record.get(CONTENT_HEADER_VERSION));
@@ -192,30 +187,24 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
                 codeSchemes.add(codeScheme);
             }
-        } catch (IOException e) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                ErrorConstants.ERR_MSG_USER_500));
+        } catch (final IOException e) {
+            throw new CsvParsingException("CSV parsing failed!");
         }
         return codeSchemes;
     }
 
     public Set<CodeScheme> parseCodeSchemesFromExcelInputStream(final CodeRegistry codeRegistry,
-                                                                final InputStream inputStream) throws IOException, InvalidFormatException {
+                                                                final InputStream inputStream) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             return parseCodeSchemesFromExcel(codeRegistry, workbook);
+        } catch (final InvalidFormatException | IOException | POIXMLException e) {
+            throw new ExcelParsingException("Error parsing Excel file.");
         }
     }
 
-    /*
-     * Parses the .xls or .xlsx CodeScheme Excel-file and returns the CodeSchemes as a set.
-     *
-     * @param codeRegistry CodeRegistry.
-     * @param inputStream The Code containing Excel -file.
-     * @return List of Code objects.
-     */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public Set<CodeScheme> parseCodeSchemesFromExcel(final CodeRegistry codeRegistry,
-                                                     final Workbook workbook) {
+    private Set<CodeScheme> parseCodeSchemesFromExcel(final CodeRegistry codeRegistry,
+                                                      final Workbook workbook) {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (codeRegistry != null) {
             final DataFormatter formatter = new DataFormatter();
@@ -255,13 +244,13 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     } catch (final NullPointerException e) {
                         LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
                         throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
+                            ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
                     }
                     final Set<Code> dataClassifications = resolveDataClassificationsFromString(dataClassificationCodes);
                     if (dataClassifications.isEmpty() && !codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                         LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
                         throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
+                            ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
                     }
                     fromCodeScheme.setDataClassifications(dataClassifications);
                     fromCodeScheme.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
@@ -318,7 +307,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         }
         if (!headerMap.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
             throw new MissingHeaderClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
+                ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
         }
         if (!headerMap.containsKey(CONTENT_HEADER_STATUS)) {
             throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
@@ -353,7 +342,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeScheme.getCodeValue());
         if (existingCodeScheme != null) {
             throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME, existingCodeScheme.getCodeValue()));
+                ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME, existingCodeScheme.getCodeValue()));
         }
     }
 
@@ -362,11 +351,11 @@ public class CodeSchemeParser extends AbstractBaseParser {
                                         final CodeScheme fromCodeScheme) {
         final String uri = apiUtils.createCodeSchemeUri(codeRegistry, existingCodeScheme);
         boolean hasChanges = false;
-        if (!Objects.equals(existingCodeScheme.getStatus(), fromCodeScheme.getStatus().toString())) {
+        if (!Objects.equals(existingCodeScheme.getStatus(), fromCodeScheme.getStatus())) {
             if (Status.valueOf(existingCodeScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCodeScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new WebApplicationException("Trying to update content with status: " + existingCodeScheme.getStatus() + " to status: " + fromCodeScheme.getStatus());
             }
-            existingCodeScheme.setStatus(fromCodeScheme.getStatus().toString());
+            existingCodeScheme.setStatus(fromCodeScheme.getStatus());
             hasChanges = true;
         }
         if (!Objects.equals(existingCodeScheme.getCodeRegistry(), codeRegistry)) {
@@ -478,7 +467,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
             codeScheme.setChangeNote(entry.getKey(), entry.getValue());
         }
         codeScheme.setVersion(fromCodeScheme.getVersion());
-        codeScheme.setStatus(fromCodeScheme.getStatus().toString());
+        codeScheme.setStatus(fromCodeScheme.getStatus());
         codeScheme.setStartDate(fromCodeScheme.getStartDate());
         codeScheme.setEndDate(fromCodeScheme.getEndDate());
         codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
@@ -513,7 +502,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         if (codeScheme.getId() != null) {
             final CodeScheme existingCodeScheme = codeSchemeRepository.findById(codeScheme.getId());
             if (existingCodeScheme != null && !existingCodeScheme.getCodeValue().equalsIgnoreCase(codeScheme.getCodeValue())) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),ERR_MSG_EXISTING_CODE_MISMATCH));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_EXISTING_CODE_MISMATCH));
             }
         } else if (codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeScheme.getCodeValue()) != null) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME));

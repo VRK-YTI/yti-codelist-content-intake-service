@@ -7,7 +7,8 @@ import fi.vm.yti.codelist.common.model.ErrorModel;
 
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
 public class MissingRowValueStatusException extends YtiCodeListException {
-    public MissingRowValueStatusException(ErrorModel errorModel) {
+
+    public MissingRowValueStatusException(final ErrorModel errorModel) {
         super(errorModel);
     }
 }

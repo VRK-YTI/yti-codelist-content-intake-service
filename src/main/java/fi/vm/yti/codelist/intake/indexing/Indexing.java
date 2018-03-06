@@ -32,5 +32,7 @@ public interface Indexing {
 
     boolean reIndexEverything();
 
+    void reIndexEverythingIfNecessary();
+
     boolean reIndex(final String indexName, final String type);
 }

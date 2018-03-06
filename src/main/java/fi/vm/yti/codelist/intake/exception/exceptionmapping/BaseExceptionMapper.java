@@ -7,7 +7,8 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import javax.ws.rs.core.Response;
 
 public class BaseExceptionMapper {
-    protected Response getResponse(YtiCodeListException ex) {
+
+    protected Response getResponse(final YtiCodeListException ex) {
         ResponseWrapper wrapper = new ResponseWrapper();
         Meta meta = new Meta();
         meta.setMessage(ex.getErrorModel().getMessage());

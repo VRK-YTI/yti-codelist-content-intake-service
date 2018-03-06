@@ -36,16 +36,7 @@ import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.IndexStatusRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_INDEX_CODE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_INDEX_CODEREGISTRY;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_INDEX_CODESCHEME;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_INDEX_EXTERNALREFERENCE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_INDEX_PROPERTYTYPE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODEREGISTRY;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODESCHEME;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_EXTERNALREFERENCE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_PROPERTYTYPE;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Singleton
 @Service
@@ -70,6 +61,8 @@ public class IndexingImpl implements Indexing {
     private final PropertyTypeRepository propertyTypeRepository;
     private final Client client;
     private IndexingTools indexingTools;
+    private boolean hasError;
+    private boolean fullIndexInProgress;
 
     @Inject
     public IndexingImpl(final IndexingTools indexingTools,
@@ -131,11 +124,11 @@ public class IndexingImpl implements Indexing {
                     bulkRequest.add(client.prepareIndex(elasticIndex, elasticType, identifyableCode.getId().toString()).setSource(mapper.writerWithView(jsonViewClass).writeValueAsString(item).replace("\\\\n", "\\n"), XContentType.JSON));
                     bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
                 } catch (JsonProcessingException e) {
-                    logBulkErrorWithException(name, e);
+                    handleBulkErrorWithException(name, e);
                 }
             }
             final BulkResponse response = bulkRequest.get();
-            success = logBulkResponse(name, response);
+            success = handleBulkResponse(name, response);
         } else {
             noContent(name);
             success = true;
@@ -143,14 +136,16 @@ public class IndexingImpl implements Indexing {
         return success;
     }
 
-    private void logBulkErrorWithException(final String name,
-                                           final JsonProcessingException e) {
+    private void handleBulkErrorWithException(final String name,
+                                              final JsonProcessingException e) {
+        hasError = true;
         LOG.error("Indexing " + name + " failed.", e);
     }
 
-    private boolean logBulkResponse(final String type,
-                                    final BulkResponse response) {
+    private boolean handleBulkResponse(final String type,
+                                       final BulkResponse response) {
         if (response.hasFailures()) {
+            hasError = true;
             LOG.error(BULK + type + " operation failed with errors: " + response.buildFailureMessage());
             return false;
         } else {
@@ -226,6 +221,15 @@ public class IndexingImpl implements Indexing {
             return indexData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
         }
         return true;
+    }
+
+    public void reIndexEverythingIfNecessary() {
+        if (hasError && !fullIndexInProgress) {
+            LOG.info("Doing full ElasticSearch reindexing due to errors!");
+            fullIndexInProgress = true;
+            hasError = !reIndexEverything();
+            fullIndexInProgress = false;
+        }
     }
 
     public boolean reIndexEverything() {
@@ -315,5 +319,13 @@ public class IndexingImpl implements Indexing {
 
     private String createIndexName(final String indexName) {
         return indexName + "_" + System.currentTimeMillis();
+    }
+
+    public boolean isHasError() {
+        return hasError;
+    }
+
+    public void setHasError(boolean hasError) {
+        this.hasError = hasError;
     }
 }

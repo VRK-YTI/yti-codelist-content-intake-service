@@ -21,6 +21,8 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.poi.POIXMLException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -37,18 +39,14 @@ import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.exception.CsvParsingException;
+import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
+import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_EXTERNALREFERENCES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DESCRIPTION_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ID;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PARENTCODESCHEMEID;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PROPERTYTYPE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_TITLE_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_URL;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_EXTERNALREFERENCES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
  * Class that handles parsing of ExternalReferences from source data.
@@ -73,18 +71,28 @@ public class ExternalReferenceParser extends AbstractBaseParser {
     }
 
     public ExternalReference parseExternalReferenceFromJson(final String jsonPayload,
-                                                            final CodeScheme codeScheme) throws IOException {
+                                                            final CodeScheme codeScheme) {
         final ObjectMapper mapper = createObjectMapper();
-        final ExternalReference fromExternalReference = mapper.readValue(jsonPayload, ExternalReference.class);
+        final ExternalReference fromExternalReference;
+        try {
+            fromExternalReference = mapper.readValue(jsonPayload, ExternalReference.class);
+        } catch (final IOException e) {
+            throw new JsonParsingException("JSON parsing failed");
+        }
         return createOrUpdateExternalReference(fromExternalReference, codeScheme);
     }
 
     public Set<ExternalReference> parseExternalReferencesFromJson(final String jsonPayload,
-                                                                  final CodeScheme codeScheme) throws IOException {
+                                                                  final CodeScheme codeScheme) {
         final Set<ExternalReference> externalReferences = new HashSet<>();
         final ObjectMapper mapper = createObjectMapper();
-        final Set<ExternalReference> fromExternalReferences = mapper.readValue(jsonPayload, new TypeReference<List<ExternalReference>>() {
-        });
+        final Set<ExternalReference> fromExternalReferences;
+        try {
+            fromExternalReferences = mapper.readValue(jsonPayload, new TypeReference<List<ExternalReference>>() {
+            });
+        } catch (final IOException e) {
+            throw new JsonParsingException("JSON parsing failed");
+        }
         for (final ExternalReference fromExternalReference : fromExternalReferences) {
             externalReferences.add(createOrUpdateExternalReference(fromExternalReference, codeScheme));
         }
@@ -98,7 +106,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
      * @return List of ExternalReference objects.
      */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public Set<ExternalReference> parseExternalReferencesFromCsvInputStream(final InputStream inputStream) throws IOException {
+    public Set<ExternalReference> parseExternalReferencesFromCsvInputStream(final InputStream inputStream) {
         final Set<ExternalReference> externalReferences = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -123,6 +131,8 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 final ExternalReference externalReference = createOrUpdateExternalReference(fromExternalReference, null);
                 externalReferences.add(externalReference);
             }
+        } catch (final IOException e) {
+            throw new CsvParsingException("CSV parsing failed!");
         }
         return externalReferences;
     }
@@ -134,7 +144,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
      * @param inputStream The Code containing Excel -file.
      * @return List of Code objects.
      */
-    public Set<ExternalReference> parseExternalReferencesFromExcelInputStream(final InputStream inputStream) throws Exception {
+    public Set<ExternalReference> parseExternalReferencesFromExcelInputStream(final InputStream inputStream) {
         final Set<ExternalReference> externalReferences = new HashSet<>();
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             final DataFormatter formatter = new DataFormatter();
@@ -173,6 +183,8 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                     }
                 }
             }
+        } catch (final InvalidFormatException | IOException | POIXMLException e) {
+            throw new ExcelParsingException("Error parsing Excel file.");
         }
         return externalReferences;
     }

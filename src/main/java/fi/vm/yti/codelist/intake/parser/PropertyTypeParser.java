@@ -20,6 +20,8 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.poi.POIXMLException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -33,16 +35,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.exception.CsvParsingException;
+import fi.vm.yti.codelist.intake.exception.JsonParsingException;
+import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_PROPERTYTYPES;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_CONTEXT;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_DEFINITION_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_ID;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_LOCALNAME;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PREFLABEL_PREFIX;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_PROPERTYURI;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.CONTENT_HEADER_TYPE;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.EXCEL_SHEET_PROPERTYTYPES;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**
  * Class that handles parsing of PropertyTypes from source data.
@@ -60,16 +57,26 @@ public class PropertyTypeParser extends AbstractBaseParser {
         this.propertyTypeRepository = codeSchemeRepository;
     }
 
-    public PropertyType parsePropertyTypeFromJson(final String jsonPayload) throws IOException {
+    public PropertyType parsePropertyTypeFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final PropertyType fromPropertyType = mapper.readValue(jsonPayload, PropertyType.class);
+        final PropertyType fromPropertyType;
+        try {
+            fromPropertyType = mapper.readValue(jsonPayload, PropertyType.class);
+        } catch (final IOException e) {
+            throw new JsonParsingException("JSON parsing failed");
+        }
         return createOrUpdatePropertyType(fromPropertyType);
     }
 
-    public Set<PropertyType> parsePropertyTypesFromJson(final String jsonPayload) throws IOException {
+    public Set<PropertyType> parsePropertyTypesFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final Set<PropertyType> fromPropertyTypes = mapper.readValue(jsonPayload, new TypeReference<Set<PropertyType>>() {
-        });
+        final Set<PropertyType> fromPropertyTypes;
+        try {
+            fromPropertyTypes = mapper.readValue(jsonPayload, new TypeReference<Set<PropertyType>>() {
+            });
+        } catch (final IOException e) {
+            throw new JsonParsingException("JSON parsing failed");
+        }
         final Set<PropertyType> propertyTypes = new HashSet<>();
         for (final PropertyType fromPropertyType : fromPropertyTypes) {
             propertyTypes.add(createOrUpdatePropertyType(fromPropertyType));
@@ -84,7 +91,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
      * @return List of PropertyType objects.
      */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public Set<PropertyType> parsePropertyTypesFromCsvInputStream(final InputStream inputStream) throws IOException {
+    public Set<PropertyType> parsePropertyTypesFromCsvInputStream(final InputStream inputStream) {
         final Set<PropertyType> propertyTypes = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -105,6 +112,8 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 final PropertyType propertyType = createOrUpdatePropertyType(fromPropertyType);
                 propertyTypes.add(propertyType);
             }
+        } catch (final IOException e) {
+            throw new CsvParsingException("CSV parsing failed!");
         }
         return propertyTypes;
     }
@@ -116,7 +125,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
      * @param inputStream The Code containing Excel -file.
      * @return List of Code objects.
      */
-    public Set<PropertyType> parsePropertyTypesFromExcelInputStream(final InputStream inputStream) throws Exception {
+    public Set<PropertyType> parsePropertyTypesFromExcelInputStream(final InputStream inputStream) {
         final Set<PropertyType> propertyTypes = new HashSet<>();
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             final DataFormatter formatter = new DataFormatter();
@@ -151,6 +160,8 @@ public class PropertyTypeParser extends AbstractBaseParser {
                     }
                 }
             }
+        } catch (final InvalidFormatException | IOException | POIXMLException e) {
+            throw new ExcelParsingException("Error parsing Excel file.");
         }
         return propertyTypes;
     }
