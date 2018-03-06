@@ -29,8 +29,6 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 public abstract class AbstractBaseResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractBaseResource.class);
-
     public SimpleFilterProvider createSimpleFilterProvider(final String baseFilter,
                                                            final String expand) {
         final List<String> baseFilters = new ArrayList<>();
@@ -66,36 +64,6 @@ public abstract class AbstractBaseResource {
                               final String apiVersionPath,
                               final String apiPath) {
         logger.info(method + " " + apiVersionPath + apiPath + " requested!");
-    }
-
-    protected Response handleInternalServerError(final Meta meta,
-                                                 final ResponseWrapper wrapper,
-                                                 final String logMessage,
-                                                 final Exception e,
-                                                 final String msgToUser) {
-        handleLoggingAndMetaForHttpCode(500, meta, logMessage, e, Optional.of(msgToUser));
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
-    }
-
-    protected Response handleInternalServerError(final Meta meta,
-                                                 final MetaResponseWrapper wrapper,
-                                                 final String logMessage,
-                                                 final Exception e,
-                                                 final String msgToUser) {
-        handleLoggingAndMetaForHttpCode(500, meta, logMessage, e, Optional.of(msgToUser));
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
-    }
-
-    private void handleLoggingAndMetaForHttpCode(final int code,
-                                                 Meta meta,
-                                                 final String logMessage,
-                                                 final Exception e,
-                                                 Optional<String> msgToUser) {
-        LOG.error(logMessage, e);
-        meta.setCode(code);
-        if (msgToUser.isPresent()) {
-            meta.setMessage(msgToUser.get());
-        }
     }
 
     public ObjectMapper createObjectMapper() {
