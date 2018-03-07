@@ -4,13 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -22,9 +19,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.jaxrs.cfg.EndpointConfigBase;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterModifier;
 
-import fi.vm.yti.codelist.common.model.Meta;
-import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
-import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 public abstract class AbstractBaseResource {
