@@ -65,9 +65,7 @@ import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_EXISTING_CODE_MISMATCH;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 /**
  * Class that handles parsing of CodeSchemes from source data.
@@ -193,18 +191,9 @@ public class CodeSchemeParser extends AbstractBaseParser {
         return codeSchemes;
     }
 
-    public Set<CodeScheme> parseCodeSchemesFromExcelInputStream(final CodeRegistry codeRegistry,
-                                                                final InputStream inputStream) {
-        try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-            return parseCodeSchemesFromExcel(codeRegistry, workbook);
-        } catch (final InvalidFormatException | IOException | POIXMLException e) {
-            throw new ExcelParsingException("Error parsing Excel file.");
-        }
-    }
-
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    private Set<CodeScheme> parseCodeSchemesFromExcel(final CodeRegistry codeRegistry,
-                                                      final Workbook workbook) {
+    public Set<CodeScheme> parseCodeSchemesFromExcelWorkbook(final CodeRegistry codeRegistry,
+                                                             final Workbook workbook) {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (codeRegistry != null) {
             final DataFormatter formatter = new DataFormatter();

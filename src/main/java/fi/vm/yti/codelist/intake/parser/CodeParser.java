@@ -225,15 +225,15 @@ public class CodeParser extends AbstractBaseParser {
     public Set<Code> parseCodesFromExcelInputStream(final CodeScheme codeScheme,
                                                     final InputStream inputStream) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-            return parseCodesFromExcel(codeScheme, workbook);
+            return parseCodesFromExcelWorkbook(codeScheme, workbook);
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
             throw new ExcelParsingException("Error parsing Excel file.");
         }
     }
 
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    private Set<Code> parseCodesFromExcel(final CodeScheme codeScheme,
-                                          final Workbook workbook) {
+    public Set<Code> parseCodesFromExcelWorkbook(final CodeScheme codeScheme,
+                                                 final Workbook workbook) {
         final Map<String, Code> codes = new HashMap<>();
         final Map<String, String> broaderCodeMapping = new HashMap<>();
         if (codeScheme != null) {
