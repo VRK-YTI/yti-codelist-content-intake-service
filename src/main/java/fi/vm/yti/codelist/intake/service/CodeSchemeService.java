@@ -83,7 +83,7 @@ public class CodeSchemeService {
                 case FORMAT_EXCEL:
                     try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
                         codeSchemes = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook);
-                        if (codeSchemes.isEmpty() && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
+                        if (!codeSchemes.isEmpty() && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
                             codes = codeParser.parseCodesFromExcelWorkbook(codeSchemes.iterator().next(), workbook);
                         }
                     } catch (final InvalidFormatException | IOException | POIXMLException e) {
