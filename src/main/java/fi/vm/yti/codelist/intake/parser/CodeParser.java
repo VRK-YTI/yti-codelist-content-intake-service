@@ -203,7 +203,7 @@ public class CodeParser extends AbstractBaseParser {
         try {
             record.get(CONTENT_HEADER_ID);
         } catch (IllegalArgumentException e) {
-            throw new WebApplicationException("A serious problem with the CSV file (possibly erroneously an Excel-file was used).");
+            throw new CsvParsingException("A serious problem with the CSV file (possibly erroneously an Excel-file was used).");
         }
         if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).equals("")) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
