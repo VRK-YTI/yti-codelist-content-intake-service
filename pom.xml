@@ -583,7 +583,7 @@
         <swagger.version>1.5.17</swagger.version>
         <swagger-ui.version>3.1.6</swagger-ui.version>
         <swagger-maven-plugin.version>3.1.6</swagger-maven-plugin.version>
-        <postgresql.version>42.1.4</postgresql.version>
+        <postgresql.version>42.2.1</postgresql.version>
         <flyway.version>5.0.5</flyway.version>
         <elastic.version>6.1.2</elastic.version>
         <apache.httpclient.version>4.5.4</apache.httpclient.version>
