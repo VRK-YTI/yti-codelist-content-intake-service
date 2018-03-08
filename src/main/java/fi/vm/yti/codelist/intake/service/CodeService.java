@@ -54,7 +54,7 @@ public class CodeService {
         this.codeParser = codeParser;
     }
 
-    @Transactional
+    @Transactional()
     public Set<Code> parseAndPersistCodesFromSourceData(final String codeRegistryCodeValue,
                                                         final String codeSchemeCodeValue,
                                                         final String format,
@@ -107,7 +107,7 @@ public class CodeService {
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), "Unauthorized modification of code!"));
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
             }
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             if (codeScheme != null) {
