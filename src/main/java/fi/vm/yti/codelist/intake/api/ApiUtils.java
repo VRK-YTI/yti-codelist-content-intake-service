@@ -68,13 +68,7 @@ public class ApiUtils {
     }
 
     public String createCodeSchemeUri(final CodeRegistry codeRegistry, final CodeScheme codeScheme) {
-        final String uri;
-        if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
-            uri = createResourceUri(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeScheme.getCodeValue());
-        } else {
-            uri = createResourceUri(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeScheme.getId().toString());
-        }
-        return uri;
+        return createResourceUri(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeScheme.getCodeValue());
     }
 
     public String createCodeUri(final Code code) {
@@ -82,21 +76,7 @@ public class ApiUtils {
     }
 
     public String createCodeUri(final CodeRegistry codeRegistry, final CodeScheme codeScheme, final Code code) {
-        final String uri;
-        if (code.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
-            if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
-                uri = createResourceUri(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, code.getCodeValue());
-            } else {
-                uri = createResourceUri(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue()+ API_PATH_CODES, code.getId().toString());
-            }
-        } else {
-            if (codeScheme.getStatus().equalsIgnoreCase(Status.VALID.toString())) {
-                uri = createResourceUri(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getId() + API_PATH_CODES, code.getCodeValue());
-            } else {
-                uri = createResourceUri(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getId() + API_PATH_CODES, code.getId().toString());
-            }
-        }
-        return uri;
+        return createResourceUri(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, code.getCodeValue());
     }
 
     public String getContentIntakeServiceHostname() {
