@@ -27,12 +27,10 @@ import static org.junit.Assert.assertEquals;
 @SpringBootTest(classes = {ContentIntakeServiceApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"test"})
 @TestPropertySource(locations = "classpath:test-port.properties")
-public class CodeBroaderUploadTestT5 extends AbstractIntegrationTestBase {
+public class CodeDuplicateUploadTestT7 extends AbstractIntegrationTestBase {
 
-    private static final String TEST_CODE_BROADER_SELF_FILENAME = "v1_broader_codes_self_test.xlsx";
-    private static final String TEST_CODE_BROADER_UNEXISTING_FILENAME = "v1_broader_codes_unexisting_test.xlsx";
-    private static final String BROADER_CODESCHEME_1 = "broadercodescheme1";
-    private static final String BROADER_CODESCHEME_2 = "broadercodescheme2";
+    private static final String TEST_CODE_DUPLICATE_FILENAME = "v1_codes_duplicate_test.xlsx";
+    private static final String DUPLICATE_TEST_CODESCHEME_1 = "duplicatecodescheme1";
     private TestRestTemplate restTemplate = new TestRestTemplate();
 
     @LocalServerPort
@@ -40,24 +38,10 @@ public class CodeBroaderUploadTestT5 extends AbstractIntegrationTestBase {
 
     @Test
     @Transactional
-    public void postCodesWithUnexistingBroaderToCodeSchemeTest() {
-        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + TEST_CODEREGISTRY_CODEVALUE + API_PATH_CODESCHEMES + "/" + BROADER_CODESCHEME_1 + API_PATH_CODES + "/" + "?format=" + FORMAT_EXCEL;
+    public void postCodesWithDuplicateValuesToCodeSchemeTest() {
+        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + TEST_CODEREGISTRY_CODEVALUE + API_PATH_CODESCHEMES + "/" + DUPLICATE_TEST_CODESCHEME_1 + API_PATH_CODES + "/" + "?format=" + FORMAT_EXCEL;
         final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
-        final String registryFilePath = "/" + CODES_FOLDER_NAME + "/" + TEST_CODE_BROADER_UNEXISTING_FILENAME;
-        parameters.add("file", new ClassPathResource(registryFilePath));
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(parameters, headers);
-        final ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class, "");
-        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
-    }
-
-    @Test
-    @Transactional
-    public void postCodesWithSelfBroaderToCodeSchemeTest() {
-        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + TEST_CODEREGISTRY_CODEVALUE + API_PATH_CODESCHEMES + "/" + BROADER_CODESCHEME_2 + API_PATH_CODES + "/" + "?format=" + FORMAT_EXCEL;
-        final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
-        final String registryFilePath = "/" + CODES_FOLDER_NAME + "/" + TEST_CODE_BROADER_SELF_FILENAME;
+        final String registryFilePath = "/" + CODES_FOLDER_NAME + "/" + TEST_CODE_DUPLICATE_FILENAME;
         parameters.add("file", new ClassPathResource(registryFilePath));
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
