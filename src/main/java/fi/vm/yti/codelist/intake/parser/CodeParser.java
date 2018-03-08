@@ -100,6 +100,7 @@ public class CodeParser extends AbstractBaseParser {
                     final Code fromCode = new Code();
                     fromCode.setId(parseUUIDFromString(record.get(CONTENT_HEADER_ID)));
                     final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
+                    checkForDuplicateCodeValueInImportData(codes, codeValue);
                     fromCode.setCodeValue(codeValue);
                     fromCode.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                     fromCode.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
@@ -261,6 +262,7 @@ public class CodeParser extends AbstractBaseParser {
                     validateRequiredDataOnRow(row, headerMap, formatter);
                     final Code fromCode = new Code();
                     final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
+                    checkForDuplicateCodeValueInImportData(codes, codeValue);
                     fromCode.setCodeValue(codeValue);
                     final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID))));
                     fromCode.setId(id);
@@ -315,11 +317,12 @@ public class CodeParser extends AbstractBaseParser {
     public Set<Code> parseCodesFromJsonData(final CodeScheme codeScheme,
                                             final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final Set<Code> codes = new HashSet<>();
+        final Map<String, Code> codes = new HashMap<>();
         try {
             final Set<Code> fromCodes = mapper.readValue(jsonPayload, new TypeReference<Set<Code>>() {
             });
             for (final Code fromCode : fromCodes) {
+                checkForDuplicateCodeValueInImportData(codes, fromCode.getCodeValue());
                 final Code code = createOrUpdateCode(codeScheme, fromCode);
                 // TODO: Refactor
                 final Set<ExternalReference> externalReferences = initializeExternalReferences(fromCode.getExternalReferences(), codeScheme, externalReferenceParser);
@@ -329,12 +332,19 @@ public class CodeParser extends AbstractBaseParser {
                 } else {
                     code.setExternalReferences(null);
                 }
-                codes.add(code);
+                codes.put(code.getCodeValue(), code);
             }
         } catch (final IOException e) {
             throw new WebApplicationException("JSON parsing codes failed!");
         }
-        return codes;
+        return new HashSet<>(codes.values());
+    }
+
+    private void checkForDuplicateCodeValueInImportData(final Map<String, Code> codes,
+                                                        final String codeValue) {
+        if (codes.containsKey(codeValue)) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Duplicate value found in import data, failing"));
+        }
     }
 
     private Code createOrUpdateCode(final CodeScheme codeScheme,
@@ -346,6 +356,9 @@ public class CodeParser extends AbstractBaseParser {
         final Code existingCode;
         if (fromCode.getId() != null) {
             existingCode = codeRepository.findById(fromCode.getId());
+            if (existingCode == null) {
+                checkForExistingCodeInCodeScheme(codeScheme, fromCode);
+            }
         } else {
             checkForExistingCodeInCodeScheme(codeScheme, fromCode);
             existingCode = null;
@@ -366,7 +379,7 @@ public class CodeParser extends AbstractBaseParser {
         boolean hasChanges = false;
         if (!Objects.equals(existingCode.getStatus(), fromCode.getStatus())) {
             if (Status.valueOf(existingCode.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCode.getStatus()).ordinal() < Status.VALID.ordinal()) {
-                throw new WebApplicationException("Trying to update content with status: " + existingCode.getStatus() + " to status: " + fromCode.getStatus());
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Trying to update content with status: " + existingCode.getStatus() + " to status: " + fromCode.getStatus()));
             }
             existingCode.setStatus(fromCode.getStatus());
             hasChanges = true;
@@ -473,7 +486,13 @@ public class CodeParser extends AbstractBaseParser {
         broaderCodeMapping.forEach((codeCodeValue, broaderCodeCodeValue) -> {
             final Code code = codes.get(codeCodeValue);
             final Code broaderCode = codes.get(broaderCodeCodeValue);
-            code.setBroaderCodeId(broaderCode != null ? broaderCode.getId() : null);
+            if (broaderCode == null && broaderCodeCodeValue != null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Broader code references codevalue that does not exist, failing."));
+            } else if (broaderCode != null && broaderCode.getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Broader code references codevalue of the code itself, failing."));
+            } else {
+                code.setBroaderCodeId(broaderCode != null ? broaderCode.getId() : null);
+            }
         });
     }
 

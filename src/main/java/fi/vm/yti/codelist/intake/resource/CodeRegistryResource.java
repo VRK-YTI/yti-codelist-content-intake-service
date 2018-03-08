@@ -131,17 +131,17 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Modifies single existing CodeScheme.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response updateCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
+                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                      @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
 
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeId + "/");
-        final CodeScheme codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeId, jsonPayload);
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + "/");
+        final CodeScheme codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
         codeSchemeService.indexCodeScheme(codeScheme);
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
@@ -149,7 +149,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/codes/")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses Codes from JSON input.")
@@ -157,16 +157,16 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @JsonView({Views.ExtendedCode.class, Views.Normal.class})
     public Response addOrUpdateCodesFromJson(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
                                              @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                             @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
+                                             @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                              @ApiParam(value = "JSON playload for Code data.", required = true) final String jsonPayload) {
 
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeId + API_PATH_CODES + "/");
-        return parseAndPersistCodesFromSource(codeRegistryCodeValue, codeSchemeId, format, null, jsonPayload);
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/");
+        return parseAndPersistCodesFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, null, jsonPayload);
 
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/codes/")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses Codes from input data.")
@@ -177,26 +177,26 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @JsonView({Views.ExtendedCode.class, Views.Normal.class})
     public Response addOrUpdateCodesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("csv") final String format,
                                              @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                             @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
+                                             @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                              @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
 
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeId + API_PATH_CODES + "/");
-        return parseAndPersistCodesFromSource(codeRegistryCodeValue, codeSchemeId, format, inputStream, null);
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/");
+        return parseAndPersistCodesFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, null);
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/codes/{codeId}")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/{codeCodeValue}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Modifies single existing Code.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response updateCode(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                               @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
-                               @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeId") final String codeId,
+                               @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                               @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue,
                                @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
 
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeId + API_PATH_CODES + "/" + codeId + "/");
-        final Code code = codeService.parseAndPersistCodeFromJson(codeRegistryCodeValue, codeSchemeId, codeId, jsonPayload);
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + codeCodeValue + "/");
+        final Code code = codeService.parseAndPersistCodeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue, jsonPayload);
         codeService.indexCode(code);
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
@@ -233,11 +233,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     private Response parseAndPersistCodesFromSource(final String codeRegistryCodeValue,
-                                                    final String codeSchemeId,
+                                                    final String codeSchemeCodeValue,
                                                     final String format,
                                                     final InputStream inputStream,
                                                     final String jsonPayload) {
-        final Set<Code> codes = codeService.parseAndPersistCodesFromSourceData(codeRegistryCodeValue, codeSchemeId, format, inputStream, jsonPayload);
+        final Set<Code> codes = codeService.parseAndPersistCodesFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload);
         codeService.indexCodes(codes);
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODE, "codeRegistry,codeScheme")));

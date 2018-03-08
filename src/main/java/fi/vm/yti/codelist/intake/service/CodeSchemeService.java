@@ -110,7 +110,7 @@ public class CodeSchemeService {
 
     @Transactional
     public CodeScheme parseAndPersistCodeSchemeFromJson(final String codeRegistryCodeValue,
-                                                        final String codeSchemeId,
+                                                        final String codeSchemeCodeValue,
                                                         final String jsonPayload) {
         CodeScheme codeScheme = null;
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
@@ -121,8 +121,8 @@ public class CodeSchemeService {
             try {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     codeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(codeRegistry, jsonPayload);
-                    if (!codeScheme.getId().toString().equalsIgnoreCase(codeSchemeId)) {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Id mismatch with API call and incoming data!"));
+                    if (!codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeCodeValue)) {
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeValue mismatch with API call and incoming data!"));
                     }
                     codeSchemeRepository.save(codeScheme);
                 } else {

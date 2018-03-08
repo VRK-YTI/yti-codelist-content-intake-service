@@ -55,7 +55,7 @@ public class CodeResourceT4 extends AbstractIntegrationTestBase {
     public void postCodesToCodeSchemeTest() {
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(TEST_CODEREGISTRY_CODEVALUE);
         final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, TEST_CODESCHEME_CODEVALUE);
-        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + TEST_CODEREGISTRY_CODEVALUE + API_PATH_CODESCHEMES + "/" + codeScheme.getId().toString() + API_PATH_CODES + "/" + "?format=" + FORMAT_CSV;
+        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + TEST_CODEREGISTRY_CODEVALUE + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES + "/" + "?format=" + FORMAT_CSV;
         final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
         final String registryFilePath = "/" + CODES_FOLDER_NAME + "/" + TEST_CODE_FILENAME;
         parameters.add("file", new ClassPathResource(registryFilePath));

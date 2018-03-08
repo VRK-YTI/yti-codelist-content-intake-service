@@ -24,13 +24,10 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
-import org.apache.poi.POIXMLException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -50,8 +47,6 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.exception.BadClassificationException;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
-import fi.vm.yti.codelist.intake.exception.ErrorConstants;
-import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderClassificationException;
@@ -269,30 +264,30 @@ public class CodeSchemeParser extends AbstractBaseParser {
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).equals("")) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(row.getRowNum() + 1)));
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(row.getRowNum() + 1)));
         }
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))).equals("")) {
             throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(row.getRowNum() + 1)));
+                ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(row.getRowNum() + 1)));
         }
     }
 
     private void validateRequiredDataOnRecord(final CSVRecord record) {
         if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).equals("")) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(record.getRecordNumber() + 1)));
         }
         if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).equals("")) {
             throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(record.getRecordNumber() + 1)));
         }
     }
 
     private void validateRequiredSchemeHeaders(final Map<String, Integer> headerMap) {
         if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
+                ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
         }
         if (!headerMap.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
             throw new MissingHeaderClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
@@ -300,7 +295,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         }
         if (!headerMap.containsKey(CONTENT_HEADER_STATUS)) {
             throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS));
+                ERR_MSG_USER_MISSING_HEADER_STATUS));
         }
     }
 
@@ -308,11 +303,14 @@ public class CodeSchemeParser extends AbstractBaseParser {
                                                 final CodeScheme fromCodeScheme) {
         validateCodeSchemeForCodeRegistry(codeRegistry, fromCodeScheme);
         if (!startDateIsBeforeEndDateSanityCheck(fromCodeScheme.getStartDate(), fromCodeScheme.getEndDate())) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_END_BEFORE_START_DATE));
         }
         final CodeScheme existingCodeScheme;
         if (fromCodeScheme.getId() != null) {
             existingCodeScheme = codeSchemeRepository.findById(fromCodeScheme.getId());
+            if (existingCodeScheme == null) {
+                checkForExistingCodeSchemeInRegistry(codeRegistry, fromCodeScheme);
+            }
         } else {
             checkForExistingCodeSchemeInRegistry(codeRegistry, fromCodeScheme);
             existingCodeScheme = null;
@@ -479,7 +477,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     if (code != null) {
                         dataClassifications.add(code);
                     } else {
-                        throw new BadClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ErrorConstants.ERR_MSG_USER_BAD_CLASSIFICATION));
+                        throw new BadClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_CLASSIFICATION));
                     }
                 });
             }

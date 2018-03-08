@@ -3,7 +3,6 @@ package fi.vm.yti.codelist.intake.service;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -25,9 +24,7 @@ import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_CSV;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_EXCEL;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_JSON;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Component
 public class CodeService {
@@ -59,7 +56,7 @@ public class CodeService {
 
     @Transactional
     public Set<Code> parseAndPersistCodesFromSourceData(final String codeRegistryCodeValue,
-                                                        final String codeSchemeId,
+                                                        final String codeSchemeCodeValue,
                                                         final String format,
                                                         final InputStream inputStream,
                                                         final String jsonPayload) {
@@ -69,7 +66,7 @@ public class CodeService {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
             }
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             if (codeScheme != null) {
                 switch (format.toLowerCase()) {
                     case FORMAT_JSON:
@@ -93,7 +90,7 @@ public class CodeService {
                     codeSchemeRepository.save(codeScheme);
                 }
             } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeScheme with id: " + codeSchemeId + " does not exist yet, please create codeScheme first."));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeScheme with CodeValue: " + codeSchemeCodeValue + " does not exist yet, please create codeScheme first."));
             }
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeRegistry with CodeValue: " + codeRegistryCodeValue + " does not exist yet, please create registry first."));
@@ -103,8 +100,8 @@ public class CodeService {
 
     @Transactional
     public Code parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
-                                            final String codeSchemeId,
-                                            final String codeId,
+                                            final String codeSchemeCodeValue,
+                                            final String codeCodeValue,
                                             final String jsonPayload) {
         Code code = null;
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
@@ -112,13 +109,13 @@ public class CodeService {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), "Unauthorized modification of code!"));
             }
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndId(codeRegistry, UUID.fromString(codeSchemeId));
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             if (codeScheme != null) {
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         code = codeParser.parseCodeFromJsonData(codeScheme, jsonPayload);
-                        if (!code.getId().toString().equalsIgnoreCase(codeId)) {
-                            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Id mismatch with API call and incoming data!"));
+                        if (!code.getCodeValue().equalsIgnoreCase(codeCodeValue)) {
+                            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeValue mismatch with API call and incoming data!"));
                         }
                         codeRepository.save(code);
                         codeSchemeRepository.save(codeScheme);
@@ -131,7 +128,7 @@ public class CodeService {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ErrorConstants.ERR_MSG_USER_500));
                 }
             } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeScheme with id: " + codeSchemeId + " does not exist yet, please create codeScheme first."));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeScheme with CodeValue: " + codeSchemeCodeValue + " does not exist yet, please create codeScheme first."));
             }
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeRegistry with CodeValue: " + codeRegistryCodeValue + " does not exist yet, please create registry first."));
