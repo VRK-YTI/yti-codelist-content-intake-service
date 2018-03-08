@@ -31,6 +31,7 @@ import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 
 public abstract class AbstractBaseParser {
 
@@ -192,4 +193,10 @@ public abstract class AbstractBaseParser {
         return externalReferences;
     }
 
+    public <T> void checkForDuplicateCodeValueInImportData(final Map<String, T> entityMap,
+                                                           final String codeValue) {
+        if (entityMap.containsKey(codeValue)) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Duplicate value found in import data, failing"));
+        }
+    }
 }

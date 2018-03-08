@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -109,7 +110,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
     public Set<CodeScheme> parseCodeSchemesFromJsonData(final CodeRegistry codeRegistry,
                                                         final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final Set<CodeScheme> codeSchemes = new HashSet<>();
+        final Map<String, CodeScheme> codeSchemes = new HashMap<>();
         final Set<CodeScheme> fromCodeSchemes;
         try {
             fromCodeSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<CodeScheme>>() {
@@ -118,11 +119,12 @@ public class CodeSchemeParser extends AbstractBaseParser {
             throw new JsonParsingException("JSON parsing failed");
         }
         for (final CodeScheme fromCodeScheme : fromCodeSchemes) {
+            checkForDuplicateCodeValueInImportData(codeSchemes, fromCodeScheme.getCodeValue());
             final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
-            codeSchemes.add(codeScheme);
+            codeSchemes.put(codeScheme.getCodeValue(), codeScheme);
             updateExternalReferences(fromCodeScheme, codeScheme);
         }
-        return codeSchemes;
+        return new HashSet<>(codeSchemes.values());
     }
 
     private void updateExternalReferences(final CodeScheme fromCodeScheme,
@@ -141,7 +143,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeScheme> parseCodeSchemesFromCsvInputStream(final CodeRegistry codeRegistry,
                                                               final InputStream inputStream) {
-        final Set<CodeScheme> codeSchemes = new HashSet<>();
+        final Map<String, CodeScheme> codeSchemes = new HashMap<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -156,6 +158,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 validateRequiredDataOnRecord(record);
                 final CodeScheme fromCodeScheme = new CodeScheme();
                 final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
+                checkForDuplicateCodeValueInImportData(codeSchemes, codeValue);
                 fromCodeScheme.setCodeValue(codeValue);
                 fromCodeScheme.setId(parseUUIDFromString(record.get(CONTENT_HEADER_ID)));
                 fromCodeScheme.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
@@ -178,18 +181,18 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 fromCodeScheme.setStartDate(parseStartDateFromString(record.get(CONTENT_HEADER_STARTDATE), String.valueOf(record.getRecordNumber())));
                 fromCodeScheme.setEndDate(parseEndDateString(record.get(CONTENT_HEADER_ENDDATE), String.valueOf(record.getRecordNumber())));
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
-                codeSchemes.add(codeScheme);
+                codeSchemes.put(codeScheme.getCodeValue(), codeScheme);
             }
         } catch (final IOException e) {
             throw new CsvParsingException("CSV parsing failed!");
         }
-        return codeSchemes;
+        return new HashSet<>(codeSchemes.values());
     }
 
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeScheme> parseCodeSchemesFromExcelWorkbook(final CodeRegistry codeRegistry,
                                                              final Workbook workbook) {
-        final Set<CodeScheme> codeSchemes = new HashSet<>();
+        final Map<String, CodeScheme> codeSchemes = new HashMap<>();
         if (codeRegistry != null) {
             final DataFormatter formatter = new DataFormatter();
             Sheet sheet = workbook.getSheet(EXCEL_SHEET_CODESCHEMES);
@@ -220,6 +223,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     if (codeValue == null || codeValue.trim().isEmpty()) {
                         continue;
                     }
+                    checkForDuplicateCodeValueInImportData(codeSchemes, codeValue);
                     fromCodeScheme.setCodeValue(codeValue);
                     fromCodeScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                     final String dataClassificationCodes;
@@ -250,12 +254,12 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     fromCodeScheme.setEndDate(parseEndDateString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
                     final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
                     if (codeScheme != null) {
-                        codeSchemes.add(codeScheme);
+                        codeSchemes.put(codeScheme.getCodeValue(), codeScheme);
                     }
                 }
             }
         }
-        return codeSchemes;
+        return new HashSet<>(codeSchemes.values());
     }
 
     private void validateRequiredDataOnRow(final Row row,

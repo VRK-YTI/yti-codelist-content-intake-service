@@ -340,13 +340,6 @@ public class CodeParser extends AbstractBaseParser {
         return new HashSet<>(codes.values());
     }
 
-    private void checkForDuplicateCodeValueInImportData(final Map<String, Code> codes,
-                                                        final String codeValue) {
-        if (codes.containsKey(codeValue)) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Duplicate value found in import data, failing"));
-        }
-    }
-
     private Code createOrUpdateCode(final CodeScheme codeScheme,
                                     final Code fromCode) {
         validateCodeForCodeScheme(codeScheme, fromCode);

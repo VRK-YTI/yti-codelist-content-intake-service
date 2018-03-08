@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -86,15 +87,17 @@ public class CodeRegistryParser extends AbstractBaseParser {
         } catch (final IOException e) {
             throw new JsonParsingException("JSON parsing failed");
         }
-        final Set<CodeRegistry> codeRegistries = new HashSet<>();
-        for (final CodeRegistry fromRegistry : fromCodeRegistries) {
-            codeRegistries.add(createOrUpdateCodeRegistry(fromRegistry));
+        final Map<String, CodeRegistry> codeRegistries = new HashMap<>();
+        for (final CodeRegistry fromCodeRegistry : fromCodeRegistries) {
+            checkForDuplicateCodeValueInImportData(codeRegistries, fromCodeRegistry.getCodeValue());
+            final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(fromCodeRegistry);
+            codeRegistries.put(codeRegistry.getCodeValue(), codeRegistry);
         }
-        return codeRegistries;
+        return new HashSet<>(codeRegistries.values());
     }
 
     public Set<CodeRegistry> parseCodeRegistriesFromCsvInputStream(final InputStream inputStream) {
-        final Set<CodeRegistry> codeRegistries = new HashSet<>();
+        final Map<String, CodeRegistry> codeRegistries = new HashMap<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -110,18 +113,18 @@ public class CodeRegistryParser extends AbstractBaseParser {
                 fromCodeRegistry.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                 final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(fromCodeRegistry);
                 if (codeRegistry != null) {
-                    codeRegistries.add(codeRegistry);
+                    codeRegistries.put(codeRegistry.getCodeValue(), codeRegistry);
                 }
             });
         } catch (final IOException e) {
             throw new CsvParsingException("CSV parsing failed!");
         }
-        return codeRegistries;
+        return new HashSet<>(codeRegistries.values());
     }
 
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeRegistry> parseCodeRegistriesFromExcelInputStream(final InputStream inputStream) {
-        final Set<CodeRegistry> codeRegistries = new HashSet<>();
+        final Map<String, CodeRegistry> codeRegistries = new HashMap<>();
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             final DataFormatter formatter = new DataFormatter();
             Sheet sheet = workbook.getSheet(EXCEL_SHEET_CODEREGISTRIES);
@@ -147,19 +150,20 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     if (codeValue == null || codeValue.trim().isEmpty()) {
                         continue;
                     }
+                    checkForDuplicateCodeValueInImportData(codeRegistries, codeValue);
                     fromCodeRegistry.setCodeValue(codeValue);
                     fromCodeRegistry.setOrganizations(resolveOrganizations(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORGANIZATION)))));
                     fromCodeRegistry.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                     fromCodeRegistry.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
 
                     final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(fromCodeRegistry);
-                    codeRegistries.add(codeRegistry);
+                    codeRegistries.put(codeRegistry.getCodeValue(), codeRegistry);
                 }
             }
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
             throw new ExcelParsingException("Error parsing Excel file.");
         }
-        return codeRegistries;
+        return new HashSet<>(codeRegistries.values());
     }
 
     private void validateRequiredCodeHeaders(final Map<String, Integer> headerMap) {
