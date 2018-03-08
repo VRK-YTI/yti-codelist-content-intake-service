@@ -27,6 +27,7 @@ import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODE;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODESCHEME;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
@@ -42,10 +43,9 @@ public class IndexingToolsImpl implements IndexingTools {
         "\"properties\": {\n" +
         "  \"codeValue\": {\n" +
         "    \"type\": \"text\"," +
-        "    \"analyzer\": \"lowercase_analyzer\",\n" +
+        "    \"analyzer\": \"analyzer_keyword\",\n" +
         "    \"fields\": {\n" +
-        "      \"keyword\": { \n" +
-        "        \"ignore_above\": 256," +
+        "      \"raw\": { \n" +
         "        \"type\": \"keyword\"\n" +
         "      }\n" +
         "    }\n" +
@@ -61,10 +61,9 @@ public class IndexingToolsImpl implements IndexingTools {
         "\"properties\": {\n" +
         "  \"codeValue\": {\n" +
         "    \"type\": \"text\"," +
-        "    \"analyzer\": \"lowercase_analyzer\",\n" +
+        "    \"analyzer\": \"analyzer_keyword\",\n" +
         "    \"fields\": {\n" +
-        "      \"keyword\": { \n" +
-        "        \"ignore_above\": 256," +
+        "      \"raw\": { \n" +
         "        \"type\": \"keyword\"\n" +
         "      }\n" +
         "    }\n" +
@@ -81,6 +80,49 @@ public class IndexingToolsImpl implements IndexingTools {
         "    \"properties\": {\n" +
         "      \"organizations\": {\n" +
         "        \"type\": \"nested\"\n" +
+        "      }\n" +
+        "    }\n" +
+        "  },\n" +
+        "  \"externalReferences\": {\n" +
+        "    \"type\": \"nested\"\n" +
+        "  }\n" +
+        "}\n}";
+
+    private static final String CODE_MAPPING = "{" +
+        "\"properties\": {\n" +
+        "  \"codeValue\": {\n" +
+        "    \"type\": \"text\"," +
+        "    \"analyzer\": \"analyzer_keyword\",\n" +
+        "    \"fields\": {\n" +
+        "      \"raw\": { \n" +
+        "        \"type\": \"keyword\"\n" +
+        "      }\n" +
+        "    }\n" +
+        "  },\n" +
+        "  \"id\": {\n" +
+        "    \"type\": \"text\"},\n" +
+        "  \"prefLabel\": {\n" +
+        "    \"type\": \"nested\"\n" +
+        "  },\n" +
+        "  \"dataClassifications\": {\n" +
+        "    \"type\": \"nested\"\n" +
+        "  },\n" +
+        "  \"codeScheme\": {\n" +
+        "    \"properties\": {\n" +
+        "      \"codeValue\": {\n" +
+        "        \"type\": \"text\",\n" +
+        "        \"analyzer\": \"analyzer_keyword\"\n" +
+        "      },\n" +
+        "      \"codeRegistry\": {\n" +
+        "        \"properties\": {\n" +
+        "          \"codeValue\": {\n" +
+        "            \"type\": \"text\",\n" +
+        "            \"analyzer\": \"analyzer_keyword\"\n" +
+        "          },\n" +
+        "          \"organizations\": {\n" +
+        "            \"type\": \"nested\"\n" +
+        "          }\n" +
+        "        }\n" +
         "      }\n" +
         "    }\n" +
         "  },\n" +
@@ -169,7 +211,7 @@ public class IndexingToolsImpl implements IndexingTools {
                     .startObject()
                     .startObject("analysis")
                     .startObject("analyzer")
-                    .startObject("lowercase_analyzer")
+                    .startObject("analyzer_keyword")
                     .field("type", "custom")
                     .field("tokenizer", "keyword")
                     .field("filter", new String[]{"lowercase", "standard"})
@@ -183,6 +225,8 @@ public class IndexingToolsImpl implements IndexingTools {
             }
             if (ELASTIC_TYPE_CODESCHEME.equals(type)) {
                 builder.addMapping(type, CODESCHEME_MAPPING, XContentType.JSON);
+            } else if (ELASTIC_TYPE_CODE.equals(type)) {
+                builder.addMapping(type, CODE_MAPPING, XContentType.JSON);
             } else {
                 builder.addMapping(type, NESTED_PREFLABEL_MAPPING_JSON, XContentType.JSON);
             }
