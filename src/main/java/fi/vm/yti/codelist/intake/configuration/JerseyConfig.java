@@ -3,6 +3,7 @@ package fi.vm.yti.codelist.intake.configuration;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.MediaType;
 
+import fi.vm.yti.codelist.intake.exception.exceptionmapping.UncaughtExceptionMapper;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
@@ -95,5 +96,6 @@ public class JerseyConfig extends ResourceConfig {
 
         // ExceptionMappers
         register(YtiCodeListExceptionMapper.class);
+        register(UncaughtExceptionMapper.class);
     }
 }
