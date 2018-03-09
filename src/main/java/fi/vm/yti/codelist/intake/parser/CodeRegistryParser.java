@@ -46,6 +46,8 @@ import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_DUPLICATE_HEADER_VALUE;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ERROR_PARSING_CSV_FILE;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE;
 
 /**
@@ -116,8 +118,10 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     codeRegistries.put(codeRegistry.getCodeValue(), codeRegistry);
                 }
             });
+        } catch (final IllegalArgumentException e) {
+            throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
         } catch (final IOException e) {
-            throw new CsvParsingException("CSV parsing failed!");
+            throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         return new HashSet<>(codeRegistries.values());
     }

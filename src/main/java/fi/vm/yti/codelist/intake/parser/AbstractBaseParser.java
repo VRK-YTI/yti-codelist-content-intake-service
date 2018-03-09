@@ -48,17 +48,6 @@ public abstract class AbstractBaseParser {
         return true;
     }
 
-    public void checkForDuplicateHeaders(final Map<String, Integer> headerMap) {
-        final Set<String> headerNames = new HashSet<>();
-        for (final Map.Entry<String, Integer> entry : headerMap.entrySet()) {
-            final String headerName = entry.getKey();
-            if (headerNames.contains(headerName)) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_DUPLICATE_HEADER_VALUE));
-            }
-            headerNames.add(headerName);
-        }
-    }
-
     public String resolveLanguageFromHeader(final String prefix,
                                             final String header) {
         return header.substring(header.indexOf(prefix) + prefix.length()).toLowerCase();
@@ -181,9 +170,11 @@ public abstract class AbstractBaseParser {
             final Cell cell = cellIterator.next();
             final String value = cell.getStringCellValue();
             final Integer index = cell.getColumnIndex();
+            if (headerMap.get(value) != null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_DUPLICATE_HEADER_VALUE));
+            }
             headerMap.put(value, index);
         }
-        checkForDuplicateHeaders(headerMap);
         return headerMap;
     }
 

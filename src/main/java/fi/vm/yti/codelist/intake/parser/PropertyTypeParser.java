@@ -40,6 +40,8 @@ import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_DUPLICATE_HEADER_VALUE;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ERROR_PARSING_CSV_FILE;
 
 /**
  * Class that handles parsing of PropertyTypes from source data.
@@ -97,7 +99,6 @@ public class PropertyTypeParser extends AbstractBaseParser {
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
-            checkForDuplicateHeaders(headerMap);
             final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
             final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
             final List<CSVRecord> records = csvParser.getRecords();
@@ -113,8 +114,10 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 final PropertyType propertyType = createOrUpdatePropertyType(fromPropertyType);
                 propertyTypes.add(propertyType);
             }
+        } catch (final IllegalArgumentException e) {
+            throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
         } catch (final IOException e) {
-            throw new CsvParsingException("CSV parsing failed!");
+            throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         return propertyTypes;
     }

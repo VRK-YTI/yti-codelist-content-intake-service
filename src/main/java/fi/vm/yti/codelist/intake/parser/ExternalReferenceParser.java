@@ -47,6 +47,8 @@ import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_DUPLICATE_HEADER_VALUE;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ERROR_PARSING_CSV_FILE;
 
 /**
  * Class that handles parsing of ExternalReferences from source data.
@@ -112,7 +114,6 @@ public class ExternalReferenceParser extends AbstractBaseParser {
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
-            checkForDuplicateHeaders(headerMap);
             final Map<String, Integer> titleHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_TITLE_PREFIX);
             final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
             final List<CSVRecord> records = csvParser.getRecords();
@@ -132,8 +133,10 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 final ExternalReference externalReference = createOrUpdateExternalReference(fromExternalReference, null);
                 externalReferences.add(externalReference);
             }
+        } catch (final IllegalArgumentException e) {
+            throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
         } catch (final IOException e) {
-            throw new CsvParsingException("CSV parsing failed!");
+            throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         return externalReferences;
     }

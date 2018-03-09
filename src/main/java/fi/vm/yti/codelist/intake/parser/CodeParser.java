@@ -88,7 +88,6 @@ public class CodeParser extends AbstractBaseParser {
                  final BufferedReader in = new BufferedReader(inputStreamReader);
                  final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
                 final Map<String, Integer> headerMap = csvParser.getHeaderMap();
-                checkForDuplicateHeaders(headerMap);
                 final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                 final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
                 final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
@@ -125,8 +124,10 @@ public class CodeParser extends AbstractBaseParser {
                 if (headerMap.containsKey(CONTENT_HEADER_BROADER)) {
                     setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes);
                 }
+            } catch (final IllegalArgumentException e) {
+                throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
             } catch (final IOException e) {
-                throw new CsvParsingException("CSV parsing failed!");
+                throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
             }
         }
         return new HashSet<>(codes.values());
@@ -352,8 +353,7 @@ public class CodeParser extends AbstractBaseParser {
                 checkForExistingCodeInCodeScheme(codeScheme, fromCode);
             }
         } else {
-            checkForExistingCodeInCodeScheme(codeScheme, fromCode);
-            existingCode = null;
+            existingCode = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, fromCode.getCodeValue());
         }
         final Code code;
         if (existingCode != null) {
@@ -525,10 +525,10 @@ public class CodeParser extends AbstractBaseParser {
     }
 
     private void checkForExistingCodeInCodeScheme(final CodeScheme codeScheme, final Code fromCode) {
-        final Code justCode = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, fromCode.getCodeValue());
-        if (justCode != null) {
+        final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, fromCode.getCodeValue());
+        if (code != null) {
             throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ALREADY_EXISTING_CODE, justCode.getCodeValue()));
+                ERR_MSG_USER_ALREADY_EXISTING_CODE, code.getCodeValue()));
         }
     }
 

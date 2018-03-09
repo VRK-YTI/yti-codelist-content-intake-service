@@ -148,7 +148,6 @@ public class CodeSchemeParser extends AbstractBaseParser {
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
-            checkForDuplicateHeaders(headerMap);
             final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
             final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
             final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
@@ -184,8 +183,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
                 codeSchemes.put(codeScheme.getCodeValue(), codeScheme);
             }
+        } catch (final IllegalArgumentException e) {
+            throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
         } catch (final IOException e) {
-            throw new CsvParsingException("CSV parsing failed!");
+            throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         return new HashSet<>(codeSchemes.values());
     }
@@ -317,8 +318,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 checkForExistingCodeSchemeInRegistry(codeRegistry, fromCodeScheme);
             }
         } else {
-            checkForExistingCodeSchemeInRegistry(codeRegistry, fromCodeScheme);
-            existingCodeScheme = null;
+            existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, fromCodeScheme.getCodeValue());
         }
         final CodeScheme codeScheme;
         if (existingCodeScheme != null) {
