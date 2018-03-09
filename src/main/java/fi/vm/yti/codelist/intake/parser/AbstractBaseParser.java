@@ -30,8 +30,8 @@ import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
-import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 public abstract class AbstractBaseParser {
 
@@ -46,6 +46,17 @@ public abstract class AbstractBaseParser {
                 return false;
         }
         return true;
+    }
+
+    public void checkForDuplicateHeaders(final Map<String, Integer> headerMap) {
+        final Set<String> headerNames = new HashSet<>();
+        for (final Map.Entry<String, Integer> entry : headerMap.entrySet()) {
+            final String headerName = entry.getKey();
+            if (headerNames.contains(headerName)) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_DUPLICATE_HEADER_VALUE));
+            }
+            headerNames.add(headerName);
+        }
     }
 
     public String resolveLanguageFromHeader(final String prefix,
@@ -79,7 +90,7 @@ public abstract class AbstractBaseParser {
             } catch (ParseException e) {
                 LOG.error("Parsing startDate failed from string: " + dateString);
                 throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                    ErrorConstants.ERR_MSG_USER_ERRONEOUS_START_DATE, rowIdentifier));
+                    ERR_MSG_USER_ERRONEOUS_START_DATE, rowIdentifier));
             }
         }
         return date;
@@ -94,20 +105,18 @@ public abstract class AbstractBaseParser {
             } catch (ParseException e) {
                 LOG.error("Parsing endDate failed from string: " + dateString);
                 throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                    ErrorConstants.ERR_MSG_USER_ERRONEOUS_END_DATE, rowIdentifier));
+                    ERR_MSG_USER_ERRONEOUS_END_DATE, rowIdentifier));
             }
         }
         return date;
     }
 
-    public Status parseStatus(final String statusString) {
-        final Status status;
-        if (!statusString.isEmpty()) {
-            status = Status.valueOf(statusString);
-        } else {
-            status = Status.DRAFT;
+    public String parseStatusValueFromString(final String statusString) {
+        try {
+            return Status.valueOf(statusString).toString();
+        } catch (final Exception e) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID));
         }
-        return status;
     }
 
     public Map<String, String> parseLocalizedValueFromCsvRecord(final Map<String, Integer> valueHeaders,
@@ -174,6 +183,7 @@ public abstract class AbstractBaseParser {
             final Integer index = cell.getColumnIndex();
             headerMap.put(value, index);
         }
+        checkForDuplicateHeaders(headerMap);
         return headerMap;
     }
 

@@ -32,7 +32,6 @@ import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
-import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.groupmanagement.GroupManagementUserRequest;
 import fi.vm.yti.security.AuthenticatedUserProvider;
@@ -43,6 +42,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_401;
 
 @Component
 @Path("/v1/groupmanagement")
@@ -69,7 +69,7 @@ public class GroupManagementProxyResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_GROUPMANAGEMENT + API_PATH_REQUESTS);
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
-            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
 
         final SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
@@ -106,7 +106,7 @@ public class GroupManagementProxyResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_GROUPMANAGEMENT + API_PATH_REQUEST);
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
-            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
 
         final SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();

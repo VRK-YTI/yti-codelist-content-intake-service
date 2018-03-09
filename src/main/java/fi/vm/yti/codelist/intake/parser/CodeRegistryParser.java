@@ -41,12 +41,12 @@ import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.Organization;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
-import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE;
 
 /**
  * Class that handles parsing of CodeRegistries from source data.
@@ -169,7 +169,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
     private void validateRequiredCodeHeaders(final Map<String, Integer> headerMap) {
         if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
+                ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
         }
     }
 

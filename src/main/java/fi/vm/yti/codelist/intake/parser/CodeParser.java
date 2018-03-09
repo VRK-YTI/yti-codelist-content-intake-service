@@ -45,7 +45,6 @@ import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
-import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
@@ -56,8 +55,7 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_EXISTING_CODE_MISMATCH;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ALREADY_EXISTING_CODE;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 /**
  * Class that handles parsing of codes from source data.
@@ -90,6 +88,7 @@ public class CodeParser extends AbstractBaseParser {
                  final BufferedReader in = new BufferedReader(inputStreamReader);
                  final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
                 final Map<String, Integer> headerMap = csvParser.getHeaderMap();
+                checkForDuplicateHeaders(headerMap);
                 final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                 final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
                 final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
@@ -115,7 +114,7 @@ public class CodeParser extends AbstractBaseParser {
                         }
                     }
                     fromCode.setHierarchyLevel(resolveHierarchyLevelFromCsvRecord(headerMap, record));
-                    fromCode.setStatus(parseStatus(record.get(CONTENT_HEADER_STATUS)).toString());
+                    fromCode.setStatus(parseStatusValueFromString(record.get(CONTENT_HEADER_STATUS)));
                     fromCode.setStartDate(parseStartDateFromString(record.get(CONTENT_HEADER_STARTDATE), String.valueOf(record.getRecordNumber())));
                     fromCode.setEndDate(parseEndDateString(record.get(CONTENT_HEADER_ENDDATE), String.valueOf(record.getRecordNumber())));
                     final Code code = createOrUpdateCode(codeScheme, fromCode);
@@ -163,7 +162,7 @@ public class CodeParser extends AbstractBaseParser {
                 hierarchyLevel = Integer.parseInt(hierarchyLevelString);
             } catch (final NumberFormatException e) {
                 throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    ErrorConstants.ERR_MSG_USER_HIERARCHY_LEVEL_INVALID_VALUE));
+                    ERR_MSG_USER_HIERARCHY_LEVEL_INVALID_VALUE));
             }
         } else {
             hierarchyLevel = null;
@@ -174,11 +173,11 @@ public class CodeParser extends AbstractBaseParser {
     private void validateRequiredCodeHeaders(final Map<String, Integer> headerMap) {
         if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
+                ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
         }
         if (!headerMap.containsKey(CONTENT_HEADER_STATUS)) {
             throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_MISSING_HEADER_STATUS));
+                ERR_MSG_USER_MISSING_HEADER_STATUS));
         }
     }
 
@@ -188,12 +187,12 @@ public class CodeParser extends AbstractBaseParser {
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).equals("")) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(row.getRowNum() + 1)));
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(row.getRowNum() + 1)));
         }
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))).equals("")) {
             throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(row.getRowNum() + 1)));
+                ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(row.getRowNum() + 1)));
         }
     }
 
@@ -204,15 +203,15 @@ public class CodeParser extends AbstractBaseParser {
         try {
             record.get(CONTENT_HEADER_ID);
         } catch (IllegalArgumentException e) {
-            throw new CsvParsingException("A serious problem with the CSV file (possibly erroneously an Excel-file was used).");
+            throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).equals("")) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(record.getRecordNumber() + 1)));
         }
         if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).equals("")) {
             throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ErrorConstants.ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(record.getRecordNumber() + 1)));
         }
     }
 
@@ -228,7 +227,7 @@ public class CodeParser extends AbstractBaseParser {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             return parseCodesFromExcelWorkbook(codeScheme, workbook);
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
-            throw new ExcelParsingException("Error parsing Excel file.");
+            throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
     }
 
@@ -277,7 +276,7 @@ public class CodeParser extends AbstractBaseParser {
                             broaderCodeMapping.put(codeValue, broaderCodeCodeValue);
                         }
                     }
-                    fromCode.setStatus(parseStatus(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))).toString());
+                    fromCode.setStatus(parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))));
                     fromCode.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
                     fromCode.setEndDate(parseEndDateString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
                     final Code code = createOrUpdateCode(codeScheme, fromCode);
@@ -309,7 +308,7 @@ public class CodeParser extends AbstractBaseParser {
                 code.setExternalReferences(null);
             }
         } catch (final IOException e) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ErrorConstants.ERR_MSG_USER_500));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
         }
         return code;
     }
@@ -344,7 +343,7 @@ public class CodeParser extends AbstractBaseParser {
                                     final Code fromCode) {
         validateCodeForCodeScheme(codeScheme, fromCode);
         if (!startDateIsBeforeEndDateSanityCheck(fromCode.getStartDate(), fromCode.getEndDate())) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ErrorConstants.ERR_MSG_USER_END_BEFORE_START_DATE));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_END_BEFORE_START_DATE));
         }
         final Code existingCode;
         if (fromCode.getId() != null) {
@@ -480,9 +479,9 @@ public class CodeParser extends AbstractBaseParser {
             final Code code = codes.get(codeCodeValue);
             final Code broaderCode = codes.get(broaderCodeCodeValue);
             if (broaderCode == null && broaderCodeCodeValue != null) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Broader code references codevalue that does not exist, failing."));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_BROADER_CODE_DOES_NOT_EXIST));
             } else if (broaderCode != null && broaderCode.getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Broader code references codevalue of the code itself, failing."));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_BROADER_CODE_SELF_REFERENCE));
             } else {
                 code.setBroaderCodeId(broaderCode != null ? broaderCode.getId() : null);
             }
