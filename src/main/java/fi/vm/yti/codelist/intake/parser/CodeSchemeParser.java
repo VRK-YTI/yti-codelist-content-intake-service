@@ -307,7 +307,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
 
     private CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
                                                 final CodeScheme fromCodeScheme) {
-        validateCodeSchemeForCodeRegistry(codeRegistry, fromCodeScheme);
+        validateCodeSchemeForCodeRegistry(fromCodeScheme);
         if (!startDateIsBeforeEndDateSanityCheck(fromCodeScheme.getStartDate(), fromCodeScheme.getEndDate())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_END_BEFORE_START_DATE));
         }
@@ -490,14 +490,12 @@ public class CodeSchemeParser extends AbstractBaseParser {
         return dataClassifications;
     }
 
-    private void validateCodeSchemeForCodeRegistry(final CodeRegistry codeRegistry, final CodeScheme codeScheme) {
+    private void validateCodeSchemeForCodeRegistry(final CodeScheme codeScheme) {
         if (codeScheme.getId() != null) {
             final CodeScheme existingCodeScheme = codeSchemeRepository.findById(codeScheme.getId());
             if (existingCodeScheme != null && !existingCodeScheme.getCodeValue().equalsIgnoreCase(codeScheme.getCodeValue())) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_EXISTING_CODE_MISMATCH));
             }
-        } else if (codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeScheme.getCodeValue()) != null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME));
         }
     }
 

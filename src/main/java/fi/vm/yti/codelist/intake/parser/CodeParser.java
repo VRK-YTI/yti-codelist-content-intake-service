@@ -342,7 +342,7 @@ public class CodeParser extends AbstractBaseParser {
 
     private Code createOrUpdateCode(final CodeScheme codeScheme,
                                     final Code fromCode) {
-        validateCodeForCodeScheme(codeScheme, fromCode);
+        validateCodeForCodeScheme(fromCode);
         if (!startDateIsBeforeEndDateSanityCheck(fromCode.getStartDate(), fromCode.getEndDate())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_END_BEFORE_START_DATE));
         }
@@ -513,14 +513,12 @@ public class CodeParser extends AbstractBaseParser {
         codesToEvaluate.removeAll(toRemove);
     }
 
-    private void validateCodeForCodeScheme(final CodeScheme codeScheme, final Code code) {
+    private void validateCodeForCodeScheme(final Code code) {
         if (code.getId() != null) {
             final Code existingCode = codeRepository.findById(code.getId());
             if (existingCode != null && !existingCode.getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_EXISTING_CODE_MISMATCH));
             }
-        } else if (codeRepository.findByCodeSchemeAndCodeValue(codeScheme, code.getCodeValue()) != null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ALREADY_EXISTING_CODE, code.getCodeValue()));
         }
     }
 
