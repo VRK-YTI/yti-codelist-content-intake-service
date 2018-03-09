@@ -148,6 +148,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
+            checkForDuplicateHeaders(headerMap);
             final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
             final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
             final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
@@ -174,7 +175,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 }
                 fromCodeScheme.setDataClassifications(dataClassifications);
                 fromCodeScheme.setVersion(record.get(CONTENT_HEADER_VERSION));
-                fromCodeScheme.setStatus(Status.valueOf(record.get(CONTENT_HEADER_STATUS)).toString());
+                fromCodeScheme.setStatus(parseStatusValueFromString(record.get(CONTENT_HEADER_STATUS)));
                 fromCodeScheme.setLegalBase(record.get(CONTENT_HEADER_LEGALBASE));
                 fromCodeScheme.setGovernancePolicy(record.get(CONTENT_HEADER_GOVERNANCEPOLICY));
                 fromCodeScheme.setSource(record.get(CONTENT_HEADER_SOURCE));
@@ -246,7 +247,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     fromCodeScheme.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
                     fromCodeScheme.setChangeNote(parseLocalizedValueFromExcelRow(changeNoteHeaders, row, formatter));
                     fromCodeScheme.setVersion(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_VERSION))));
-                    fromCodeScheme.setStatus(parseStatus(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))).toString());
+                    fromCodeScheme.setStatus(parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))));
                     fromCodeScheme.setSource(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SOURCE))));
                     fromCodeScheme.setLegalBase(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LEGALBASE))));
                     fromCodeScheme.setGovernancePolicy(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_GOVERNANCEPOLICY))));
