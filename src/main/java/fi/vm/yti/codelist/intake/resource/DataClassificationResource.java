@@ -11,6 +11,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.sql.DataSource;
+import javax.transaction.Transactional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -75,6 +76,7 @@ public class DataClassificationResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Data classification API for listing codes and counts.")
     @ApiResponse(code = 200, message = "Returns data classifications and counts.")
+    @Transactional
     public Response getDataClassifications(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand) {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_DATACLASSIFICATIONS + "/");
         final Stopwatch totalWatch = Stopwatch.createStarted();
