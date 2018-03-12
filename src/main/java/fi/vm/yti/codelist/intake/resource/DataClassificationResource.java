@@ -54,7 +54,7 @@ import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSI
 @Produces(MediaType.APPLICATION_JSON)
 public class DataClassificationResource extends AbstractBaseResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceResource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DataClassificationResource.class);
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeRepository codeRepository;
