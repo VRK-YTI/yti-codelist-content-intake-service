@@ -136,12 +136,14 @@ public class CodeService {
         return code;
     }
 
+    @Transactional
     public void indexCode(final Code code) {
         final Set<Code> codes = new HashSet<>();
         codes.add(code);
         indexCodes(codes);
     }
 
+    @Transactional
     public void indexCodes(final Set<Code> codes) {
         if (!codes.isEmpty()) {
             final CodeScheme codeScheme = codes.iterator().next().getCodeScheme();

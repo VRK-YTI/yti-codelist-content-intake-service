@@ -112,12 +112,14 @@ public class CodeRegistryService {
         return codeRegistry;
     }
 
+    @Transactional
     public void indexCodeRegistry(final CodeRegistry codeRegistry) {
         final Set<CodeRegistry> codeRegistries = new HashSet<>();
         codeRegistries.add(codeRegistry);
         indexCodeRegistries(codeRegistries);
     }
 
+    @Transactional
     public void indexCodeRegistries(final Set<CodeRegistry> codeRegistries) {
         indexing.updateCodeRegistries(codeRegistries);
         for (final CodeRegistry codeRegistry : codeRegistries) {

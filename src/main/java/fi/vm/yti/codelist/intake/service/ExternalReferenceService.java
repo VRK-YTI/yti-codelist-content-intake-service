@@ -107,12 +107,14 @@ public class ExternalReferenceService {
         return externalReference;
     }
 
+    @Transactional
     public void indexExternalReference(final ExternalReference externalReference) {
         final Set<ExternalReference> externalReferences = new HashSet<>();
         externalReferences.add(externalReference);
         indexExternalReferences(externalReferences);
     }
 
+    @Transactional
     public void indexExternalReferences(final Set<ExternalReference> externalReferences) {
         indexing.updateExternalReferences(externalReferences);
     }

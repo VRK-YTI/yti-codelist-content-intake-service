@@ -238,6 +238,12 @@
             <version>3.0.1</version>
         </dependency>
 
+        <!-- Hibernate jackson conf -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-hibernate4</artifactId>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

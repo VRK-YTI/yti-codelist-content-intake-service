@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -116,7 +115,6 @@ public class IndexingImpl implements Indexing {
         boolean success;
         if (!set.isEmpty()) {
             final ObjectMapper mapper = indexingTools.createObjectMapper();
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
             final BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (final T item : set) {
                 try {

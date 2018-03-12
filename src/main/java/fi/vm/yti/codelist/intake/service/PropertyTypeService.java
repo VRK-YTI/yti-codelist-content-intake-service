@@ -104,12 +104,14 @@ public class PropertyTypeService {
         return propertyType;
     }
 
+    @Transactional
     public void indexPropertyType(final PropertyType propertyType) {
         final Set<PropertyType> propertyTypes = new HashSet<>();
         propertyTypes.add(propertyType);
         indexPropertyTypes(propertyTypes);
     }
 
+    @Transactional
     public void indexPropertyTypes(final Set<PropertyType> propertyTypes) {
         indexing.updatePropertyTypes(propertyTypes);
     }

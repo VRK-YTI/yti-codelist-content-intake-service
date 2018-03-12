@@ -139,12 +139,14 @@ public class CodeSchemeService {
         return codeScheme;
     }
 
+    @Transactional
     public void indexCodeScheme(final CodeScheme codeScheme) {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         codeSchemes.add(codeScheme);
         indexCodeSchemes(codeSchemes);
     }
 
+    @Transactional
     public void indexCodeSchemes(final Set<CodeScheme> codeSchemes) {
         indexing.updateCodeSchemes(codeSchemes);
         for (final CodeScheme codeScheme : codeSchemes) {
