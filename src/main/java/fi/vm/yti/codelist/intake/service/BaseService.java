@@ -129,7 +129,6 @@ public class BaseService {
         final ExternalReferenceDTO externalReferenceDto = new ExternalReferenceDTO();
         externalReferenceDto.setId(externalReference.getId());
         externalReferenceDto.setModified(externalReference.getModified());
-        externalReferenceDto.setCodes(mapCodeDtos(externalReference.getCodes(), false));
         externalReferenceDto.setDescription(externalReference.getDescription());
         externalReferenceDto.setGlobal(externalReference.getGlobal());
         externalReferenceDto.setTitle(externalReference.getTitle());
@@ -141,6 +140,9 @@ public class BaseService {
             }
             if (externalReference.getCodeSchemes() != null) {
                 externalReferenceDto.setCodeSchemes(mapCodeSchemeDtos(externalReference.getCodeSchemes(), false));
+            }
+            if (externalReference.getCodes() != null) {
+                externalReferenceDto.setCodes(mapCodeDtos(externalReference.getCodes(), false));
             }
         }
         return externalReferenceDto;
