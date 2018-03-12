@@ -29,8 +29,7 @@ public interface CodeRepository extends CrudRepository<Code, String> {
 
     Set<Code> findByCodeScheme(final CodeScheme codeScheme);
 
-    @Query(value = "SELECT c FROM Code as c WHERE c.codeScheme.id = :codeSchemeId AND c.broaderCodeId IS NULL ORDER BY c.codeValue DESC")
-    Set<Code> findByCodeSchemeIdAndBroaderCodeIdIsNull(@Param("codeSchemeId") final UUID codeSchemeId);
+    Set<Code> findByCodeSchemeIdAndBroaderCodeIdIsNull(final UUID codeSchemeId);
 
     Set<Code> findAll();
 }
