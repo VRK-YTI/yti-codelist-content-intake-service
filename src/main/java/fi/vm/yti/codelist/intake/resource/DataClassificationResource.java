@@ -20,18 +20,22 @@ import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
+import com.google.common.base.Stopwatch;
 
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.DataClassification;
+import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
@@ -40,6 +44,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.JUPO_REGISTRY;
 import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
 
@@ -72,15 +77,46 @@ public class DataClassificationResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Returns data classifications and counts.")
     public Response getDataClassifications(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand) {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_DATACLASSIFICATIONS + "/");
+        final Stopwatch totalWatch = Stopwatch.createStarted();
+        final Stopwatch watch = Stopwatch.createStarted();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_DATACLASSIFICATION, expand)));
         final Meta meta = new Meta();
         final ResponseWrapper<DataClassification> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);
         final ObjectMapper mapper = createObjectMapper();
+        LOG.info("init " + watch);
+        watch.reset().start();
         final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(JUPO_REGISTRY);
+        LOG.info("reg fetch " + watch);
+        watch.reset().start();
         final CodeScheme dataClassificationsScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
+        LOG.info("scheme fetch " + watch);
+        watch.reset().start();
         final Set<Code> codes = codeRepository.findByCodeSchemeAndBroaderCodeId(dataClassificationsScheme, null);
+        LOG.info("codes fetch " + watch);
+        watch.reset().start();
         final Set<DataClassification> dataClassifications = new LinkedHashSet<>();
+        final Map<String, Integer> statistics = getClassificationCounts();
+        LOG.info("count query " + watch);
+        watch.reset().start();
+        codes.forEach(code -> {
+            final Integer count = statistics.get(code.getId().toString());
+            final DataClassification dataClassification = new DataClassification(code, count != null ? count : 0);
+            dataClassifications.add(dataClassification);
+        });
+        LOG.info("for loop to add counts " + watch);
+        watch.reset().start();
+        meta.setCode(200);
+        meta.setResultCount(dataClassifications.size());
+        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+        wrapper.setResults(dataClassifications);
+        LOG.info("total req time " + totalWatch);
+        watch.reset().start();
+        return Response.ok(wrapper).build();
+    }
+
+    private Map getClassificationCounts() {
+        final Stopwatch watch = Stopwatch.createStarted();
         final Map<String, Integer> statistics = new HashMap<>();
         try (final Connection connection = dataSource.getConnection();
              final PreparedStatement ps = connection.prepareStatement("SELECT code_id, count(code_id) FROM service_codescheme_code GROUP BY code_id");
@@ -88,19 +124,11 @@ public class DataClassificationResource extends AbstractBaseResource {
             while (results.next()) {
                 statistics.put(results.getString(1), results.getInt(2));
             }
-        } catch (SQLException e) {
+            LOG.info("prepared statement " + watch);
+        } catch (final SQLException e) {
             LOG.error("SQL query failed: ", e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
         }
-        codes.forEach(code -> {
-            final Integer count = statistics.get(code.getId().toString());
-            final DataClassification dataClassification = new DataClassification(code, count != null ? count : 0);
-            dataClassifications.add(dataClassification);
-        });
-        meta.setCode(200);
-        meta.setResultCount(dataClassifications.size());
-        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
-        wrapper.setResults(dataClassifications);
-        return Response.ok(wrapper).build();
+        return statistics;
     }
 }
