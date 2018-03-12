@@ -92,7 +92,7 @@ public class DataClassificationResource extends AbstractBaseResource {
         final CodeScheme dataClassificationsScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
         LOG.info("scheme fetch " + watch);
         watch.reset().start();
-        final Set<Code> codes = codeRepository.findByCodeSchemeAndBroaderCodeId(dataClassificationsScheme, null);
+        final Set<Code> codes = codeRepository.findByCodeSchemeIdAndBroaderCodeIdIsNull(dataClassificationsScheme.getId());
         LOG.info("codes fetch " + watch);
         watch.reset().start();
         final Set<DataClassification> dataClassifications = new LinkedHashSet<>();
