@@ -21,20 +21,20 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import fi.vm.yti.codelist.common.model.AbstractIdentifyableCode;
-import fi.vm.yti.codelist.common.model.Code;
-import fi.vm.yti.codelist.common.model.CodeRegistry;
-import fi.vm.yti.codelist.common.model.CodeScheme;
-import fi.vm.yti.codelist.common.model.ExternalReference;
+import fi.vm.yti.codelist.common.dto.AbstractIdentifyableCodeDTO;
+import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.model.IndexStatus;
-import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.common.model.Views;
-import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
-import fi.vm.yti.codelist.intake.jpa.CodeRepository;
-import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
-import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.IndexStatusRepository;
-import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
+import fi.vm.yti.codelist.intake.service.CodeRegistryService;
+import fi.vm.yti.codelist.intake.service.CodeSchemeService;
+import fi.vm.yti.codelist.intake.service.CodeService;
+import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
+import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Singleton
@@ -52,12 +52,12 @@ public class IndexingImpl implements Indexing {
     private static final String NAME_EXTERNALREFERENCES = "ExternalReferences";
     private static final String NAME_PROPERTYTYPES = "PropertyTypes";
     private static final String BULK = "ElasticSearch bulk: ";
-    private final CodeSchemeRepository codeSchemeRepository;
-    private final CodeRegistryRepository codeRegistryRepository;
-    private final CodeRepository codeRepository;
+    private final CodeSchemeService codeSchemeService;
+    private final CodeRegistryService codeRegistryService;
+    private final CodeService codeService;
     private final IndexStatusRepository indexStatusRepository;
-    private final ExternalReferenceRepository externalReferenceRepository;
-    private final PropertyTypeRepository propertyTypeRepository;
+    private final ExternalReferenceService externalReferenceService;
+    private final PropertyTypeService propertyTypeService;
     private final Client client;
     private IndexingTools indexingTools;
     private boolean hasError;
@@ -67,43 +67,43 @@ public class IndexingImpl implements Indexing {
     public IndexingImpl(final IndexingTools indexingTools,
                         final Client client,
                         final IndexStatusRepository indexStatusRepository,
-                        final CodeRegistryRepository codeRegistryRepository,
-                        final CodeSchemeRepository codeSchemeRepository,
-                        final CodeRepository codeRepository,
-                        final ExternalReferenceRepository externalReferenceRepository,
-                        final PropertyTypeRepository propertyTypeRepository) {
+                        final CodeRegistryService codeRegistryService,
+                        final CodeSchemeService codeSchemeService,
+                        final CodeService codeService,
+                        final ExternalReferenceService externalReferenceService,
+                        final PropertyTypeService propertyTypeService) {
         this.indexingTools = indexingTools;
         this.client = client;
         this.indexStatusRepository = indexStatusRepository;
-        this.codeRegistryRepository = codeRegistryRepository;
-        this.codeSchemeRepository = codeSchemeRepository;
-        this.codeRepository = codeRepository;
-        this.externalReferenceRepository = externalReferenceRepository;
-        this.propertyTypeRepository = propertyTypeRepository;
+        this.codeRegistryService = codeRegistryService;
+        this.codeSchemeService = codeSchemeService;
+        this.codeService = codeService;
+        this.externalReferenceService = externalReferenceService;
+        this.propertyTypeService = propertyTypeService;
     }
 
     private boolean indexCodeRegistries(final String indexName) {
-        final Set<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
+        final Set<CodeRegistryDTO> codeRegistries = codeRegistryService.findAll();
         return indexData(codeRegistries, indexName, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
     }
 
     private boolean indexCodeSchemes(final String indexName) {
-        final Set<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
+        final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.findAll();
         return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
     }
 
     private boolean indexCodes(final String indexName) {
-        final Set<Code> regions = codeRepository.findAll();
+        final Set<CodeDTO> regions = codeService.findAll();
         return indexData(regions, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
     }
 
     private boolean indexPropertyTypes(final String indexName) {
-        final Set<PropertyType> propertyTypes = propertyTypeRepository.findAll();
+        final Set<PropertyTypeDTO> propertyTypes = propertyTypeService.findAll();
         return indexData(propertyTypes, indexName, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
     }
 
     private boolean indexExternalReferences(final String indexName) {
-        final Set<ExternalReference> externalReferences = externalReferenceRepository.findAll();
+        final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findAll();
         return indexData(externalReferences, indexName, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
     }
 
@@ -118,7 +118,7 @@ public class IndexingImpl implements Indexing {
             final BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (final T item : set) {
                 try {
-                    final AbstractIdentifyableCode identifyableCode = (AbstractIdentifyableCode) item;
+                    final AbstractIdentifyableCodeDTO identifyableCode = (AbstractIdentifyableCodeDTO) item;
                     bulkRequest.add(client.prepareIndex(elasticIndex, elasticType, identifyableCode.getId().toString()).setSource(mapper.writerWithView(jsonViewClass).writeValueAsString(item).replace("\\\\n", "\\n"), XContentType.JSON));
                     bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
                 } catch (JsonProcessingException e) {
@@ -156,65 +156,65 @@ public class IndexingImpl implements Indexing {
         LOG.info(BULK + type + " operation ran, but there was no content to be indexed!");
     }
 
-    public boolean updateCode(final Code code) {
-        final Set<Code> codes = new HashSet<>();
+    public boolean updateCode(final CodeDTO code) {
+        final Set<CodeDTO> codes = new HashSet<>();
         codes.add(code);
         return updateCodes(codes);
     }
 
-    public boolean updateCodes(final Set<Code> codes) {
+    public boolean updateCodes(final Set<CodeDTO> codes) {
         if (!codes.isEmpty()) {
             return indexData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
         }
         return true;
     }
 
-    public boolean updateCodeScheme(final CodeScheme codeScheme) {
-        final Set<CodeScheme> codeSchemes = new HashSet<>();
+    public boolean updateCodeScheme(final CodeSchemeDTO codeScheme) {
+        final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
         codeSchemes.add(codeScheme);
         return updateCodeSchemes(codeSchemes);
     }
 
-    public boolean updateCodeSchemes(final Set<CodeScheme> codeSchemes) {
+    public boolean updateCodeSchemes(final Set<CodeSchemeDTO> codeSchemes) {
         if (!codeSchemes.isEmpty()) {
             return indexData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
         }
         return true;
     }
 
-    public boolean updateCodeRegistry(final CodeRegistry codeRegistry) {
-        final Set<CodeRegistry> codeRegistries = new HashSet<>();
+    public boolean updateCodeRegistry(final CodeRegistryDTO codeRegistry) {
+        final Set<CodeRegistryDTO> codeRegistries = new HashSet<>();
         codeRegistries.add(codeRegistry);
         return updateCodeRegistries(codeRegistries);
     }
 
-    public boolean updateCodeRegistries(final Set<CodeRegistry> codeRegistries) {
+    public boolean updateCodeRegistries(final Set<CodeRegistryDTO> codeRegistries) {
         if (!codeRegistries.isEmpty()) {
             return indexData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
         }
         return true;
     }
 
-    public boolean updatePropertyType(final PropertyType propertyType) {
-        final Set<PropertyType> propertyTypes = new HashSet<>();
+    public boolean updatePropertyType(final PropertyTypeDTO propertyType) {
+        final Set<PropertyTypeDTO> propertyTypes = new HashSet<>();
         propertyTypes.add(propertyType);
         return updatePropertyTypes(propertyTypes);
     }
 
-    public boolean updatePropertyTypes(final Set<PropertyType> propertyTypes) {
+    public boolean updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes) {
         if (!propertyTypes.isEmpty()) {
             return indexData(propertyTypes, ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
         }
         return true;
     }
 
-    public boolean updateExternalReference(final ExternalReference externalReference) {
-        final Set<ExternalReference> externalReferences = new HashSet<>();
+    public boolean updateExternalReference(final ExternalReferenceDTO externalReference) {
+        final Set<ExternalReferenceDTO> externalReferences = new HashSet<>();
         externalReferences.add(externalReference);
         return updateExternalReferences(externalReferences);
     }
 
-    public boolean updateExternalReferences(final Set<ExternalReference> externalReferences) {
+    public boolean updateExternalReferences(final Set<ExternalReferenceDTO> externalReferences) {
         if (!externalReferences.isEmpty()) {
             return indexData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
         }

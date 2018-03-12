@@ -1,7 +1,6 @@
 package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -11,44 +10,49 @@ import javax.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.parser.ExternalReferenceParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_CSV;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_EXCEL;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_JSON;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Component
-public class ExternalReferenceService {
+public class ExternalReferenceService extends BaseService {
 
     private final AuthorizationManager authorizationManager;
-    private final ExternalReferenceRepository externalRefernceRepository;
+    private final ExternalReferenceRepository externalReferenceRepository;
     private final ExternalReferenceParser externalReferenceParser;
-    private final Indexing indexing;
 
     @Inject
     public ExternalReferenceService(final AuthorizationManager authorizationManager,
-                                    final Indexing indexing,
                                     final ExternalReferenceRepository externalReferenceRepository,
                                     final ExternalReferenceParser externalReferenceParser) {
         this.authorizationManager = authorizationManager;
-        this.indexing = indexing;
-        this.externalRefernceRepository = externalReferenceRepository;
+        this.externalReferenceRepository = externalReferenceRepository;
         this.externalReferenceParser = externalReferenceParser;
     }
 
     @Transactional
-    public Set<ExternalReference> parseAndPersistExternalReferencesFromSourceData(final String format,
-                                                                                  final InputStream inputStream,
-                                                                                  final String jsonPayload,
-                                                                                  final CodeScheme codeScheme) {
+    public Set<ExternalReferenceDTO> findAll() {
+        return mapDeepExternalReferenceDtos(externalReferenceRepository.findAll());
+    }
+
+    @Transactional
+    public Set<ExternalReferenceDTO> findByCodeSchemeCodeValue(final String codeSchemeCodeValue) {
+        return mapDeepExternalReferenceDtos(externalReferenceRepository.findByParentCodeSchemeCodeValue(codeSchemeCodeValue));
+    }
+
+    @Transactional
+    public Set<ExternalReferenceDTO> parseAndPersistExternalReferencesFromSourceData(final String format,
+                                                                                     final InputStream inputStream,
+                                                                                     final String jsonPayload,
+                                                                                     final CodeScheme codeScheme) {
         Set<ExternalReference> externalReferences;
         if (!authorizationManager.isSuperUser()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
@@ -71,16 +75,16 @@ public class ExternalReferenceService {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unknown format used in ExternalReferenceService: " + format));
         }
         if (externalReferences != null && !externalReferences.isEmpty()) {
-            externalRefernceRepository.save(externalReferences);
+            externalReferenceRepository.save(externalReferences);
         }
-        return externalReferences;
+        return mapDeepExternalReferenceDtos(externalReferences);
     }
 
     @Transactional
-    public ExternalReference parseAndPersistExternalReferenceFromJson(final String externalReferenceId,
-                                                                      final String jsonPayload,
-                                                                      final CodeScheme codeScheme) {
-        final ExternalReference existingExternalReference = externalRefernceRepository.findById(UUID.fromString(externalReferenceId));
+    public ExternalReferenceDTO parseAndPersistExternalReferenceFromJson(final String externalReferenceId,
+                                                                         final String jsonPayload,
+                                                                         final CodeScheme codeScheme) {
+        final ExternalReference existingExternalReference = externalReferenceRepository.findById(UUID.fromString(externalReferenceId));
         final ExternalReference externalReference;
         if (existingExternalReference != null) {
             if (!authorizationManager.isSuperUser()) {
@@ -92,7 +96,7 @@ public class ExternalReferenceService {
                     if (!existingExternalReference.getId().toString().equalsIgnoreCase(externalReferenceId)) {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Id mismatch with API call and incoming data!"));
                     }
-                    externalRefernceRepository.save(externalReference);
+                    externalReferenceRepository.save(externalReference);
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "No JSON payload found."));
                 }
@@ -104,18 +108,6 @@ public class ExternalReferenceService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "ExternalRefernce with ID: " + externalReferenceId + " does not exist yet, please create an ExternalReference prior to updating."));
         }
-        return externalReference;
-    }
-
-    @Transactional
-    public void indexExternalReference(final ExternalReference externalReference) {
-        final Set<ExternalReference> externalReferences = new HashSet<>();
-        externalReferences.add(externalReference);
-        indexExternalReferences(externalReferences);
-    }
-
-    @Transactional
-    public void indexExternalReferences(final Set<ExternalReference> externalReferences) {
-        indexing.updateExternalReferences(externalReferences);
+        return mapDeepExternalReferenceDto(externalReference);
     }
 }

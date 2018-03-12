@@ -1,7 +1,6 @@
 package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -11,42 +10,42 @@ import javax.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.parser.PropertyTypeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_CSV;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_EXCEL;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_JSON;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Component
-public class PropertyTypeService {
+public class PropertyTypeService extends BaseService {
 
     private final AuthorizationManager authorizationManager;
     private final PropertyTypeRepository propertyTypeRepository;
     private final PropertyTypeParser propertyTypeParser;
-    private final Indexing indexing;
 
     @Inject
     public PropertyTypeService(final AuthorizationManager authorizationManager,
-                               final Indexing indexing,
                                final PropertyTypeRepository propertyTypeRepository,
                                final PropertyTypeParser propertyTypeParser) {
         this.authorizationManager = authorizationManager;
-        this.indexing = indexing;
         this.propertyTypeRepository = propertyTypeRepository;
         this.propertyTypeParser = propertyTypeParser;
     }
 
     @Transactional
-    public Set<PropertyType> parseAndPersistPropertyTypesFromSourceData(final String format,
-                                                                        final InputStream inputStream,
-                                                                        final String jsonPayload) {
+    public Set<PropertyTypeDTO> findAll() {
+        return mapPropertyTypeDtos(propertyTypeRepository.findAll());
+    }
+
+    @Transactional
+    public Set<PropertyTypeDTO> parseAndPersistPropertyTypesFromSourceData(final String format,
+                                                                           final InputStream inputStream,
+                                                                           final String jsonPayload) {
         Set<PropertyType> propertyTypes;
         if (!authorizationManager.isSuperUser()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
@@ -71,12 +70,12 @@ public class PropertyTypeService {
         if (propertyTypes != null && !propertyTypes.isEmpty()) {
             propertyTypeRepository.save(propertyTypes);
         }
-        return propertyTypes;
+        return mapPropertyTypeDtos(propertyTypes);
     }
 
     @Transactional
-    public PropertyType parseAndPersistPropertyTypeFromJson(final String PropertyTypeId,
-                                                            final String jsonPayload) {
+    public PropertyTypeDTO parseAndPersistPropertyTypeFromJson(final String PropertyTypeId,
+                                                               final String jsonPayload) {
         final PropertyType existingPropertyType = propertyTypeRepository.findById(UUID.fromString(PropertyTypeId));
         final PropertyType propertyType;
         if (existingPropertyType != null) {
@@ -101,18 +100,6 @@ public class PropertyTypeService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "PropertyType with ID: " + PropertyTypeId + " does not exist yet, please create an PropertyType prior to updating."));
         }
-        return propertyType;
-    }
-
-    @Transactional
-    public void indexPropertyType(final PropertyType propertyType) {
-        final Set<PropertyType> propertyTypes = new HashSet<>();
-        propertyTypes.add(propertyType);
-        indexPropertyTypes(propertyTypes);
-    }
-
-    @Transactional
-    public void indexPropertyTypes(final Set<PropertyType> propertyTypes) {
-        indexing.updatePropertyTypes(propertyTypes);
+        return mapPropertyTypeDto(propertyType);
     }
 }

@@ -22,16 +22,18 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
-import fi.vm.yti.codelist.common.model.Code;
-import fi.vm.yti.codelist.common.model.CodeRegistry;
-import fi.vm.yti.codelist.common.model.CodeScheme;
+import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.common.model.Views;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
+import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.service.CodeRegistryService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
+import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -50,14 +52,20 @@ public class CodeRegistryResource extends AbstractBaseResource {
     private final CodeService codeService;
     private final CodeSchemeService codeSchemeService;
     private final CodeRegistryService codeRegistryService;
+    private final ExternalReferenceService externalReferenceService;
+    private final Indexing indexing;
 
     @Inject
     public CodeRegistryResource(final CodeService codeService,
                                 final CodeSchemeService codeSchemeService,
-                                final CodeRegistryService codeRegistryService) {
+                                final CodeRegistryService codeRegistryService,
+                                final ExternalReferenceService externalReferenceService,
+                                final Indexing indexing) {
         this.codeService = codeService;
         this.codeSchemeService = codeSchemeService;
         this.codeRegistryService = codeRegistryService;
+        this.externalReferenceService = externalReferenceService;
+        this.indexing = indexing;
     }
 
     @POST
@@ -94,8 +102,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                      @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
 
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/");
-        final CodeRegistry codeRegistry = codeRegistryService.parseAndPersistCodeRegistryFromJson(codeRegistryCodeValue, jsonPayload);
-        codeRegistryService.indexCodeRegistry(codeRegistry);
+        final CodeRegistryDTO codeRegistry = codeRegistryService.parseAndPersistCodeRegistryFromJson(codeRegistryCodeValue, jsonPayload);
+        indexing.updateCodeRegistry(codeRegistry);
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
@@ -141,8 +149,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                      @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
 
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + "/");
-        final CodeScheme codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
-        codeSchemeService.indexCodeScheme(codeScheme);
+        final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
+        indexing.updateCodeScheme(codeScheme);
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
@@ -196,8 +204,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                @ApiParam(value = "JSON playload for Code data.", required = false) final String jsonPayload) {
 
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + codeCodeValue + "/");
-        final Code code = codeService.parseAndPersistCodeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue, jsonPayload);
-        codeService.indexCode(code);
+        final CodeDTO code = codeService.parseAndPersistCodeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue, jsonPayload);
+        indexing.updateCode(code);
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
@@ -206,11 +214,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
     private Response parseAndPersistCodeRegistriesFromSource(final String format,
                                                              final InputStream inputStream,
                                                              final String jsonPayload) {
-        final Set<CodeRegistry> codeRegistries = codeRegistryService.parseAndPersistCodeRegistriesFromSourceData(format, inputStream, jsonPayload);
-        codeRegistryService.indexCodeRegistries(codeRegistries);
+        final Set<CodeRegistryDTO> codeRegistries = codeRegistryService.parseAndPersistCodeRegistriesFromSourceData(format, inputStream, jsonPayload);
+        indexing.updateCodeRegistries(codeRegistries);
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
-        final ResponseWrapper<CodeRegistry> responseWrapper = new ResponseWrapper<>(meta);
+        final ResponseWrapper<CodeRegistryDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("CodeRegistries added or modified: " + codeRegistries.size());
         meta.setCode(200);
         responseWrapper.setResults(codeRegistries);
@@ -221,11 +229,15 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                           final String format,
                                                           final InputStream inputStream,
                                                           final String jsonPayload) {
-        final Set<CodeScheme> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload);
-        codeSchemeService.indexCodeSchemes(codeSchemes);
+        final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload);
+        indexing.updateCodeSchemes(codeSchemes);
+        indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
+        for (final CodeSchemeDTO codeScheme : codeSchemes) {
+            indexing.updateExternalReferences(externalReferenceService.findByCodeSchemeCodeValue(codeScheme.getCodeValue()));
+        }
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry")));
-        final ResponseWrapper<CodeScheme> responseWrapper = new ResponseWrapper<>(meta);
+        final ResponseWrapper<CodeSchemeDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("CodeSchemes added or modified: " + codeSchemes.size());
         meta.setCode(200);
         responseWrapper.setResults(codeSchemes);
@@ -237,11 +249,14 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                     final String format,
                                                     final InputStream inputStream,
                                                     final String jsonPayload) {
-        final Set<Code> codes = codeService.parseAndPersistCodesFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload);
-        codeService.indexCodes(codes);
+        final Set<CodeDTO> codes = codeService.parseAndPersistCodesFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload);
+        indexing.updateCodes(codes);
+        indexing.updateCodeScheme(codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue));
+        indexing.updateExternalReferences(externalReferenceService.findByCodeSchemeCodeValue(codeSchemeCodeValue));
+        indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODE, "codeRegistry,codeScheme")));
-        final ResponseWrapper<Code> responseWrapper = new ResponseWrapper<>(meta);
+        final ResponseWrapper<CodeDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("Codes added or modified: " + codes.size());
         meta.setCode(200);
         responseWrapper.setResults(codes);

@@ -2,33 +2,33 @@ package fi.vm.yti.codelist.intake.indexing;
 
 import java.util.Set;
 
-import fi.vm.yti.codelist.common.model.Code;
-import fi.vm.yti.codelist.common.model.CodeRegistry;
-import fi.vm.yti.codelist.common.model.CodeScheme;
-import fi.vm.yti.codelist.common.model.ExternalReference;
-import fi.vm.yti.codelist.common.model.PropertyType;
+import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 
 public interface Indexing {
 
-    boolean updateCode(final Code code);
+    boolean updateCode(final CodeDTO code);
 
-    boolean updateCodes(final Set<Code> code);
+    boolean updateCodes(final Set<CodeDTO> code);
 
-    boolean updateCodeScheme(final CodeScheme codeScheme);
+    boolean updateCodeScheme(final CodeSchemeDTO codeScheme);
 
-    boolean updateCodeSchemes(final Set<CodeScheme> codeSchemes);
+    boolean updateCodeSchemes(final Set<CodeSchemeDTO> codeSchemes);
 
-    boolean updateCodeRegistry(final CodeRegistry codeRegistry);
+    boolean updateCodeRegistry(final CodeRegistryDTO codeRegistry);
 
-    boolean updateCodeRegistries(final Set<CodeRegistry> codeRegistries);
+    boolean updateCodeRegistries(final Set<CodeRegistryDTO> codeRegistries);
 
-    boolean updateExternalReference(final ExternalReference externalReference);
+    boolean updateExternalReference(final ExternalReferenceDTO externalReference);
 
-    boolean updateExternalReferences(final Set<ExternalReference> externalReferences);
+    boolean updateExternalReferences(final Set<ExternalReferenceDTO> externalReferences);
 
-    boolean updatePropertyType(final PropertyType propertyType);
+    boolean updatePropertyType(final PropertyTypeDTO propertyType);
 
-    boolean updatePropertyTypes(final Set<PropertyType> propertyTypes);
+    boolean updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes);
 
     boolean reIndexEverything();
 

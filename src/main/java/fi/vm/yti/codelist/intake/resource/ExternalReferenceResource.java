@@ -21,10 +21,11 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
-import fi.vm.yti.codelist.common.model.ExternalReference;
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
+import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -43,10 +44,13 @@ public class ExternalReferenceResource extends AbstractBaseResource {
     private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceResource.class);
 
     private final ExternalReferenceService externalReferenceService;
+    private final Indexing indexing;
 
     @Inject
-    public ExternalReferenceResource(final ExternalReferenceService externalReferenceService) {
+    public ExternalReferenceResource(final ExternalReferenceService externalReferenceService,
+                                     final Indexing indexing) {
         this.externalReferenceService = externalReferenceService;
+        this.indexing = indexing;
     }
 
     @POST
@@ -82,8 +86,8 @@ public class ExternalReferenceResource extends AbstractBaseResource {
     public Response updateExternalReference(@ApiParam(value = "ExternalReference ID", required = true) @PathParam("externalReferenceId") final String externalReferenceId,
                                             @ApiParam(value = "JSON playload for ExternalReference data.", required = false) final String jsonPayload) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/" + externalReferenceId + "/");
-        final ExternalReference externalReference = externalReferenceService.parseAndPersistExternalReferenceFromJson(externalReferenceId, jsonPayload, null);
-        externalReferenceService.indexExternalReference(externalReference);
+        final ExternalReferenceDTO externalReference = externalReferenceService.parseAndPersistExternalReferenceFromJson(externalReferenceId, jsonPayload, null);
+        indexing.updateExternalReference(externalReference);
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
@@ -92,11 +96,11 @@ public class ExternalReferenceResource extends AbstractBaseResource {
     private Response parseAndPersistExistingReferencesFromSource(final String format,
                                                                  final InputStream inputStream,
                                                                  final String jsonPayload) {
-        final Set<ExternalReference> externalReferences = externalReferenceService.parseAndPersistExternalReferencesFromSourceData(format, inputStream, jsonPayload, null);
-        externalReferenceService.indexExternalReferences(externalReferences);
+        final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.parseAndPersistExternalReferencesFromSourceData(format, inputStream, jsonPayload, null);
+        indexing.updateExternalReferences(externalReferences);
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
-        final ResponseWrapper<ExternalReference> responseWrapper = new ResponseWrapper<>(meta);
+        final ResponseWrapper<ExternalReferenceDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("ExternalReferences added or modified: " + externalReferences.size());
         meta.setCode(200);
         responseWrapper.setResults(externalReferences);

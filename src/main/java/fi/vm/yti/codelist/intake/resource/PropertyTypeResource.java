@@ -21,10 +21,11 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
+import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.model.Meta;
-import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
+import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -43,10 +44,13 @@ public class PropertyTypeResource extends AbstractBaseResource {
     private static final Logger LOG = LoggerFactory.getLogger(PropertyTypeResource.class);
 
     private final PropertyTypeService propertyTypeService;
+    private final Indexing indexing;
 
     @Inject
-    public PropertyTypeResource(final PropertyTypeService propertyTypeService) {
+    public PropertyTypeResource(final PropertyTypeService propertyTypeService,
+                                final Indexing indexing) {
         this.propertyTypeService = propertyTypeService;
+        this.indexing = indexing;
     }
 
     @POST
@@ -82,8 +86,8 @@ public class PropertyTypeResource extends AbstractBaseResource {
     public Response updatePropertyType(@ApiParam(value = "PropertyType ID", required = true) @PathParam("PropertyTypeId") final String propertyTypeId,
                                        @ApiParam(value = "JSON playload for PropertyType data.", required = false) final String jsonPayload) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/" + propertyTypeId + "/");
-        final PropertyType propertyType = propertyTypeService.parseAndPersistPropertyTypeFromJson(propertyTypeId, jsonPayload);
-        propertyTypeService.indexPropertyType(propertyType);
+        final PropertyTypeDTO propertyType = propertyTypeService.parseAndPersistPropertyTypeFromJson(propertyTypeId, jsonPayload);
+        indexing.updatePropertyType(propertyType);
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
@@ -92,11 +96,11 @@ public class PropertyTypeResource extends AbstractBaseResource {
     private Response parseAndPersistExistingReferencesFromSource(final String format,
                                                                  final InputStream inputStream,
                                                                  final String jsonPayload) {
-        final Set<PropertyType> propertyTypes = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(format, inputStream, jsonPayload);
-        propertyTypeService.indexPropertyTypes(propertyTypes);
+        final Set<PropertyTypeDTO> propertyTypes = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(format, inputStream, jsonPayload);
+        indexing.updatePropertyTypes(propertyTypes);
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
-        final ResponseWrapper<PropertyType> responseWrapper = new ResponseWrapper<>(meta);
+        final ResponseWrapper<PropertyTypeDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("PropertyTypes added or modified: " + propertyTypes.size());
         meta.setCode(200);
         responseWrapper.setResults(propertyTypes);

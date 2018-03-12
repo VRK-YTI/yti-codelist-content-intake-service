@@ -27,7 +27,6 @@ import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 
 import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODE;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODESCHEME;
@@ -247,9 +246,6 @@ public class IndexingToolsImpl implements IndexingTools {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        final Hibernate4Module hbm = new Hibernate4Module();
-        hbm.enable(Hibernate4Module.Feature.FORCE_LAZY_LOADING);
-        mapper.registerModule(hbm);
         return mapper;
     }
 

@@ -1,7 +1,6 @@
 package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -10,6 +9,7 @@ import javax.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.model.Code;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.CodeScheme;
@@ -17,49 +17,46 @@ import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
-import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Component
-public class CodeService {
+public class CodeService extends BaseService {
 
     private final AuthorizationManager authorizationManager;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeRepository codeRepository;
-    private final ExternalReferenceRepository externalReferenceRepository;
     private final CodeParser codeParser;
-    private final Indexing indexing;
 
     @Inject
     public CodeService(final AuthorizationManager authorizationManager,
-                       final Indexing indexing,
                        final CodeRegistryRepository codeRegistryRepository,
                        final CodeSchemeRepository codeSchemeRepository,
                        final CodeRepository codeRepository,
-                       final ExternalReferenceRepository externalReferenceRepository,
                        final CodeParser codeParser) {
         this.authorizationManager = authorizationManager;
-        this.indexing = indexing;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
-        this.externalReferenceRepository = externalReferenceRepository;
         this.codeRepository = codeRepository;
         this.codeParser = codeParser;
     }
 
-    @Transactional()
-    public Set<Code> parseAndPersistCodesFromSourceData(final String codeRegistryCodeValue,
-                                                        final String codeSchemeCodeValue,
-                                                        final String format,
-                                                        final InputStream inputStream,
-                                                        final String jsonPayload) {
+    @Transactional
+    public Set<CodeDTO> findAll() {
+        return mapDeepCodeDtos(codeRepository.findAll());
+    }
+
+    @Transactional
+    public Set<CodeDTO> parseAndPersistCodesFromSourceData(final String codeRegistryCodeValue,
+                                                           final String codeSchemeCodeValue,
+                                                           final String format,
+                                                           final InputStream inputStream,
+                                                           final String jsonPayload) {
         Set<Code> codes;
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
@@ -95,14 +92,14 @@ public class CodeService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeRegistry with CodeValue: " + codeRegistryCodeValue + " does not exist yet, please create registry first."));
         }
-        return codes;
+        return mapDeepCodeDtos(codes);
     }
 
     @Transactional
-    public Code parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
-                                            final String codeSchemeCodeValue,
-                                            final String codeCodeValue,
-                                            final String jsonPayload) {
+    public CodeDTO parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
+                                               final String codeSchemeCodeValue,
+                                               final String codeCodeValue,
+                                               final String jsonPayload) {
         Code code = null;
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
@@ -133,23 +130,6 @@ public class CodeService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeRegistry with CodeValue: " + codeRegistryCodeValue + " does not exist yet, please create registry first."));
         }
-        return code;
-    }
-
-    @Transactional
-    public void indexCode(final Code code) {
-        final Set<Code> codes = new HashSet<>();
-        codes.add(code);
-        indexCodes(codes);
-    }
-
-    @Transactional
-    public void indexCodes(final Set<Code> codes) {
-        if (!codes.isEmpty()) {
-            final CodeScheme codeScheme = codes.iterator().next().getCodeScheme();
-            indexing.updateCodes(codes);
-            indexing.updateCodeScheme(codeScheme);
-            indexing.updateExternalReferences(externalReferenceRepository.findByParentCodeScheme(codeScheme));
-        }
+        return mapDeepCodeDto(code);
     }
 }
