@@ -197,7 +197,7 @@ public abstract class AbstractBaseParser {
     public <T> void checkForDuplicateCodeValueInImportData(final Map<String, T> entityMap,
                                                            final String codeValue) {
         if (entityMap.containsKey(codeValue)) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Duplicate value found in import data, failing"));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_DUPLICATE_CODE_VALUE));
         }
     }
 }

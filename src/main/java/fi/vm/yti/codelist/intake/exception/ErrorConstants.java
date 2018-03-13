@@ -24,4 +24,7 @@ public class ErrorConstants {
     public static final String ERR_MSG_BROADER_CODE_DOES_NOT_EXIST = "ERR_MSG_BROADER_CODE_DOES_NOT_EXIST";
     public static final String ERR_MSG_BROADER_CODE_SELF_REFERENCE = "ERR_MSG_BROADER_CODE_SELF_REFERENCE";
     public static final String ERR_MSG_STATUS_NOT_VALID = "ERR_MSG_STATUS_NOT_VALID";
+    public static final String ERR_MSG_DUPLICATE_CODE_VALUE = "ERR_MSG_DUPLICATE_CODE_VALUE";
+    public static final String ERR_MSG_ID_MISMATCH = "ERR_MSG_ID_MISMATCH";
+    public static final String ERR_MSG_PATH_CODE_MISMATCH = "ERR_MSG_PATH_CODE_MISMATCH";
 }

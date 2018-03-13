@@ -47,8 +47,7 @@ import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_DUPLICATE_HEADER_VALUE;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ERROR_PARSING_CSV_FILE;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 /**
  * Class that handles parsing of ExternalReferences from source data.
@@ -214,7 +213,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
         } else if (codeScheme == null) {
             externalReference = createExternalReference(fromExternalReference);
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Issue with global non existing ExternalReference!"));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
         }
         return externalReference;
     }

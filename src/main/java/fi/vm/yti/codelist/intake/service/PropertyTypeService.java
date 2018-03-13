@@ -13,13 +13,13 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.model.ErrorModel;
 import fi.vm.yti.codelist.common.model.PropertyType;
-import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.parser.PropertyTypeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
 public class PropertyTypeService extends BaseService {
@@ -48,14 +48,14 @@ public class PropertyTypeService extends BaseService {
                                                                            final String jsonPayload) {
         Set<PropertyType> propertyTypes;
         if (!authorizationManager.isSuperUser()) {
-            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         switch (format.toLowerCase()) {
             case FORMAT_JSON:
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     propertyTypes = propertyTypeParser.parsePropertyTypesFromJson(jsonPayload);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "No JSON payload found."));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                 }
                 break;
             case FORMAT_EXCEL:
@@ -65,7 +65,7 @@ public class PropertyTypeService extends BaseService {
                 propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(inputStream);
                 break;
             default:
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unknown format used in PropertyTypeService: " + format));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
         }
         if (propertyTypes != null && !propertyTypes.isEmpty()) {
             propertyTypeRepository.save(propertyTypes);
@@ -80,25 +80,25 @@ public class PropertyTypeService extends BaseService {
         final PropertyType propertyType;
         if (existingPropertyType != null) {
             if (!authorizationManager.isSuperUser()) {
-                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
             try {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     propertyType = propertyTypeParser.parsePropertyTypeFromJson(jsonPayload);
                     if (!existingPropertyType.getId().toString().equalsIgnoreCase(PropertyTypeId)) {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Id mismatch with API call and incoming data!"));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_ID_MISMATCH));
                     }
                     propertyTypeRepository.save(propertyType);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "No JSON payload found."));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                 }
             } catch (final YtiCodeListException e) {
                 throw e;
             } catch (final Exception e) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ErrorConstants.ERR_MSG_USER_500));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "PropertyType with ID: " + PropertyTypeId + " does not exist yet, please create an PropertyType prior to updating."));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
         return mapPropertyTypeDto(propertyType);
     }
