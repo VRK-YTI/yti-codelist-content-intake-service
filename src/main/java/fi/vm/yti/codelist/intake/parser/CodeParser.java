@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
-import javax.ws.rs.WebApplicationException;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -47,6 +46,7 @@ import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
+import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
@@ -335,7 +335,7 @@ public class CodeParser extends AbstractBaseParser {
                 codes.put(code.getCodeValue(), code);
             }
         } catch (final IOException e) {
-            throw new WebApplicationException("JSON parsing codes failed!");
+            throw new JsonParsingException(ERR_MSG_USER_406);
         }
         return new HashSet<>(codes.values());
     }
@@ -371,7 +371,7 @@ public class CodeParser extends AbstractBaseParser {
         boolean hasChanges = false;
         if (!Objects.equals(existingCode.getStatus(), fromCode.getStatus())) {
             if (Status.valueOf(existingCode.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCode.getStatus()).ordinal() < Status.VALID.ordinal()) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Trying to update content with status: " + existingCode.getStatus() + " to status: " + fromCode.getStatus()));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
             }
             existingCode.setStatus(fromCode.getStatus());
             hasChanges = true;

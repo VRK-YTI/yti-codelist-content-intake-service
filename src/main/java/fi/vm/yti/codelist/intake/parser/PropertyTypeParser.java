@@ -40,8 +40,7 @@ import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_DUPLICATE_HEADER_VALUE;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ERROR_PARSING_CSV_FILE;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 /**
  * Class that handles parsing of PropertyTypes from source data.
@@ -65,7 +64,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
         try {
             fromPropertyType = mapper.readValue(jsonPayload, PropertyType.class);
         } catch (final IOException e) {
-            throw new JsonParsingException("JSON parsing failed");
+            throw new JsonParsingException(ERR_MSG_USER_406);
         }
         return createOrUpdatePropertyType(fromPropertyType);
     }
@@ -77,7 +76,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
             fromPropertyTypes = mapper.readValue(jsonPayload, new TypeReference<Set<PropertyType>>() {
             });
         } catch (final IOException e) {
-            throw new JsonParsingException("JSON parsing failed");
+            throw new JsonParsingException(ERR_MSG_USER_406);
         }
         final Set<PropertyType> propertyTypes = new HashSet<>();
         for (final PropertyType fromPropertyType : fromPropertyTypes) {
@@ -165,7 +164,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 }
             }
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
-            throw new ExcelParsingException("Error parsing Excel file.");
+            throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
         return propertyTypes;
     }

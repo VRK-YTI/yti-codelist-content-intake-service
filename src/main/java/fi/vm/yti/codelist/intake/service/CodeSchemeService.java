@@ -94,7 +94,7 @@ public class CodeSchemeService extends BaseService {
                             codes = codeParser.parseCodesFromExcelWorkbook(codeSchemes.iterator().next(), workbook);
                         }
                     } catch (final InvalidFormatException | IOException | POIXMLException e) {
-                        throw new ExcelParsingException("Error parsing Excel file.");
+                        throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
                     }
                     break;
                 case FORMAT_CSV:
@@ -110,7 +110,7 @@ public class CodeSchemeService extends BaseService {
                 codeRepository.save(codes);
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeRegistry with CodeValue: " + codeRegistryCodeValue + " does not exist yet, please create registry first."));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
         return mapCodeSchemeDtos(codeSchemes, true);
     }
@@ -141,7 +141,7 @@ public class CodeSchemeService extends BaseService {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeRegistry with CodeValue: " + codeRegistryCodeValue + " does not exist yet, please create registry first."));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
         return mapCodeSchemeDto(codeScheme, true);
     }

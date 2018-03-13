@@ -78,7 +78,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
         try {
             fromExternalReference = mapper.readValue(jsonPayload, ExternalReference.class);
         } catch (final IOException e) {
-            throw new JsonParsingException("JSON parsing failed");
+            throw new JsonParsingException(ERR_MSG_USER_406);
         }
         return createOrUpdateExternalReference(fromExternalReference, codeScheme);
     }
@@ -92,7 +92,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
             fromExternalReferences = mapper.readValue(jsonPayload, new TypeReference<List<ExternalReference>>() {
             });
         } catch (final IOException e) {
-            throw new JsonParsingException("JSON parsing failed");
+            throw new JsonParsingException(ERR_MSG_USER_406);
         }
         for (final ExternalReference fromExternalReference : fromExternalReferences) {
             externalReferences.add(createOrUpdateExternalReference(fromExternalReference, codeScheme));
@@ -187,7 +187,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 }
             }
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
-            throw new ExcelParsingException("Error parsing Excel file.");
+            throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
         return externalReferences;
     }

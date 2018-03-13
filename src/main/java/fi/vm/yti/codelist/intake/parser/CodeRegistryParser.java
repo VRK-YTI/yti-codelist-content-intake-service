@@ -46,9 +46,7 @@ import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_DUPLICATE_HEADER_VALUE;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ERROR_PARSING_CSV_FILE;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_MISSING_HEADER_CODEVALUE;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 /**
  * Class that handles parsing of CodeRegistries from source data.
@@ -75,7 +73,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
         try {
             fromCodeRegistry = mapper.readValue(jsonPayload, CodeRegistry.class);
         } catch (final IOException e) {
-            throw new JsonParsingException("JSON parsing failed");
+            throw new JsonParsingException(ERR_MSG_USER_406);
         }
         return createOrUpdateCodeRegistry(fromCodeRegistry);
     }
@@ -87,7 +85,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
             fromCodeRegistries = mapper.readValue(jsonPayload, new TypeReference<Set<CodeRegistry>>() {
             });
         } catch (final IOException e) {
-            throw new JsonParsingException("JSON parsing failed");
+            throw new JsonParsingException(ERR_MSG_USER_406);
         }
         final Map<String, CodeRegistry> codeRegistries = new HashMap<>();
         for (final CodeRegistry fromCodeRegistry : fromCodeRegistries) {
@@ -165,7 +163,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
                 }
             }
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
-            throw new ExcelParsingException("Error parsing Excel file.");
+            throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
         return new HashSet<>(codeRegistries.values());
     }

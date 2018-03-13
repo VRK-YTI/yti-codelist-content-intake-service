@@ -27,4 +27,5 @@ public class ErrorConstants {
     public static final String ERR_MSG_DUPLICATE_CODE_VALUE = "ERR_MSG_DUPLICATE_CODE_VALUE";
     public static final String ERR_MSG_ID_MISMATCH = "ERR_MSG_ID_MISMATCH";
     public static final String ERR_MSG_PATH_CODE_MISMATCH = "ERR_MSG_PATH_CODE_MISMATCH";
+    public static final String ERR_MSG_STATUS_CHANGE_NOT_ALLOWED = "ERR_MSG_STATUS_CHANGE_NOT_ALLOWED";
 }
