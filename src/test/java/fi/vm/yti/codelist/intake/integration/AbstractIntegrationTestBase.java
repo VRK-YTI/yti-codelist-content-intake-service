@@ -14,11 +14,11 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 abstract public class AbstractIntegrationTestBase {
 
-    public static final String TEST_BASE_URL = "http://localhost";
-    public static final String CODEREGISTRIES_FOLDER_NAME = "coderegistries";
-    public static final String CODESCHEMES_FOLDER_NAME = "codeschemes";
-    public static final String CODES_FOLDER_NAME = "codes";
     public static final String TEST_CODEREGISTRY_CODEVALUE = "testregistry1";
+    private static final String TEST_BASE_URL = "http://localhost";
+    private static final String CODEREGISTRIES_FOLDER_NAME = "coderegistries";
+    private static final String CODESCHEMES_FOLDER_NAME = "codeschemes";
+    private static final String CODES_FOLDER_NAME = "codes";
     private static final String PARAMETER_FILE = "file";
 
     private TestRestTemplate restTemplate = new TestRestTemplate();
@@ -48,13 +48,8 @@ abstract public class AbstractIntegrationTestBase {
                                                                     final String codesFilename,
                                                                     final String format) {
         final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + "?format=" + format;
-        final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
-        final String registryFilePath = "/" + CODES_FOLDER_NAME + "/" + codesFilename;
-        parameters.add(PARAMETER_FILE, new ClassPathResource(registryFilePath));
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(parameters, headers);
-        return restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class, "");
+        final String filePath = "/" + CODES_FOLDER_NAME + "/" + codesFilename;
+        return uploadFile(apiUrl, filePath);
     }
 
     public ResponseEntity<String> uploadCodeSchemesToCodeRegistryFromCsv(final String codeRegistryCodeValue,
@@ -71,13 +66,8 @@ abstract public class AbstractIntegrationTestBase {
                                                                             final String codeSchemesFilename,
                                                                             final String format) {
         final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + "?format=" + format;
-        final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
-        final String registryFilePath = "/" + CODESCHEMES_FOLDER_NAME + "/" + codeSchemesFilename;
-        parameters.add(PARAMETER_FILE, new ClassPathResource(registryFilePath));
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(parameters, headers);
-        return restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class, "");
+        final String filePath = "/" + CODESCHEMES_FOLDER_NAME + "/" + codeSchemesFilename;
+        return uploadFile(apiUrl, filePath);
     }
 
     public ResponseEntity<String> uploadCodeRegistriesFromCsv(final String codeRegistriesFilename) {
@@ -91,8 +81,12 @@ abstract public class AbstractIntegrationTestBase {
     private ResponseEntity<String> uploadCodeRegistries(final String codeRegistriesFilename,
                                                         final String format) {
         final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + "/" + "?format=" + format;
+        final String filePath = "/" + CODEREGISTRIES_FOLDER_NAME + "/" + codeRegistriesFilename;
+        return uploadFile(apiUrl, filePath);
+    }
+
+    private ResponseEntity<String> uploadFile(final String apiUrl, final String registryFilePath) {
         final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
-        final String registryFilePath = "/" + CODEREGISTRIES_FOLDER_NAME + "/" + codeRegistriesFilename;
         parameters.add(PARAMETER_FILE, new ClassPathResource(registryFilePath));
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
