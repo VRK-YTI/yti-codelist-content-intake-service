@@ -139,7 +139,7 @@ public class CodeParser extends AbstractBaseParser {
         if (headerMap.containsKey(CONTENT_HEADER_HIERARCHYLEVEL) && !headerMap.containsKey(CONTENT_HEADER_BROADER)) {
             hierarchyLevel = resolveHierarchyLevelFromString(record.get(CONTENT_HEADER_HIERARCHYLEVEL));
         } else {
-            hierarchyLevel = null;
+            hierarchyLevel = 1;
         }
         return hierarchyLevel;
     }
@@ -151,7 +151,7 @@ public class CodeParser extends AbstractBaseParser {
         if (headerMap.containsKey(CONTENT_HEADER_HIERARCHYLEVEL) && !headerMap.containsKey(CONTENT_HEADER_BROADER)) {
             hierarchyLevel = resolveHierarchyLevelFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HIERARCHYLEVEL))));
         } else {
-            hierarchyLevel = null;
+            hierarchyLevel = 1;
         }
         return hierarchyLevel;
     }
@@ -166,7 +166,7 @@ public class CodeParser extends AbstractBaseParser {
                     ERR_MSG_USER_HIERARCHY_LEVEL_INVALID_VALUE));
             }
         } else {
-            hierarchyLevel = null;
+            hierarchyLevel = 1;
         }
         return hierarchyLevel;
     }
