@@ -1,6 +1,5 @@
 package fi.vm.yti.codelist.intake.integration;
 
-import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import org.junit.Test;
@@ -13,25 +12,21 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import fi.vm.yti.codelist.intake.ContentIntakeServiceApplication;
-import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {ContentIntakeServiceApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"test"})
 @TestPropertySource(locations = "classpath:test-port.properties")
-public class CodeRegistryResourceT2 extends AbstractIntegrationTestBase {
+public class InvalidIdUploadTestT9 extends AbstractIntegrationTestBase {
 
-    public static final String TEST_CODEREGISTRY_FILENAME = "v1_testcoderegistries.csv";
-
-    @Inject
-    private CodeRegistryRepository codeRegistryRepository;
+    private static final String TEST_INVALID_ID_FILENAME_1 = "v1_invalid_id_test.xlsx";
+    private static final String INVALID_ID_TEST_CODESCHEME_1 = "invalididcodescheme1";
 
     @Test
     @Transactional
-    public void postRegistriesTest() {
-        final ResponseEntity<String> response = uploadCodeRegistriesFromCsv(TEST_CODEREGISTRY_FILENAME);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(9, codeRegistryRepository.findAll().size());
+    public void postCodesWithDuplicateHeaderValuesToCodeSchemeTestExcel() {
+        final ResponseEntity<String> response = uploadCodesToCodeSchemeFromExcel(TEST_CODEREGISTRY_CODEVALUE, INVALID_ID_TEST_CODESCHEME_1, TEST_INVALID_ID_FILENAME_1);
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
     }
 }

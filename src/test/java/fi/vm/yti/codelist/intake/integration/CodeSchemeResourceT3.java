@@ -34,13 +34,9 @@ import static org.junit.Assert.assertNotNull;
 @TestPropertySource(locations = "classpath:test-port.properties")
 public class CodeSchemeResourceT3 extends AbstractIntegrationTestBase {
 
-    private static final int CODE_SCHEME_COUNT = 13;
+    private static final int CODE_SCHEME_COUNT = 14;
     private static final String NOT_FOUND_REGISTRY_CODEVALUE = "notfoundregistry";
-    public static final String TEST_CODESCHEME_FILENAME = "v1_testcodeschemes.csv";
-    private TestRestTemplate restTemplate = new TestRestTemplate();
-
-    @LocalServerPort
-    private int randomServerPort;
+    private static final String TEST_CODESCHEME_FILENAME = "v1_testcodeschemes.csv";
 
     @Inject
     private CodeRegistryRepository codeRegistryRepository;
@@ -51,14 +47,7 @@ public class CodeSchemeResourceT3 extends AbstractIntegrationTestBase {
     @Test
     @Transactional
     public void postCodeSchemesToCodeRegistryTest() {
-        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + TEST_CODEREGISTRY_CODEVALUE + API_PATH_CODESCHEMES + "/" + "?format=" + FORMAT_CSV;
-        final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
-        final String registryFilePath = "/" + CODESCHEMES_FOLDER_NAME + "/" + TEST_CODESCHEME_FILENAME;
-        parameters.add("file", new ClassPathResource(registryFilePath));
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(parameters, headers);
-        final ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class, "");
+        final ResponseEntity<String> response = uploadCodeSchemesToCodeRegistryFromCsv(TEST_CODEREGISTRY_CODEVALUE, TEST_CODESCHEME_FILENAME);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(TEST_CODEREGISTRY_CODEVALUE);
         assertNotNull(codeRegistry);
@@ -68,14 +57,7 @@ public class CodeSchemeResourceT3 extends AbstractIntegrationTestBase {
     @Test
     @Transactional
     public void postCodeSchemesToNotExistingCodeRegistryTest() {
-        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + NOT_FOUND_REGISTRY_CODEVALUE + API_PATH_CODESCHEMES + "/" + "?format=" + FORMAT_CSV;
-        final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
-        final String registryFilePath = "/" + CODESCHEMES_FOLDER_NAME + "/" + TEST_CODESCHEME_FILENAME;
-        parameters.add("file", new ClassPathResource(registryFilePath));
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(parameters, headers);
-        final ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class, "");
+        final ResponseEntity<String> response = uploadCodeSchemesToCodeRegistryFromCsv(NOT_FOUND_REGISTRY_CODEVALUE, TEST_CODESCHEME_FILENAME);
         assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
     }
 }
