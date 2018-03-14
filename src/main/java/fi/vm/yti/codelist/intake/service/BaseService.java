@@ -42,6 +42,8 @@ public class BaseService {
             codeDto.setExternalReferences(mapExternalReferenceDtos(code.getExternalReferences(), false));
         }
         codeDto.setDescription(code.getDescription());
+        codeDto.setFlatOrder(code.getFlatOrder());
+        codeDto.setChildOrder(code.getChildOrder());
         return codeDto;
     }
 

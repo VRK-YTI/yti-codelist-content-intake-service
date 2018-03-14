@@ -67,6 +67,8 @@ public class CodeParser extends AbstractBaseParser {
     private final CodeRepository codeRepository;
     private final ExternalReferenceRepository externalReferenceRepository;
     private final ExternalReferenceParser externalReferenceParser;
+    private static int flatCount = 0;
+    private static Boolean hasFlatOrder = true;
 
     @Inject
     public CodeParser(final ApiUtils apiUtils,
@@ -104,6 +106,8 @@ public class CodeParser extends AbstractBaseParser {
                     fromCode.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                     fromCode.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
                     fromCode.setShortName(parseShortNameFromCsvRecord(record));
+                    fromCode.setFlatOrder(resolveFlatOrderFromCsvRecord(headerMap, record));
+                    fromCode.setChildOrder(Integer.parseInt(record.get(CONTENT_HEADER_CHILDORDER)));
                     if (headerMap.containsKey(CONTENT_HEADER_BROADER)) {
                         final String broaderCodeCodeValue = record.get(CONTENT_HEADER_BROADER);
                         if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
@@ -169,6 +173,36 @@ public class CodeParser extends AbstractBaseParser {
             hierarchyLevel = null;
         }
         return hierarchyLevel;
+    }
+
+    private Integer resolveFlatOrderFromCsvRecord(final Map<String, Integer> headerMap,
+                                                       final CSVRecord record) {
+        final Integer flatOrder;
+        if (hasFlatOrder && headerMap.containsKey(CONTENT_HEADER_FLATORDER)) {
+            flatOrder = resolveFlatOrderFromString(record.get(CONTENT_HEADER_FLATORDER));
+            flatCount = flatOrder;
+        } else {
+            hasFlatOrder = false;
+            final Integer newIndex = flatCount++;
+            flatOrder = newIndex;
+        }
+        return flatOrder;
+    }
+
+    private Integer resolveFlatOrderFromString(final String flatOrderString) {
+
+        final Integer flatOrder;
+        if (!flatOrderString.isEmpty()) {
+            try {
+               flatOrder = Integer.parseInt(flatOrderString);
+            } catch (final NumberFormatException e) {
+                throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        ERR_MSG_USER_FLAT_ORDER_INVALID_VALUE));
+            }
+        } else {
+            flatOrder = null;
+        }
+        return flatOrder;
     }
 
     private void validateRequiredCodeHeaders(final Map<String, Integer> headerMap) {
