@@ -77,6 +77,8 @@ public class BaseService {
         codeSchemeDto.setPrefLabel(codeScheme.getPrefLabel());
         codeSchemeDto.setDescription(codeScheme.getDescription());
         codeSchemeDto.setCodeRegistry(mapCodeRegistryDto(codeScheme.getCodeRegistry()));
+        codeSchemeDto.setGovernancePolicy(codeScheme.getGovernancePolicy());
+        codeSchemeDto.setLegalBase(codeScheme.getLegalBase());
         if (deep) {
             if (codeScheme.getDataClassifications() != null) {
                 codeSchemeDto.setDataClassifications(mapCodeDtos(codeScheme.getDataClassifications(), false));
