@@ -58,7 +58,11 @@ public abstract class AbstractBaseParser {
         if (uuidString == null || uuidString.isEmpty()) {
             uuid = null;
         } else {
-            uuid = UUID.fromString(uuidString);
+            try {
+                uuid = UUID.fromString(uuidString);
+            } catch (final IllegalArgumentException e) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_ID));
+            }
         }
         return uuid;
     }
