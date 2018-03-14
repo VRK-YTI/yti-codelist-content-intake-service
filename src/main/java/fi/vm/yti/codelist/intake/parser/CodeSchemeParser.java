@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
-import javax.ws.rs.WebApplicationException;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -100,7 +99,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         try {
             fromCodeScheme = mapper.readValue(jsonPayload, CodeScheme.class);
         } catch (final IOException e) {
-            throw new JsonParsingException("JSON parsing failed");
+            throw new JsonParsingException(ERR_MSG_USER_406);
         }
         codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
         updateExternalReferences(fromCodeScheme, codeScheme);
@@ -116,7 +115,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
             fromCodeSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<CodeScheme>>() {
             });
         } catch (final IOException e) {
-            throw new JsonParsingException("JSON parsing failed");
+            throw new JsonParsingException(ERR_MSG_USER_406);
         }
         for (final CodeScheme fromCodeScheme : fromCodeSchemes) {
             checkForDuplicateCodeValueInImportData(codeSchemes, fromCodeScheme.getCodeValue());
@@ -345,7 +344,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         boolean hasChanges = false;
         if (!Objects.equals(existingCodeScheme.getStatus(), fromCodeScheme.getStatus())) {
             if (Status.valueOf(existingCodeScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCodeScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
-                throw new WebApplicationException("Trying to update content with status: " + existingCodeScheme.getStatus() + " to status: " + fromCodeScheme.getStatus());
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
             }
             existingCodeScheme.setStatus(fromCodeScheme.getStatus());
             hasChanges = true;
@@ -494,7 +493,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         if (codeScheme.getId() != null) {
             final CodeScheme existingCodeScheme = codeSchemeRepository.findById(codeScheme.getId());
             if (existingCodeScheme != null && !existingCodeScheme.getCodeValue().equalsIgnoreCase(codeScheme.getCodeValue())) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_EXISTING_CODE_MISMATCH));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_EXISTING_CODE_MISMATCH));
             }
         }
     }

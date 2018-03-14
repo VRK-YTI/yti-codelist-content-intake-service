@@ -12,13 +12,13 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.model.CodeRegistry;
 import fi.vm.yti.codelist.common.model.ErrorModel;
-import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
 public class CodeRegistryService extends BaseService {
@@ -52,14 +52,14 @@ public class CodeRegistryService extends BaseService {
                                                                             final String jsonPayload) {
         Set<CodeRegistry> codeRegistries;
         if (!authorizationManager.isSuperUser()) {
-            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         switch (format.toLowerCase()) {
             case FORMAT_JSON:
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     codeRegistries = codeRegistryParser.parseCodeRegistriesFromJsonData(jsonPayload);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "No JSON payload found."));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                 }
                 break;
             case FORMAT_EXCEL:
@@ -69,7 +69,7 @@ public class CodeRegistryService extends BaseService {
                 codeRegistries = codeRegistryParser.parseCodeRegistriesFromCsvInputStream(inputStream);
                 break;
             default:
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unknown format used in CodeRegistryService: " + format));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
         if (codeRegistries != null && !codeRegistries.isEmpty()) {
             codeRegistryRepository.save(codeRegistries);
@@ -84,22 +84,22 @@ public class CodeRegistryService extends BaseService {
         final CodeRegistry codeRegistry;
         if (existingCodeRegistry != null) {
             if (!authorizationManager.isSuperUser()) {
-                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ErrorConstants.ERR_MSG_USER_401));
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
             try {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     codeRegistry = codeRegistryParser.parseCodeRegistryFromJsonData(jsonPayload);
                     if (!existingCodeRegistry.getCodeValue().equalsIgnoreCase(codeRegistryCodeValue)) {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Id mismatch with API call and incoming data!"));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
                     }
                     codeRegistryRepository.save(codeRegistry);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "No JSON payload found."));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
                 }
             } catch (final YtiCodeListException e) {
                 throw e;
             } catch (final Exception e) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ErrorConstants.ERR_MSG_USER_500));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
             }
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeRegistry with CodeValue: " + codeRegistryCodeValue + " does not exist yet, please create registry first."));

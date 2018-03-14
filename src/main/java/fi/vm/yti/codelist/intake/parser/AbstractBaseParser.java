@@ -58,7 +58,11 @@ public abstract class AbstractBaseParser {
         if (uuidString == null || uuidString.isEmpty()) {
             uuid = null;
         } else {
-            uuid = UUID.fromString(uuidString);
+            try {
+                uuid = UUID.fromString(uuidString);
+            } catch (final IllegalArgumentException e) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_ID));
+            }
         }
         return uuid;
     }
@@ -197,7 +201,7 @@ public abstract class AbstractBaseParser {
     public <T> void checkForDuplicateCodeValueInImportData(final Map<String, T> entityMap,
                                                            final String codeValue) {
         if (entityMap.containsKey(codeValue)) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Duplicate value found in import data, failing"));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_DUPLICATE_CODE_VALUE));
         }
     }
 }
