@@ -233,7 +233,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
         indexing.updateCodeSchemes(codeSchemes);
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
         for (final CodeSchemeDTO codeScheme : codeSchemes) {
-            indexing.updateExternalReferences(externalReferenceService.findByCodeSchemeCodeValue(codeScheme.getCodeValue()));
+            indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
+            indexing.updateExternalReferences(externalReferenceService.findByCodeSchemeId(codeScheme.getId()));
         }
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry")));
@@ -251,8 +252,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                     final String jsonPayload) {
         final Set<CodeDTO> codes = codeService.parseAndPersistCodesFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload);
         indexing.updateCodes(codes);
-        indexing.updateCodeScheme(codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue));
-        indexing.updateExternalReferences(externalReferenceService.findByCodeSchemeCodeValue(codeSchemeCodeValue));
+        final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        indexing.updateCodeScheme(codeScheme);
+        indexing.updateExternalReferences(externalReferenceService.findByCodeSchemeId(codeScheme.getId()));
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODE, "codeRegistry,codeScheme")));

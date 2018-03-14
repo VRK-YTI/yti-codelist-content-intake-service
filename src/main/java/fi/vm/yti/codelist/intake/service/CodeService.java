@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -49,6 +50,11 @@ public class CodeService extends BaseService {
     @Transactional
     public Set<CodeDTO> findAll() {
         return mapDeepCodeDtos(codeRepository.findAll());
+    }
+
+    @Transactional
+    public Set<CodeDTO> findByCodeSchemeId(final UUID codeSchemeId) {
+        return mapDeepCodeDtos(codeRepository.findByCodeSchemeId(codeSchemeId));
     }
 
     @Transactional

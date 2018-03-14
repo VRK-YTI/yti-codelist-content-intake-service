@@ -44,8 +44,8 @@ public class ExternalReferenceService extends BaseService {
     }
 
     @Transactional
-    public Set<ExternalReferenceDTO> findByCodeSchemeCodeValue(final String codeSchemeCodeValue) {
-        return mapDeepExternalReferenceDtos(externalReferenceRepository.findByParentCodeSchemeCodeValue(codeSchemeCodeValue));
+    public Set<ExternalReferenceDTO> findByCodeSchemeId(final UUID codeSchemeId) {
+        return mapDeepExternalReferenceDtos(externalReferenceRepository.findByParentCodeSchemeId(codeSchemeId));
     }
 
     @Transactional
