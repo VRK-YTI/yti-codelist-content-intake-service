@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -84,6 +85,7 @@ public class AdminResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Rewrites all coderegistry resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
+    @Transactional
     public Response rewriteCodeRegistryUris() {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_CODEREGISTRIES + API_PATH_REWRITEADDRESSES);
         if (authorizationManager.isSuperUser()) {
@@ -106,6 +108,7 @@ public class AdminResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Rewrites all codescheme resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
+    @Transactional
     public Response rewriteCodeSchemeUris() {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_CODESCHEMES + API_PATH_REWRITEADDRESSES);
         if (authorizationManager.isSuperUser()) {
@@ -128,6 +131,7 @@ public class AdminResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Rewrites all code resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
+    @Transactional
     public Response rewriteCodeUris() {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_CODES + API_PATH_REWRITEADDRESSES);
         if (authorizationManager.isSuperUser()) {
@@ -150,6 +154,7 @@ public class AdminResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Reloads global ExternalReferences from source data.")
     @ApiResponse(code = 200, message = "Upon successful request.")
+    @Transactional
     public Response reloadGlobalExternalReferences() {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_EXTERNALREFERENCES + API_PATH_RELOAD);
         if (authorizationManager.isSuperUser()) {
@@ -173,6 +178,7 @@ public class AdminResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Reloads PropertyTypes from source data.")
     @ApiResponse(code = 200, message = "Upon successful request.")
+    @Transactional
     public Response reloadPropertyTypes() {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_PROPERTYTYPES + API_PATH_RELOAD);
         if (authorizationManager.isSuperUser()) {
@@ -196,6 +202,7 @@ public class AdminResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Reindex ElasticSearch data.")
     @ApiResponse(code = 200, message = "Upon successful request.")
+    @Transactional
     public Response reIndex() {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_REINDEX);
         if (authorizationManager.isSuperUser()) {
