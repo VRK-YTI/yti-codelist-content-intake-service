@@ -85,7 +85,7 @@ public class AdminResource extends AbstractBaseResource {
     @ApiOperation(value = "Rewrites all coderegistry resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
     public Response rewriteCodeRegistryUris() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_CODEREGISTRIES + API_PATH_REWRITEURIS);
+        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_CODEREGISTRIES + API_PATH_REWRITEADDRESSES);
         if (authorizationManager.isSuperUser()) {
             final Set<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
             for (final CodeRegistry codeRegistry : codeRegistries) {
@@ -107,7 +107,7 @@ public class AdminResource extends AbstractBaseResource {
     @ApiOperation(value = "Rewrites all codescheme resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
     public Response rewriteCodeSchemeUris() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_CODESCHEMES + API_PATH_REWRITEURIS);
+        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_CODESCHEMES + API_PATH_REWRITEADDRESSES);
         if (authorizationManager.isSuperUser()) {
             final Set<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
             for (final CodeScheme codeScheme : codeSchemes) {
@@ -129,7 +129,7 @@ public class AdminResource extends AbstractBaseResource {
     @ApiOperation(value = "Rewrites all code resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
     public Response rewriteCodeUris() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_CODES + API_PATH_REWRITEURIS);
+        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_CODES + API_PATH_REWRITEADDRESSES);
         if (authorizationManager.isSuperUser()) {
             final Set<Code> codes = codeRepository.findAll();
             for (final Code code : codes) {
