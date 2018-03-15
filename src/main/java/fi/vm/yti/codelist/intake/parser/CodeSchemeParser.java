@@ -159,7 +159,9 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
                 checkForDuplicateCodeValueInImportData(codeSchemes, codeValue);
                 fromCodeScheme.setCodeValue(codeValue);
-                fromCodeScheme.setId(parseUUIDFromString(record.get(CONTENT_HEADER_ID)));
+                if (record.get(CONTENT_HEADER_ID) != null) {
+                    fromCodeScheme.setId(parseUUIDFromString(record.get(CONTENT_HEADER_ID)));
+                }
                 fromCodeScheme.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 fromCodeScheme.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                 fromCodeScheme.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
@@ -226,7 +228,9 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     }
                     checkForDuplicateCodeValueInImportData(codeSchemes, codeValue);
                     fromCodeScheme.setCodeValue(codeValue);
-                    fromCodeScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
+                    if (headerMap.containsKey(CONTENT_HEADER_ID)) {
+                        fromCodeScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
+                    }
                     final String dataClassificationCodes;
                     try {
                         dataClassificationCodes = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CLASSIFICATION)));

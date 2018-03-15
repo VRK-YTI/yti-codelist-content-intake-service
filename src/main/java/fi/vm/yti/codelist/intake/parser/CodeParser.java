@@ -96,7 +96,9 @@ public class CodeParser extends AbstractBaseParser {
                 for (final CSVRecord record : records) {
                     validateRequiredDataOnRecord(record);
                     final Code fromCode = new Code();
-                    fromCode.setId(parseUUIDFromString(record.get(CONTENT_HEADER_ID)));
+                    if (record.get(CONTENT_HEADER_ID) != null) {
+                        fromCode.setId(parseUUIDFromString(record.get(CONTENT_HEADER_ID)));
+                    }
                     final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
                     checkForDuplicateCodeValueInImportData(codes, codeValue);
                     fromCode.setCodeValue(codeValue);
@@ -264,8 +266,9 @@ public class CodeParser extends AbstractBaseParser {
                     final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
                     checkForDuplicateCodeValueInImportData(codes, codeValue);
                     fromCode.setCodeValue(codeValue);
-                    final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID))));
-                    fromCode.setId(id);
+                    if (headerMap.containsKey(CONTENT_HEADER_ID)) {
+                        fromCode.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
+                    }
                     fromCode.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                     fromCode.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
                     fromCode.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
