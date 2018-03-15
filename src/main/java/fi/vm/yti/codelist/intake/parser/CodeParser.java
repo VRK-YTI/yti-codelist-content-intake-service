@@ -368,6 +368,7 @@ public class CodeParser extends AbstractBaseParser {
                             final Code existingCode,
                             final Code fromCode) {
         final String uri = apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, existingCode);
+        final String url = apiUtils.createCodeUrl(codeScheme.getCodeRegistry(), codeScheme, existingCode);
         boolean hasChanges = false;
         if (!Objects.equals(existingCode.getStatus(), fromCode.getStatus())) {
             if (Status.valueOf(existingCode.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCode.getStatus()).ordinal() < Status.VALID.ordinal()) {
@@ -382,6 +383,10 @@ public class CodeParser extends AbstractBaseParser {
         }
         if (!Objects.equals(existingCode.getUri(), uri)) {
             existingCode.setUri(uri);
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingCode.getUrl(), url)) {
+            existingCode.setUrl(url);
             hasChanges = true;
         }
         if (!Objects.equals(existingCode.getShortName(), fromCode.getShortName())) {
@@ -464,6 +469,7 @@ public class CodeParser extends AbstractBaseParser {
         code.setStartDate(fromCode.getStartDate());
         code.setEndDate(fromCode.getEndDate());
         code.setUri(apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, code));
+        code.setUrl(apiUtils.createCodeUrl(codeScheme.getCodeRegistry(), codeScheme, code));
         return code;
     }
 

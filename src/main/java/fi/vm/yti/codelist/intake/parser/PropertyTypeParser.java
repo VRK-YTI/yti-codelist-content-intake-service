@@ -187,7 +187,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
 
     private PropertyType updatePropertyType(final PropertyType existingPropertyType,
                                             final PropertyType fromPropertyType) {
-        final String uri = apiUtils.createResourceUri(API_PATH_PROPERTYTYPES, fromPropertyType.getId().toString());
+        final String uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, fromPropertyType.getId().toString());
         if (!Objects.equals(existingPropertyType.getPropertyUri(), fromPropertyType.getPropertyUri())) {
             existingPropertyType.setPropertyUri(fromPropertyType.getPropertyUri());
         }
@@ -225,10 +225,10 @@ public class PropertyTypeParser extends AbstractBaseParser {
         final String uri;
         if (fromPropertyType.getId() != null) {
             propertyType.setId(fromPropertyType.getId());
-            uri = apiUtils.createResourceUri(API_PATH_PROPERTYTYPES, fromPropertyType.getId().toString());
+            uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, fromPropertyType.getId().toString());
         } else {
             final UUID uuid = UUID.randomUUID();
-            uri = apiUtils.createResourceUri(API_PATH_PROPERTYTYPES, uuid.toString());
+            uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, uuid.toString());
             propertyType.setId(uuid);
         }
         propertyType.setContext(fromPropertyType.getContext());

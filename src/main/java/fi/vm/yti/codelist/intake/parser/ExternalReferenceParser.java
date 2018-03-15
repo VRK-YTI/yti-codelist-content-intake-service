@@ -220,7 +220,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
 
     private ExternalReference updateExternalReference(final ExternalReference existingExternalReference,
                                                       final ExternalReference fromExternalReference) {
-        final String uri = apiUtils.createResourceUri(API_PATH_EXTERNALREFERENCES, fromExternalReference.getId().toString());
+        final String uri = apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, fromExternalReference.getId().toString());
         boolean hasChanges = false;
         if (!Objects.equals(existingExternalReference.getUri(), uri)) {
             existingExternalReference.setUri(uri);
@@ -266,11 +266,11 @@ public class ExternalReferenceParser extends AbstractBaseParser {
         final ExternalReference externalReference = new ExternalReference();
         final String uri;
         if (fromExternalReference.getId() != null) {
-            uri = apiUtils.createResourceUri(API_PATH_EXTERNALREFERENCES, fromExternalReference.getId().toString());
+            uri = apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, fromExternalReference.getId().toString());
             externalReference.setId(fromExternalReference.getId());
         } else {
             final UUID uuid = UUID.randomUUID();
-            uri = apiUtils.createResourceUri(API_PATH_EXTERNALREFERENCES, uuid.toString());
+            uri = apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, uuid.toString());
             externalReference.setId(uuid);
         }
         externalReference.setParentCodeScheme(fromExternalReference.getParentCodeScheme());

@@ -80,7 +80,7 @@ public class AdminResource extends AbstractBaseResource {
     }
 
     @GET
-    @Path("/coderegistries/rewriteuris/")
+    @Path("/coderegistries/rewriteaddresses/")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Rewrites all coderegistry resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
@@ -90,10 +90,11 @@ public class AdminResource extends AbstractBaseResource {
             final Set<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
             for (final CodeRegistry codeRegistry : codeRegistries) {
                 codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
+                codeRegistry.setUrl(apiUtils.createCodeRegistryUrl(codeRegistry));
             }
             codeRegistryRepository.save(codeRegistries);
             indexing.reIndexEverything();
-            LOG.info("CodeRegistry uris rewritten.");
+            LOG.info("CodeRegistry uris and urls rewritten.");
             return Response.ok().build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -101,7 +102,7 @@ public class AdminResource extends AbstractBaseResource {
     }
 
     @GET
-    @Path("/codeschemes/rewriteuris/")
+    @Path("/codeschemes/rewriteaddresses/")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Rewrites all codescheme resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
@@ -111,10 +112,11 @@ public class AdminResource extends AbstractBaseResource {
             final Set<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
             for (final CodeScheme codeScheme : codeSchemes) {
                 codeScheme.setUri(apiUtils.createCodeSchemeUri(codeScheme));
+                codeScheme.setUrl(apiUtils.createCodeSchemeUrl(codeScheme));
             }
             codeSchemeRepository.save(codeSchemes);
             indexing.reIndexEverything();
-            LOG.info("CodeScheme uris rewritten.");
+            LOG.info("CodeScheme uris and urls rewritten.");
             return Response.ok().build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -122,7 +124,7 @@ public class AdminResource extends AbstractBaseResource {
     }
 
     @GET
-    @Path("/codes/rewriteuris/")
+    @Path("/codes/rewriteaddresses/")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Rewrites all code resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
@@ -132,10 +134,11 @@ public class AdminResource extends AbstractBaseResource {
             final Set<Code> codes = codeRepository.findAll();
             for (final Code code : codes) {
                 code.setUri(apiUtils.createCodeUri(code));
+                code.setUrl(apiUtils.createCodeUrl(code));
             }
             codeRepository.save(codes);
             indexing.reIndexEverything();
-            LOG.info("Code uris rewritten.");
+            LOG.info("Code uris and urls rewritten.");
             return Response.ok().build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -154,6 +157,7 @@ public class AdminResource extends AbstractBaseResource {
                 final Set<ExternalReference> externalReferences = externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream);
                 externalReferenceRepository.save(externalReferences);
                 indexing.reIndexEverything();
+                LOG.info("Reindexing finished.");
             } catch (final IOException e) {
                 LOG.error("Issue with parsing ExternalReference file. ", e);
             }
@@ -176,6 +180,7 @@ public class AdminResource extends AbstractBaseResource {
                 final Set<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(inputStream);
                 propertyTypeRepository.save(propertyTypes);
                 indexing.reIndexEverything();
+                LOG.info("Reindexing finished.");
             } catch (final IOException e) {
                 LOG.error("Issue with parsing PropertyType file. ", e);
             }

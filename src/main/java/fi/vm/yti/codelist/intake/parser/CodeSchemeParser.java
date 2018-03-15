@@ -341,6 +341,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                                         final CodeScheme existingCodeScheme,
                                         final CodeScheme fromCodeScheme) {
         final String uri = apiUtils.createCodeSchemeUri(codeRegistry, existingCodeScheme);
+        final String url = apiUtils.createCodeSchemeUrl(codeRegistry, existingCodeScheme);
         boolean hasChanges = false;
         if (!Objects.equals(existingCodeScheme.getStatus(), fromCodeScheme.getStatus())) {
             if (Status.valueOf(existingCodeScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCodeScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
@@ -363,6 +364,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
         }
         if (!Objects.equals(existingCodeScheme.getUri(), uri)) {
             existingCodeScheme.setUri(uri);
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingCodeScheme.getUrl(), url)) {
+            existingCodeScheme.setUrl(url);
             hasChanges = true;
         }
         if (!Objects.equals(existingCodeScheme.getSource(), fromCodeScheme.getSource())) {
@@ -462,6 +467,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         codeScheme.setStartDate(fromCodeScheme.getStartDate());
         codeScheme.setEndDate(fromCodeScheme.getEndDate());
         codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
+        codeScheme.setUrl(apiUtils.createCodeSchemeUrl(codeRegistry, codeScheme));
         return codeScheme;
     }
 
