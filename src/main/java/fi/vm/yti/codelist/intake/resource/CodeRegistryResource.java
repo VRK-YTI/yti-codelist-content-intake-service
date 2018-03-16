@@ -42,6 +42,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import io.swagger.annotations.ApiResponses;
 
 @Component
 @Path("/v1/coderegistries")
@@ -268,7 +269,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
     
     @HEAD
     @Path("{codeRegistryCodeValue}")    
-    public Response checkForExistingCoreRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue) { 
+    @ApiOperation(value = "Check if a code registry with a given code value exists")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Found"),
+        @ApiResponse(code = 404, message = "Not found")
+    })    
+    public Response checkForExistingCodeRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue) { 
         CodeRegistryDTO registry = this.codeRegistryService.findByCodeValue(codeRegistryCodeValue);        
         if(registry == null) {
             return Response.status(404).build();
@@ -278,6 +284,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
     
     @HEAD
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}")
+    @ApiOperation(value = "Check if a code scheme with a given code value exists")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Found"),
+        @ApiResponse(code = 404, message = "Not found")
+    })        
     public Response checkForExistingCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue) {
         CodeSchemeDTO scheme = this.codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
@@ -289,6 +300,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
     @HEAD
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/{codeCodeValue}")
+    @ApiOperation(value = "Check if a code with a given code value exists")    
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Found"),
+        @ApiResponse(code = 404, message = "Not found")
+    })        
     public Response checkForExistingCodeValue(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                               @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                               @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue) {
