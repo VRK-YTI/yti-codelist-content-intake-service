@@ -41,8 +41,8 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import io.swagger.annotations.ApiResponses;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Component
 @Path("/v1/coderegistries")
@@ -267,33 +267,33 @@ public class CodeRegistryResource extends AbstractBaseResource {
         responseWrapper.setResults(codes);
         return Response.ok(responseWrapper).build();
     }
-    
+
     @HEAD
-    @Path("{codeRegistryCodeValue}")    
+    @Path("{codeRegistryCodeValue}")
     @ApiOperation(value = "Check if a code registry with a given code value exists")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Found"),
         @ApiResponse(code = 404, message = "Not found")
-    })    
-    public Response checkForExistingCodeRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue) { 
-        CodeRegistryDTO registry = this.codeRegistryService.findByCodeValue(codeRegistryCodeValue);        
-        if(registry == null) {
+    })
+    public Response checkForExistingCodeRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue) {
+        final CodeRegistryDTO registry = this.codeRegistryService.findByCodeValue(codeRegistryCodeValue);
+        if (registry == null) {
             return Response.status(404).build();
         }
         return Response.status(200).build();
     }
-    
+
     @HEAD
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}")
     @ApiOperation(value = "Check if a code scheme with a given code value exists")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Found"),
         @ApiResponse(code = 404, message = "Not found")
-    })        
+    })
     public Response checkForExistingCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue) {
-        CodeSchemeDTO scheme = this.codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-        if(scheme == null) {
+        final CodeSchemeDTO scheme = this.codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if (scheme == null) {
             return Response.status(404).build();
         }
         return Response.status(200).build();
@@ -301,16 +301,16 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
     @HEAD
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/{codeCodeValue}")
-    @ApiOperation(value = "Check if a code with a given code value exists")    
+    @ApiOperation(value = "Check if a code with a given code value exists")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Found"),
         @ApiResponse(code = 404, message = "Not found")
-    })        
+    })
     public Response checkForExistingCodeValue(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                               @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                               @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue) {
-        CodeDTO code = this.codeService.findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
-        if(code == null) {
+        final CodeDTO code = this.codeService.findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
+        if (code == null) {
             return Response.status(404).build();
         }
         return Response.status(200).build();
