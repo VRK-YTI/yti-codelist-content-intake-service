@@ -30,6 +30,7 @@ import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
+import javax.annotation.Nullable;
 
 @Component
 public class CodeSchemeService extends BaseService {
@@ -62,9 +63,14 @@ public class CodeSchemeService extends BaseService {
     }
 
     @Transactional
+    @Nullable
     public CodeSchemeDTO findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                                  final String codeSchemeCodeValue) {
-        return mapDeepCodeSchemeDto(codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue));
+        CodeScheme scheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if(scheme == null) {
+            return null;
+        }
+        return mapDeepCodeSchemeDto(scheme);
     }
 
     @Transactional

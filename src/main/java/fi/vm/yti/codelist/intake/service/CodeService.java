@@ -24,6 +24,7 @@ import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
+import javax.annotation.Nullable;
 
 @Component
 public class CodeService extends BaseService {
@@ -136,6 +137,17 @@ public class CodeService extends BaseService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
+        return mapDeepCodeDto(code);
+    }
+
+    @Transactional
+    @Nullable
+    public CodeDTO findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(String codeRegistryCodeValue, String codeSchemeCodeValue, String codeCodeValue) {
+        CodeRegistry registry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        CodeScheme scheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(registry, codeSchemeCodeValue);
+        Code code = codeRepository.findByCodeSchemeAndCodeValue(scheme, codeCodeValue);
+        if(code == null)
+            return null;
         return mapDeepCodeDto(code);
     }
 }

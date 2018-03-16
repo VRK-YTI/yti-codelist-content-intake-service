@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -264,4 +265,39 @@ public class CodeRegistryResource extends AbstractBaseResource {
         responseWrapper.setResults(codes);
         return Response.ok(responseWrapper).build();
     }
+    
+    @HEAD
+    @Path("{codeRegistryCodeValue}")    
+    public Response checkForExistingCoreRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue) { 
+        CodeRegistryDTO registry = this.codeRegistryService.findByCodeValue(codeRegistryCodeValue);        
+        if(registry == null) {
+            return Response.status(404).build();
+        }
+        return Response.status(200).build();
+    }
+    
+    @HEAD
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}")
+    public Response checkForExistingCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                               @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue) {
+        CodeSchemeDTO scheme = this.codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if(scheme == null) {
+            return Response.status(404).build();
+        }
+        return Response.status(200).build();
+    }
+
+    @HEAD
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/{codeCodeValue}")
+    public Response checkForExistingCodeValue(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                              @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                                              @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue) {
+        CodeDTO code = this.codeService.findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
+        if(code == null) {
+            return Response.status(404).build();
+        }
+        return Response.status(200).build();
+
+    }
+
 }
