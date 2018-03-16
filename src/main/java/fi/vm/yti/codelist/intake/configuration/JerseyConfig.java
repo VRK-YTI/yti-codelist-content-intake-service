@@ -53,7 +53,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.API_CONTEXT_PATH_
     produces = {MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN},
     schemes = {SwaggerDefinition.Scheme.HTTPS}
 )
-@Api(value = "/api", description = "Code List Service - Content Intake Service")
+@Api(value = "/api")
 @ApplicationPath("/api")
 public class JerseyConfig extends ResourceConfig {
 
