@@ -2,9 +2,6 @@ package fi.vm.yti.codelist.intake.exception;
 
 public class ErrorConstants {
 
-    private ErrorConstants() {
-    }
-
     public static final String ERR_MSG_USER_401 = "ERR_MSG_USER_401";
     public static final String ERR_MSG_USER_406 = "ERR_MSG_USER_406";
     public static final String ERR_MSG_USER_500 = "ERR_MSG_USER_500";
@@ -32,4 +29,7 @@ public class ErrorConstants {
     public static final String ERR_MSG_PATH_CODE_MISMATCH = "ERR_MSG_PATH_CODE_MISMATCH";
     public static final String ERR_MSG_STATUS_CHANGE_NOT_ALLOWED = "ERR_MSG_STATUS_CHANGE_NOT_ALLOWED";
     public static final String ERR_MSG_INVALID_ID = "ERR_MSG_INVALID_ID";
+
+    private ErrorConstants() {
+    }
 }
