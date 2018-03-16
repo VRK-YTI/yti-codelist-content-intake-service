@@ -4,7 +4,7 @@ import fi.vm.yti.codelist.common.model.ErrorModel;
 
 public class YtiCodeListException extends RuntimeException {
 
-    protected ErrorModel errorModel;
+    protected final ErrorModel errorModel;
 
     public YtiCodeListException(final ErrorModel errorModel) {
         super(errorModel.getMessage());
@@ -13,9 +13,5 @@ public class YtiCodeListException extends RuntimeException {
 
     public ErrorModel getErrorModel() {
         return errorModel;
-    }
-
-    public void setErrorModel(final ErrorModel errorModel) {
-        this.errorModel = errorModel;
     }
 }
