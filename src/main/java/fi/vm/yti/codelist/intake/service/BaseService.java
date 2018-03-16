@@ -39,8 +39,10 @@ public class BaseService {
         codeDto.setPrefLabel(code.getPrefLabel());
         codeDto.setDefinition(code.getDefinition());
         codeDto.setCodeScheme(mapCodeSchemeDto(code.getCodeScheme(), false));
-        if (code.getExternalReferences() != null) {
-            codeDto.setExternalReferences(mapExternalReferenceDtos(code.getExternalReferences(), false));
+        if (deep) {
+            if (code.getExternalReferences() != null) {
+                codeDto.setExternalReferences(mapExternalReferenceDtos(code.getExternalReferences(), false));
+            }
         }
         codeDto.setDescription(code.getDescription());
         return codeDto;

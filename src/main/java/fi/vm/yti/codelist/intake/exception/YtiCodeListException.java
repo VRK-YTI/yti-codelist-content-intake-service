@@ -6,7 +6,7 @@ public class YtiCodeListException extends RuntimeException {
 
     protected ErrorModel errorModel;
 
-    public YtiCodeListException(ErrorModel errorModel) {
+    public YtiCodeListException(final ErrorModel errorModel) {
         super(errorModel.getMessage());
         this.errorModel = errorModel;
     }
@@ -15,7 +15,7 @@ public class YtiCodeListException extends RuntimeException {
         return errorModel;
     }
 
-    public void setErrorModel(ErrorModel errorModel) {
+    public void setErrorModel(final ErrorModel errorModel) {
         this.errorModel = errorModel;
     }
 }

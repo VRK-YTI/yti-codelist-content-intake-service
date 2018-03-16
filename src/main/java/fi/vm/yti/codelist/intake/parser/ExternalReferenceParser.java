@@ -206,7 +206,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
         final ExternalReference externalReference;
         if (existingExternalReference != null && isGlobal) {
             externalReference = existingExternalReference;
-        } else if (existingExternalReference != null && !isGlobal) {
+        } else if (existingExternalReference != null) {
             externalReference = updateExternalReference(existingExternalReference, fromExternalReference);
         } else if (!isGlobal) {
             externalReference = createExternalReference(fromExternalReference);

@@ -7,6 +7,9 @@ import org.springframework.core.io.ClassPathResource;
 
 public abstract class FileUtils {
 
+    private FileUtils() {
+    }
+
     /**
      * Loads a file from classpath inside the application JAR.
      *
