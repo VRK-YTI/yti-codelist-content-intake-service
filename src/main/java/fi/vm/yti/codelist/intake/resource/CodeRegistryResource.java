@@ -2,9 +2,11 @@ package fi.vm.yti.codelist.intake.resource;
 
 import java.io.InputStream;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
@@ -26,6 +28,7 @@ import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.model.Meta;
 import fi.vm.yti.codelist.common.model.Views;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
@@ -159,6 +162,37 @@ public class CodeRegistryResource extends AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
+    @DELETE
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Deletes a single existing CodeScheme.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "CodeScheme deleted"),
+        @ApiResponse(code = 404, message = "CodeScheme not found")
+    })
+
+    public Response deleteCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue) {
+
+        logApiRequest(LOG, METHOD_DELETE, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + "/");
+        final CodeSchemeDTO existingCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if (existingCodeScheme != null) {
+            final UUID codeSchemeId = existingCodeScheme.getId();
+            final Set<CodeDTO> codes = codeService.findByCodeSchemeId(codeSchemeId);
+            final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByCodeSchemeId(codeSchemeId);
+            final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(codeRegistryCodeValue, codeSchemeCodeValue);
+            indexing.deleteCodeScheme(codeScheme);
+            indexing.deleteCodes(codes);
+            indexing.deleteExternalReferences(externalReferences);
+        } else {
+            return Response.status(404).build();
+        }
+        final Meta meta = new Meta();
+        final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
+        return Response.ok(responseWrapper).build();
+    }
+
     @POST
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -199,7 +233,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/{codeCodeValue}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Modifies single existing Code.")
+    @ApiOperation(value = "Modifies a single existing Code.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response updateCode(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
@@ -212,6 +246,31 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
+    }
+
+    @DELETE
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/{codeCodeValue}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Deletes a single existing Code.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Code deleted"),
+        @ApiResponse(code = 404, message = "Code not found")
+    })
+    public Response deleteCode(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                               @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                               @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue) {
+
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + codeCodeValue + "/");
+        final CodeDTO code = codeService.deleteCode(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
+        if (code != null) {
+            indexing.deleteCode(code);
+            final Meta meta = new Meta();
+            final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
+            return Response.ok(responseWrapper).build();
+        } else {
+            return Response.status(404).build();
+        }
     }
 
     private Response parseAndPersistCodeRegistriesFromSource(final String format,
@@ -314,7 +373,5 @@ public class CodeRegistryResource extends AbstractBaseResource {
             return Response.status(404).build();
         }
         return Response.status(200).build();
-
     }
-
 }

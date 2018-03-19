@@ -54,6 +54,7 @@ import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
+import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
@@ -63,16 +64,19 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Service
 public class CodeParser extends AbstractBaseParser {
 
+    private final AuthorizationManager authorizationManager;
     private final ApiUtils apiUtils;
     private final CodeRepository codeRepository;
     private final ExternalReferenceRepository externalReferenceRepository;
     private final ExternalReferenceParser externalReferenceParser;
 
     @Inject
-    public CodeParser(final ApiUtils apiUtils,
+    public CodeParser(final AuthorizationManager authorizationManager,
+                      final ApiUtils apiUtils,
                       final CodeRepository codeRepository,
                       final ExternalReferenceRepository externalReferenceRepository,
                       final ExternalReferenceParser externalReferenceParser) {
+        this.authorizationManager = authorizationManager;
         this.apiUtils = apiUtils;
         this.codeRepository = codeRepository;
         this.externalReferenceRepository = externalReferenceRepository;
@@ -375,7 +379,7 @@ public class CodeParser extends AbstractBaseParser {
         final String url = apiUtils.createCodeUrl(codeScheme.getCodeRegistry(), codeScheme, existingCode);
         boolean hasChanges = false;
         if (!Objects.equals(existingCode.getStatus(), fromCode.getStatus())) {
-            if (Status.valueOf(existingCode.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCode.getStatus()).ordinal() < Status.VALID.ordinal()) {
+            if (!authorizationManager.isSuperUser() && Status.valueOf(existingCode.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCode.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
             }
             existingCode.setStatus(fromCode.getStatus());
