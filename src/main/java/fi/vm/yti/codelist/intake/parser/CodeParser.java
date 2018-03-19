@@ -182,9 +182,19 @@ public class CodeParser extends AbstractBaseParser {
             flatOrder = resolveFlatOrderFromString(record.get(CONTENT_HEADER_FLATORDER));
             flatCount = flatOrder;
         } else {
-            hasFlatOrder = false;
-            final Integer newIndex = flatCount++;
-            flatOrder = newIndex;
+            flatOrder = null;
+        }
+        return flatOrder;
+    }
+
+    private Integer resolveFlatOrderFromExcelRow(final Map<String, Integer> headerMap,
+                                                      final Row row,
+                                                      final DataFormatter formatter) {
+        final Integer flatOrder;
+        if (headerMap.containsKey(CONTENT_HEADER_FLATORDER)) {
+            flatOrder = resolveFlatOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_FLATORDER))));
+        } else {
+            flatOrder = null;
         }
         return flatOrder;
     }
@@ -200,7 +210,9 @@ public class CodeParser extends AbstractBaseParser {
                         ERR_MSG_USER_FLAT_ORDER_INVALID_VALUE));
             }
         } else {
-            flatOrder = null;
+            hasFlatOrder = false;
+            final Integer newIndex = flatCount++;
+            flatOrder = newIndex;
         }
         return flatOrder;
     }
@@ -305,6 +317,7 @@ public class CodeParser extends AbstractBaseParser {
                     fromCode.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
                     fromCode.setShortName(parseShortNameFromExcelRow(headerMap, row, formatter));
                     fromCode.setHierarchyLevel(resolveHierarchyLevelFromExcelRow(headerMap, row, formatter));
+                    fromCode.setFlatOrder(resolveFlatOrderFromExcelRow(headerMap, row, formatter));
                     if (headerMap.containsKey(CONTENT_HEADER_BROADER)) {
                         final String broaderCodeCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_BROADER)));
                         if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
