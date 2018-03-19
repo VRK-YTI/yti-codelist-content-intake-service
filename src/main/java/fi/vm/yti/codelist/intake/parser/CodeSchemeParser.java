@@ -179,8 +179,8 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 fromCodeScheme.setLegalBase(record.get(CONTENT_HEADER_LEGALBASE));
                 fromCodeScheme.setGovernancePolicy(record.get(CONTENT_HEADER_GOVERNANCEPOLICY));
                 fromCodeScheme.setSource(record.get(CONTENT_HEADER_SOURCE));
-                fromCodeScheme.setStartDate(parseStartDateFromString(record.get(CONTENT_HEADER_STARTDATE), String.valueOf(record.getRecordNumber())));
-                fromCodeScheme.setEndDate(parseEndDateString(record.get(CONTENT_HEADER_ENDDATE), String.valueOf(record.getRecordNumber())));
+                fromCodeScheme.setStartDate(parseStartDateFromString(record.get(CONTENT_HEADER_STARTDATE), String.valueOf(record.getRecordNumber() + 1)));
+                fromCodeScheme.setEndDate(parseEndDateString(record.get(CONTENT_HEADER_ENDDATE), String.valueOf(record.getRecordNumber() + 1)));
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
                 codeSchemes.put(codeScheme.getCodeValue(), codeScheme);
             }

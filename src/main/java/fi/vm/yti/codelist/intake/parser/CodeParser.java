@@ -116,8 +116,8 @@ public class CodeParser extends AbstractBaseParser {
                     }
                     fromCode.setHierarchyLevel(resolveHierarchyLevelFromCsvRecord(headerMap, record));
                     fromCode.setStatus(parseStatusValueFromString(record.get(CONTENT_HEADER_STATUS)));
-                    fromCode.setStartDate(parseStartDateFromString(record.get(CONTENT_HEADER_STARTDATE), String.valueOf(record.getRecordNumber())));
-                    fromCode.setEndDate(parseEndDateString(record.get(CONTENT_HEADER_ENDDATE), String.valueOf(record.getRecordNumber())));
+                    fromCode.setStartDate(parseStartDateFromString(record.get(CONTENT_HEADER_STARTDATE), String.valueOf(record.getRecordNumber() + 1)));
+                    fromCode.setEndDate(parseEndDateString(record.get(CONTENT_HEADER_ENDDATE), String.valueOf(record.getRecordNumber() + 1)));
                     final Code code = createOrUpdateCode(codeScheme, fromCode);
                     if (code != null) {
                         codes.put(code.getCodeValue(), code);
