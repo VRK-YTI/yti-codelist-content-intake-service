@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -23,6 +24,7 @@ import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
+import javax.annotation.Nullable;
 
 @Component
 public class CodeService extends BaseService {
@@ -49,6 +51,11 @@ public class CodeService extends BaseService {
     @Transactional
     public Set<CodeDTO> findAll() {
         return mapDeepCodeDtos(codeRepository.findAll());
+    }
+
+    @Transactional
+    public Set<CodeDTO> findByCodeSchemeId(final UUID codeSchemeId) {
+        return mapDeepCodeDtos(codeRepository.findByCodeSchemeId(codeSchemeId));
     }
 
     @Transactional
@@ -130,6 +137,17 @@ public class CodeService extends BaseService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
+        return mapDeepCodeDto(code);
+    }
+
+    @Transactional
+    @Nullable
+    public CodeDTO findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(String codeRegistryCodeValue, String codeSchemeCodeValue, String codeCodeValue) {
+        CodeRegistry registry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        CodeScheme scheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(registry, codeSchemeCodeValue);
+        Code code = codeRepository.findByCodeSchemeAndCodeValue(scheme, codeCodeValue);
+        if(code == null)
+            return null;
         return mapDeepCodeDto(code);
     }
 }

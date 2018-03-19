@@ -1,7 +1,5 @@
 package fi.vm.yti.codelist.intake.resource;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -40,7 +38,7 @@ public class ConfigurationResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Get configuration values as JSON")
     @ApiResponse(code = 200, message = "Returns the configuration JSON element to the frontend related to this service.")
-    public Response getConfig() throws IOException {
+    public Response getConfig() {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_CONFIGURATION);
         final String groupManagementPublicUrl = apiUtils.getGroupmanagementPublicUrl();
         final ObjectMapper mapper = new ObjectMapper();

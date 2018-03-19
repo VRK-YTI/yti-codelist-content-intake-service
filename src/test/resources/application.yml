@@ -56,5 +56,10 @@ public_api:
   port: 9601
   contextPath: /codelist-api
 
+uri_suomi:
+  scheme: http
+  host: uri.suomi.fi
+  contextPath: /codelist
+
 session:
   timeout-mins: 10

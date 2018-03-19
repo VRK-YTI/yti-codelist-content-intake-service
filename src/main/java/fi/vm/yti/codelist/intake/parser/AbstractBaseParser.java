@@ -31,6 +31,7 @@ import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 public abstract class AbstractBaseParser {
@@ -51,20 +52,6 @@ public abstract class AbstractBaseParser {
     public String resolveLanguageFromHeader(final String prefix,
                                             final String header) {
         return header.substring(header.indexOf(prefix) + prefix.length()).toLowerCase();
-    }
-
-    public UUID parseUUIDFromString(final String uuidString) {
-        final UUID uuid;
-        if (uuidString == null || uuidString.isEmpty()) {
-            uuid = null;
-        } else {
-            try {
-                uuid = UUID.fromString(uuidString);
-            } catch (final IllegalArgumentException e) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_ID));
-            }
-        }
-        return uuid;
     }
 
     public ObjectMapper createObjectMapper() {
@@ -89,7 +76,7 @@ public abstract class AbstractBaseParser {
         return date;
     }
 
-    public Date parseEndDateString(final String dateString, final String rowIdentifier) {
+    public Date parseEndDateFromString(final String dateString, final String rowIdentifier) {
         Date date = null;
         final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
         if (!dateString.isEmpty()) {
@@ -203,5 +190,58 @@ public abstract class AbstractBaseParser {
         if (entityMap.containsKey(codeValue)) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_DUPLICATE_CODE_VALUE));
         }
+    }
+
+    public String parseStringFromCsvRecord(final CSVRecord record,
+                                            final String columnName) {
+        final String shortName;
+        if (record.isMapped(columnName)) {
+            shortName = record.get(columnName);
+        } else {
+            shortName = null;
+        }
+        return shortName;
+    }
+
+    public UUID parseUUIDFromString(final String uuidString) {
+        final UUID uuid;
+        if (uuidString == null || uuidString.isEmpty()) {
+            uuid = null;
+        } else {
+            try {
+                uuid = UUID.fromString(uuidString);
+            } catch (final IllegalArgumentException e) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_ID));
+            }
+        }
+        return uuid;
+    }
+
+    public UUID parseIdFromRecord(final CSVRecord record) {
+        final UUID id;
+        if (record.isMapped(CONTENT_HEADER_ID)) {
+            id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
+        } else {
+            id = null;
+        }
+        return id;
+    }
+
+    public String parseCodeValueFromRecord(final CSVRecord record) {
+        final String codeValue;
+        if (record.isMapped(CONTENT_HEADER_CODEVALUE)) {
+            codeValue = parseStringFromCsvRecord(record, CONTENT_HEADER_CODEVALUE);
+        } else {
+            codeValue = null;
+        }
+        return codeValue;
+    }
+
+    public String parseStartDateStringFromCsvRecord(final CSVRecord record) {
+        return parseStringFromCsvRecord(record, CONTENT_HEADER_STARTDATE);
+    }
+
+    public String parseEndDateStringFromCsvRecord(final CSVRecord record) {
+        return parseStringFromCsvRecord(record, CONTENT_HEADER_ENDDATE);
     }
 }

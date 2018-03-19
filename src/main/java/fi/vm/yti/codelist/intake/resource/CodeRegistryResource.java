@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -40,6 +41,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Component
@@ -151,6 +153,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + "/");
         final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
         indexing.updateCodeScheme(codeScheme);
+        indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
@@ -233,7 +236,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
         indexing.updateCodeSchemes(codeSchemes);
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
         for (final CodeSchemeDTO codeScheme : codeSchemes) {
-            indexing.updateExternalReferences(externalReferenceService.findByCodeSchemeCodeValue(codeScheme.getCodeValue()));
+            indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
+            indexing.updateExternalReferences(externalReferenceService.findByCodeSchemeId(codeScheme.getId()));
         }
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry")));
@@ -251,8 +255,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                     final String jsonPayload) {
         final Set<CodeDTO> codes = codeService.parseAndPersistCodesFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload);
         indexing.updateCodes(codes);
-        indexing.updateCodeScheme(codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue));
-        indexing.updateExternalReferences(externalReferenceService.findByCodeSchemeCodeValue(codeSchemeCodeValue));
+        final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        indexing.updateCodeScheme(codeScheme);
+        indexing.updateExternalReferences(externalReferenceService.findByCodeSchemeId(codeScheme.getId()));
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODE, "codeRegistry,codeScheme")));
@@ -262,4 +267,54 @@ public class CodeRegistryResource extends AbstractBaseResource {
         responseWrapper.setResults(codes);
         return Response.ok(responseWrapper).build();
     }
+
+    @HEAD
+    @Path("{codeRegistryCodeValue}")
+    @ApiOperation(value = "Check if a code registry with a given code value exists")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Found"),
+        @ApiResponse(code = 404, message = "Not found")
+    })
+    public Response checkForExistingCodeRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue) {
+        final CodeRegistryDTO registry = this.codeRegistryService.findByCodeValue(codeRegistryCodeValue);
+        if (registry == null) {
+            return Response.status(404).build();
+        }
+        return Response.status(200).build();
+    }
+
+    @HEAD
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}")
+    @ApiOperation(value = "Check if a code scheme with a given code value exists")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Found"),
+        @ApiResponse(code = 404, message = "Not found")
+    })
+    public Response checkForExistingCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                               @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue) {
+        final CodeSchemeDTO scheme = this.codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if (scheme == null) {
+            return Response.status(404).build();
+        }
+        return Response.status(200).build();
+    }
+
+    @HEAD
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/{codeCodeValue}")
+    @ApiOperation(value = "Check if a code with a given code value exists")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Found"),
+        @ApiResponse(code = 404, message = "Not found")
+    })
+    public Response checkForExistingCodeValue(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                              @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                                              @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue) {
+        final CodeDTO code = this.codeService.findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
+        if (code == null) {
+            return Response.status(404).build();
+        }
+        return Response.status(200).build();
+
+    }
+
 }

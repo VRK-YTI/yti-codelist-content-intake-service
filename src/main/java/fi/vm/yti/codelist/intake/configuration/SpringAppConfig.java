@@ -41,9 +41,6 @@ public class SpringAppConfig {
     @Value(value = "${application.contextPath}")
     private String contextPath;
 
-    public SpringAppConfig() {
-    }
-
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
         return new PropertySourcesPlaceholderConfigurer();

@@ -28,6 +28,7 @@ public class BaseService {
         codeDto.setId(code.getId());
         codeDto.setCodeValue(code.getCodeValue());
         codeDto.setUri(code.getUri());
+        codeDto.setUrl(code.getUrl());
         codeDto.setModified(code.getModified());
         codeDto.setBroaderCodeId(code.getBroaderCodeId());
         codeDto.setStartDate(code.getStartDate());
@@ -38,8 +39,10 @@ public class BaseService {
         codeDto.setPrefLabel(code.getPrefLabel());
         codeDto.setDefinition(code.getDefinition());
         codeDto.setCodeScheme(mapCodeSchemeDto(code.getCodeScheme(), false));
-        if (code.getExternalReferences() != null) {
-            codeDto.setExternalReferences(mapExternalReferenceDtos(code.getExternalReferences(), false));
+        if (deep) {
+            if (code.getExternalReferences() != null) {
+                codeDto.setExternalReferences(mapExternalReferenceDtos(code.getExternalReferences(), false));
+            }
         }
         codeDto.setDescription(code.getDescription());
         codeDto.setFlatOrder(code.getFlatOrder());
@@ -71,6 +74,7 @@ public class BaseService {
         codeSchemeDto.setCodeValue(codeScheme.getCodeValue());
         codeSchemeDto.setModified(codeScheme.getModified());
         codeSchemeDto.setUri(codeScheme.getUri());
+        codeSchemeDto.setUrl(codeScheme.getUrl());
         codeSchemeDto.setChangeNote(codeScheme.getChangeNote());
         codeSchemeDto.setStartDate(codeScheme.getStartDate());
         codeSchemeDto.setEndDate(codeScheme.getEndDate());
@@ -79,6 +83,9 @@ public class BaseService {
         codeSchemeDto.setPrefLabel(codeScheme.getPrefLabel());
         codeSchemeDto.setDescription(codeScheme.getDescription());
         codeSchemeDto.setCodeRegistry(mapCodeRegistryDto(codeScheme.getCodeRegistry()));
+        codeSchemeDto.setVersion(codeScheme.getVersion());
+        codeSchemeDto.setGovernancePolicy(codeScheme.getGovernancePolicy());
+        codeSchemeDto.setLegalBase(codeScheme.getLegalBase());
         if (deep) {
             if (codeScheme.getDataClassifications() != null) {
                 codeSchemeDto.setDataClassifications(mapCodeDtos(codeScheme.getDataClassifications(), false));
@@ -108,6 +115,7 @@ public class BaseService {
         codeRegistryDto.setId(codeRegistry.getId());
         codeRegistryDto.setCodeValue(codeRegistry.getCodeValue());
         codeRegistryDto.setUri(codeRegistry.getUri());
+        codeRegistryDto.setUrl(codeRegistry.getUrl());
         codeRegistryDto.setModified(codeRegistry.getModified());
         codeRegistryDto.setPrefLabel(codeRegistry.getPrefLabel());
         codeRegistryDto.setDefinition(codeRegistry.getDefinition());
@@ -135,6 +143,7 @@ public class BaseService {
         externalReferenceDto.setGlobal(externalReference.getGlobal());
         externalReferenceDto.setTitle(externalReference.getTitle());
         externalReferenceDto.setUrl(externalReference.getUrl());
+        externalReferenceDto.setUri(externalReference.getUri());
         externalReferenceDto.setPropertyType(mapPropertyTypeDto(externalReference.getPropertyType()));
         if (deep) {
             if (externalReference.getParentCodeScheme() != null) {

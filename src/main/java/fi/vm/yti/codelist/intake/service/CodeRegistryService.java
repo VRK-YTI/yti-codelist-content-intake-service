@@ -19,6 +19,7 @@ import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
+import javax.annotation.Nullable;
 
 @Component
 public class CodeRegistryService extends BaseService {
@@ -42,8 +43,12 @@ public class CodeRegistryService extends BaseService {
     }
 
     @Transactional
+    @Nullable
     public CodeRegistryDTO findByCodeValue(final String codeValue) {
-        return mapCodeRegistryDto(codeRegistryRepository.findByCodeValue(codeValue));
+        CodeRegistry registry = codeRegistryRepository.findByCodeValue(codeValue);
+        if(registry == null)
+            return null;
+        return mapCodeRegistryDto(registry);
     }
 
     @Transactional
