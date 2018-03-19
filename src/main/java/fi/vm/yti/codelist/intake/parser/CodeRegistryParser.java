@@ -107,7 +107,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
             final List<CSVRecord> records = csvParser.getRecords();
             records.forEach(record -> {
                 final CodeRegistry fromCodeRegistry = new CodeRegistry();
-                fromCodeRegistry.setCodeValue(record.get(CONTENT_HEADER_CODEVALUE));
+                fromCodeRegistry.setCodeValue(parseCodeValueFromRecord(record));
                 fromCodeRegistry.setOrganizations(resolveOrganizations(record.get(CONTENT_HEADER_ORGANIZATION)));
                 fromCodeRegistry.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 fromCodeRegistry.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));

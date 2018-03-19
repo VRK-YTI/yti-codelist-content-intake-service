@@ -96,17 +96,15 @@ public class CodeParser extends AbstractBaseParser {
                 for (final CSVRecord record : records) {
                     validateRequiredDataOnRecord(record);
                     final Code fromCode = new Code();
-                    if (record.get(CONTENT_HEADER_ID) != null) {
-                        fromCode.setId(parseUUIDFromString(record.get(CONTENT_HEADER_ID)));
-                    }
-                    final String codeValue = record.get(CONTENT_HEADER_CODEVALUE);
+                    fromCode.setId(parseIdFromRecord(record));
+                    final String codeValue = parseCodeValueFromRecord(record);
                     checkForDuplicateCodeValueInImportData(codes, codeValue);
                     fromCode.setCodeValue(codeValue);
                     fromCode.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                     fromCode.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                     fromCode.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
                     fromCode.setShortName(parseShortNameFromCsvRecord(record));
-                    if (headerMap.containsKey(CONTENT_HEADER_BROADER)) {
+                    if (record.isMapped(CONTENT_HEADER_BROADER)) {
                         final String broaderCodeCodeValue = record.get(CONTENT_HEADER_BROADER);
                         if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
                             broaderCodeMapping.put(codeValue, broaderCodeCodeValue);
@@ -114,10 +112,14 @@ public class CodeParser extends AbstractBaseParser {
                             broaderCodeMapping.put(codeValue, null);
                         }
                     }
-                    fromCode.setHierarchyLevel(resolveHierarchyLevelFromCsvRecord(headerMap, record));
+                    fromCode.setHierarchyLevel(resolveHierarchyLevelFromCsvRecord(record));
                     fromCode.setStatus(parseStatusValueFromString(record.get(CONTENT_HEADER_STATUS)));
-                    fromCode.setStartDate(parseStartDateFromString(record.get(CONTENT_HEADER_STARTDATE), String.valueOf(record.getRecordNumber() + 1)));
-                    fromCode.setEndDate(parseEndDateString(record.get(CONTENT_HEADER_ENDDATE), String.valueOf(record.getRecordNumber() + 1)));
+                    if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
+                        fromCode.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    }
+                    if (record.isMapped(CONTENT_HEADER_ENDDATE)) {
+                        fromCode.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    }
                     final Code code = createOrUpdateCode(codeScheme, fromCode);
                     if (code != null) {
                         codes.put(code.getCodeValue(), code);
@@ -135,10 +137,9 @@ public class CodeParser extends AbstractBaseParser {
         return new HashSet<>(codes.values());
     }
 
-    private Integer resolveHierarchyLevelFromCsvRecord(final Map<String, Integer> headerMap,
-                                                       final CSVRecord record) {
+    private Integer resolveHierarchyLevelFromCsvRecord(final CSVRecord record) {
         final Integer hierarchyLevel;
-        if (headerMap.containsKey(CONTENT_HEADER_HIERARCHYLEVEL) && !headerMap.containsKey(CONTENT_HEADER_BROADER)) {
+        if (record.isMapped(CONTENT_HEADER_HIERARCHYLEVEL) && !record.isMapped(CONTENT_HEADER_BROADER)) {
             hierarchyLevel = resolveHierarchyLevelFromString(record.get(CONTENT_HEADER_HIERARCHYLEVEL));
         } else {
             hierarchyLevel = 1;
@@ -282,7 +283,7 @@ public class CodeParser extends AbstractBaseParser {
                     }
                     fromCode.setStatus(parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))));
                     fromCode.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
-                    fromCode.setEndDate(parseEndDateString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
+                    fromCode.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
                     final Code code = createOrUpdateCode(codeScheme, fromCode);
                     if (code != null) {
                         codes.put(code.getCodeValue(), code);
@@ -540,13 +541,7 @@ public class CodeParser extends AbstractBaseParser {
     }
 
     private String parseShortNameFromCsvRecord(final CSVRecord record) {
-        String shortName;
-        try {
-            shortName = record.get(CONTENT_HEADER_SHORTNAME);
-        } catch (final Exception e) {
-            shortName = null;
-        }
-        return shortName;
+        return parseStringFromCsvRecord(record, CONTENT_HEADER_SHORTNAME);
     }
 
     private String parseShortNameFromExcelRow(final Map<String, Integer> genericHeaders,
