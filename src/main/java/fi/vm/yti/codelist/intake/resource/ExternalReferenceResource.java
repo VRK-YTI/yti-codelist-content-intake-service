@@ -58,7 +58,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses ExternalReferences from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response addOrUpdateExternalReferencesFromJson(@ApiParam(value = "JSON playload for ExternalReference data.", required = false) final String jsonPayload) {
+    public Response addOrUpdateExternalReferencesFromJson(@ApiParam(value = "JSON playload for ExternalReference data.") final String jsonPayload) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/");
         return parseAndPersistExistingReferencesFromSource(FORMAT_JSON, null, jsonPayload);
     }
@@ -69,10 +69,10 @@ public class ExternalReferenceResource extends AbstractBaseResource {
     @ApiOperation(value = "Parses ExternalReferences from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
     @ApiImplicitParams({
-        @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
+        @ApiImplicitParam(name = "file", value = "Input-file", dataType = "file", paramType = "formData")
     })
     public Response addOrUpdateExternalReferencesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
-                                                          @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+                                                          @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/");
         return parseAndPersistExistingReferencesFromSource(FORMAT_JSON, inputStream, null);
     }
@@ -84,7 +84,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
     @ApiOperation(value = "Parses ExternalReference from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response updateExternalReference(@ApiParam(value = "ExternalReference ID", required = true) @PathParam("externalReferenceId") final String externalReferenceId,
-                                            @ApiParam(value = "JSON playload for ExternalReference data.", required = false) final String jsonPayload) {
+                                            @ApiParam(value = "JSON playload for ExternalReference data.") final String jsonPayload) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/" + externalReferenceId + "/");
         final ExternalReferenceDTO externalReference = externalReferenceService.parseAndPersistExternalReferenceFromJson(externalReferenceId, jsonPayload, null);
         indexing.updateExternalReference(externalReference);
