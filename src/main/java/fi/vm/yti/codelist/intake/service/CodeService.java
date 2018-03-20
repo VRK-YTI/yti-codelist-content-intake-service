@@ -147,9 +147,8 @@ public class CodeService extends BaseService {
     @Transactional
     public Set<CodeDTO> removeBroaderCodeId(final UUID broaderCodeId) {
         final Set<Code> referencedCodes = codeRepository.findByBroaderCodeId(broaderCodeId);
-        referencedCodes.forEach(code -> {
-            code.setBroaderCodeId(null);
-        });
+        referencedCodes.forEach(code -> code.setBroaderCodeId(null));
+        codeRepository.save(referencedCodes);
         return mapDeepCodeDtos(referencedCodes);
     }
 
