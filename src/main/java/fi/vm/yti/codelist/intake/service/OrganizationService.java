@@ -41,6 +41,7 @@ public class OrganizationService extends BaseService {
         return mapOrganizationDto(organizationRepository.findById(organizationId), false);
     }
 
+    @Transactional
     public Set<OrganizationDTO> parseAndPersistGroupManagementOrganizationsFromJson(final String jsonPayload) {
         final Stopwatch watch = Stopwatch.createStarted();
         final ObjectMapper mapper = new ObjectMapper();
@@ -56,7 +57,9 @@ public class OrganizationService extends BaseService {
         }
         final Set<Organization> organizations = new HashSet<>();
         for (final GroupManagementOrganizationDTO groupManagementOrganization : groupManagementOrganizations) {
-            organizations.add(createOrUpdateOrganizationFromGroupManagementOrganizationDto(groupManagementOrganization));
+            final Organization organization = createOrUpdateOrganizationFromGroupManagementOrganizationDto(groupManagementOrganization);
+            organization.getCodeRegistries().size();
+            organizations.add(organization);
         }
         if (!organizations.isEmpty()) {
             organizationRepository.save(organizations);
