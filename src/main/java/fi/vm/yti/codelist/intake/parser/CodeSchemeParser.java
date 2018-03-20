@@ -168,13 +168,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 fromCodeScheme.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                 fromCodeScheme.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
                 fromCodeScheme.setChangeNote(parseLocalizedValueFromCsvRecord(changeNoteHeaders, record));
-                final Set<Code> dataClassifications = resolveDataClassificationsFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_CLASSIFICATION));
-                if (dataClassifications.isEmpty() && !codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
-                    LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
-                    throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                        ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
+                if (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
+                    final Set<Code> dataClassifications = resolveDataClassificationsFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_CLASSIFICATION));
+                    fromCodeScheme.setDataClassifications(dataClassifications);
                 }
-                fromCodeScheme.setDataClassifications(dataClassifications);
                 fromCodeScheme.setStatus(parseStatusValueFromString(record.get(CONTENT_HEADER_STATUS)));
                 fromCodeScheme.setVersion(parseVersionFromCsvRecord(record));
                 fromCodeScheme.setLegalBase(parseLegalBaseFromCsvRecord(record));
@@ -236,21 +233,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
                     if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                         fromCodeScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                     }
-                    final String dataClassificationCodes;
-                    try {
-                        dataClassificationCodes = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CLASSIFICATION)));
-                    } catch (final NullPointerException e) {
-                        LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
-                        throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
+                    if (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
+                        final Set<Code> dataClassifications = resolveDataClassificationsFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CLASSIFICATION))));
+                        fromCodeScheme.setDataClassifications(dataClassifications);
                     }
-                    final Set<Code> dataClassifications = resolveDataClassificationsFromString(dataClassificationCodes);
-                    if (dataClassifications.isEmpty() && !codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
-                        LOG.error("Parsing dataClassifications for codeScheme: " + codeValue + " failed");
-                        throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
-                    }
-                    fromCodeScheme.setDataClassifications(dataClassifications);
                     fromCodeScheme.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                     fromCodeScheme.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
                     fromCodeScheme.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
@@ -481,7 +467,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
     }
 
     private Set<Code> resolveDataClassificationsFromString(final String dataClassificationCodes) {
-        if (dataClassificationCodes == null) {
+        if (dataClassificationCodes == null || dataClassificationCodes.isEmpty()) {
             throw new BadClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_CLASSIFICATION));
         }
         final List<String> codes = Arrays.asList(dataClassificationCodes.split(";"));
