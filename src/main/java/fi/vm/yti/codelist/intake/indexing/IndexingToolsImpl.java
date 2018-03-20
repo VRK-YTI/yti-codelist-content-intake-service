@@ -79,6 +79,10 @@ public class IndexingToolsImpl implements IndexingTools {
         "  },\n" +
         "  \"codeRegistry\": {\n" +
         "    \"properties\": {\n" +
+        "      \"codeValue\": {\n" +
+        "        \"type\": \"text\",\n" +
+        "        \"analyzer\": \"analyzer_keyword\"\n" +
+        "      },\n" +
         "      \"organizations\": {\n" +
         "        \"type\": \"nested\"\n" +
         "      }\n" +
