@@ -67,7 +67,7 @@ public abstract class AbstractBaseParser {
         if (!dateString.isEmpty()) {
             try {
                 date = dateFormat.parse(dateString);
-            } catch (ParseException e) {
+            } catch (final ParseException e) {
                 LOG.error("Parsing startDate failed from string: " + dateString);
                 throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                     ERR_MSG_USER_ERRONEOUS_START_DATE, rowIdentifier));
@@ -82,7 +82,7 @@ public abstract class AbstractBaseParser {
         if (!dateString.isEmpty()) {
             try {
                 date = dateFormat.parse(dateString);
-            } catch (ParseException e) {
+            } catch (final ParseException e) {
                 LOG.error("Parsing endDate failed from string: " + dateString);
                 throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                     ERR_MSG_USER_ERRONEOUS_END_DATE, rowIdentifier));
@@ -95,6 +95,7 @@ public abstract class AbstractBaseParser {
         try {
             return Status.valueOf(statusString).toString();
         } catch (final Exception e) {
+            LOG.error("Caught exception in parseStatusValueFromString.", e);
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID));
         }
     }
@@ -193,14 +194,14 @@ public abstract class AbstractBaseParser {
     }
 
     public String parseStringFromCsvRecord(final CSVRecord record,
-                                            final String columnName) {
-        final String shortName;
+                                           final String columnName) {
+        final String value;
         if (record.isMapped(columnName)) {
-            shortName = record.get(columnName);
+            value = record.get(columnName);
         } else {
-            shortName = null;
+            value = null;
         }
-        return shortName;
+        return value;
     }
 
     public UUID parseUUIDFromString(final String uuidString) {

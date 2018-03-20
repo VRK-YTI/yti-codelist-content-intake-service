@@ -7,6 +7,8 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +26,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Component
 public class PropertyTypeService extends BaseService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PropertyTypeService.class);
     private final AuthorizationManager authorizationManager;
     private final PropertyTypeRepository propertyTypeRepository;
     private final PropertyTypeParser propertyTypeParser;
@@ -95,6 +98,7 @@ public class PropertyTypeService extends BaseService {
             } catch (final YtiCodeListException e) {
                 throw e;
             } catch (final Exception e) {
+                LOG.error("Caught exception in parseAndPersistPropertyTypeFromJson.", e);
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
             }
         } else {

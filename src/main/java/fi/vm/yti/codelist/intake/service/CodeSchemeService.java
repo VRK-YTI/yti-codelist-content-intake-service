@@ -12,6 +12,8 @@ import org.apache.poi.POIXMLException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +37,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Component
 public class CodeSchemeService extends BaseService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeService.class);
     private final AuthorizationManager authorizationManager;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
@@ -144,6 +147,7 @@ public class CodeSchemeService extends BaseService {
             } catch (final YtiCodeListException e) {
                 throw e;
             } catch (final Exception e) {
+                LOG.error("Caught exception in parseAndPersistCodeSchemeFromJson.", e);
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
             }
         } else {
@@ -154,7 +158,7 @@ public class CodeSchemeService extends BaseService {
 
     @Transactional
     public CodeSchemeDTO deleteCodeScheme(final String codeRegistryCodeValue,
-                                 final String codeSchemeCodeValue) {
+                                          final String codeSchemeCodeValue) {
         if (authorizationManager.isSuperUser()) {
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);

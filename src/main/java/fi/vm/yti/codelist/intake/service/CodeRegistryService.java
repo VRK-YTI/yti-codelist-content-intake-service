@@ -3,9 +3,12 @@ package fi.vm.yti.codelist.intake.service;
 import java.io.InputStream;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -19,11 +22,11 @@ import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
-import javax.annotation.Nullable;
 
 @Component
 public class CodeRegistryService extends BaseService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryService.class);
     private final AuthorizationManager authorizationManager;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeRegistryParser codeRegistryParser;
@@ -46,7 +49,7 @@ public class CodeRegistryService extends BaseService {
     @Nullable
     public CodeRegistryDTO findByCodeValue(final String codeValue) {
         CodeRegistry registry = codeRegistryRepository.findByCodeValue(codeValue);
-        if(registry == null)
+        if (registry == null)
             return null;
         return mapCodeRegistryDto(registry);
     }
@@ -104,6 +107,7 @@ public class CodeRegistryService extends BaseService {
             } catch (final YtiCodeListException e) {
                 throw e;
             } catch (final Exception e) {
+                LOG.error("Caught exception in parseAndPersistCodeRegistryFromJson.", e);
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
             }
         } else {

@@ -8,6 +8,8 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +31,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Component
 public class CodeService extends BaseService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CodeService.class);
     private final AuthorizationManager authorizationManager;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
@@ -129,6 +132,7 @@ public class CodeService extends BaseService {
                 } catch (final YtiCodeListException e) {
                     throw e;
                 } catch (final Exception e) {
+                    LOG.error("Caught exception in parseAndPersistCodeFromJson.", e);
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
                 }
             } else {
@@ -142,8 +146,8 @@ public class CodeService extends BaseService {
 
     @Transactional
     public CodeDTO deleteCode(final String codeRegistryCodeValue,
-                           final String codeSchemeCodeValue,
-                           final String codeCodeValue) {
+                              final String codeSchemeCodeValue,
+                              final String codeCodeValue) {
         if (authorizationManager.isSuperUser()) {
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
             final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
