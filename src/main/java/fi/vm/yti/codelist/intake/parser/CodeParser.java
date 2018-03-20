@@ -64,13 +64,12 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Service
 public class CodeParser extends AbstractBaseParser {
 
+    private int maxFlatValue = 0;
     private final AuthorizationManager authorizationManager;
     private final ApiUtils apiUtils;
     private final CodeRepository codeRepository;
     private final ExternalReferenceRepository externalReferenceRepository;
     private final ExternalReferenceParser externalReferenceParser;
-    private static int flatCount = 0;
-    private static Boolean hasFlatOrder = true;
 
     @Inject
     public CodeParser(final AuthorizationManager authorizationManager,
@@ -110,11 +109,8 @@ public class CodeParser extends AbstractBaseParser {
                     fromCode.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                     fromCode.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
                     fromCode.setShortName(parseShortNameFromCsvRecord(record));
-
-                    fromCode.setFlatOrder(resolveFlatOrderFromCsvRecord(headerMap, record));
-                    fromCode.setChildOrder(Integer.parseInt(record.get(CONTENT_HEADER_CHILDORDER)));
-
-
+                    fromCode.setFlatOrder(resolveFlatOrderFromCsvRecord(record));
+                    fromCode.setChildOrder(parseChildOrderFromCsvRecord(record));
                     if (record.isMapped(CONTENT_HEADER_BROADER)) {
                         final String broaderCodeCodeValue = record.get(CONTENT_HEADER_BROADER);
                         if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
@@ -185,44 +181,57 @@ public class CodeParser extends AbstractBaseParser {
         return hierarchyLevel;
     }
 
-    private Integer resolveFlatOrderFromCsvRecord(final Map<String, Integer> headerMap,
-                                                       final CSVRecord record) {
+    private Integer resolveFlatOrderFromCsvRecord(final CSVRecord record) {
         final Integer flatOrder;
-        if (hasFlatOrder && headerMap.containsKey(CONTENT_HEADER_FLATORDER)) {
+        if (record.isMapped(CONTENT_HEADER_FLATORDER)) {
             flatOrder = resolveFlatOrderFromString(record.get(CONTENT_HEADER_FLATORDER));
-            flatCount = flatOrder;
+            if (maxFlatValue > flatOrder) {
+                maxFlatValue = flatOrder;
+            }
         } else {
-            flatOrder = null;
+            flatOrder = ++maxFlatValue;
         }
         return flatOrder;
     }
 
     private Integer resolveFlatOrderFromExcelRow(final Map<String, Integer> headerMap,
-                                                      final Row row,
-                                                      final DataFormatter formatter) {
+                                                 final Row row,
+                                                 final DataFormatter formatter) {
         final Integer flatOrder;
         if (headerMap.containsKey(CONTENT_HEADER_FLATORDER)) {
             flatOrder = resolveFlatOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_FLATORDER))));
+            if (flatOrder > maxFlatValue) {
+                maxFlatValue = flatOrder;
+            }
         } else {
-            flatOrder = null;
+            flatOrder = ++maxFlatValue;
         }
         return flatOrder;
     }
 
-    private Integer resolveFlatOrderFromString(final String flatOrderString) {
+    private Integer resolveChildOrderFromExcelRow(final Map<String, Integer> headerMap,
+                                                  final Row row,
+                                                  final DataFormatter formatter) {
+        final Integer order;
+        if (headerMap.containsKey(CONTENT_HEADER_CHILDORDER)) {
+            order = resolveFlatOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CHILDORDER))));
+        } else {
+            order = null;
+        }
+        return order;
+    }
 
+    private Integer resolveFlatOrderFromString(final String flatOrderString) {
         final Integer flatOrder;
         if (!flatOrderString.isEmpty()) {
             try {
-               flatOrder = Integer.parseInt(flatOrderString);
+                flatOrder = Integer.parseInt(flatOrderString);
             } catch (final NumberFormatException e) {
                 throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        ERR_MSG_USER_FLAT_ORDER_INVALID_VALUE));
+                    ERR_MSG_USER_FLAT_ORDER_INVALID_VALUE));
             }
         } else {
-            hasFlatOrder = false;
-            final Integer newIndex = flatCount++;
-            flatOrder = newIndex;
+            flatOrder = null;
         }
         return flatOrder;
     }
@@ -329,6 +338,7 @@ public class CodeParser extends AbstractBaseParser {
                     fromCode.setShortName(parseShortNameFromExcelRow(headerMap, row, formatter));
                     fromCode.setHierarchyLevel(resolveHierarchyLevelFromExcelRow(headerMap, row, formatter));
                     fromCode.setFlatOrder(resolveFlatOrderFromExcelRow(headerMap, row, formatter));
+                    fromCode.setChildOrder(resolveChildOrderFromExcelRow(headerMap, row, formatter));
                     if (headerMap.containsKey(CONTENT_HEADER_BROADER)) {
                         final String broaderCodeCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_BROADER)));
                         if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
@@ -596,6 +606,18 @@ public class CodeParser extends AbstractBaseParser {
 
     private String parseShortNameFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_SHORTNAME);
+    }
+
+    private Integer parseChildOrderFromCsvRecord(final CSVRecord record) {
+        final String childOrderString = parseStringFromCsvRecord(record, CONTENT_HEADER_CHILDORDER);
+        if (childOrderString != null && !childOrderString.isEmpty()) {
+            try {
+                return Integer.parseInt(childOrderString);
+            } catch (final NumberFormatException e) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CHILD_ORDER_INVALID_VALUE));
+            }
+        }
+        return null;
     }
 
     private String parseShortNameFromExcelRow(final Map<String, Integer> genericHeaders,
