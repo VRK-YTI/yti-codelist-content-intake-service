@@ -338,7 +338,7 @@ public class IndexingImpl implements Indexing {
 
         indexingTools.createIndexWithNestedPrefLabel(indexName, type);
 
-        boolean success = true;
+        boolean success;
         switch (indexAlias) {
             case ELASTIC_INDEX_CODEREGISTRY:
                 success = indexCodeRegistries(indexName);
