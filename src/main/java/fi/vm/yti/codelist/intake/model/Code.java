@@ -90,7 +90,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "code_preflabel", joinColumns = @JoinColumn(name = "code_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
     public Map<String, String> getPrefLabel() {
@@ -123,7 +123,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "code_definition", joinColumns = @JoinColumn(name = "code_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "definition")
     @OrderColumn
     public Map<String, String> getDefinition() {
@@ -159,7 +159,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "code_description", joinColumns = @JoinColumn(name = "code_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "description")
     @OrderColumn
     public Map<String, String> getDescription() {

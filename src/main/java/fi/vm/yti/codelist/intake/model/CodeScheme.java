@@ -116,7 +116,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "codescheme_preflabel", joinColumns = @JoinColumn(name = "codescheme_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
     public Map<String, String> getPrefLabel() {
@@ -149,7 +149,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "codescheme_definition", joinColumns = @JoinColumn(name = "codescheme_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "definition")
     @OrderColumn
     public Map<String, String> getDefinition() {
@@ -185,7 +185,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "codescheme_description", joinColumns = @JoinColumn(name = "codescheme_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "description")
     @OrderColumn
     public Map<String, String> getDescription() {
@@ -221,7 +221,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "codescheme_changenote", joinColumns = @JoinColumn(name = "codescheme_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "changenote")
     @OrderColumn
     public Map<String, String> getChangeNote() {

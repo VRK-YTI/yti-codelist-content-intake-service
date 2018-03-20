@@ -63,7 +63,7 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "externalreference_title", joinColumns = @JoinColumn(name = "externalreference_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "title")
     @OrderColumn
     public Map<String, String> getTitle() {
@@ -99,7 +99,7 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "externalreference_description", joinColumns = @JoinColumn(name = "externalreference_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "description")
     @OrderColumn
     public Map<String, String> getDescription() {
