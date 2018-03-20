@@ -3,7 +3,6 @@ package fi.vm.yti.codelist.intake.parser;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -28,9 +27,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ErrorModel;
-import fi.vm.yti.codelist.intake.model.ExternalReference;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
@@ -149,7 +146,7 @@ public abstract class AbstractBaseParser {
         try {
             startDateWithoutTime = sdf.parse(sdf.format(startDate));
             endDateWithoutTime = sdf.parse(sdf.format(endDate));
-        } catch (ParseException e) {
+        } catch (final ParseException e) {
             return true; // should never ever happen, dates are never null here and are coming from datepicker
         }
         return startDateWithoutTime.compareTo(endDateWithoutTime) == 0;
@@ -170,25 +167,22 @@ public abstract class AbstractBaseParser {
         return headerMap;
     }
 
-    public Set<ExternalReference> initializeExternalReferences(final Set<ExternalReference> fromExternalReferences,
-                                                               final CodeScheme codeScheme,
-                                                               final ExternalReferenceParser externalReferenceParser) {
-        final Set<ExternalReference> externalReferences = new HashSet<>();
-        if (fromExternalReferences != null) {
-            fromExternalReferences.forEach(fromExternalReference -> {
-                if (!fromExternalReference.getGlobal()) {
-                    fromExternalReference.setParentCodeScheme(codeScheme);
-                }
-                final ExternalReference externalReference = externalReferenceParser.createOrUpdateExternalReference(fromExternalReference, codeScheme);
-                externalReferences.add(externalReference);
-            });
-        }
-        return externalReferences;
-    }
+//    public Set<ExternalReference> initializeExternalReferences(final Set<ExternalReferenceDTO> fromExternalReferences,
+//                                                               final CodeScheme codeScheme,
+//                                                               final ExternalReferenceParser externalReferenceParser) {
+//        final Set<ExternalReference> externalReferences = new HashSet<>();
+//        if (fromExternalReferences != null) {
+//            fromExternalReferences.forEach(fromExternalReference -> {
+//                final ExternalReference externalReference = externalReferenceParser.createOrUpdateExternalReference(fromExternalReference, codeScheme);
+//                externalReferences.add(externalReference);
+//            });
+//        }
+//        return externalReferences;
+//    }
 
-    public <T> void checkForDuplicateCodeValueInImportData(final Map<String, T> entityMap,
+    public <T> void checkForDuplicateCodeValueInImportData(final Set<String> values,
                                                            final String codeValue) {
-        if (entityMap.containsKey(codeValue)) {
+        if (values.contains(codeValue)) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_DUPLICATE_CODE_VALUE));
         }
     }

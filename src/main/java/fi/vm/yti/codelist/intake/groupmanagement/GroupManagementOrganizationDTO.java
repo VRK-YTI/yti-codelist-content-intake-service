@@ -3,7 +3,7 @@ package fi.vm.yti.codelist.intake.groupmanagement;
 import java.util.Map;
 import java.util.UUID;
 
-public class GroupManagementOrganization {
+public class GroupManagementOrganizationDTO {
 
     private UUID uuid;
     private String url;

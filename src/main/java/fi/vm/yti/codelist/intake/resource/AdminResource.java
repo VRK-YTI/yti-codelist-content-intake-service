@@ -16,22 +16,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.groupmanagement.OrganizationUpdater;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
-import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
-import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.ExternalReference;
-import fi.vm.yti.codelist.intake.model.PropertyType;
-import fi.vm.yti.codelist.intake.parser.ExternalReferenceParser;
-import fi.vm.yti.codelist.intake.parser.PropertyTypeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
+import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
+import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -56,10 +54,8 @@ public class AdminResource extends AbstractBaseResource {
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeRepository codeRepository;
-    private final ExternalReferenceRepository externalReferenceRepository;
-    private final PropertyTypeRepository propertyTypeRepository;
-    private final PropertyTypeParser propertyTypeParser;
-    private final ExternalReferenceParser externalReferenceParser;
+    private final PropertyTypeService propertyTypeService;
+    private final ExternalReferenceService externalReferenceService;
     private final ApiUtils apiUtils;
     private final Indexing indexing;
     private final OrganizationUpdater organizationUpdater;
@@ -69,10 +65,8 @@ public class AdminResource extends AbstractBaseResource {
                          final CodeRegistryRepository codeRegistryRepository,
                          final CodeSchemeRepository codeSchemeRepository,
                          final CodeRepository codeRepository,
-                         final ExternalReferenceRepository externalReferenceRepository,
-                         final PropertyTypeRepository propertyTypeRepository,
-                         final PropertyTypeParser propertyTypeParser,
-                         final ExternalReferenceParser externalReferenceParser,
+                         final PropertyTypeService propertyTypeService,
+                         final ExternalReferenceService externalReferenceService,
                          final ApiUtils apiUtils,
                          final Indexing indexing,
                          final OrganizationUpdater organizationUpdater) {
@@ -80,10 +74,8 @@ public class AdminResource extends AbstractBaseResource {
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeRepository = codeRepository;
-        this.externalReferenceRepository = externalReferenceRepository;
-        this.propertyTypeRepository = propertyTypeRepository;
-        this.propertyTypeParser = propertyTypeParser;
-        this.externalReferenceParser = externalReferenceParser;
+        this.propertyTypeService = propertyTypeService;
+        this.externalReferenceService = externalReferenceService;
         this.apiUtils = apiUtils;
         this.indexing = indexing;
         this.organizationUpdater = organizationUpdater;
@@ -183,8 +175,8 @@ public class AdminResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_GET, API_PATH_ADMIN + API_PATH_EXTERNALREFERENCES + API_PATH_RELOAD);
         if (authorizationManager.isSuperUser()) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_EXTERNALREFERENCES + "/" + DEFAULT_EXTERNALREFERENCE_FILENAME)) {
-                final Set<ExternalReference> externalReferences = externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream);
-                externalReferenceRepository.save(externalReferences);
+                final Set<ExternalReferenceDTO> externalReferenceDtos = externalReferenceService.parseAndPersistExternalReferencesFromSourceData(FORMAT_CSV, inputStream, null, null);
+                LOG.info("Reloaded " + externalReferenceDtos.size() + " ExternalReferences from initial data!");
                 indexing.reIndexEverything();
                 LOG.info("Reindexing finished.");
             } catch (final IOException e) {
@@ -207,8 +199,8 @@ public class AdminResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_GET, API_PATH_ADMIN + API_PATH_PROPERTYTYPES + API_PATH_RELOAD);
         if (authorizationManager.isSuperUser()) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME)) {
-                final Set<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(inputStream);
-                propertyTypeRepository.save(propertyTypes);
+                final Set<PropertyTypeDTO> propertyTypeDtos = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(FORMAT_CSV, inputStream, null);
+                LOG.info("Reloaded " + propertyTypeDtos.size() + " PropertyTypes from initial data!");
                 indexing.reIndexEverything();
                 LOG.info("Reindexing finished.");
             } catch (final IOException e) {

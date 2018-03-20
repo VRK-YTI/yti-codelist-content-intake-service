@@ -15,23 +15,24 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.base.Stopwatch;
 
-import fi.vm.yti.codelist.intake.model.Code;
-import fi.vm.yti.codelist.intake.model.CodeRegistry;
-import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.ExternalReference;
-import fi.vm.yti.codelist.intake.model.PropertyType;
-import fi.vm.yti.codelist.intake.model.UpdateStatus;
+import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
-import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
-import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
-import fi.vm.yti.codelist.intake.parser.CodeParser;
-import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
-import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
-import fi.vm.yti.codelist.intake.parser.ExternalReferenceParser;
-import fi.vm.yti.codelist.intake.parser.PropertyTypeParser;
+import fi.vm.yti.codelist.intake.model.Code;
+import fi.vm.yti.codelist.intake.model.CodeRegistry;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.UpdateStatus;
+import fi.vm.yti.codelist.intake.service.CodeRegistryService;
+import fi.vm.yti.codelist.intake.service.CodeSchemeService;
+import fi.vm.yti.codelist.intake.service.CodeService;
+import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
+import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import fi.vm.yti.codelist.intake.update.UpdateManager;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
@@ -52,42 +53,36 @@ public class YtiDataAccess {
 
     private final ContentIntakeServiceProperties contentIntakeServiceProperties;
     private final UpdateManager updateManager;
-    private final CodeRegistryParser codeRegistryParser;
-    private final CodeSchemeParser codeSchemeParser;
-    private final CodeParser codeParser;
-    private final PropertyTypeParser propertyTypeParser;
-    private final PropertyTypeRepository propertyTypeRepository;
-    private final ExternalReferenceRepository externalReferenceRepository;
-    private final ExternalReferenceParser externalReferenceParser;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeRepository codeRepository;
+    private final CodeRegistryService codeRegistryService;
+    private final CodeSchemeService codeSchemeService;
+    private final CodeService codeService;
+    private final ExternalReferenceService externalReferenceService;
+    private final PropertyTypeService propertyTypeService;
 
     @Inject
     public YtiDataAccess(final ContentIntakeServiceProperties contentIntakeServiceProperties,
                          final UpdateManager updateManager,
-                         final CodeSchemeParser codeSchemeParser,
-                         final CodeRegistryParser codeRegistryParser,
-                         final CodeParser codeParser,
-                         final PropertyTypeParser propertyTypeParser,
-                         final PropertyTypeRepository propertyTypeRepository,
-                         final ExternalReferenceParser externalReferenceParser,
-                         final ExternalReferenceRepository externalReferenceRepository,
                          final CodeRegistryRepository codeRegistryRepository,
                          final CodeSchemeRepository codeSchemeRepository,
-                         final CodeRepository codeRepository) {
+                         final CodeRepository codeRepository,
+                         final CodeRegistryService codeRegistryService,
+                         final CodeSchemeService codeSchemeService,
+                         final CodeService codeService,
+                         final ExternalReferenceService externalReferenceService,
+                         final PropertyTypeService propertyTypeService) {
         this.contentIntakeServiceProperties = contentIntakeServiceProperties;
         this.updateManager = updateManager;
-        this.codeSchemeParser = codeSchemeParser;
-        this.codeRegistryParser = codeRegistryParser;
-        this.codeParser = codeParser;
-        this.propertyTypeRepository = propertyTypeRepository;
-        this.propertyTypeParser = propertyTypeParser;
-        this.externalReferenceRepository = externalReferenceRepository;
-        this.externalReferenceParser = externalReferenceParser;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeRepository = codeRepository;
+        this.codeRegistryService = codeRegistryService;
+        this.codeSchemeService = codeSchemeService;
+        this.codeService = codeService;
+        this.externalReferenceService = externalReferenceService;
+        this.propertyTypeService = propertyTypeService;
     }
 
     @Transactional
@@ -113,27 +108,26 @@ public class YtiDataAccess {
 
     private void loadRegistryContent(final String filename,
                                      final String identifier) {
-        final Set<CodeRegistry> codeRegistries = loadDefaultCodeRegistries(filename, identifier);
+        final Set<CodeRegistryDTO> codeRegistries = loadDefaultCodeRegistries(filename, identifier);
         if (!codeRegistries.isEmpty()) {
-            final Set<CodeScheme> codeSchemes = loadDefaultCodeSchemes(codeRegistries);
+            final Set<CodeSchemeDTO> codeSchemes = loadDefaultCodeSchemes(codeRegistries);
             if (!codeSchemes.isEmpty()) {
                 loadDefaultCodes(codeSchemes);
             }
         }
     }
 
-    private Set<CodeRegistry> loadDefaultCodeRegistries(final String filename,
-                                                        final String identifier) {
+    private Set<CodeRegistryDTO> loadDefaultCodeRegistries(final String filename,
+                                                           final String identifier) {
         LOG.info("Loading default CodeRegistries from file: " + filename);
-        final Set<CodeRegistry> codeRegistries = new HashSet<>();
+        final Set<CodeRegistryDTO> codeRegistries = new HashSet<>();
         final Stopwatch watch = Stopwatch.createStarted();
         if (updateManager.shouldUpdateData(DATA_CODEREGISTRIES, identifier, filename)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODEREGISTRIES, identifier, SOURCE_INTERNAL, filename, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODEREGISTRIES + "/" + filename)) {
-                codeRegistries.addAll(codeRegistryParser.parseCodeRegistriesFromCsvInputStream(inputStream));
+                codeRegistries.addAll(codeRegistryService.parseAndPersistCodeRegistriesFromSourceData(FORMAT_CSV, inputStream, null));
                 LOG.info("CodeRegistry data loaded: " + codeRegistries.size() + " CodeRegistries in " + watch);
                 watch.reset().start();
-                codeRegistryRepository.save(codeRegistries);
                 LOG.info("CodeRegistry data persisted in: " + watch);
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
@@ -148,9 +142,9 @@ public class YtiDataAccess {
         return codeRegistries;
     }
 
-    private Set<CodeScheme> loadDefaultCodeSchemes(final Set<CodeRegistry> codeRegistries) {
+    private Set<CodeSchemeDTO> loadDefaultCodeSchemes(final Set<CodeRegistryDTO> codeRegistries) {
         LOG.info("Loading default CodeSchemes...");
-        final Set<CodeScheme> codeSchemes = new HashSet<>();
+        final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
         final Stopwatch watch = Stopwatch.createStarted();
         codeRegistries.forEach(codeRegistry -> {
             final String identifier = codeRegistry.getCodeValue();
@@ -158,7 +152,9 @@ public class YtiDataAccess {
                 LOG.info("Loading CodeSchemes from CodeRegistry: " + identifier);
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, identifier, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODESCHEMES + "/" + identifier + ".csv")) {
-                    codeSchemes.addAll(codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream));
+                    watch.reset().start();
+                    codeSchemes.addAll(codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistry.getCodeValue(), FORMAT_CSV, inputStream, null));
+                    LOG.info("CodeScheme data parsed and persisted in: " + watch);
                 } catch (final IOException e) {
                     LOG.error("Issue with parsing CodeScheme file. ", e);
                     updateManager.updateFailedStatus(updateStatus);
@@ -167,10 +163,7 @@ public class YtiDataAccess {
                     updateManager.updateFailedStatus(updateStatus);
                 }
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
-                    LOG.info("CodeScheme data loaded: " + codeSchemes.size() + " CodeSchemes in " + watch);
-                    watch.reset().start();
-                    codeSchemeRepository.save(codeSchemes);
-                    LOG.info("CodeScheme data persisted in: " + watch);
+                    LOG.info("Code data update successful!");
                     updateManager.updateSuccessStatus(updateStatus);
                 }
             } else {
@@ -180,17 +173,17 @@ public class YtiDataAccess {
         return codeSchemes;
     }
 
-    private void loadDefaultCodes(final Set<CodeScheme> codeSchemes) {
+    private void loadDefaultCodes(final Set<CodeSchemeDTO> codeSchemes) {
         LOG.info("Loading default Codes...");
         final Stopwatch watch = Stopwatch.createStarted();
         codeSchemes.forEach(codeScheme -> {
             final String identifier = codeScheme.getCodeRegistry().getCodeValue() + "_" + codeScheme.getCodeValue();
             if (updateManager.shouldUpdateData(DATA_CODES, identifier, identifier + ".csv")) {
                 LOG.info("Loading Codes from CodeScheme: " + identifier);
-                final Set<Code> codes = new HashSet<>();
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODES, identifier, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODES + "/" + identifier + ".csv")) {
-                    codes.addAll(codeParser.parseCodesFromCsvInputStream(codeScheme, inputStream));
+                    final Set<CodeDTO> codes = codeService.parseAndPersistCodesFromSourceData(codeScheme.getCodeRegistry().getCodeValue(), codeScheme.getCodeValue(), FORMAT_CSV, inputStream, null);
+                    LOG.info("Code data loaded: " + codes.size() + " Codes in " + watch);
                 } catch (final IOException e) {
                     LOG.error("Issue with parsing Code file. ", e);
                     updateManager.updateFailedStatus(updateStatus);
@@ -199,10 +192,7 @@ public class YtiDataAccess {
                     updateManager.updateFailedStatus(updateStatus);
                 }
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
-                    LOG.info("Code data loaded: " + codes.size() + " Codes in " + watch);
-                    watch.reset().start();
-                    codeRepository.save(codes);
-                    LOG.info("Code data persisted in: " + watch);
+                    LOG.info("Code data update successful!");
                     updateManager.updateSuccessStatus(updateStatus);
                 }
             } else {
@@ -217,11 +207,9 @@ public class YtiDataAccess {
         if (updateManager.shouldUpdateData(DATA_PROPERTYTYPES, "default", DEFAULT_PROPERTYTYPE_FILENAME)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_PROPERTYTYPES, "default", SOURCE_INTERNAL, DEFAULT_PROPERTYTYPE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME)) {
-                final Set<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(inputStream);
-                LOG.info("PropertyType data loaded: " + propertyTypes.size() + " PropertyTypes in " + watch);
+                final Set<PropertyTypeDTO> propertyTypes = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(FORMAT_CSV, inputStream, null);
+                LOG.info("PropertyType data loaded and persisted " + propertyTypes.size() + " PropertyTypes in " + watch);
                 watch.reset().start();
-                propertyTypeRepository.save(propertyTypes);
-                LOG.info("PropertyType data persisted in: " + watch);
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
@@ -240,11 +228,9 @@ public class YtiDataAccess {
         if (updateManager.shouldUpdateData(DATA_EXTERNALREFERENCES, "default", DEFAULT_EXTERNALREFERENCE_FILENAME)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_EXTERNALREFERENCES, "default", SOURCE_INTERNAL, DEFAULT_EXTERNALREFERENCE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_EXTERNALREFERENCES + "/" + DEFAULT_EXTERNALREFERENCE_FILENAME)) {
-                final Set<ExternalReference> externalReferences = externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream);
-                LOG.info("ExternalReference data loaded: " + externalReferences.size() + " ExternalReferences in " + watch);
+                final Set<ExternalReferenceDTO> externalReferenceDtos = externalReferenceService.parseAndPersistExternalReferencesFromSourceData(FORMAT_CSV, inputStream, null, null);
+                LOG.info("ExternalReference data loaded and persisted " + externalReferenceDtos.size() + " ExternalReferences in " + watch);
                 watch.reset().start();
-                externalReferenceRepository.save(externalReferences);
-                LOG.info("ExternalReference data persisted in: " + watch);
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
                 }

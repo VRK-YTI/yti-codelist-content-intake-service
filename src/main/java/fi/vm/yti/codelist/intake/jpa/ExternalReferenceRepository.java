@@ -12,8 +12,6 @@ import fi.vm.yti.codelist.intake.model.ExternalReference;
 @Repository
 public interface ExternalReferenceRepository extends CrudRepository<ExternalReference, String> {
 
-    Set<ExternalReference> findByParentCodeScheme(final CodeScheme codeScheme);
-
     Set<ExternalReference> findByParentCodeSchemeId(final UUID codeSchemeId);
 
     ExternalReference findById(final UUID id);

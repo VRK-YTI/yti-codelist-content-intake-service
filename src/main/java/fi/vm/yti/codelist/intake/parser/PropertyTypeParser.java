@@ -9,11 +9,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
-
-import javax.inject.Inject;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -33,67 +29,42 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
-import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
-import fi.vm.yti.codelist.intake.model.PropertyType;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
-/**
- * Class that handles parsing of PropertyTypes from source data.
- */
 @Service
 public class PropertyTypeParser extends AbstractBaseParser {
 
-    private final ApiUtils apiUtils;
-    private final PropertyTypeRepository propertyTypeRepository;
-
-    @Inject
-    public PropertyTypeParser(final ApiUtils apiUtils,
-                              final PropertyTypeRepository codeSchemeRepository) {
-        this.apiUtils = apiUtils;
-        this.propertyTypeRepository = codeSchemeRepository;
-    }
-
-    public PropertyType parsePropertyTypeFromJson(final String jsonPayload) {
+    public PropertyTypeDTO parsePropertyTypeFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final PropertyType fromPropertyType;
+        final PropertyTypeDTO fromPropertyType;
         try {
-            fromPropertyType = mapper.readValue(jsonPayload, PropertyType.class);
+            fromPropertyType = mapper.readValue(jsonPayload, PropertyTypeDTO.class);
         } catch (final IOException e) {
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
-        return createOrUpdatePropertyType(fromPropertyType);
+        return fromPropertyType;
     }
 
-    public Set<PropertyType> parsePropertyTypesFromJson(final String jsonPayload) {
+    public Set<PropertyTypeDTO> parsePropertyTypesFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final Set<PropertyType> fromPropertyTypes;
+        final Set<PropertyTypeDTO> propertyTypes;
         try {
-            fromPropertyTypes = mapper.readValue(jsonPayload, new TypeReference<Set<PropertyType>>() {
+            propertyTypes = mapper.readValue(jsonPayload, new TypeReference<Set<PropertyTypeDTO>>() {
             });
         } catch (final IOException e) {
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
-        final Set<PropertyType> propertyTypes = new HashSet<>();
-        for (final PropertyType fromPropertyType : fromPropertyTypes) {
-            propertyTypes.add(createOrUpdatePropertyType(fromPropertyType));
-        }
         return propertyTypes;
     }
 
-    /**
-     * Parses the .csv PropertyType-file and returns the PropertyType as an ArrayList.
-     *
-     * @param inputStream The PropertyType -file.
-     * @return List of PropertyType objects.
-     */
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public Set<PropertyType> parsePropertyTypesFromCsvInputStream(final InputStream inputStream) {
-        final Set<PropertyType> propertyTypes = new HashSet<>();
+    public Set<PropertyTypeDTO> parsePropertyTypesFromCsvInputStream(final InputStream inputStream) {
+        final Set<PropertyTypeDTO> propertyTypes = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -102,15 +73,14 @@ public class PropertyTypeParser extends AbstractBaseParser {
             final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
-                final PropertyType fromPropertyType = new PropertyType();
-                fromPropertyType.setId(parseUUIDFromString(record.get(CONTENT_HEADER_ID)));
-                fromPropertyType.setLocalName(record.get(CONTENT_HEADER_LOCALNAME));
-                fromPropertyType.setPropertyUri(record.get(CONTENT_HEADER_PROPERTYURI));
-                fromPropertyType.setContext(record.get(CONTENT_HEADER_CONTEXT));
-                fromPropertyType.setType(record.get(CONTENT_HEADER_TYPE));
-                fromPropertyType.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
-                fromPropertyType.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
-                final PropertyType propertyType = createOrUpdatePropertyType(fromPropertyType);
+                final PropertyTypeDTO propertyType = new PropertyTypeDTO();
+                propertyType.setId(parseUUIDFromString(record.get(CONTENT_HEADER_ID)));
+                propertyType.setLocalName(record.get(CONTENT_HEADER_LOCALNAME));
+                propertyType.setPropertyUri(record.get(CONTENT_HEADER_PROPERTYURI));
+                propertyType.setContext(record.get(CONTENT_HEADER_CONTEXT));
+                propertyType.setType(record.get(CONTENT_HEADER_TYPE));
+                propertyType.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
+                propertyType.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                 propertyTypes.add(propertyType);
             }
         } catch (final IllegalArgumentException e) {
@@ -121,15 +91,8 @@ public class PropertyTypeParser extends AbstractBaseParser {
         return propertyTypes;
     }
 
-    /*
-     * Parses the .xls PropertyType Excel-file and returns the PropertyTypes as an arrayList.
-     *
-     * @param codeRegistry CodeRegistry.
-     * @param inputStream The Code containing Excel -file.
-     * @return List of Code objects.
-     */
-    public Set<PropertyType> parsePropertyTypesFromExcelInputStream(final InputStream inputStream) {
-        final Set<PropertyType> propertyTypes = new HashSet<>();
+    public Set<PropertyTypeDTO> parsePropertyTypesFromExcelInputStream(final InputStream inputStream) {
+        final Set<PropertyTypeDTO> propertyTypes = new HashSet<>();
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             final DataFormatter formatter = new DataFormatter();
             Sheet sheet = workbook.getSheet(EXCEL_SHEET_PROPERTYTYPES);
@@ -149,99 +112,20 @@ public class PropertyTypeParser extends AbstractBaseParser {
                     prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                     definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
                 } else {
-                    final PropertyType fromPropertyType = new PropertyType();
-                    fromPropertyType.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
-                    fromPropertyType.setLocalName(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LOCALNAME))));
-                    fromPropertyType.setPropertyUri(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYURI))));
-                    fromPropertyType.setContext(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CONTEXT))));
-                    fromPropertyType.setType(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_TYPE))));
-                    fromPropertyType.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
-                    fromPropertyType.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
-                    final PropertyType propertyType = createOrUpdatePropertyType(fromPropertyType);
-                    if (propertyType != null) {
-                        propertyTypes.add(propertyType);
-                    }
+                    final PropertyTypeDTO propertyType = new PropertyTypeDTO();
+                    propertyType.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
+                    propertyType.setLocalName(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LOCALNAME))));
+                    propertyType.setPropertyUri(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYURI))));
+                    propertyType.setContext(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CONTEXT))));
+                    propertyType.setType(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_TYPE))));
+                    propertyType.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
+                    propertyType.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
+                    propertyTypes.add(propertyType);
                 }
             }
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
         return propertyTypes;
-    }
-
-    private PropertyType createOrUpdatePropertyType(final PropertyType fromPropertyType) {
-        PropertyType existingPropertyType = null;
-        if (fromPropertyType.getId() != null) {
-            existingPropertyType = propertyTypeRepository.findById(fromPropertyType.getId());
-        } else {
-            existingPropertyType = null;
-        }
-        final PropertyType propertyType;
-        if (existingPropertyType != null) {
-            propertyType = updatePropertyType(existingPropertyType, fromPropertyType);
-        } else {
-            propertyType = createPropertyType(fromPropertyType);
-        }
-        return propertyType;
-    }
-
-    private PropertyType updatePropertyType(final PropertyType existingPropertyType,
-                                            final PropertyType fromPropertyType) {
-        final String uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, fromPropertyType.getId().toString());
-        if (!Objects.equals(existingPropertyType.getPropertyUri(), fromPropertyType.getPropertyUri())) {
-            existingPropertyType.setPropertyUri(fromPropertyType.getPropertyUri());
-        }
-        if (!Objects.equals(existingPropertyType.getUri(), uri)) {
-            existingPropertyType.setUri(uri);
-        }
-        if (!Objects.equals(existingPropertyType.getContext(), fromPropertyType.getContext())) {
-            existingPropertyType.setUri(fromPropertyType.getContext());
-        }
-        if (!Objects.equals(existingPropertyType.getLocalName(), fromPropertyType.getLocalName())) {
-            existingPropertyType.setLocalName(fromPropertyType.getLocalName());
-        }
-        if (!Objects.equals(existingPropertyType.getType(), fromPropertyType.getType())) {
-            existingPropertyType.setType(fromPropertyType.getType());
-        }
-        for (final Map.Entry<String, String> entry : fromPropertyType.getPrefLabel().entrySet()) {
-            final String language = entry.getKey();
-            final String value = entry.getValue();
-            if (!Objects.equals(existingPropertyType.getPrefLabel(language), value)) {
-                existingPropertyType.setPrefLabel(language, value);
-            }
-        }
-        for (final Map.Entry<String, String> entry : fromPropertyType.getDefinition().entrySet()) {
-            final String language = entry.getKey();
-            final String value = entry.getValue();
-            if (!Objects.equals(existingPropertyType.getDefinition(language), value)) {
-                existingPropertyType.setDefinition(language, value);
-            }
-        }
-        return existingPropertyType;
-    }
-
-    private PropertyType createPropertyType(final PropertyType fromPropertyType) {
-        final PropertyType propertyType = new PropertyType();
-        final String uri;
-        if (fromPropertyType.getId() != null) {
-            propertyType.setId(fromPropertyType.getId());
-            uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, fromPropertyType.getId().toString());
-        } else {
-            final UUID uuid = UUID.randomUUID();
-            uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, uuid.toString());
-            propertyType.setId(uuid);
-        }
-        propertyType.setContext(fromPropertyType.getContext());
-        propertyType.setLocalName(fromPropertyType.getLocalName());
-        propertyType.setType(fromPropertyType.getType());
-        propertyType.setUri(uri);
-        propertyType.setPropertyUri(fromPropertyType.getPropertyUri());
-        for (final Map.Entry<String, String> entry : fromPropertyType.getPrefLabel().entrySet()) {
-            propertyType.setPrefLabel(entry.getKey(), entry.getValue());
-        }
-        for (final Map.Entry<String, String> entry : fromPropertyType.getDefinition().entrySet()) {
-            propertyType.setDefinition(entry.getKey(), entry.getValue());
-        }
-        return propertyType;
     }
 }
