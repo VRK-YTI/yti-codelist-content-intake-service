@@ -59,6 +59,7 @@ import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
+import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
@@ -75,14 +76,17 @@ public class CodeSchemeParser extends AbstractBaseParser {
     private final CodeRegistryRepository codeRegistryRepository;
     private final ExternalReferenceRepository externalReferenceRepository;
     private final ExternalReferenceParser externalReferenceParser;
+    private final AuthorizationManager authorizationManager;
 
     @Inject
-    public CodeSchemeParser(final ApiUtils apiUtils,
+    public CodeSchemeParser(final AuthorizationManager authorizationManager,
+                            final ApiUtils apiUtils,
                             final CodeRegistryRepository codeRegistryRepository,
                             final CodeSchemeRepository codeSchemeRepository,
                             final CodeRepository codeRepository,
                             final ExternalReferenceRepository externalReferenceRepository,
                             final ExternalReferenceParser externalReferenceParser) {
+        this.authorizationManager = authorizationManager;
         this.apiUtils = apiUtils;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
@@ -349,7 +353,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         final String url = apiUtils.createCodeSchemeUrl(codeRegistry, existingCodeScheme);
         boolean hasChanges = false;
         if (!Objects.equals(existingCodeScheme.getStatus(), fromCodeScheme.getStatus())) {
-            if (Status.valueOf(existingCodeScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCodeScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
+            if (!authorizationManager.isSuperUser() && Status.valueOf(existingCodeScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCodeScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
             }
             existingCodeScheme.setStatus(fromCodeScheme.getStatus());

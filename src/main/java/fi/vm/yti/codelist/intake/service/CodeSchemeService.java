@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
@@ -30,7 +31,6 @@ import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
-import javax.annotation.Nullable;
 
 @Component
 public class CodeSchemeService extends BaseService {
@@ -67,7 +67,7 @@ public class CodeSchemeService extends BaseService {
     public CodeSchemeDTO findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                                  final String codeSchemeCodeValue) {
         CodeScheme scheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-        if(scheme == null) {
+        if (scheme == null) {
             return null;
         }
         return mapDeepCodeSchemeDto(scheme);
@@ -150,5 +150,18 @@ public class CodeSchemeService extends BaseService {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
         return mapCodeSchemeDto(codeScheme, true);
+    }
+
+    @Transactional
+    public CodeSchemeDTO deleteCodeScheme(final String codeRegistryCodeValue,
+                                 final String codeSchemeCodeValue) {
+        if (authorizationManager.isSuperUser()) {
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+            final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
+            codeSchemeRepository.delete(codeScheme);
+            return codeSchemeDto;
+        } else {
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+        }
     }
 }

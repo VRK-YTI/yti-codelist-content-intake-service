@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
@@ -24,7 +25,6 @@ import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
-import javax.annotation.Nullable;
 
 @Component
 public class CodeService extends BaseService {
@@ -141,12 +141,27 @@ public class CodeService extends BaseService {
     }
 
     @Transactional
+    public CodeDTO deleteCode(final String codeRegistryCodeValue,
+                           final String codeSchemeCodeValue,
+                           final String codeCodeValue) {
+        if (authorizationManager.isSuperUser()) {
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+            final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
+            final CodeDTO codeDto = mapCodeDto(code, false);
+            codeRepository.delete(code);
+            return codeDto;
+        } else {
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+        }
+    }
+
+    @Transactional
     @Nullable
     public CodeDTO findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(String codeRegistryCodeValue, String codeSchemeCodeValue, String codeCodeValue) {
         CodeRegistry registry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
         CodeScheme scheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(registry, codeSchemeCodeValue);
         Code code = codeRepository.findByCodeSchemeAndCodeValue(scheme, codeCodeValue);
-        if(code == null)
+        if (code == null)
             return null;
         return mapDeepCodeDto(code);
     }

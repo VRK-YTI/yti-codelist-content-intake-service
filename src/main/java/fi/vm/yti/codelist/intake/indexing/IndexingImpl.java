@@ -107,6 +107,27 @@ public class IndexingImpl implements Indexing {
         return indexData(externalReferences, indexName, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
     }
 
+    private <T> boolean deleteData(final Set<T> set,
+                                   final String elasticIndex,
+                                   final String elasticType,
+                                   final String name) {
+        boolean success;
+        if (!set.isEmpty()) {
+            final BulkRequestBuilder bulkRequest = client.prepareBulk();
+            for (final T item : set) {
+                final AbstractIdentifyableCodeDTO identifyableCode = (AbstractIdentifyableCodeDTO) item;
+                bulkRequest.add(client.prepareDelete(elasticIndex, elasticType, identifyableCode.getId().toString()));
+                bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
+            }
+            final BulkResponse response = bulkRequest.get();
+            success = handleBulkResponse(name, response);
+        } else {
+            noContent(name);
+            success = true;
+        }
+        return success;
+    }
+
     private <T> boolean indexData(final Set<T> set,
                                   final String elasticIndex,
                                   final String elasticType,
@@ -154,6 +175,39 @@ public class IndexingImpl implements Indexing {
 
     private void noContent(final String type) {
         LOG.info(BULK + type + " operation ran, but there was no content to be indexed!");
+    }
+
+    public boolean deleteCode(final CodeDTO code) {
+        final Set<CodeDTO> codes = new HashSet<>();
+        codes.add(code);
+        return deleteCodes(codes);
+    }
+
+    public boolean deleteCodes(final Set<CodeDTO> codes) {
+        if (!codes.isEmpty()) {
+            return deleteData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES);
+        }
+        return true;
+    }
+
+    public boolean deleteCodeScheme(final CodeSchemeDTO codeScheme) {
+        final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
+        codeSchemes.add(codeScheme);
+        return deleteCodeSchemes(codeSchemes);
+    }
+
+    public boolean deleteCodeSchemes(final Set<CodeSchemeDTO> codeSchemes) {
+        if (!codeSchemes.isEmpty()) {
+            return deleteData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
+        }
+        return true;
+    }
+
+    public boolean deleteExternalReferences(final Set<ExternalReferenceDTO> externalReferences) {
+        if (!externalReferences.isEmpty()) {
+            return deleteData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES);
+        }
+        return true;
     }
 
     public boolean updateCode(final CodeDTO code) {
