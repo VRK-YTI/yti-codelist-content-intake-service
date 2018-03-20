@@ -55,6 +55,12 @@ public abstract class AbstractBaseResource {
 
     public void logApiRequest(final Logger logger,
                               final String method,
+                              final String apiPath) {
+        logger.info(method + " " + apiPath + " requested!");
+    }
+
+    public void logApiRequest(final Logger logger,
+                              final String method,
                               final String apiVersionPath,
                               final String apiPath) {
         logger.info(method + " " + apiVersionPath + apiPath + " requested!");

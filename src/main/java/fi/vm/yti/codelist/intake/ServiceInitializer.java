@@ -65,8 +65,9 @@ public class ServiceInitializer {
 
     /**
      * Initialize the application, load data for services.
+     *
+     * No top level transaction in use, transactions handled by method level.
      */
-    @Transactional
     public void initialize() {
         updateSwaggerHost();
         LOG.info("*** Initializing data. ***");

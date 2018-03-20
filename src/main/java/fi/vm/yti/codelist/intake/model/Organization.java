@@ -124,7 +124,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
         setDescription(this.description);
     }
 
-    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "organizations")
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "organizations")
     public Set<CodeRegistry> getCodeRegistries() {
         return codeRegistries;
     }
