@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.Stopwatch;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.intake.groupmanagement.GroupManagementOrganizationDTO;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
@@ -42,6 +43,7 @@ public class OrganizationService extends BaseService {
     }
 
     @Transactional
+    @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
     public Set<OrganizationDTO> parseAndPersistGroupManagementOrganizationsFromJson(final String jsonPayload) {
         final Stopwatch watch = Stopwatch.createStarted();
         final ObjectMapper mapper = new ObjectMapper();
@@ -58,7 +60,7 @@ public class OrganizationService extends BaseService {
         final Set<Organization> organizations = new HashSet<>();
         for (final GroupManagementOrganizationDTO groupManagementOrganization : groupManagementOrganizations) {
             final Organization organization = createOrUpdateOrganizationFromGroupManagementOrganizationDto(groupManagementOrganization);
-            organization.getCodeRegistries().size();
+            final Integer size = organization.getCodeRegistries().size();
             organizations.add(organization);
         }
         if (!organizations.isEmpty()) {
