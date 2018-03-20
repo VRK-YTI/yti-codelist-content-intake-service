@@ -13,12 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
-import fi.vm.yti.codelist.common.model.CodeScheme;
-import fi.vm.yti.codelist.common.model.ErrorModel;
-import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.ErrorModel;
+import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.parser.ExternalReferenceParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;

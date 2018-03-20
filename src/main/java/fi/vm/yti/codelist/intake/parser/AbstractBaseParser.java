@@ -25,12 +25,12 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import fi.vm.yti.codelist.common.model.CodeScheme;
-import fi.vm.yti.codelist.common.model.ErrorModel;
-import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.ErrorModel;
+import fi.vm.yti.codelist.intake.model.ExternalReference;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 

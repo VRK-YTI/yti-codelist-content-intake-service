@@ -6,7 +6,7 @@ import javax.ws.rs.ext.Provider;
 
 import org.springframework.http.HttpStatus;
 
-import fi.vm.yti.codelist.common.model.Meta;
+import fi.vm.yti.codelist.intake.model.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 

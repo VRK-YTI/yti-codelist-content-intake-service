@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import fi.vm.yti.codelist.common.model.Code;
+import fi.vm.yti.codelist.intake.model.Code;
 
 @JsonFilter("dataClassification")
 @XmlRootElement

@@ -28,8 +28,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
-import fi.vm.yti.codelist.common.model.ErrorModel;
-import fi.vm.yti.codelist.common.model.Meta;
+import fi.vm.yti.codelist.intake.model.ErrorModel;
+import fi.vm.yti.codelist.intake.model.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;

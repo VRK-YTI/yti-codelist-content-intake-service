@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import fi.vm.yti.codelist.common.model.PropertyType;
+import fi.vm.yti.codelist.intake.model.PropertyType;
 
 @Repository
 public interface PropertyTypeRepository extends CrudRepository<PropertyType, String> {

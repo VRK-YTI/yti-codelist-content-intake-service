@@ -13,11 +13,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
-import fi.vm.yti.codelist.common.model.ErrorModel;
-import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
+import fi.vm.yti.codelist.intake.model.ErrorModel;
+import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.parser.PropertyTypeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;

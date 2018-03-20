@@ -15,12 +15,12 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.base.Stopwatch;
 
-import fi.vm.yti.codelist.common.model.Code;
-import fi.vm.yti.codelist.common.model.CodeRegistry;
-import fi.vm.yti.codelist.common.model.CodeScheme;
-import fi.vm.yti.codelist.common.model.ExternalReference;
-import fi.vm.yti.codelist.common.model.PropertyType;
-import fi.vm.yti.codelist.common.model.UpdateStatus;
+import fi.vm.yti.codelist.intake.model.Code;
+import fi.vm.yti.codelist.intake.model.CodeRegistry;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.ExternalReference;
+import fi.vm.yti.codelist.intake.model.PropertyType;
+import fi.vm.yti.codelist.intake.model.UpdateStatus;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;

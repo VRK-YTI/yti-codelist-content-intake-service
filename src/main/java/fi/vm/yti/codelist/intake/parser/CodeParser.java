@@ -36,10 +36,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import fi.vm.yti.codelist.common.model.Code;
-import fi.vm.yti.codelist.common.model.CodeScheme;
-import fi.vm.yti.codelist.common.model.ErrorModel;
-import fi.vm.yti.codelist.common.model.ExternalReference;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
@@ -54,6 +50,10 @@ import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
+import fi.vm.yti.codelist.intake.model.Code;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.ErrorModel;
+import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -64,12 +64,12 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Service
 public class CodeParser extends AbstractBaseParser {
 
-    private int maxFlatValue = 0;
     private final AuthorizationManager authorizationManager;
     private final ApiUtils apiUtils;
     private final CodeRepository codeRepository;
     private final ExternalReferenceRepository externalReferenceRepository;
     private final ExternalReferenceParser externalReferenceParser;
+    private int maxFlatValue = 0;
 
     @Inject
     public CodeParser(final AuthorizationManager authorizationManager,

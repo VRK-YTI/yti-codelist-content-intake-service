@@ -7,7 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import fi.vm.yti.codelist.common.model.IndexStatus;
+import fi.vm.yti.codelist.intake.model.IndexStatus;
 
 @Repository
 public interface IndexStatusRepository extends CrudRepository<IndexStatus, String> {

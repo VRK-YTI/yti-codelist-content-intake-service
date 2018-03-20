@@ -33,12 +33,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import fi.vm.yti.codelist.common.model.PropertyType;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
-import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
+import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
+import fi.vm.yti.codelist.intake.model.PropertyType;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 

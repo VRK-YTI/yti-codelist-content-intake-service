@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import fi.vm.yti.codelist.common.model.Organization;
+import fi.vm.yti.codelist.intake.model.Organization;
 
 @Repository
 public interface OrganizationRepository extends CrudRepository<Organization, String> {

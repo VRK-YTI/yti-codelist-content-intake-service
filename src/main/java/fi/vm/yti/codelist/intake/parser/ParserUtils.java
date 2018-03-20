@@ -8,12 +8,12 @@ import javax.inject.Inject;
 
 import org.springframework.stereotype.Component;
 
-import fi.vm.yti.codelist.common.model.Code;
-import fi.vm.yti.codelist.common.model.CodeRegistry;
-import fi.vm.yti.codelist.common.model.CodeScheme;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
+import fi.vm.yti.codelist.intake.model.Code;
+import fi.vm.yti.codelist.intake.model.CodeRegistry;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
 
 /**
  * Utility class for code parsers that contains helper methods to minimize repetition.

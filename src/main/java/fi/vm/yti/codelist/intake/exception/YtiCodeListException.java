@@ -1,6 +1,6 @@
 package fi.vm.yti.codelist.intake.exception;
 
-import fi.vm.yti.codelist.common.model.ErrorModel;
+import fi.vm.yti.codelist.intake.model.ErrorModel;
 
 public class YtiCodeListException extends RuntimeException {
 

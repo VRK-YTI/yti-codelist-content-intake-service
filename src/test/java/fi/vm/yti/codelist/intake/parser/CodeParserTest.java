@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 
-import fi.vm.yti.codelist.common.model.Code;
+import fi.vm.yti.codelist.intake.model.Code;
 import static org.junit.Assert.assertEquals;
 
 public class CodeParserTest {

@@ -8,7 +8,7 @@ import javax.transaction.Transactional;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import fi.vm.yti.codelist.common.model.CodeRegistry;
+import fi.vm.yti.codelist.intake.model.CodeRegistry;
 
 @Repository
 @Transactional

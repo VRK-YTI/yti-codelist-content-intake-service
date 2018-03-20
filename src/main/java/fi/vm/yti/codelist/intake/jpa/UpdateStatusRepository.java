@@ -9,7 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import fi.vm.yti.codelist.common.model.UpdateStatus;
+import fi.vm.yti.codelist.intake.model.UpdateStatus;
 
 @Repository
 @Transactional

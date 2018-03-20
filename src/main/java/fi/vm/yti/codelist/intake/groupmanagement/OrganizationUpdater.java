@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.Stopwatch;
 
-import fi.vm.yti.codelist.common.model.Organization;
+import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.GROUPMANAGEMENT_API_CONTEXT_PATH;

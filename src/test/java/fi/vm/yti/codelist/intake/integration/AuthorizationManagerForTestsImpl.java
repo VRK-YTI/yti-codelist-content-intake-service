@@ -1,6 +1,6 @@
 package fi.vm.yti.codelist.intake.integration;
 
-import fi.vm.yti.codelist.common.model.Organization;
+import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Profile;

@@ -10,7 +10,7 @@ import javax.inject.Inject;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import fi.vm.yti.codelist.common.model.Organization;
+import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.security.AuthenticatedUserProvider;
 import fi.vm.yti.security.YtiUser;
 import static fi.vm.yti.security.Role.ADMIN;

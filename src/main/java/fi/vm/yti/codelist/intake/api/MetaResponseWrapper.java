@@ -1,6 +1,6 @@
 package fi.vm.yti.codelist.intake.api;
 
-import fi.vm.yti.codelist.common.model.Meta;
+import fi.vm.yti.codelist.intake.model.Meta;
 
 public class MetaResponseWrapper {
 

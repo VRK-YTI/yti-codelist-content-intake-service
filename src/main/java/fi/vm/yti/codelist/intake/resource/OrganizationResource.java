@@ -18,8 +18,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
-import fi.vm.yti.codelist.common.model.Meta;
-import fi.vm.yti.codelist.common.model.Organization;
+import fi.vm.yti.codelist.intake.model.Meta;
+import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import io.swagger.annotations.Api;

@@ -6,8 +6,8 @@ import java.util.UUID;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import fi.vm.yti.codelist.common.model.CodeScheme;
-import fi.vm.yti.codelist.common.model.ExternalReference;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.ExternalReference;
 
 @Repository
 public interface ExternalReferenceRepository extends CrudRepository<ExternalReference, String> {

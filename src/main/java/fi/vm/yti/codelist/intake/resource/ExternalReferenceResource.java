@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
-import fi.vm.yti.codelist.common.model.Meta;
+import fi.vm.yti.codelist.intake.model.Meta;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
