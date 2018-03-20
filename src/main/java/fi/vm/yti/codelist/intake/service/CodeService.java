@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -144,12 +145,32 @@ public class CodeService extends BaseService {
         return mapDeepCodeDto(code);
     }
 
+    private Set<CodeDTO> decreaseChildHierarchyLevel(final UUID broaderCodeId) {
+        final Set<Code> childCodes = codeRepository.findByBroaderCodeId(broaderCodeId);
+        childCodes.forEach(code -> {
+            code.setHierarchyLevel(code.getHierarchyLevel() - 1);
+            if (code.getBroaderCodeId() != null) {
+                decreaseChildHierarchyLevel(code.getBroaderCodeId());
+            }
+        });
+        codeRepository.save(childCodes);
+        return mapDeepCodeDtos(childCodes);
+    }
+
     @Transactional
     public Set<CodeDTO> removeBroaderCodeId(final UUID broaderCodeId) {
-        final Set<Code> referencedCodes = codeRepository.findByBroaderCodeId(broaderCodeId);
-        referencedCodes.forEach(code -> code.setBroaderCodeId(null));
-        codeRepository.save(referencedCodes);
-        return mapDeepCodeDtos(referencedCodes);
+        final Set<CodeDTO> updateCodes = new HashSet<>();
+        final Set<Code> childCodes = codeRepository.findByBroaderCodeId(broaderCodeId);
+        if (childCodes != null && !childCodes.isEmpty()) {
+            childCodes.forEach(code -> {
+                code.setBroaderCodeId(null);
+                code.setHierarchyLevel(1);
+                updateCodes.addAll(decreaseChildHierarchyLevel(code.getId()));
+            });
+            updateCodes.addAll(mapDeepCodeDtos(childCodes));
+            codeRepository.save(childCodes);
+        }
+        return updateCodes;
     }
 
     @Transactional
