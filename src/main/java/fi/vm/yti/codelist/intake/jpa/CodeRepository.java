@@ -15,10 +15,6 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 @Transactional
 public interface CodeRepository extends CrudRepository<Code, String> {
 
-    Code findByCodeSchemeAndCodeValueAndStatus(final CodeScheme codeScheme, final String codeValue, final String status);
-
-    Code findByCodeSchemeAndId(final CodeScheme codeScheme, final UUID codeId);
-
     Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme, final String codeValue);
 
     Code findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme, final String codeValue, final UUID broaderCodeId);
@@ -30,6 +26,8 @@ public interface CodeRepository extends CrudRepository<Code, String> {
     Set<Code> findByCodeSchemeId(final UUID codeSchemeId);
 
     Set<Code> findByCodeSchemeIdAndBroaderCodeIdIsNull(final UUID codeSchemeId);
+
+    Set<Code> findByBroaderCodeId(final UUID broaderCodeId);
 
     Set<Code> findAll();
 }

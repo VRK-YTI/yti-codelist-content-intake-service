@@ -264,6 +264,10 @@ public class CodeRegistryResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_DELETE, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + codeCodeValue + "/");
         final CodeDTO code = codeService.deleteCode(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
         if (code != null) {
+            final Set<CodeDTO> referencedCodes = codeService.removeBroaderCodeId(code.getId());
+            if (referencedCodes != null && !referencedCodes.isEmpty()) {
+                indexing.updateCodes(referencedCodes);
+            }
             indexing.deleteCode(code);
             final Meta meta = new Meta();
             final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
