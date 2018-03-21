@@ -167,19 +167,6 @@ public abstract class AbstractBaseParser {
         return headerMap;
     }
 
-//    public Set<ExternalReference> initializeExternalReferences(final Set<ExternalReferenceDTO> fromExternalReferences,
-//                                                               final CodeScheme codeScheme,
-//                                                               final ExternalReferenceParser externalReferenceParser) {
-//        final Set<ExternalReference> externalReferences = new HashSet<>();
-//        if (fromExternalReferences != null) {
-//            fromExternalReferences.forEach(fromExternalReference -> {
-//                final ExternalReference externalReference = externalReferenceParser.createOrUpdateExternalReference(fromExternalReference, codeScheme);
-//                externalReferences.add(externalReference);
-//            });
-//        }
-//        return externalReferences;
-//    }
-
     public <T> void checkForDuplicateCodeValueInImportData(final Set<String> values,
                                                            final String codeValue) {
         if (values.contains(codeValue)) {
