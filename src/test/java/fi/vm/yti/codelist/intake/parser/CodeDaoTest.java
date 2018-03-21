@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 
-import fi.vm.yti.codelist.intake.dao.CodeDaoImpl;
+import fi.vm.yti.codelist.intake.dao.impl.CodeDaoImpl;
 import fi.vm.yti.codelist.intake.model.Code;
 import static org.junit.Assert.assertEquals;
 

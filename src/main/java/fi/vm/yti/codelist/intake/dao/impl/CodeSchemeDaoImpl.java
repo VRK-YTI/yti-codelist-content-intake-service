@@ -1,4 +1,4 @@
-package fi.vm.yti.codelist.intake.dao;
+package fi.vm.yti.codelist.intake.dao.impl;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -17,6 +17,7 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;

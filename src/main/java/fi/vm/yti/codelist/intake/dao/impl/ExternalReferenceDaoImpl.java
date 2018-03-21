@@ -1,4 +1,4 @@
-package fi.vm.yti.codelist.intake.dao;
+package fi.vm.yti.codelist.intake.dao.impl;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
@@ -45,7 +46,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
     @Transactional
     public ExternalReference updateExternalReferenceFromDto(final ExternalReferenceDTO externalReferenceDto,
-                                                        final CodeScheme codeScheme) {
+                                                            final CodeScheme codeScheme) {
         ExternalReference externalReference = createOrUpdateExternalReference(externalReferenceDto, codeScheme);
         externalReferenceRepository.save(externalReference);
         return externalReference;

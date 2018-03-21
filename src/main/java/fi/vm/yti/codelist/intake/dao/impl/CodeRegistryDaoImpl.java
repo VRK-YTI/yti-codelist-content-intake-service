@@ -1,4 +1,4 @@
-package fi.vm.yti.codelist.intake.dao;
+package fi.vm.yti.codelist.intake.dao.impl;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;

@@ -1,4 +1,4 @@
-package fi.vm.yti.codelist.intake.indexing;
+package fi.vm.yti.codelist.intake.indexing.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,19 +21,20 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
+import fi.vm.yti.codelist.intake.indexing.IndexingTools;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODE;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODESCHEME;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 @Singleton
-@Service
+@Component
 public class IndexingToolsImpl implements IndexingTools {
 
     private static final Logger LOG = LoggerFactory.getLogger(IndexingToolsImpl.class);
