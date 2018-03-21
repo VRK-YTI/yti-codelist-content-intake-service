@@ -34,7 +34,6 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
 
     private static final long serialVersionUID = 1L;
 
-    private String url;
     private Map<String, String> title;
     private Map<String, String> description;
     private Set<CodeScheme> codeSchemes;
@@ -42,15 +41,6 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
     private PropertyType propertyType;
     private CodeScheme parentCodeScheme;
     private Boolean global;
-
-    @Column(name = "url")
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(final String url) {
-        this.url = url;
-    }
 
     @Column(name = "global")
     public Boolean getGlobal() {
