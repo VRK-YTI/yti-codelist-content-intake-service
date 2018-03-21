@@ -139,6 +139,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
         codes.forEach(code -> {
            final CodeDTO classification = new CodeDTO();
            classification.setCodeValue(code);
+           classifications.add(classification);
         });
         return classifications;
     }

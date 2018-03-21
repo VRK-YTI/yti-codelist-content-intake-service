@@ -41,6 +41,8 @@ import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
+import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.JUPO_REGISTRY;
+import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
 
 @Component
 public class CodeSchemeService extends BaseService {
@@ -212,8 +214,6 @@ public class CodeSchemeService extends BaseService {
     private CodeScheme updateCodeScheme(final CodeRegistry codeRegistry,
                                         final CodeScheme existingCodeScheme,
                                         final CodeSchemeDTO fromCodeScheme) {
-        final String uri = apiUtils.createCodeSchemeUri(codeRegistry, existingCodeScheme);
-        final String url = apiUtils.createCodeSchemeUrl(codeRegistry, existingCodeScheme);
         boolean hasChanges = false;
         if (!Objects.equals(existingCodeScheme.getStatus(), fromCodeScheme.getStatus())) {
             if (!authorizationManager.isSuperUser() && Status.valueOf(existingCodeScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCodeScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
@@ -228,17 +228,19 @@ public class CodeSchemeService extends BaseService {
         }
         final Set<Code> classifications = resolveDataClassificationsFromDtos(fromCodeScheme.getDataClassifications());
         if (!Objects.equals(existingCodeScheme.getDataClassifications(), classifications)) {
-            if (fromCodeScheme.getDataClassifications() != null && !classifications.isEmpty()) {
+            if (classifications != null && !classifications.isEmpty()) {
                 existingCodeScheme.setDataClassifications(classifications);
             } else {
                 existingCodeScheme.setDataClassifications(null);
             }
             hasChanges = true;
         }
+        final String uri = apiUtils.createCodeSchemeUri(codeRegistry, existingCodeScheme);
         if (!Objects.equals(existingCodeScheme.getUri(), uri)) {
             existingCodeScheme.setUri(uri);
             hasChanges = true;
         }
+        final String url = apiUtils.createCodeSchemeUrl(codeRegistry, existingCodeScheme);
         if (!Objects.equals(existingCodeScheme.getUrl(), url)) {
             existingCodeScheme.setUrl(url);
             hasChanges = true;
@@ -348,7 +350,8 @@ public class CodeSchemeService extends BaseService {
         final Set<Code> codes;
         if (codeDtos != null && !codeDtos.isEmpty()) {
             codes = new HashSet<>();
-            codeDtos.forEach(codeDto -> codes.add(codeRepository.findById(codeDto.getId())));
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(JUPO_REGISTRY, YTI_DATACLASSIFICATION_CODESCHEME);
+            codeDtos.forEach(codeDto -> codes.add(codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeDto.getCodeValue())));
         } else {
             codes = null;
         }
