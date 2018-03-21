@@ -9,14 +9,14 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 
+import fi.vm.yti.codelist.intake.dao.CodeDaoImpl;
 import fi.vm.yti.codelist.intake.model.Code;
-import fi.vm.yti.codelist.intake.service.CodeService;
 import static org.junit.Assert.assertEquals;
 
-public class CodeServiceTest {
+public class CodeDaoTest {
 
     @InjectMocks
-    private CodeService codeService;
+    private CodeDaoImpl codeDao;
 
     @Before
     public void setup() {
@@ -26,7 +26,7 @@ public class CodeServiceTest {
     @Test
     public void evaluateAndSetHierarchyLevelsTest() {
         final Set<Code> codes = createCodes();
-        codeService.evaluateAndSetHierarchyLevels(codes);
+        codeDao.evaluateAndSetHierarchyLevels(codes);
         Integer i = 0;
         for (final Code code : codes) {
             assertEquals(++i, code.getHierarchyLevel());
