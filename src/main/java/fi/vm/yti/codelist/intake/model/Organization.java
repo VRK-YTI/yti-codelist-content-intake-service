@@ -57,7 +57,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "organization_preflabel", joinColumns = @JoinColumn(name = "organization_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
     public Map<String, String> getPrefLabel() {
@@ -90,7 +90,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "organization_description", joinColumns = @JoinColumn(name = "organization_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "description")
     @OrderColumn
     public Map<String, String> getDescription() {
@@ -124,7 +124,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
         setDescription(this.description);
     }
 
-    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "organizations")
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "organizations")
     public Set<CodeRegistry> getCodeRegistries() {
         return codeRegistries;
     }

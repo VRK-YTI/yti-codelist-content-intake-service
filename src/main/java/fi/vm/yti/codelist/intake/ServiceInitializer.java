@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,11 +64,13 @@ public class ServiceInitializer {
 
     /**
      * Initialize the application, load data for services.
+     * <p>
+     * No top level transaction in use, transactions handled by method level.
      */
-    @Transactional
     public void initialize() {
         updateSwaggerHost();
         LOG.info("*** Initializing data. ***");
+        indexing.cleanRunningIndexingBookkeeping();
         LOG.info("*** Updating organizations. ***");
         organizationUpdater.updateOrganizations();
         final Stopwatch watch = Stopwatch.createStarted();

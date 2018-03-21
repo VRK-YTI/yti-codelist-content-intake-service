@@ -2,12 +2,12 @@ package fi.vm.yti.codelist.intake.indexing;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.transaction.Transactional;
 
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -28,14 +28,15 @@ import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.Views;
-import fi.vm.yti.codelist.intake.model.IndexStatus;
 import fi.vm.yti.codelist.intake.jpa.IndexStatusRepository;
+import fi.vm.yti.codelist.intake.model.IndexStatus;
 import fi.vm.yti.codelist.intake.service.CodeRegistryService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.update.UpdateManager.UPDATE_FAILED;
 
 @Singleton
 @Service
@@ -304,8 +305,15 @@ public class IndexingImpl implements Indexing {
         return success;
     }
 
+    @Transactional
+    public void cleanRunningIndexingBookkeeping() {
+        final Set<IndexStatus> indexStatuses = indexStatusRepository.getRunningIndexStatuses();
+        indexStatuses.forEach(indexStatus -> indexStatus.setStatus(UPDATE_FAILED));
+        indexStatusRepository.save(indexStatuses);
+    }
+
     public boolean reIndex(final String indexName, final String type) {
-        final List<IndexStatus> list = indexStatusRepository.getLatestRunningIndexStatusForIndexAlias(indexName);
+        final Set<IndexStatus> list = indexStatusRepository.getLatestRunningIndexStatusForIndexAlias(indexName);
         if (list.isEmpty()) {
             reIndexData(indexName, type);
             return true;
@@ -330,7 +338,7 @@ public class IndexingImpl implements Indexing {
 
         indexingTools.createIndexWithNestedPrefLabel(indexName, type);
 
-        boolean success = true;
+        boolean success;
         switch (indexAlias) {
             case ELASTIC_INDEX_CODEREGISTRY:
                 success = indexCodeRegistries(indexName);
@@ -354,7 +362,7 @@ public class IndexingImpl implements Indexing {
         }
         if (success) {
             indexingTools.aliasIndex(indexName, indexAlias);
-            final List<IndexStatus> earlierStatuses = indexStatusRepository.getLatestSuccessfulIndexStatusForIndexAlias(indexAlias);
+            final Set<IndexStatus> earlierStatuses = indexStatusRepository.getLatestSuccessfulIndexStatusForIndexAlias(indexAlias);
             earlierStatuses.forEach(earlierIndex -> {
                 indexingTools.deleteIndex(earlierIndex.getIndexName());
                 earlierIndex.setModified(timeStamp);

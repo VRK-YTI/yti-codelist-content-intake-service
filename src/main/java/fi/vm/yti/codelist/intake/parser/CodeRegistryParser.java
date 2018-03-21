@@ -5,17 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-
-import javax.inject.Inject;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -36,68 +31,50 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
+import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
-import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
-import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.ErrorModel;
-import fi.vm.yti.codelist.intake.model.Organization;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
-/**
- * Class that handles parsing of CodeRegistries from source data.
- */
 @Service
 public class CodeRegistryParser extends AbstractBaseParser {
 
-    private final ApiUtils apiUtils;
-    private final ParserUtils parserUtils;
-    private final OrganizationRepository organizationRepository;
-
-    @Inject
-    public CodeRegistryParser(final ApiUtils apiUtils,
-                              final ParserUtils parserUtils,
-                              final OrganizationRepository organizationRepository) {
-        this.apiUtils = apiUtils;
-        this.parserUtils = parserUtils;
-        this.organizationRepository = organizationRepository;
-    }
-
-    public CodeRegistry parseCodeRegistryFromJsonData(final String jsonPayload) {
+    public CodeRegistryDTO parseCodeRegistryFromJsonData(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final CodeRegistry fromCodeRegistry;
+        final CodeRegistryDTO fromCodeRegistry;
         try {
-            fromCodeRegistry = mapper.readValue(jsonPayload, CodeRegistry.class);
+            fromCodeRegistry = mapper.readValue(jsonPayload, CodeRegistryDTO.class);
         } catch (final IOException e) {
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
-        return createOrUpdateCodeRegistry(fromCodeRegistry);
+        return fromCodeRegistry;
     }
 
-    public Set<CodeRegistry> parseCodeRegistriesFromJsonData(final String jsonPayload) {
+    public Set<CodeRegistryDTO> parseCodeRegistriesFromJsonData(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final Set<CodeRegistry> fromCodeRegistries;
+        final Set<CodeRegistryDTO> fromCodeRegistries;
+        final Set<String> codeValues = new HashSet<>();
         try {
-            fromCodeRegistries = mapper.readValue(jsonPayload, new TypeReference<Set<CodeRegistry>>() {
+            fromCodeRegistries = mapper.readValue(jsonPayload, new TypeReference<Set<CodeRegistryDTO>>() {
             });
         } catch (final IOException e) {
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
-        final Map<String, CodeRegistry> codeRegistries = new HashMap<>();
-        for (final CodeRegistry fromCodeRegistry : fromCodeRegistries) {
-            checkForDuplicateCodeValueInImportData(codeRegistries, fromCodeRegistry.getCodeValue());
-            final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(fromCodeRegistry);
-            codeRegistries.put(codeRegistry.getCodeValue(), codeRegistry);
+        for (final CodeRegistryDTO fromCodeRegistry : fromCodeRegistries) {
+            checkForDuplicateCodeValueInImportData(codeValues, fromCodeRegistry.getCodeValue());
+            codeValues.add(fromCodeRegistry.getCodeValue());
         }
-        return new HashSet<>(codeRegistries.values());
+        return fromCodeRegistries;
     }
 
-    public Set<CodeRegistry> parseCodeRegistriesFromCsvInputStream(final InputStream inputStream) {
-        final Map<String, CodeRegistry> codeRegistries = new HashMap<>();
+    public Set<CodeRegistryDTO> parseCodeRegistriesFromCsvInputStream(final InputStream inputStream) {
+        final Set<CodeRegistryDTO> codeRegistries = new HashSet<>();
+        final Set<String> codeValues = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -106,27 +83,28 @@ public class CodeRegistryParser extends AbstractBaseParser {
             final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
             final List<CSVRecord> records = csvParser.getRecords();
             records.forEach(record -> {
-                final CodeRegistry fromCodeRegistry = new CodeRegistry();
-                fromCodeRegistry.setCodeValue(parseCodeValueFromRecord(record));
+                final CodeRegistryDTO fromCodeRegistry = new CodeRegistryDTO();
+                final String codeValue = parseCodeValueFromRecord(record);
+                checkForDuplicateCodeValueInImportData(codeValues, codeValue);
+                codeValues.add(codeValue);
+                fromCodeRegistry.setCodeValue(codeValue);
                 fromCodeRegistry.setOrganizations(resolveOrganizations(record.get(CONTENT_HEADER_ORGANIZATION)));
                 fromCodeRegistry.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 fromCodeRegistry.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
-                final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(fromCodeRegistry);
-                if (codeRegistry != null) {
-                    codeRegistries.put(codeRegistry.getCodeValue(), codeRegistry);
-                }
+                codeRegistries.add(fromCodeRegistry);
             });
         } catch (final IllegalArgumentException e) {
             throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
         } catch (final IOException e) {
             throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
-        return new HashSet<>(codeRegistries.values());
+        return codeRegistries;
     }
 
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public Set<CodeRegistry> parseCodeRegistriesFromExcelInputStream(final InputStream inputStream) {
-        final Map<String, CodeRegistry> codeRegistries = new HashMap<>();
+    public Set<CodeRegistryDTO> parseCodeRegistriesFromExcelInputStream(final InputStream inputStream) {
+        final Set<CodeRegistryDTO> codeRegistries = new HashSet<>();
+        final Set<String> codeValues = new HashSet<>();
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             final DataFormatter formatter = new DataFormatter();
             Sheet sheet = workbook.getSheet(EXCEL_SHEET_CODEREGISTRIES);
@@ -147,25 +125,24 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
                     validateRequiredCodeHeaders(headerMap);
                 } else {
-                    final CodeRegistry fromCodeRegistry = new CodeRegistry();
+                    final CodeRegistryDTO fromCodeRegistry = new CodeRegistryDTO();
                     final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
                     if (codeValue == null || codeValue.trim().isEmpty()) {
                         continue;
                     }
-                    checkForDuplicateCodeValueInImportData(codeRegistries, codeValue);
+                    checkForDuplicateCodeValueInImportData(codeValues, codeValue);
+                    codeValues.add(codeValue);
                     fromCodeRegistry.setCodeValue(codeValue);
                     fromCodeRegistry.setOrganizations(resolveOrganizations(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORGANIZATION)))));
                     fromCodeRegistry.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                     fromCodeRegistry.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
-
-                    final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(fromCodeRegistry);
-                    codeRegistries.put(codeRegistry.getCodeValue(), codeRegistry);
+                    codeRegistries.add(fromCodeRegistry);
                 }
             }
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
-        return new HashSet<>(codeRegistries.values());
+        return codeRegistries;
     }
 
     private void validateRequiredCodeHeaders(final Map<String, Integer> headerMap) {
@@ -175,80 +152,12 @@ public class CodeRegistryParser extends AbstractBaseParser {
         }
     }
 
-    private CodeRegistry createOrUpdateCodeRegistry(final CodeRegistry fromCodeRegistry) {
-        final Map<String, CodeRegistry> existingCodeRegistriesMap = parserUtils.getCodeRegistriesMap();
-        final CodeRegistry codeRegistry;
-        CodeRegistry existingCodeRegistry = existingCodeRegistriesMap.get(fromCodeRegistry.getCodeValue());
-        if (existingCodeRegistry != null) {
-            codeRegistry = updateCodeRegistry(existingCodeRegistry, fromCodeRegistry);
-        } else {
-            codeRegistry = createCodeRegistry(fromCodeRegistry);
-        }
-        return codeRegistry;
-    }
-
-    private CodeRegistry updateCodeRegistry(final CodeRegistry codeRegistry,
-                                            final CodeRegistry fromCodeRegistry) {
-        final Date timeStamp = new Date(System.currentTimeMillis());
-        final String uri = apiUtils.createCodeRegistryUri(fromCodeRegistry);
-        final String url = apiUtils.createCodeRegistryUrl(fromCodeRegistry);
-        boolean hasChanges = false;
-        if (!Objects.equals(codeRegistry.getUri(), uri)) {
-            codeRegistry.setUri(uri);
-            hasChanges = true;
-        }
-        if (!Objects.equals(codeRegistry.getUrl(), url)) {
-            codeRegistry.setUrl(url);
-            hasChanges = true;
-        }
-        for (final Map.Entry<String, String> entry : fromCodeRegistry.getPrefLabel().entrySet()) {
-            final String language = entry.getKey();
-            final String value = entry.getValue();
-            if (!Objects.equals(codeRegistry.getPrefLabel(language), value)) {
-                codeRegistry.setPrefLabel(language, value);
-                hasChanges = true;
-            }
-        }
-        for (final Map.Entry<String, String> entry : fromCodeRegistry.getDefinition().entrySet()) {
-            final String language = entry.getKey();
-            final String value = entry.getValue();
-            if (!Objects.equals(codeRegistry.getDefinition(language), value)) {
-                codeRegistry.setDefinition(language, value);
-                hasChanges = true;
-            }
-        }
-        if (hasChanges) {
-            codeRegistry.setModified(timeStamp);
-        }
-        return codeRegistry;
-    }
-
-    private CodeRegistry createCodeRegistry(final CodeRegistry fromCodeRegistry) {
-        final Date timeStamp = new Date(System.currentTimeMillis());
-        final CodeRegistry codeRegistry = new CodeRegistry();
-        codeRegistry.setId(UUID.randomUUID());
-        codeRegistry.setCodeValue(fromCodeRegistry.getCodeValue());
-        codeRegistry.setModified(timeStamp);
-        codeRegistry.setOrganizations(fromCodeRegistry.getOrganizations());
-        for (Map.Entry<String, String> entry : fromCodeRegistry.getPrefLabel().entrySet()) {
-            codeRegistry.setPrefLabel(entry.getKey(), entry.getValue());
-        }
-        for (Map.Entry<String, String> entry : fromCodeRegistry.getDefinition().entrySet()) {
-            codeRegistry.setDefinition(entry.getKey(), entry.getValue());
-        }
-        codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
-        codeRegistry.setUrl(apiUtils.createCodeRegistryUrl(codeRegistry));
-        return codeRegistry;
-    }
-
-    private Set<Organization> resolveOrganizations(final String organizationsString) {
-        final Set<Organization> organizations = new HashSet<>();
+    private Set<OrganizationDTO> resolveOrganizations(final String organizationsString) {
+        final Set<OrganizationDTO> organizations = new HashSet<>();
         if (organizationsString != null && !organizationsString.isEmpty()) {
             for (final String organizationId : organizationsString.split(";")) {
-                final Organization organization = organizationRepository.findById(UUID.fromString(organizationId));
-                if (organization != null) {
-                    organizations.add(organization);
-                }
+                final OrganizationDTO organization = new OrganizationDTO();
+                organization.setId(UUID.fromString(organizationId));
             }
         }
         return organizations;

@@ -58,7 +58,7 @@ public class PropertyTypeResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses PropertyTypes from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response addOrUpdatePropertyTypesFromJson(@ApiParam(value = "JSON playload for PropertyType data.", required = false) final String jsonPayload) {
+    public Response addOrUpdatePropertyTypesFromJson(@ApiParam(value = "JSON playload for PropertyType data.") final String jsonPayload) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/");
         return parseAndPersistExistingReferencesFromSource(FORMAT_JSON, null, jsonPayload);
     }
@@ -69,10 +69,10 @@ public class PropertyTypeResource extends AbstractBaseResource {
     @ApiOperation(value = "Parses PropertyTypes from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
     @ApiImplicitParams({
-        @ApiImplicitParam(name = "file", value = "Input-file", required = false, dataType = "file", paramType = "formData")
+        @ApiImplicitParam(name = "file", value = "Input-file", dataType = "file", paramType = "formData")
     })
     public Response addOrUpdatePropertyTypesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
-                                                     @ApiParam(value = "Input-file for CSV or Excel import.", required = false, hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+                                                     @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/");
         return parseAndPersistExistingReferencesFromSource(FORMAT_JSON, inputStream, null);
     }
@@ -84,7 +84,7 @@ public class PropertyTypeResource extends AbstractBaseResource {
     @ApiOperation(value = "Parses PropertyType from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response updatePropertyType(@ApiParam(value = "PropertyType ID", required = true) @PathParam("PropertyTypeId") final String propertyTypeId,
-                                       @ApiParam(value = "JSON playload for PropertyType data.", required = false) final String jsonPayload) {
+                                       @ApiParam(value = "JSON playload for PropertyType data.") final String jsonPayload) {
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/" + propertyTypeId + "/");
         final PropertyTypeDTO propertyType = propertyTypeService.parseAndPersistPropertyTypeFromJson(propertyTypeId, jsonPayload);
         indexing.updatePropertyType(propertyType);

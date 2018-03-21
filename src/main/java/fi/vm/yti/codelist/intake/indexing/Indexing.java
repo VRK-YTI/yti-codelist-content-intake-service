@@ -40,6 +40,8 @@ public interface Indexing {
 
     boolean reIndexEverything();
 
+    void cleanRunningIndexingBookkeeping();
+
     void reIndexEverythingIfNecessary();
 
     boolean reIndex(final String indexName, final String type);

@@ -16,21 +16,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.groupmanagement.OrganizationUpdater;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
-import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
-import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.ExternalReference;
-import fi.vm.yti.codelist.intake.model.PropertyType;
-import fi.vm.yti.codelist.intake.parser.ExternalReferenceParser;
-import fi.vm.yti.codelist.intake.parser.PropertyTypeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
+import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
+import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -45,39 +44,56 @@ import static fi.vm.yti.codelist.intake.data.YtiDataAccess.DEFAULT_PROPERTYTYPE_
 @Produces("text/plain")
 public class AdminResource extends AbstractBaseResource {
 
+    private static final String API_PATH_UPDATEORGANIZATIONS = "/updateorganizations";
+    private static final String API_PATH_REWRITEADDRESSES = "/rewriteaddresses";
+    private static final String API_PATH_REINDEX = "/reindex";
+    private static final String API_PATH_RELOAD = "/reload";
+
     private static final Logger LOG = LoggerFactory.getLogger(AdminResource.class);
     private final AuthorizationManager authorizationManager;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeRepository codeRepository;
-    private final ExternalReferenceRepository externalReferenceRepository;
-    private final PropertyTypeRepository propertyTypeRepository;
-    private final PropertyTypeParser propertyTypeParser;
-    private final ExternalReferenceParser externalReferenceParser;
+    private final PropertyTypeService propertyTypeService;
+    private final ExternalReferenceService externalReferenceService;
     private final ApiUtils apiUtils;
     private final Indexing indexing;
+    private final OrganizationUpdater organizationUpdater;
 
     @Inject
     public AdminResource(final AuthorizationManager authorizationManager,
                          final CodeRegistryRepository codeRegistryRepository,
                          final CodeSchemeRepository codeSchemeRepository,
                          final CodeRepository codeRepository,
-                         final ExternalReferenceRepository externalReferenceRepository,
-                         final PropertyTypeRepository propertyTypeRepository,
-                         final PropertyTypeParser propertyTypeParser,
-                         final ExternalReferenceParser externalReferenceParser,
+                         final PropertyTypeService propertyTypeService,
+                         final ExternalReferenceService externalReferenceService,
                          final ApiUtils apiUtils,
-                         final Indexing indexing) {
+                         final Indexing indexing,
+                         final OrganizationUpdater organizationUpdater) {
         this.authorizationManager = authorizationManager;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeRepository = codeRepository;
-        this.externalReferenceRepository = externalReferenceRepository;
-        this.propertyTypeRepository = propertyTypeRepository;
-        this.propertyTypeParser = propertyTypeParser;
-        this.externalReferenceParser = externalReferenceParser;
+        this.propertyTypeService = propertyTypeService;
+        this.externalReferenceService = externalReferenceService;
         this.apiUtils = apiUtils;
         this.indexing = indexing;
+        this.organizationUpdater = organizationUpdater;
+    }
+
+    @Path("/updateorganizations/")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Fetches and updates organization information from groupmanagement service.")
+    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Transactional
+    public Response updateOrganizations() {
+        logApiRequest(LOG, METHOD_GET, API_PATH_ADMIN + API_PATH_UPDATEORGANIZATIONS);
+        if (authorizationManager.isSuperUser()) {
+            organizationUpdater.updateOrganizations();
+            return Response.ok().build();
+        } else {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
     }
 
     @GET
@@ -87,7 +103,7 @@ public class AdminResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Upon successful request.")
     @Transactional
     public Response rewriteCodeRegistryUris() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_CODEREGISTRIES + API_PATH_REWRITEADDRESSES);
+        logApiRequest(LOG, METHOD_GET, API_PATH_ADMIN + API_PATH_CODEREGISTRIES + API_PATH_REWRITEADDRESSES);
         if (authorizationManager.isSuperUser()) {
             final Set<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
             for (final CodeRegistry codeRegistry : codeRegistries) {
@@ -110,7 +126,7 @@ public class AdminResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Upon successful request.")
     @Transactional
     public Response rewriteCodeSchemeUris() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_CODESCHEMES + API_PATH_REWRITEADDRESSES);
+        logApiRequest(LOG, METHOD_GET, API_PATH_ADMIN + API_PATH_CODESCHEMES + API_PATH_REWRITEADDRESSES);
         if (authorizationManager.isSuperUser()) {
             final Set<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
             for (final CodeScheme codeScheme : codeSchemes) {
@@ -133,7 +149,7 @@ public class AdminResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Upon successful request.")
     @Transactional
     public Response rewriteCodeUris() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_CODES + API_PATH_REWRITEADDRESSES);
+        logApiRequest(LOG, METHOD_GET, API_PATH_ADMIN + API_PATH_CODES + API_PATH_REWRITEADDRESSES);
         if (authorizationManager.isSuperUser()) {
             final Set<Code> codes = codeRepository.findAll();
             for (final Code code : codes) {
@@ -156,11 +172,11 @@ public class AdminResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Upon successful request.")
     @Transactional
     public Response reloadGlobalExternalReferences() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_EXTERNALREFERENCES + API_PATH_RELOAD);
+        logApiRequest(LOG, METHOD_GET, API_PATH_ADMIN + API_PATH_EXTERNALREFERENCES + API_PATH_RELOAD);
         if (authorizationManager.isSuperUser()) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_EXTERNALREFERENCES + "/" + DEFAULT_EXTERNALREFERENCE_FILENAME)) {
-                final Set<ExternalReference> externalReferences = externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream);
-                externalReferenceRepository.save(externalReferences);
+                final Set<ExternalReferenceDTO> externalReferenceDtos = externalReferenceService.parseAndPersistExternalReferencesFromSourceData(FORMAT_CSV, inputStream, null, null);
+                LOG.info("Reloaded " + externalReferenceDtos.size() + " ExternalReferences from initial data!");
                 indexing.reIndexEverything();
                 LOG.info("Reindexing finished.");
             } catch (final IOException e) {
@@ -180,11 +196,11 @@ public class AdminResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Upon successful request.")
     @Transactional
     public Response reloadPropertyTypes() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_PROPERTYTYPES + API_PATH_RELOAD);
+        logApiRequest(LOG, METHOD_GET, API_PATH_ADMIN + API_PATH_PROPERTYTYPES + API_PATH_RELOAD);
         if (authorizationManager.isSuperUser()) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME)) {
-                final Set<PropertyType> propertyTypes = propertyTypeParser.parsePropertyTypesFromCsvInputStream(inputStream);
-                propertyTypeRepository.save(propertyTypes);
+                final Set<PropertyTypeDTO> propertyTypeDtos = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(FORMAT_CSV, inputStream, null);
+                LOG.info("Reloaded " + propertyTypeDtos.size() + " PropertyTypes from initial data!");
                 indexing.reIndexEverything();
                 LOG.info("Reindexing finished.");
             } catch (final IOException e) {
@@ -204,7 +220,7 @@ public class AdminResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Upon successful request.")
     @Transactional
     public Response reIndex() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ADMIN + API_PATH_REINDEX);
+        logApiRequest(LOG, METHOD_GET, API_PATH_ADMIN + API_PATH_REINDEX);
         if (authorizationManager.isSuperUser()) {
             indexing.reIndexEverything();
             LOG.info("Reindexing finished.");

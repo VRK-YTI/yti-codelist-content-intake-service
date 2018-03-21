@@ -46,7 +46,7 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "coderegistry_preflabel", joinColumns = @JoinColumn(name = "coderegistry_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
     public Map<String, String> getPrefLabel() {
@@ -82,7 +82,7 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "coderegistry_definition", joinColumns = @JoinColumn(name = "coderegistry_id", referencedColumnName = "id"))
-    @MapKeyColumn(name = "language", nullable = true)
+    @MapKeyColumn(name = "language")
     @Column(name = "definition")
     @OrderColumn
     public Map<String, String> getDefinition() {

@@ -1,6 +1,6 @@
 package fi.vm.yti.codelist.intake.jpa;
 
-import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -13,8 +13,11 @@ import fi.vm.yti.codelist.intake.model.IndexStatus;
 public interface IndexStatusRepository extends CrudRepository<IndexStatus, String> {
 
     @Query(value = "SELECT i FROM IndexStatus as i WHERE i.indexAlias = :aliasName AND i.status = 'successful' ORDER BY i.modified DESC")
-    List<IndexStatus> getLatestSuccessfulIndexStatusForIndexAlias(@Param("aliasName") final String aliasName);
+    Set<IndexStatus> getLatestSuccessfulIndexStatusForIndexAlias(@Param("aliasName") final String aliasName);
 
     @Query(value = "SELECT i FROM IndexStatus as i WHERE i.indexAlias = :aliasName AND i.status = 'running' ORDER BY i.modified DESC")
-    List<IndexStatus> getLatestRunningIndexStatusForIndexAlias(@Param("aliasName") final String aliasName);
+    Set<IndexStatus> getLatestRunningIndexStatusForIndexAlias(@Param("aliasName") final String aliasName);
+
+    @Query(value = "SELECT i FROM IndexStatus as i WHERE i.status = 'running' ORDER BY i.modified DESC")
+    Set<IndexStatus> getRunningIndexStatuses();
 }

@@ -3,6 +3,7 @@ package fi.vm.yti.codelist.intake.resource;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -46,6 +47,7 @@ public class OrganizationResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Organizations API.")
     @ApiResponse(code = 200, message = "Returns organizations.")
+    @Transactional
     public Response getOrganizations(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand) {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ORGANIZATIONS + "/");
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_ORGANIZATION, expand)));
@@ -54,6 +56,7 @@ public class OrganizationResource extends AbstractBaseResource {
         wrapper.setMeta(meta);
         final ObjectMapper mapper = createObjectMapper();
         final Set<Organization> organizations = organizationRepository.findByRemovedIsFalse();
+        organizations.forEach(organization -> organization.getCodeRegistries().size());
         meta.setCode(200);
         meta.setResultCount(organizations.size());
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
