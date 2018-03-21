@@ -1,4 +1,4 @@
-package fi.vm.yti.codelist.intake.service;
+package fi.vm.yti.codelist.intake.service.impl;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +16,7 @@ import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 
-public class BaseService {
+abstract class BaseService {
 
     public CodeDTO mapDeepCodeDto(final Code code) {
         return mapCodeDto(code, true);

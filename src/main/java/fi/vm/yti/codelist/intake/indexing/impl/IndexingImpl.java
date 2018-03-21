@@ -1,4 +1,4 @@
-package fi.vm.yti.codelist.intake.indexing;
+package fi.vm.yti.codelist.intake.indexing.impl;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -16,7 +16,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +28,8 @@ import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.Views;
+import fi.vm.yti.codelist.intake.indexing.Indexing;
+import fi.vm.yti.codelist.intake.indexing.IndexingTools;
 import fi.vm.yti.codelist.intake.jpa.IndexStatusRepository;
 import fi.vm.yti.codelist.intake.model.IndexStatus;
 import fi.vm.yti.codelist.intake.service.CodeRegistryService;
@@ -39,7 +41,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.update.UpdateManager.UPDATE_FAILED;
 
 @Singleton
-@Service
+@Component
 public class IndexingImpl implements Indexing {
 
     private static final Logger LOG = LoggerFactory.getLogger(IndexingImpl.class);
@@ -53,10 +55,10 @@ public class IndexingImpl implements Indexing {
     private static final String NAME_EXTERNALREFERENCES = "ExternalReferences";
     private static final String NAME_PROPERTYTYPES = "PropertyTypes";
     private static final String BULK = "ElasticSearch bulk: ";
+    private final IndexStatusRepository indexStatusRepository;
     private final CodeSchemeService codeSchemeService;
     private final CodeRegistryService codeRegistryService;
     private final CodeService codeService;
-    private final IndexStatusRepository indexStatusRepository;
     private final ExternalReferenceService externalReferenceService;
     private final PropertyTypeService propertyTypeService;
     private final Client client;
