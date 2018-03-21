@@ -214,9 +214,16 @@ public class CodeParser extends AbstractBaseParser {
                                                   final DataFormatter formatter) {
         final Integer order;
         if (headerMap.containsKey(CONTENT_HEADER_CHILDORDER)) {
-            order = resolveFlatOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CHILDORDER))));
+            order = resolveChildOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CHILDORDER))));
         } else {
-            order = null;
+            if (headerMap.containsKey(CONTENT_HEADER_BROADER)) {
+                final String broader = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_BROADER)));
+                if (broader == null || broader.isEmpty()) {
+                    order = 1;
+                }
+                else order = null; // TODO get the actual childorder
+            }
+            else order = null;
         }
         return order;
     }
@@ -234,6 +241,22 @@ public class CodeParser extends AbstractBaseParser {
             flatOrder = null;
         }
         return flatOrder;
+    }
+
+    private Integer resolveChildOrderFromString(final String childOrderString) {
+        final Integer childOrder;
+        if (!childOrderString.isEmpty()) {
+            try {
+                childOrder = Integer.parseInt(childOrderString);
+            } catch (final NumberFormatException e) {
+                throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        ERR_MSG_USER_CHILD_ORDER_INVALID_VALUE));
+            }
+        }
+        else {
+            childOrder = null;
+        }
+        return childOrder;
     }
 
     private void validateRequiredCodeHeaders(final Map<String, Integer> headerMap) {
@@ -616,6 +639,11 @@ public class CodeParser extends AbstractBaseParser {
             } catch (final NumberFormatException e) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CHILD_ORDER_INVALID_VALUE));
             }
+        }
+        else {
+            final String broader = parseStringFromCsvRecord(record, CONTENT_HEADER_BROADER);
+            if (broader == null || broader.isEmpty())
+                return 1;
         }
         return null;
     }
