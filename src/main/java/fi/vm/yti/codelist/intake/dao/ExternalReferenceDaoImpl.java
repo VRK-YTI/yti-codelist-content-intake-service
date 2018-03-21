@@ -7,6 +7,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.transaction.Transactional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -41,13 +43,15 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         this.propertyTypeRepository = propertyTypeRepository;
     }
 
+    @Transactional
     public ExternalReference updateExternalReferenceFromDto(final ExternalReferenceDTO externalReferenceDto,
-                                                            final CodeScheme codeScheme) {
+                                                        final CodeScheme codeScheme) {
         ExternalReference externalReference = createOrUpdateExternalReference(externalReferenceDto, codeScheme);
         externalReferenceRepository.save(externalReference);
         return externalReference;
     }
 
+    @Transactional
     public Set<ExternalReference> updateExternalReferenceEntitiesFromDtos(final Set<ExternalReferenceDTO> externalReferenceDtos,
                                                                           final CodeScheme codeScheme) {
         final Set<ExternalReference> externalReferences = new HashSet<>();

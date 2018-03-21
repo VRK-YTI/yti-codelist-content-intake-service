@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Component;
 
@@ -44,6 +45,7 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         return codeRegistryRepository.findByCodeValue(codeValue);
     }
 
+    @Transactional
     public CodeRegistry updateCodeRegistryFromDto(final CodeRegistryDTO codeRegistryDto) {
         final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeRegistryDto);
         if (codeRegistry != null) {
@@ -52,6 +54,7 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         return codeRegistry;
     }
 
+    @Transactional
     public Set<CodeRegistry> updateCodeRegistriesFromDto(final Set<CodeRegistryDTO> codeRegistryDtos) {
         final Set<CodeRegistry> codeRegistries = new HashSet<>();
         codeRegistryDtos.forEach(codeRegistry -> codeRegistries.add(createOrUpdateCodeRegistry(codeRegistry)));

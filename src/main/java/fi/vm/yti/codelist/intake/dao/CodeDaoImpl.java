@@ -8,6 +8,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.transaction.Transactional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +44,7 @@ public class CodeDaoImpl implements CodeDao {
         this.codeSchemeRepository = codeSchemeRepository;
     }
 
+    @Transactional
     public Code updateCodeFromDto(final CodeScheme codeScheme,
                                   final CodeDTO codeDto) {
         Code code = null;
@@ -53,6 +56,7 @@ public class CodeDaoImpl implements CodeDao {
         return code;
     }
 
+    @Transactional
     public Set<Code> updateCodesFromDtos(final CodeScheme codeScheme,
                                          final Set<CodeDTO> codeDtos,
                                          final Map<String, String> broaderCodeMapping) {

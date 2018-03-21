@@ -6,6 +6,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.transaction.Transactional;
+
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
@@ -38,12 +40,14 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
         return propertyTypeRepository.findAll();
     }
 
+    @Transactional
     public PropertyType updatePropertyTypeFromDto(final PropertyTypeDTO propertyTypeDTO) {
         PropertyType propertyType = createOrUpdatePropertyType(propertyTypeDTO);
         propertyTypeRepository.save(propertyType);
         return propertyType;
     }
 
+    @Transactional
     public Set<PropertyType> updatePropertyTypesFromDtos(final Set<PropertyTypeDTO> propertyTypeDtos) {
         final Set<PropertyType> propertyTypes = new HashSet<>();
         for (final PropertyTypeDTO propertyTypeDto : propertyTypeDtos) {

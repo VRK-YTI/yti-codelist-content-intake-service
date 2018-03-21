@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -69,6 +70,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         return codeSchemeRepository.findAll();
     }
 
+    @Transactional
     public CodeScheme updateCodeSchemeFromDto(final CodeRegistry codeRegistry,
                                               final CodeSchemeDTO codeSchemeDto) {
         CodeScheme codeScheme = null;
@@ -80,6 +82,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         return codeScheme;
     }
 
+    @Transactional
     public Set<CodeScheme> updateCodeSchemesFromDtos(final CodeRegistry codeRegistry,
                                                      final Set<CodeSchemeDTO> codeSchemeDtos) {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
