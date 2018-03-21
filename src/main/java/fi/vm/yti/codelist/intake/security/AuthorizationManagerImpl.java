@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import fi.vm.yti.codelist.intake.model.AbstractIdentifyableCode;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.security.AuthenticatedUserProvider;
 import fi.vm.yti.security.YtiUser;
@@ -42,7 +43,7 @@ public class AuthorizationManagerImpl implements AuthorizationManager {
     }
 
     public boolean canBeModifiedByUserInOrganization(final Collection<Organization> organizations) {
-        final Collection<UUID> organizationIds = organizations.stream().map(organization -> organization.getId()).collect(Collectors.toList());
+        final Collection<UUID> organizationIds = organizations.stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds);
     }
