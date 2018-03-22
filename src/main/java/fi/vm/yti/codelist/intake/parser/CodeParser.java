@@ -161,8 +161,8 @@ public class CodeParser extends AbstractBaseParser {
                     }
                 }
                 code.setStatus(parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))));
-                code.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
-                code.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
+                code.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum() + 1)));
+                code.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum() + 1)));
                 validateStartDateIsBeforeEndDate(code);
                 codes.add(code);
             }
