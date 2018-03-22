@@ -2,6 +2,8 @@ package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,12 +24,14 @@ import org.springframework.stereotype.Service;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
+import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ErrorModel;
+import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
@@ -43,6 +47,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     private final AuthorizationManager authorizationManager;
     private final CodeRegistryDao codeRegistryDao;
     private final CodeSchemeDao codeSchemeDao;
+    private final ExternalReferenceDao externalReferenceDao;
     private final CodeSchemeParser codeSchemeParser;
     private final CodeService codeService;
 
@@ -50,10 +55,12 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     public CodeSchemeServiceImpl(final AuthorizationManager authorizationManager,
                                  final CodeRegistryDao codeRegistryDao,
                                  final CodeSchemeDao codeSchemeDao,
+                                 final ExternalReferenceDao externalReferenceDao,
                                  final CodeSchemeParser codeSchemeParser,
                                  final CodeService codeService) {
         this.codeRegistryDao = codeRegistryDao;
         this.authorizationManager = authorizationManager;
+        this.externalReferenceDao = externalReferenceDao;
         this.codeSchemeParser = codeSchemeParser;
         this.codeService = codeService;
         this.codeSchemeDao = codeSchemeDao;
@@ -94,7 +101,16 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             switch (format.toLowerCase()) {
                 case FORMAT_JSON:
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeParser.parseCodeSchemesFromJsonData(jsonPayload));
+                        final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromJsonData(jsonPayload);
+                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeDtos);
+                        final Map<String, CodeScheme> codeSchemeMap = new HashMap<>();
+                        codeSchemes.forEach(codeScheme -> codeSchemeMap.put(codeScheme.getCodeValue(), codeScheme));
+                        codeSchemeDtos.forEach(codeSchemeDto -> {
+                            final CodeScheme codeScheme = codeSchemeMap.get(codeSchemeDto.getCodeValue());
+                            final Set<ExternalReference> externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(codeSchemeDto.getExternalReferences(), codeScheme);
+                            codeScheme.setExternalReferences(externalReferences);
+                        });
+                        codeSchemeDao.save(codeSchemes);
                     } else {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                     }
@@ -139,6 +155,9 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
                     }
                     codeScheme = codeSchemeDao.updateCodeSchemeFromDto(codeRegistry, codeSchemeDto);
+                    final Set<ExternalReference> externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(codeSchemeDto.getExternalReferences(), codeScheme);
+                    codeScheme.setExternalReferences(externalReferences);
+                    codeSchemeDao.save(codeScheme);
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                 }

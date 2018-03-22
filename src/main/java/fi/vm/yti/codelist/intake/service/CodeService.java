@@ -7,16 +7,11 @@ import java.util.UUID;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
-import fi.vm.yti.codelist.intake.model.CodeScheme;
 
 public interface CodeService {
 
     Set<CodeDTO> findAll();
 
-    CodeDTO findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme,
-                                                         final String codeValue,
-                                                         final UUID broaderCodeId);
-    
     Set<CodeDTO> findByCodeSchemeId(final UUID codeSchemeId);
 
     Set<CodeDTO> parseAndPersistCodesFromExcelWorkbook(final String codeRegistryCodeValue,

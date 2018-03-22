@@ -11,7 +11,7 @@ public interface ExternalReferenceService {
 
     Set<ExternalReferenceDTO> findAll();
 
-    Set<ExternalReferenceDTO> findByCodeSchemeId(final UUID codeSchemeId);
+    Set<ExternalReferenceDTO> findByParentCodeSchemeId(final UUID codeSchemeId);
 
     Set<ExternalReferenceDTO> parseAndPersistExternalReferencesFromSourceData(final String format,
                                                                               final InputStream inputStream,

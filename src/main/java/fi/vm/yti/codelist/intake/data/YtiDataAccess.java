@@ -21,9 +21,9 @@ import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
-import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
-import fi.vm.yti.codelist.intake.jpa.CodeRepository;
-import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
+import fi.vm.yti.codelist.intake.dao.CodeDao;
+import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
+import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -53,9 +53,9 @@ public class YtiDataAccess {
 
     private final ContentIntakeServiceProperties contentIntakeServiceProperties;
     private final UpdateManager updateManager;
-    private final CodeRegistryRepository codeRegistryRepository;
-    private final CodeSchemeRepository codeSchemeRepository;
-    private final CodeRepository codeRepository;
+    private final CodeRegistryDao codeRegistryDao;
+    private final CodeSchemeDao codeSchemeDao;
+    private final CodeDao codeDao;
     private final CodeRegistryService codeRegistryService;
     private final CodeSchemeService codeSchemeService;
     private final CodeService codeService;
@@ -65,9 +65,9 @@ public class YtiDataAccess {
     @Inject
     public YtiDataAccess(final ContentIntakeServiceProperties contentIntakeServiceProperties,
                          final UpdateManager updateManager,
-                         final CodeRegistryRepository codeRegistryRepository,
-                         final CodeSchemeRepository codeSchemeRepository,
-                         final CodeRepository codeRepository,
+                         final CodeRegistryDao codeRegistryDao,
+                         final CodeSchemeDao codeSchemeDao,
+                         final CodeDao codeDao,
                          final CodeRegistryService codeRegistryService,
                          final CodeSchemeService codeSchemeService,
                          final CodeService codeService,
@@ -75,9 +75,9 @@ public class YtiDataAccess {
                          final PropertyTypeService propertyTypeService) {
         this.contentIntakeServiceProperties = contentIntakeServiceProperties;
         this.updateManager = updateManager;
-        this.codeRegistryRepository = codeRegistryRepository;
-        this.codeSchemeRepository = codeSchemeRepository;
-        this.codeRepository = codeRepository;
+        this.codeRegistryDao = codeRegistryDao;
+        this.codeSchemeDao = codeSchemeDao;
+        this.codeDao = codeDao;
         this.codeRegistryService = codeRegistryService;
         this.codeSchemeService = codeSchemeService;
         this.codeService = codeService;
@@ -245,23 +245,23 @@ public class YtiDataAccess {
 
     private void classifyServiceClassification() {
         LOG.info("Ensuring Service Classification CodeScheme belongs to P9 classification.");
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(JUPO_REGISTRY);
+        final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(JUPO_REGISTRY);
         classifyCodeSchemeWithCodeValue(codeRegistry, YTI_DATACLASSIFICATION_CODESCHEME, SERVICE_CLASSIFICATION_P9);
     }
 
     private void classifyCodeSchemeWithCodeValue(final CodeRegistry codeRegistry, final String codeSchemeCodeValue, final String dataClassificationCodeValue) {
-        final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
+        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
         final Code classification = getDataClassification(dataClassificationCodeValue);
         final Set<Code> classifications = new HashSet<>();
         classifications.add(classification);
         codeScheme.setDataClassifications(classifications);
         codeScheme.setModified(new Date(System.currentTimeMillis()));
-        codeSchemeRepository.save(codeScheme);
+        codeSchemeDao.save(codeScheme);
     }
 
     private Code getDataClassification(final String codeValue) {
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(JUPO_REGISTRY);
-        final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
-        return codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeValue);
+        final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(JUPO_REGISTRY);
+        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
+        return codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeValue);
     }
 }

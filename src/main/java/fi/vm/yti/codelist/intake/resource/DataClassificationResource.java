@@ -28,16 +28,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
+import fi.vm.yti.codelist.intake.api.ResponseWrapper;
+import fi.vm.yti.codelist.intake.dao.CodeDao;
+import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
+import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ErrorModel;
 import fi.vm.yti.codelist.intake.model.Meta;
-import fi.vm.yti.codelist.intake.api.ResponseWrapper;
-import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
-import fi.vm.yti.codelist.intake.jpa.CodeRepository;
-import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -54,19 +54,19 @@ import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSI
 public class DataClassificationResource extends AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(DataClassificationResource.class);
-    private final CodeRegistryRepository codeRegistryRepository;
-    private final CodeSchemeRepository codeSchemeRepository;
-    private final CodeRepository codeRepository;
+    private final CodeRegistryDao codeRegistryDao;
+    private final CodeSchemeDao codeSchemeDao;
+    private final CodeDao codeDao;
     private final DataSource dataSource;
 
     @Inject
-    public DataClassificationResource(final CodeRegistryRepository codeRegistryRepository,
-                                      final CodeSchemeRepository codeSchemeRepository,
-                                      final CodeRepository codeRepository,
+    public DataClassificationResource(final CodeRegistryDao codeRegistryDao,
+                                      final CodeSchemeDao codeSchemeDao,
+                                      final CodeDao codeDao,
                                       final DataSource dataSource) {
-        this.codeRegistryRepository = codeRegistryRepository;
-        this.codeSchemeRepository = codeSchemeRepository;
-        this.codeRepository = codeRepository;
+        this.codeRegistryDao = codeRegistryDao;
+        this.codeSchemeDao = codeSchemeDao;
+        this.codeDao = codeDao;
         this.dataSource = dataSource;
     }
 
@@ -82,9 +82,9 @@ public class DataClassificationResource extends AbstractBaseResource {
         final ResponseWrapper<DataClassification> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);
         final ObjectMapper mapper = createObjectMapper();
-        final CodeRegistry ytiRegistry = codeRegistryRepository.findByCodeValue(JUPO_REGISTRY);
-        final CodeScheme dataClassificationsScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
-        final Set<Code> codes = codeRepository.findByCodeSchemeIdAndBroaderCodeIdIsNull(dataClassificationsScheme.getId());
+        final CodeRegistry ytiRegistry = codeRegistryDao.findByCodeValue(JUPO_REGISTRY);
+        final CodeScheme dataClassificationsScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
+        final Set<Code> codes = codeDao.findByCodeSchemeIdAndBroaderCodeIdIsNull(dataClassificationsScheme.getId());
         final Set<DataClassification> dataClassifications = new LinkedHashSet<>();
         final Map<String, Integer> statistics = getClassificationCounts();
         codes.forEach(code -> {

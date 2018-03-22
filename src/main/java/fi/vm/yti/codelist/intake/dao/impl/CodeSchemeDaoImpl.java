@@ -58,8 +58,21 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeSchemeRepository.delete(codeScheme);
     }
 
+    public void save(final CodeScheme codeScheme) {
+        codeSchemeRepository.save(codeScheme);
+    }
+
+    public void save(final Set<CodeScheme> codeSchemes) {
+        codeSchemeRepository.save(codeSchemes);
+    }
+
     public CodeScheme findById(final UUID id) {
         return codeSchemeRepository.findById(id);
+    }
+
+    public CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry,
+                                                     final String codeValue) {
+        return codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeValue);
     }
 
     public CodeScheme findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,

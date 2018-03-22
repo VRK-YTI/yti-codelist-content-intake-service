@@ -83,11 +83,11 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         if (existingExternalReference != null && isGlobal) {
             externalReference = existingExternalReference;
         } else if (existingExternalReference != null) {
-            externalReference = updateExternalReference(existingExternalReference, fromExternalReference);
+            externalReference = updateExternalReference(existingExternalReference, fromExternalReference, codeScheme);
         } else if (!isGlobal) {
-            externalReference = createExternalReference(fromExternalReference);
+            externalReference = createExternalReference(fromExternalReference, codeScheme);
         } else if (codeScheme == null) {
-            externalReference = createExternalReference(fromExternalReference);
+            externalReference = createExternalReference(fromExternalReference, codeScheme);
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
         }
@@ -95,7 +95,8 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     }
 
     private ExternalReference updateExternalReference(final ExternalReference existingExternalReference,
-                                                      final ExternalReferenceDTO fromExternalReference) {
+                                                      final ExternalReferenceDTO fromExternalReference,
+                                                      final CodeScheme parentCodeScheme) {
         boolean hasChanges = false;
         final String uri = apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, fromExternalReference.getId().toString());
         if (!Objects.equals(existingExternalReference.getUri(), uri)) {
@@ -106,7 +107,6 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
             existingExternalReference.setUrl(fromExternalReference.getUrl());
             hasChanges = true;
         }
-        final CodeScheme parentCodeScheme = codeSchemeRepository.findById(fromExternalReference.getParentCodeScheme().getId());
         if (!Objects.equals(existingExternalReference.getParentCodeScheme(), parentCodeScheme)) {
             existingExternalReference.setParentCodeScheme(parentCodeScheme);
             existingExternalReference.setGlobal(parentCodeScheme == null);
@@ -140,7 +140,8 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         return existingExternalReference;
     }
 
-    private ExternalReference createExternalReference(final ExternalReferenceDTO fromExternalReference) {
+    private ExternalReference createExternalReference(final ExternalReferenceDTO fromExternalReference,
+                                                      final CodeScheme parentCodeScheme) {
         final ExternalReference externalReference = new ExternalReference();
         final String uri;
         if (fromExternalReference.getId() != null) {
@@ -151,7 +152,6 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
             uri = apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, uuid.toString());
             externalReference.setId(uuid);
         }
-        final CodeScheme parentCodeScheme = codeSchemeRepository.findById(fromExternalReference.getParentCodeScheme().getId());
         externalReference.setParentCodeScheme(parentCodeScheme);
         externalReference.setGlobal(parentCodeScheme == null);
         externalReference.setPropertyType(propertyTypeRepository.findByLocalName(fromExternalReference.getPropertyType().getLocalName()));

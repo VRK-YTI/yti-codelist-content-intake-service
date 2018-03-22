@@ -48,6 +48,6 @@ public class CodeResourceT5 extends AbstractIntegrationTestBase {
         assertNotNull(codeScheme);
         final ResponseEntity<String> response = uploadCodesToCodeSchemeFromCsv(codeRegistry.getCodeValue(), codeScheme.getCodeValue(), TEST_CODE_FILENAME);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(8, codeRepository.findByCodeScheme(codeScheme).size());
+        assertEquals(8, codeRepository.findByCodeSchemeId(codeScheme.getId()).size());
     }
 }
