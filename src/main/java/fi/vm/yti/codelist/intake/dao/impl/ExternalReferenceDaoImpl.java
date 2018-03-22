@@ -16,7 +16,6 @@ import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -31,16 +30,13 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
     private final ApiUtils apiUtils;
     private final ExternalReferenceRepository externalReferenceRepository;
-    private final CodeSchemeRepository codeSchemeRepository;
     private final PropertyTypeRepository propertyTypeRepository;
 
     public ExternalReferenceDaoImpl(final ApiUtils apiUtils,
                                     final ExternalReferenceRepository externalReferenceRepository,
-                                    final CodeSchemeRepository codeSchemeRepository,
                                     final PropertyTypeRepository propertyTypeRepository) {
         this.apiUtils = apiUtils;
         this.externalReferenceRepository = externalReferenceRepository;
-        this.codeSchemeRepository = codeSchemeRepository;
         this.propertyTypeRepository = propertyTypeRepository;
     }
 
