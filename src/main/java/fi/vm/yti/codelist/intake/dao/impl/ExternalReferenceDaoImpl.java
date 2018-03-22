@@ -52,14 +52,16 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     public Set<ExternalReference> updateExternalReferenceEntitiesFromDtos(final Set<ExternalReferenceDTO> externalReferenceDtos,
                                                                           final CodeScheme codeScheme) {
         final Set<ExternalReference> externalReferences = new HashSet<>();
-        for (final ExternalReferenceDTO externalReferenceDto : externalReferenceDtos) {
-            final ExternalReference externalReference = createOrUpdateExternalReference(externalReferenceDto, codeScheme);
-            if (externalReference != null) {
-                externalReferences.add(externalReference);
+        if (externalReferenceDtos != null) {
+            for (final ExternalReferenceDTO externalReferenceDto : externalReferenceDtos) {
+                final ExternalReference externalReference = createOrUpdateExternalReference(externalReferenceDto, codeScheme);
+                if (externalReference != null) {
+                    externalReferences.add(externalReference);
+                }
             }
-        }
-        if (!externalReferences.isEmpty()) {
-            externalReferenceRepository.save(externalReferences);
+            if (!externalReferences.isEmpty()) {
+                externalReferenceRepository.save(externalReferences);
+            }
         }
         return externalReferences;
     }
