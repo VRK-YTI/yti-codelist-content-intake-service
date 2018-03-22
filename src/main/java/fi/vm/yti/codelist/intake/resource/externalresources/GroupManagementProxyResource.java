@@ -1,4 +1,4 @@
-package fi.vm.yti.codelist.intake.resource;
+package fi.vm.yti.codelist.intake.resource.externalresources;
 
 import java.io.IOException;
 import java.util.Set;
@@ -12,6 +12,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fi.vm.yti.codelist.intake.resource.AbstractBaseResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
