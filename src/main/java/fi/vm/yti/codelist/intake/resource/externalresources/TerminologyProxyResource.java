@@ -56,7 +56,7 @@ public class TerminologyProxyResource extends AbstractBaseResource {
     @ApiOperation(value = "Returns the complete list of existing vocabularies.")
     @ApiResponse(code = 200, message = "Returns success.")
     @SuppressWarnings("Duplicates")
-    public Response getUserRequests() {
+    public Response getVocabularities() {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_TERMINOLOGY + API_PATH_VOCABULARIES);
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
