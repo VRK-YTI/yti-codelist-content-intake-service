@@ -11,9 +11,15 @@ public interface CodeSchemeDao {
 
     void delete(final CodeScheme codeScheme);
 
+    void save(final CodeScheme codeScheme);
+
+    void save(final Set<CodeScheme> codeSchemes);
+
     CodeScheme findById(final UUID id);
 
     Set<CodeScheme> findAll();
+
+    CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry, final String codeValue);
 
     CodeScheme findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue, final String codeSchemeCodeValue);
 

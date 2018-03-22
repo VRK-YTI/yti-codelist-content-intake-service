@@ -16,7 +16,6 @@ import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -31,16 +30,13 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
     private final ApiUtils apiUtils;
     private final ExternalReferenceRepository externalReferenceRepository;
-    private final CodeSchemeRepository codeSchemeRepository;
     private final PropertyTypeRepository propertyTypeRepository;
 
     public ExternalReferenceDaoImpl(final ApiUtils apiUtils,
                                     final ExternalReferenceRepository externalReferenceRepository,
-                                    final CodeSchemeRepository codeSchemeRepository,
                                     final PropertyTypeRepository propertyTypeRepository) {
         this.apiUtils = apiUtils;
         this.externalReferenceRepository = externalReferenceRepository;
-        this.codeSchemeRepository = codeSchemeRepository;
         this.propertyTypeRepository = propertyTypeRepository;
     }
 
@@ -56,14 +52,16 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     public Set<ExternalReference> updateExternalReferenceEntitiesFromDtos(final Set<ExternalReferenceDTO> externalReferenceDtos,
                                                                           final CodeScheme codeScheme) {
         final Set<ExternalReference> externalReferences = new HashSet<>();
-        for (final ExternalReferenceDTO externalReferenceDto : externalReferenceDtos) {
-            final ExternalReference externalReference = createOrUpdateExternalReference(externalReferenceDto, codeScheme);
-            if (externalReference != null) {
-                externalReferences.add(externalReference);
+        if (externalReferenceDtos != null) {
+            for (final ExternalReferenceDTO externalReferenceDto : externalReferenceDtos) {
+                final ExternalReference externalReference = createOrUpdateExternalReference(externalReferenceDto, codeScheme);
+                if (externalReference != null) {
+                    externalReferences.add(externalReference);
+                }
             }
-        }
-        if (!externalReferences.isEmpty()) {
-            externalReferenceRepository.save(externalReferences);
+            if (!externalReferences.isEmpty()) {
+                externalReferenceRepository.save(externalReferences);
+            }
         }
         return externalReferences;
     }
@@ -83,11 +81,11 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         if (existingExternalReference != null && isGlobal) {
             externalReference = existingExternalReference;
         } else if (existingExternalReference != null) {
-            externalReference = updateExternalReference(existingExternalReference, fromExternalReference);
+            externalReference = updateExternalReference(existingExternalReference, fromExternalReference, codeScheme);
         } else if (!isGlobal) {
-            externalReference = createExternalReference(fromExternalReference);
+            externalReference = createExternalReference(fromExternalReference, codeScheme);
         } else if (codeScheme == null) {
-            externalReference = createExternalReference(fromExternalReference);
+            externalReference = createExternalReference(fromExternalReference, codeScheme);
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
         }
@@ -95,7 +93,8 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     }
 
     private ExternalReference updateExternalReference(final ExternalReference existingExternalReference,
-                                                      final ExternalReferenceDTO fromExternalReference) {
+                                                      final ExternalReferenceDTO fromExternalReference,
+                                                      final CodeScheme parentCodeScheme) {
         boolean hasChanges = false;
         final String uri = apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, fromExternalReference.getId().toString());
         if (!Objects.equals(existingExternalReference.getUri(), uri)) {
@@ -106,7 +105,6 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
             existingExternalReference.setUrl(fromExternalReference.getUrl());
             hasChanges = true;
         }
-        final CodeScheme parentCodeScheme = codeSchemeRepository.findById(fromExternalReference.getParentCodeScheme().getId());
         if (!Objects.equals(existingExternalReference.getParentCodeScheme(), parentCodeScheme)) {
             existingExternalReference.setParentCodeScheme(parentCodeScheme);
             existingExternalReference.setGlobal(parentCodeScheme == null);
@@ -140,7 +138,8 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         return existingExternalReference;
     }
 
-    private ExternalReference createExternalReference(final ExternalReferenceDTO fromExternalReference) {
+    private ExternalReference createExternalReference(final ExternalReferenceDTO fromExternalReference,
+                                                      final CodeScheme parentCodeScheme) {
         final ExternalReference externalReference = new ExternalReference();
         final String uri;
         if (fromExternalReference.getId() != null) {
@@ -151,7 +150,6 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
             uri = apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, uuid.toString());
             externalReference.setId(uuid);
         }
-        final CodeScheme parentCodeScheme = codeSchemeRepository.findById(fromExternalReference.getParentCodeScheme().getId());
         externalReference.setParentCodeScheme(parentCodeScheme);
         externalReference.setGlobal(parentCodeScheme == null);
         externalReference.setPropertyType(propertyTypeRepository.findByLocalName(fromExternalReference.getPropertyType().getLocalName()));

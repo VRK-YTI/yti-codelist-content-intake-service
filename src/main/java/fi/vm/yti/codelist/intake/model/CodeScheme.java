@@ -255,7 +255,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         setChangeNote(this.changeNote);
     }
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "codescheme_externalreference",
         joinColumns = {
             @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false)},

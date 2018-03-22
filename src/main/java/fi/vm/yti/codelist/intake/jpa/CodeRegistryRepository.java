@@ -14,7 +14,7 @@ import fi.vm.yti.codelist.intake.model.CodeRegistry;
 @Transactional
 public interface CodeRegistryRepository extends CrudRepository<CodeRegistry, String> {
 
-    CodeRegistry findByCodeValue(final String codeValue);
+    CodeRegistry findByCodeValueIgnoreCase(final String codeValue);
 
     CodeRegistry findById(final UUID id);
 

@@ -58,8 +58,21 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeSchemeRepository.delete(codeScheme);
     }
 
+    public void save(final CodeScheme codeScheme) {
+        codeSchemeRepository.save(codeScheme);
+    }
+
+    public void save(final Set<CodeScheme> codeSchemes) {
+        codeSchemeRepository.save(codeSchemes);
+    }
+
     public CodeScheme findById(final UUID id) {
         return codeSchemeRepository.findById(id);
+    }
+
+    public CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry,
+                                                     final String codeValue) {
+        return codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, codeValue);
     }
 
     public CodeScheme findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
@@ -112,7 +125,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                 checkForExistingCodeSchemeInRegistry(codeRegistry, fromCodeScheme);
             }
         } else {
-            existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, fromCodeScheme.getCodeValue());
+            existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, fromCodeScheme.getCodeValue());
         }
         final CodeScheme codeScheme;
         if (existingCodeScheme != null) {
@@ -125,7 +138,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
     private void checkForExistingCodeSchemeInRegistry(final CodeRegistry codeRegistry,
                                                       final CodeSchemeDTO codeScheme) {
-        final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeScheme.getCodeValue());
+        final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, codeScheme.getCodeValue());
         if (existingCodeScheme != null) {
             throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME, existingCodeScheme.getCodeValue()));
@@ -272,7 +285,14 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         if (codeDtos != null && !codeDtos.isEmpty()) {
             codes = new HashSet<>();
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(JUPO_REGISTRY, YTI_DATACLASSIFICATION_CODESCHEME);
-            codeDtos.forEach(codeDto -> codes.add(codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeDto.getCodeValue())));
+            codeDtos.forEach(codeDto -> {
+                final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
+                if (code != null && code.getHierarchyLevel() == 1) {
+                    codes.add(codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue()));
+                } else {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_CLASSIFICATION));
+                }
+            });
         } else {
             codes = null;
         }

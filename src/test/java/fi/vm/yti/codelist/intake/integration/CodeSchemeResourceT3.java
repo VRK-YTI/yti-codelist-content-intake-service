@@ -25,7 +25,7 @@ import static org.junit.Assert.assertNotNull;
 @TestPropertySource(locations = "classpath:test-port.properties")
 public class CodeSchemeResourceT3 extends AbstractIntegrationTestBase {
 
-    private static final int CODE_SCHEME_COUNT = 14;
+    private static final int CODE_SCHEME_COUNT = 15;
     private static final String NOT_FOUND_REGISTRY_CODEVALUE = "notfoundregistry";
     private static final String TEST_CODESCHEME_FILENAME = "v1_testcodeschemes.csv";
 
@@ -40,7 +40,7 @@ public class CodeSchemeResourceT3 extends AbstractIntegrationTestBase {
     public void postCodeSchemesToCodeRegistryTest() {
         final ResponseEntity<String> response = uploadCodeSchemesToCodeRegistryFromCsv(TEST_CODEREGISTRY_CODEVALUE, TEST_CODESCHEME_FILENAME);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(TEST_CODEREGISTRY_CODEVALUE);
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(TEST_CODEREGISTRY_CODEVALUE);
         assertNotNull(codeRegistry);
         assertEquals(CODE_SCHEME_COUNT, codeSchemeRepository.findByCodeRegistry(codeRegistry).size());
     }

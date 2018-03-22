@@ -106,5 +106,4 @@ public class PropertyTypeResource extends AbstractBaseResource {
         responseWrapper.setResults(propertyTypes);
         return Response.ok(responseWrapper).build();
     }
-
 }

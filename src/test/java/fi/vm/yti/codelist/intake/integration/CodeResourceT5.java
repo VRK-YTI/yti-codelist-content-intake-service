@@ -42,12 +42,12 @@ public class CodeResourceT5 extends AbstractIntegrationTestBase {
     @Test
     @Transactional
     public void postCodesToCodeSchemeTest() {
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(TEST_CODEREGISTRY_CODEVALUE);
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(TEST_CODEREGISTRY_CODEVALUE);
         assertNotNull(codeRegistry);
-        final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, TEST_CODESCHEME_CODEVALUE);
+        final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, TEST_CODESCHEME_CODEVALUE);
         assertNotNull(codeScheme);
         final ResponseEntity<String> response = uploadCodesToCodeSchemeFromCsv(codeRegistry.getCodeValue(), codeScheme.getCodeValue(), TEST_CODE_FILENAME);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(8, codeRepository.findByCodeScheme(codeScheme).size());
+        assertEquals(8, codeRepository.findByCodeSchemeId(codeScheme.getId()).size());
     }
 }

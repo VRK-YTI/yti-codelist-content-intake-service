@@ -3,6 +3,7 @@ package fi.vm.yti.codelist.intake.service.impl;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,15 +20,16 @@ import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
+import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
+import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
+import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
-import fi.vm.yti.codelist.intake.jpa.CodeRepository;
-import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ErrorModel;
+import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeService;
@@ -40,42 +42,42 @@ public class CodeServiceImpl extends BaseService implements CodeService {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeServiceImpl.class);
     private final AuthorizationManager authorizationManager;
-    private final CodeRegistryRepository codeRegistryRepository;
-    private final CodeSchemeRepository codeSchemeRepository;
-    private final CodeRepository codeRepository;
-    private final CodeParser codeParser;
+    private final CodeRegistryDao codeRegistryDao;
+    private final CodeSchemeDao codeSchemeDao;
     private final CodeDao codeDao;
+    private final ExternalReferenceDao externalReferenceDao;
+    private final CodeParser codeParser;
 
     @Inject
     public CodeServiceImpl(final AuthorizationManager authorizationManager,
-                           final CodeRegistryRepository codeRegistryRepository,
-                           final CodeSchemeRepository codeSchemeRepository,
-                           final CodeRepository codeRepository,
+                           final CodeRegistryDao codeRegistryDao,
+                           final CodeSchemeDao codeSchemeDao,
                            final CodeParser codeParser,
-                           final CodeDao codeDao) {
+                           final CodeDao codeDao,
+                           final ExternalReferenceDao externalReferenceDao) {
         this.authorizationManager = authorizationManager;
-        this.codeRegistryRepository = codeRegistryRepository;
-        this.codeSchemeRepository = codeSchemeRepository;
-        this.codeRepository = codeRepository;
+        this.codeRegistryDao = codeRegistryDao;
+        this.codeSchemeDao = codeSchemeDao;
         this.codeParser = codeParser;
         this.codeDao = codeDao;
+        this.externalReferenceDao = externalReferenceDao;
     }
 
     @Transactional
     public Set<CodeDTO> findAll() {
-        return mapDeepCodeDtos(codeRepository.findAll());
+        return mapDeepCodeDtos(codeDao.findAll());
     }
 
     @Transactional
     public CodeDTO findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme,
                                                                 final String codeValue,
                                                                 final UUID broaderCodeId) {
-        return mapDeepCodeDto(codeRepository.findByCodeSchemeAndCodeValueAndBroaderCodeId(codeScheme, codeValue, broaderCodeId));
+        return mapDeepCodeDto(codeDao.findByCodeSchemeAndCodeValueAndBroaderCodeId(codeScheme, codeValue, broaderCodeId));
     }
 
     @Transactional
     public Set<CodeDTO> findByCodeSchemeId(final UUID codeSchemeId) {
-        return mapDeepCodeDtos(codeRepository.findByCodeSchemeId(codeSchemeId));
+        return mapDeepCodeDtos(codeDao.findByCodeSchemeId(codeSchemeId));
     }
 
     @Transactional
@@ -83,12 +85,12 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                                                               final String codeSchemeCodeValue,
                                                               final Workbook workbook) {
         Set<Code> codes;
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
+            final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             final HashMap<String, String> broaderCodeMapping = new HashMap<>();
             if (codeScheme != null) {
                 final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelWorkbook(workbook, broaderCodeMapping);
@@ -109,18 +111,27 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                                                            final InputStream inputStream,
                                                            final String jsonPayload) {
         Set<Code> codes;
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
+            final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             final HashMap<String, String> broaderCodeMapping = new HashMap<>();
             if (codeScheme != null) {
                 switch (format.toLowerCase()) {
                     case FORMAT_JSON:
                         if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                            codes = codeDao.updateCodesFromDtos(codeScheme, codeParser.parseCodesFromJsonData(jsonPayload), broaderCodeMapping);
+                            final Set<CodeDTO> codeDtos = codeParser.parseCodesFromJsonData(jsonPayload);
+                            codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping);
+                            final Map<String, Code> codeMap = new HashMap<>();
+                            codes.forEach(code -> codeMap.put(code.getCodeValue(), code));
+                            codeDtos.forEach(codeDto -> {
+                                final Set<ExternalReference> externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(codeDto.getExternalReferences(), codeScheme);
+                                final Code code = codeMap.get(codeDto.getCodeValue());
+                                code.setExternalReferences(externalReferences);
+                            });
+                            codeDao.save(codes);
                         } else {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
                         }
@@ -149,12 +160,12 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                                                final String codeCodeValue,
                                                final String jsonPayload) {
         Code code = null;
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
+        final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
+            final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             if (codeScheme != null) {
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
@@ -163,6 +174,9 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
                         }
                         code = codeDao.updateCodeFromDto(codeScheme, codeDto);
+                        final Set<ExternalReference> externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(codeDto.getExternalReferences(), codeScheme);
+                        code.setExternalReferences(externalReferences);
+                        codeDao.save(code);
                     } else {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
                     }
@@ -182,21 +196,21 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     }
 
     private Set<CodeDTO> decreaseChildHierarchyLevel(final UUID broaderCodeId) {
-        final Set<Code> childCodes = codeRepository.findByBroaderCodeId(broaderCodeId);
+        final Set<Code> childCodes = codeDao.findByBroaderCodeId(broaderCodeId);
         childCodes.forEach(code -> {
             code.setHierarchyLevel(code.getHierarchyLevel() - 1);
             if (code.getBroaderCodeId() != null) {
                 decreaseChildHierarchyLevel(code.getBroaderCodeId());
             }
         });
-        codeRepository.save(childCodes);
+        codeDao.save(childCodes);
         return mapDeepCodeDtos(childCodes);
     }
 
     @Transactional
     public Set<CodeDTO> removeBroaderCodeId(final UUID broaderCodeId) {
         final Set<CodeDTO> updateCodes = new HashSet<>();
-        final Set<Code> childCodes = codeRepository.findByBroaderCodeId(broaderCodeId);
+        final Set<Code> childCodes = codeDao.findByBroaderCodeId(broaderCodeId);
         if (childCodes != null && !childCodes.isEmpty()) {
             childCodes.forEach(code -> {
                 code.setBroaderCodeId(null);
@@ -204,7 +218,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                 updateCodes.addAll(decreaseChildHierarchyLevel(code.getId()));
             });
             updateCodes.addAll(mapDeepCodeDtos(childCodes));
-            codeRepository.save(childCodes);
+            codeDao.save(childCodes);
         }
         return updateCodes;
     }
@@ -214,10 +228,10 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                               final String codeSchemeCodeValue,
                               final String codeCodeValue) {
         if (authorizationManager.isSuperUser()) {
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-            final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
+            final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+            final Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
             final CodeDTO codeDto = mapCodeDto(code, false);
-            codeRepository.delete(code);
+            codeDao.delete(code);
             return codeDto;
         } else {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
@@ -229,9 +243,9 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     public CodeDTO findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                                                  final String codeSchemeCodeValue,
                                                                                  final String codeCodeValue) {
-        CodeRegistry registry = codeRegistryRepository.findByCodeValue(codeRegistryCodeValue);
-        CodeScheme scheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(registry, codeSchemeCodeValue);
-        Code code = codeRepository.findByCodeSchemeAndCodeValue(scheme, codeCodeValue);
+        CodeRegistry registry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
+        CodeScheme scheme = codeSchemeDao.findByCodeRegistryAndCodeValue(registry, codeSchemeCodeValue);
+        Code code = codeDao.findByCodeSchemeAndCodeValue(scheme, codeCodeValue);
         if (code == null)
             return null;
         return mapDeepCodeDto(code);

@@ -13,7 +13,10 @@ import org.junit.runners.Suite;
     CodeBroaderUploadTestT6.class,
     CodeDuplicateUploadTestT7.class,
     DoubleHeaderUploadTestT8.class,
-    InvalidIdUploadTestT9.class})
+    InvalidIdUploadTestT9.class,
+    CodeSchemeBadClassificationT10.class,
+    CodeSchemeCaseTestT11.class,
+    CodeCaseTestT12.class})
 public class IntakeTestSuiteIT {
 
 }
