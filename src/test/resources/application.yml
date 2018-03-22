@@ -16,6 +16,9 @@ groupmanagement:
   url: https://rhp-dev.suomi.fi
   publicUrl: https://rhp-dev.suomi.fi
 
+terminology:
+  url: https://sanastot-dev.suomi.fi
+
 service:
   name: yti-codelist-content-intake-service
   database-name: yti_codelist
