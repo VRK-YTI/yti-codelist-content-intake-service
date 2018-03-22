@@ -272,7 +272,14 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         if (codeDtos != null && !codeDtos.isEmpty()) {
             codes = new HashSet<>();
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(JUPO_REGISTRY, YTI_DATACLASSIFICATION_CODESCHEME);
-            codeDtos.forEach(codeDto -> codes.add(codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeDto.getCodeValue())));
+            codeDtos.forEach(codeDto -> {
+                final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeDto.getCodeValue());
+                if (code != null && code.getHierarchyLevel() == 1) {
+                    codes.add(codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeDto.getCodeValue()));
+                } else {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_CLASSIFICATION));
+                }
+            });
         } else {
             codes = null;
         }
