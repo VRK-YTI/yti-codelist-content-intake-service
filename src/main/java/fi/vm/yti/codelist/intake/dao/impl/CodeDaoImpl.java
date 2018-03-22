@@ -63,7 +63,7 @@ public class CodeDaoImpl implements CodeDao {
 
     public Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
                                              final String codeValue) {
-        return codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeValue);
+        return codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeValue);
     }
 
     public Code findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme,
@@ -131,7 +131,7 @@ public class CodeDaoImpl implements CodeDao {
                 checkForExistingCodeInCodeScheme(codeScheme, fromCode);
             }
         } else {
-            existingCode = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, fromCode.getCodeValue());
+            existingCode = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, fromCode.getCodeValue());
         }
         final Code code;
         if (existingCode != null) {
@@ -262,7 +262,7 @@ public class CodeDaoImpl implements CodeDao {
 
     private void checkForExistingCodeInCodeScheme(final CodeScheme codeScheme,
                                                   final CodeDTO fromCode) {
-        final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, fromCode.getCodeValue());
+        final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, fromCode.getCodeValue());
         if (code != null) {
             throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ALREADY_EXISTING_CODE, code.getCodeValue()));

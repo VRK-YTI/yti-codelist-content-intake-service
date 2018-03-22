@@ -40,7 +40,7 @@ public class CodeSchemeResourceT3 extends AbstractIntegrationTestBase {
     public void postCodeSchemesToCodeRegistryTest() {
         final ResponseEntity<String> response = uploadCodeSchemesToCodeRegistryFromCsv(TEST_CODEREGISTRY_CODEVALUE, TEST_CODESCHEME_FILENAME);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValue(TEST_CODEREGISTRY_CODEVALUE);
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(TEST_CODEREGISTRY_CODEVALUE);
         assertNotNull(codeRegistry);
         assertEquals(CODE_SCHEME_COUNT, codeSchemeRepository.findByCodeRegistry(codeRegistry).size());
     }

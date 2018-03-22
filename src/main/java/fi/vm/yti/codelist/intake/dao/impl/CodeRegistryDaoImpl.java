@@ -43,7 +43,7 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
     }
 
     public CodeRegistry findByCodeValue(final String codeValue) {
-        return codeRegistryRepository.findByCodeValue(codeValue);
+        return codeRegistryRepository.findByCodeValueIgnoreCase(codeValue);
     }
 
     @Transactional
@@ -67,7 +67,7 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
 
     private CodeRegistry createOrUpdateCodeRegistry(final CodeRegistryDTO fromCodeRegistry) {
         final CodeRegistry codeRegistry;
-        final CodeRegistry existingCodeRegistry = codeRegistryRepository.findByCodeValue(fromCodeRegistry.getCodeValue());
+        final CodeRegistry existingCodeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(fromCodeRegistry.getCodeValue());
         if (existingCodeRegistry != null) {
             codeRegistry = updateCodeRegistry(existingCodeRegistry, fromCodeRegistry);
         } else {

@@ -72,7 +72,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
     public CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry,
                                                      final String codeValue) {
-        return codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeValue);
+        return codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, codeValue);
     }
 
     public CodeScheme findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
@@ -125,7 +125,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                 checkForExistingCodeSchemeInRegistry(codeRegistry, fromCodeScheme);
             }
         } else {
-            existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, fromCodeScheme.getCodeValue());
+            existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, fromCodeScheme.getCodeValue());
         }
         final CodeScheme codeScheme;
         if (existingCodeScheme != null) {
@@ -138,7 +138,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
     private void checkForExistingCodeSchemeInRegistry(final CodeRegistry codeRegistry,
                                                       final CodeSchemeDTO codeScheme) {
-        final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValue(codeRegistry, codeScheme.getCodeValue());
+        final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, codeScheme.getCodeValue());
         if (existingCodeScheme != null) {
             throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME, existingCodeScheme.getCodeValue()));
@@ -286,9 +286,9 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             codes = new HashSet<>();
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(JUPO_REGISTRY, YTI_DATACLASSIFICATION_CODESCHEME);
             codeDtos.forEach(codeDto -> {
-                final Code code = codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeDto.getCodeValue());
+                final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
                 if (code != null && code.getHierarchyLevel() == 1) {
-                    codes.add(codeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeDto.getCodeValue()));
+                    codes.add(codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue()));
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_CLASSIFICATION));
                 }
