@@ -4,6 +4,7 @@ import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.MediaType;
 
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.UncaughtExceptionMapper;
+import fi.vm.yti.codelist.intake.resource.externalresources.TerminologyProxyResource;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ import fi.vm.yti.codelist.intake.resource.CodeRegistryResource;
 import fi.vm.yti.codelist.intake.resource.ConfigurationResource;
 import fi.vm.yti.codelist.intake.resource.DataClassificationResource;
 import fi.vm.yti.codelist.intake.resource.ExternalReferenceResource;
-import fi.vm.yti.codelist.intake.resource.GroupManagementProxyResource;
+import fi.vm.yti.codelist.intake.resource.externalresources.GroupManagementProxyResource;
 import fi.vm.yti.codelist.intake.resource.ImpersonateUserResource;
 import fi.vm.yti.codelist.intake.resource.OrganizationResource;
 import fi.vm.yti.codelist.intake.resource.PingResource;
@@ -72,6 +73,9 @@ public class JerseyConfig extends ResourceConfig {
 
         // GroupManagement
         register(GroupManagementProxyResource.class);
+
+        // Terminology
+        register(TerminologyProxyResource.class);
 
         // Admin resources
         register(AdminResource.class);
