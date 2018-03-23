@@ -28,10 +28,11 @@ public class ImpersonateUserService {
 
     @Inject
     public ImpersonateUserService(final GroupManagementProperties groupManagementProperties,
-                                  final ImpersonateProperties fakeLoginProperties) {
+                                  final ImpersonateProperties fakeLoginProperties,
+                                  final RestTemplate restTemplate) {
         this.groupManagementProperties = groupManagementProperties;
         this.fakeLoginProperties = fakeLoginProperties;
-        this.restTemplate = new RestTemplate();
+        this.restTemplate = restTemplate;
     }
 
     @NotNull
