@@ -64,7 +64,7 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
     }
 
     private PropertyType createOrUpdatePropertyType(final PropertyTypeDTO fromPropertyType) {
-        PropertyType existingPropertyType = null;
+        final PropertyType existingPropertyType;
         if (fromPropertyType.getId() != null) {
             existingPropertyType = propertyTypeRepository.findById(fromPropertyType.getId());
         } else {
