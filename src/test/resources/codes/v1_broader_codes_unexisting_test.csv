@@ -1,0 +1,3 @@
+CODEVALUE,BROADER,ID,STATUS,HIERARCHYLEVEL,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,DEFINITION_FI,DEFINITION_SV,DEFINITION_EN,DESCRIPTION_FI,DESCRIPTION_SV,DESCRIPTION_EN,SHORTNAME,STARTDATE,ENDDATE
+test01,,,VALID,,Testi elementti 1,Test elementen 1,Test Element 1,testi määrite 1,test definitionen 1,test definition 1,testi kuvaus 1,test beskrivning 1,test description 1,test shortname 1,2017-01-01,2022-12-31
+test02,testnotexist,,VALID,,Testi elementti 2,Test elementen 2,Test Element 2,testi määrite 2,test definitionen 2,test definition 2,testi kuvaus 2,test beskrivning 2,test description 2,test shortname 2,2017-01-01,2022-12-31

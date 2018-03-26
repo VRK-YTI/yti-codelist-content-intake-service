@@ -102,8 +102,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Modifies single existing CodeScheme.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response updateCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                     @ApiParam(value = "JSON playload for Code data.") final String jsonPayload) {
+    public Response updateCodeRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                       @ApiParam(value = "JSON playload for Code data.") final String jsonPayload) {
 
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/");
         final CodeRegistryDTO codeRegistry = codeRegistryService.parseAndPersistCodeRegistryFromJson(codeRegistryCodeValue, jsonPayload);
