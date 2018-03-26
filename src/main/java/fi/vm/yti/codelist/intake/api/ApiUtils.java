@@ -35,6 +35,10 @@ public class ApiUtils {
         this.groupManagementProperties = groupManagementProperties;
     }
 
+    public boolean isDev() {
+        return contentIntakeServiceProperties.getDev();
+    }
+
     /**
      * Creates a resource URI for given resource id with dynamic hostname, port and API context path mapping.
      *
