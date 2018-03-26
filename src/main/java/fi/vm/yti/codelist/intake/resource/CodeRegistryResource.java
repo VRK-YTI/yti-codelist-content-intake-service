@@ -28,6 +28,7 @@ import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
@@ -179,9 +180,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final CodeSchemeDTO existingCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (existingCodeScheme != null) {
             final UUID codeSchemeId = existingCodeScheme.getId();
-            indexing.deleteCodeScheme(codeSchemeService.deleteCodeScheme(codeRegistryCodeValue, codeSchemeCodeValue));
-            indexing.deleteCodes(codeService.findByCodeSchemeId(codeSchemeId));
-            indexing.deleteExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeSchemeId));
+            final Set<CodeDTO> codes = codeService.findByCodeSchemeId(codeSchemeId);
+            final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
+            final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(codeRegistryCodeValue, codeSchemeCodeValue);
+            indexing.deleteCodeScheme(codeScheme);
+            indexing.deleteCodes(codes);
+            indexing.deleteExternalReferences(externalReferences);
         } else {
             return Response.status(404).build();
         }
