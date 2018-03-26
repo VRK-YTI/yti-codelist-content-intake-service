@@ -79,9 +79,9 @@ public class CodeParser extends AbstractBaseParser {
                 if (record.isMapped(CONTENT_HEADER_BROADER)) {
                     final String broaderCodeCodeValue = record.get(CONTENT_HEADER_BROADER);
                     if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
-                        broaderCodeMapping.put(codeValue, broaderCodeCodeValue);
+                        broaderCodeMapping.put(codeValue.toLowerCase(), broaderCodeCodeValue.toLowerCase());
                     } else {
-                        broaderCodeMapping.put(codeValue, null);
+                        broaderCodeMapping.put(codeValue.toLowerCase(), null);
                     }
                 }
                 code.setHierarchyLevel(resolveHierarchyLevelFromCsvRecord(record));
@@ -157,7 +157,9 @@ public class CodeParser extends AbstractBaseParser {
                 if (headerMap.containsKey(CONTENT_HEADER_BROADER)) {
                     final String broaderCodeCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_BROADER)));
                     if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
-                        broaderCodeMapping.put(codeValue, broaderCodeCodeValue);
+                        broaderCodeMapping.put(codeValue.toLowerCase(), broaderCodeCodeValue.toLowerCase());
+                    } else {
+                        broaderCodeMapping.put(codeValue.toLowerCase(), null);
                     }
                 }
                 code.setStatus(parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))));
