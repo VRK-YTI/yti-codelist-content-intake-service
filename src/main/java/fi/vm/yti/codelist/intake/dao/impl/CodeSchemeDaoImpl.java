@@ -77,7 +77,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
     public CodeScheme findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                               final String codeSchemeCodeValue) {
-        return codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        return codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValueIgnoreCase(codeRegistryCodeValue, codeSchemeCodeValue);
     }
 
     public Set<CodeScheme> findAll() {
@@ -284,7 +284,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         final Set<Code> codes;
         if (codeDtos != null && !codeDtos.isEmpty()) {
             codes = new HashSet<>();
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValue(JUPO_REGISTRY, YTI_DATACLASSIFICATION_CODESCHEME);
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValueIgnoreCase(JUPO_REGISTRY, YTI_DATACLASSIFICATION_CODESCHEME);
             codeDtos.forEach(codeDto -> {
                 final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
                 if (code != null && code.getHierarchyLevel() == 1) {
