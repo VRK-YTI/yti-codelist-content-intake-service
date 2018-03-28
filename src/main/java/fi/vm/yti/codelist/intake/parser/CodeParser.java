@@ -88,6 +88,7 @@ public class CodeParser extends AbstractBaseParser {
                     final String broaderCodeCodeValue = record.get(CONTENT_HEADER_BROADER);
                     if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
                         broaderCodeMapping.put(codeValue.toLowerCase(), broaderCodeCodeValue.toLowerCase());
+                        broaderCode = broaderCodeCodeValue;
                     } else {
                         broaderCodeMapping.put(codeValue.toLowerCase(), null);
                     }
@@ -106,14 +107,16 @@ public class CodeParser extends AbstractBaseParser {
                 if (codeValues.contains(broaderCode)) {
                     String parentCode = codeValuelist.get(codeValuelist.indexOf(code.getCodeValue()));
                     if (parentCode != null && !parentCode.isEmpty()) {
-                        if (broaderCode == previousBroader) {
+                        if (broaderCode != null && previousBroader != null && broaderCode.equalsIgnoreCase(previousBroader)) {
                             code.setChildOrder(childOrderIndex);
                             childOrderIndex++;
                         } else {
                             childOrderIndex = 1;
                         }
                     }
-                } else code.setChildOrder(intChildOrder);
+                } else {
+                    code.setChildOrder(intChildOrder);
+                }
                 previousBroader = broaderCode;
                 codes.add(code);
             }
