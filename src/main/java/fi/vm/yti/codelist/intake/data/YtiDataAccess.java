@@ -49,6 +49,7 @@ public class YtiDataAccess {
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
     private static final String DEFAULT_TESTREGISTRY_FILENAME = "testcoderegistries.csv";
     private static final String SERVICE_CLASSIFICATION_P9 = "P9";
+    private static final String DEFAULT_IDENTIFIER = "default";
     private static final Logger LOG = LoggerFactory.getLogger(YtiDataAccess.class);
 
     private final ContentIntakeServiceProperties contentIntakeServiceProperties;
@@ -204,8 +205,8 @@ public class YtiDataAccess {
     private void loadDefaultPropertyTypes() {
         LOG.info("Loading default PropertyTypes...");
         final Stopwatch watch = Stopwatch.createStarted();
-        if (updateManager.shouldUpdateData(DATA_PROPERTYTYPES, "default", DEFAULT_PROPERTYTYPE_FILENAME)) {
-            final UpdateStatus updateStatus = updateManager.createStatus(DATA_PROPERTYTYPES, "default", SOURCE_INTERNAL, DEFAULT_PROPERTYTYPE_FILENAME, UpdateManager.UPDATE_RUNNING);
+        if (updateManager.shouldUpdateData(DATA_PROPERTYTYPES, DEFAULT_IDENTIFIER, DEFAULT_PROPERTYTYPE_FILENAME)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(DATA_PROPERTYTYPES, DEFAULT_IDENTIFIER, SOURCE_INTERNAL, DEFAULT_PROPERTYTYPE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME)) {
                 final Set<PropertyTypeDTO> propertyTypes = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(FORMAT_CSV, inputStream, null);
                 LOG.info("PropertyType data loaded and persisted " + propertyTypes.size() + " PropertyTypes in " + watch);
@@ -225,8 +226,8 @@ public class YtiDataAccess {
     private void loadDefaultExternalReferences() {
         LOG.info("Loading default ExternalReferences...");
         final Stopwatch watch = Stopwatch.createStarted();
-        if (updateManager.shouldUpdateData(DATA_EXTERNALREFERENCES, "default", DEFAULT_EXTERNALREFERENCE_FILENAME)) {
-            final UpdateStatus updateStatus = updateManager.createStatus(DATA_EXTERNALREFERENCES, "default", SOURCE_INTERNAL, DEFAULT_EXTERNALREFERENCE_FILENAME, UpdateManager.UPDATE_RUNNING);
+        if (updateManager.shouldUpdateData(DATA_EXTERNALREFERENCES, DEFAULT_IDENTIFIER, DEFAULT_EXTERNALREFERENCE_FILENAME)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(DATA_EXTERNALREFERENCES, DEFAULT_IDENTIFIER, SOURCE_INTERNAL, DEFAULT_EXTERNALREFERENCE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_EXTERNALREFERENCES + "/" + DEFAULT_EXTERNALREFERENCE_FILENAME)) {
                 final Set<ExternalReferenceDTO> externalReferenceDtos = externalReferenceService.parseAndPersistExternalReferencesFromSourceData(FORMAT_CSV, inputStream, null, null);
                 LOG.info("ExternalReference data loaded and persisted " + externalReferenceDtos.size() + " ExternalReferences in " + watch);
