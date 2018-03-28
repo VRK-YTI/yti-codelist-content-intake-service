@@ -193,6 +193,7 @@ public abstract class AbstractBaseParser {
             try {
                 uuid = UUID.fromString(uuidString);
             } catch (final IllegalArgumentException e) {
+                LOG.error("UUID parsing failed from: " + uuidString, e);
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_ID));
             }
         }

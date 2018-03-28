@@ -24,6 +24,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +45,8 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Service
 public class CodeRegistryParser extends AbstractBaseParser {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryParser.class);
 
     public CodeRegistryDTO parseCodeRegistryFromJsonData(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
@@ -94,8 +98,10 @@ public class CodeRegistryParser extends AbstractBaseParser {
                 codeRegistries.add(fromCodeRegistry);
             });
         } catch (final IllegalArgumentException e) {
+            LOG.error("Duplicate header value found in CSV!", e);
             throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
         } catch (final IOException e) {
+            LOG.error("Error parsing CSV file!", e);
             throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         return codeRegistries;
@@ -140,6 +146,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
                 }
             }
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
+            LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
         return codeRegistries;

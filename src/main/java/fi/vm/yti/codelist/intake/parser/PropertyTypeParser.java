@@ -23,6 +23,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -38,6 +40,8 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Service
 public class PropertyTypeParser extends AbstractBaseParser {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PropertyTypeParser.class);
 
     public PropertyTypeDTO parsePropertyTypeFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
@@ -84,8 +88,10 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 propertyTypes.add(propertyType);
             }
         } catch (final IllegalArgumentException e) {
+            LOG.error("Duplicate header value found in CSV!", e);
             throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
         } catch (final IOException e) {
+            LOG.error("Error parsing CSV file!", e);
             throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         return propertyTypes;
@@ -124,6 +130,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
                 }
             }
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
+            LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
         return propertyTypes;
