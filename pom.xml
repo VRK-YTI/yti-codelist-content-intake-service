@@ -586,7 +586,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spotify-docker.version>1.0.0</spotify-docker.version>
-        <swagger.version>1.5.17</swagger.version>
+        <swagger.version>1.5.18</swagger.version>
         <swagger-ui.version>3.1.6</swagger-ui.version>
         <swagger-maven-plugin.version>3.1.6</swagger-maven-plugin.version>
         <postgresql.version>42.2.1</postgresql.version>
