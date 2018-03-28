@@ -28,6 +28,7 @@ import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
@@ -102,8 +103,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Modifies single existing CodeScheme.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response updateCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                     @ApiParam(value = "JSON playload for Code data.") final String jsonPayload) {
+    public Response updateCodeRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                       @ApiParam(value = "JSON playload for Code data.") final String jsonPayload) {
 
         logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + "/");
         final CodeRegistryDTO codeRegistry = codeRegistryService.parseAndPersistCodeRegistryFromJson(codeRegistryCodeValue, jsonPayload);
@@ -179,9 +180,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final CodeSchemeDTO existingCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (existingCodeScheme != null) {
             final UUID codeSchemeId = existingCodeScheme.getId();
-            indexing.deleteCodeScheme(codeSchemeService.deleteCodeScheme(codeRegistryCodeValue, codeSchemeCodeValue));
-            indexing.deleteCodes(codeService.findByCodeSchemeId(codeSchemeId));
-            indexing.deleteExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeSchemeId));
+            final Set<CodeDTO> codes = codeService.findByCodeSchemeId(codeSchemeId);
+            final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
+            final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(codeRegistryCodeValue, codeSchemeCodeValue);
+            indexing.deleteCodeScheme(codeScheme);
+            indexing.deleteCodes(codes);
+            indexing.deleteExternalReferences(externalReferences);
         } else {
             return Response.status(404).build();
         }

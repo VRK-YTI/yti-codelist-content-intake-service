@@ -9,7 +9,6 @@ import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -25,13 +24,16 @@ public class OrganizationUpdater {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrganizationUpdater.class);
     private final OrganizationService organizationService;
+    private final RestTemplate restTemplate;
     private GroupManagementProperties groupManagementProperties;
 
     @Inject
     public OrganizationUpdater(final GroupManagementProperties groupManagementProperties,
-                               final OrganizationService organizationService) {
+                               final OrganizationService organizationService,
+                               final RestTemplate restTemplate) {
         this.groupManagementProperties = groupManagementProperties;
         this.organizationService = organizationService;
+        this.restTemplate = restTemplate;
     }
 
     @Scheduled(cron = "0 */5 * * * *")
@@ -41,10 +43,6 @@ public class OrganizationUpdater {
 
     @Transactional
     public void updateOrganizations() {
-        final SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(1000);
-        requestFactory.setReadTimeout(1000);
-        final RestTemplate restTemplate = new RestTemplate(requestFactory);
         final Map<String, String> vars = new HashMap<>();
         try {
             final String response = restTemplate.getForObject(getGroupManagementOrganizationsApiUrl(), String.class, vars);

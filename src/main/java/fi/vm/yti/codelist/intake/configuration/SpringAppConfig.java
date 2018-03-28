@@ -20,7 +20,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -40,6 +43,8 @@ public class SpringAppConfig {
 
     @Value(value = "${application.contextPath}")
     private String contextPath;
+
+    private static int CONNECTION_TIMEOUT = 10000;
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -74,5 +79,18 @@ public class SpringAppConfig {
         final TransportAddress address = new TransportAddress(InetAddress.getByName(elasticsearchHost), elasticsearchPort);
         final Settings settings = Settings.builder().put("cluster.name", clusterName).put("client.transport.ignore_cluster_name", false).put("client.transport.sniff", false).build();
         return new PreBuiltTransportClient(settings).addTransportAddress(address);
+    }
+
+    @Bean
+    ClientHttpRequestFactory httpRequestFactory() {
+        final SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(CONNECTION_TIMEOUT);
+        requestFactory.setReadTimeout(CONNECTION_TIMEOUT);
+        return requestFactory;
+    }
+
+    @Bean
+    RestTemplate restTemplate() {
+        return new RestTemplate(httpRequestFactory());
     }
 }

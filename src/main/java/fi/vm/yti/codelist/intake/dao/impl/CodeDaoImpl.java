@@ -272,7 +272,7 @@ public class CodeDaoImpl implements CodeDao {
     private void setBroaderCodesAndEvaluateHierarchyLevels(final Map<String, String> broaderCodeMapping,
                                                            final Set<Code> codes) {
         final Map<String, Code> codeMap = new HashMap<>();
-        codes.forEach(code -> codeMap.put(code.getCodeValue(), code));
+        codes.forEach(code -> codeMap.put(code.getCodeValue().toLowerCase(), code));
         setBroaderCodes(broaderCodeMapping, codeMap);
         evaluateAndSetHierarchyLevels(codes);
     }
@@ -286,6 +286,8 @@ public class CodeDaoImpl implements CodeDao {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_BROADER_CODE_DOES_NOT_EXIST));
             } else if (broaderCode != null && broaderCode.getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_BROADER_CODE_SELF_REFERENCE));
+            } else if (code == null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
             } else {
                 code.setBroaderCodeId(broaderCode != null ? broaderCode.getId() : null);
             }

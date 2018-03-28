@@ -23,9 +23,19 @@ public class ContentIntakeServiceProperties {
     @NotNull
     private String contextPath;
 
+    private boolean dev;
+
     private boolean initializeContent;
 
     private boolean initializeTestContent;
+
+    public boolean getDev() {
+        return dev;
+    }
+
+    public void setDev(final boolean dev) {
+        this.dev = dev;
+    }
 
     public String getHost() {
         return host;

@@ -12,7 +12,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import fi.vm.yti.codelist.intake.resource.AbstractBaseResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -20,7 +19,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -29,12 +27,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
-import fi.vm.yti.codelist.intake.model.ErrorModel;
-import fi.vm.yti.codelist.intake.model.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.groupmanagement.GroupManagementUserRequest;
+import fi.vm.yti.codelist.intake.model.ErrorModel;
+import fi.vm.yti.codelist.intake.model.Meta;
+import fi.vm.yti.codelist.intake.resource.AbstractBaseResource;
 import fi.vm.yti.security.AuthenticatedUserProvider;
 import fi.vm.yti.security.Role;
 import fi.vm.yti.security.YtiUser;
@@ -53,12 +52,15 @@ public class GroupManagementProxyResource extends AbstractBaseResource {
     private static final Logger LOG = LoggerFactory.getLogger(GroupManagementProxyResource.class);
     private AuthenticatedUserProvider authenticatedUserProvider;
     private GroupManagementProperties groupManagementProperties;
+    private RestTemplate restTemplate;
 
     @Inject
     public GroupManagementProxyResource(final GroupManagementProperties groupManagementProperties,
-                                        final AuthenticatedUserProvider authenticatedUserProvider) {
+                                        final AuthenticatedUserProvider authenticatedUserProvider,
+                                        final RestTemplate restTemplate) {
         this.groupManagementProperties = groupManagementProperties;
         this.authenticatedUserProvider = authenticatedUserProvider;
+        this.restTemplate = restTemplate;
     }
 
     @GET
@@ -73,11 +75,6 @@ public class GroupManagementProxyResource extends AbstractBaseResource {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
 
-        final SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(1000);
-        requestFactory.setReadTimeout(1000);
-
-        final RestTemplate restTemplate = new RestTemplate(requestFactory);
         final String response = restTemplate.getForObject(createGroupManagementRequestsApiUrl(user.getEmail()), String.class);
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
@@ -110,11 +107,6 @@ public class GroupManagementProxyResource extends AbstractBaseResource {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
 
-        final SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(1000);
-        requestFactory.setReadTimeout(1000);
-
-        final RestTemplate restTemplate = new RestTemplate(requestFactory);
         final String requestUrl = createGroupManagementRequestApiUrl();
 
         final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
