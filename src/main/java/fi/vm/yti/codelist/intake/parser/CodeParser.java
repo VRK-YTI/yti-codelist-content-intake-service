@@ -5,12 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import fi.vm.yti.codelist.intake.model.Code;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -56,6 +53,7 @@ public class CodeParser extends AbstractBaseParser {
                                                      final Map<String, String> broaderCodeMapping) {
         final Set<CodeDTO> codes = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
+        final List<String> codeValuelist = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -64,21 +62,24 @@ public class CodeParser extends AbstractBaseParser {
             final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
             final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
             validateRequiredCodeHeaders(headerMap);
+            String previousBroader = null;
+            int childOrderIndex = 1;
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
+                String broaderCode = null;
                 validateRequiredDataOnRecord(record);
                 final CodeDTO code = new CodeDTO();
                 code.setId(parseIdFromRecord(record));
                 final String codeValue = parseCodeValueFromRecord(record);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
+                codeValuelist.add(codeValue);
                 code.setCodeValue(codeValue);
                 code.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 code.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                 code.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
                 code.setShortName(parseShortNameFromCsvRecord(record));
                 code.setFlatOrder(resolveFlatOrderFromCsvRecord(record));
-                code.setChildOrder(parseChildOrderFromCsvRecord(record));
                 if (record.isMapped(CONTENT_HEADER_BROADER)) {
                     final String broaderCodeCodeValue = record.get(CONTENT_HEADER_BROADER);
                     if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
@@ -96,8 +97,24 @@ public class CodeParser extends AbstractBaseParser {
                     code.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 }
                 validateStartDateIsBeforeEndDate(code);
+
+                Integer IntChildOrder = parseChildOrderFromCsvRecord(record);
+                if (codeValues.contains(broaderCode)) {
+                  String parentCode = codeValuelist.get(codeValuelist.indexOf(code.getCodeValue()));
+                  if (parentCode != null && !parentCode.isEmpty()) {
+                    if (broaderCode == previousBroader) {
+                        code.setChildOrder(childOrderIndex);
+                        childOrderIndex++;
+                    } else {
+                        childOrderIndex = 1;
+                    }
+                  }
+                }
+                else code.setChildOrder(IntChildOrder);
+                previousBroader = broaderCode;
                 codes.add(code);
             }
+
         } catch (final IllegalArgumentException e) {
             LOG.error("Duplicate header value found in CSV!", e);
             throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
@@ -280,9 +297,16 @@ public class CodeParser extends AbstractBaseParser {
                                                   final DataFormatter formatter) {
         final Integer order;
         if (headerMap.containsKey(CONTENT_HEADER_CHILDORDER)) {
-            order = resolveFlatOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CHILDORDER))));
+            order = resolveChildOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CHILDORDER))));
         } else {
-            order = null;
+            if (headerMap.containsKey(CONTENT_HEADER_BROADER)) {
+                final String broader = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_BROADER)));
+                if (broader == null || broader.isEmpty()) {
+                    order = 1;
+                }
+                else order = null; // TODO get the actual childorder
+            }
+            else order = null;
         }
         return order;
     }
@@ -301,6 +325,22 @@ public class CodeParser extends AbstractBaseParser {
             flatOrder = null;
         }
         return flatOrder;
+    }
+
+    private Integer resolveChildOrderFromString(final String childOrderString) {
+        final Integer childOrder;
+        if (!childOrderString.isEmpty()) {
+            try {
+                childOrder = Integer.parseInt(childOrderString);
+            } catch (final NumberFormatException e) {
+                throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        ERR_MSG_USER_CHILD_ORDER_INVALID_VALUE));
+            }
+        }
+        else {
+            childOrder = null;
+        }
+        return childOrder;
     }
 
     private void validateRequiredCodeHeaders(final Map<String, Integer> headerMap) {
@@ -370,6 +410,11 @@ public class CodeParser extends AbstractBaseParser {
                 LOG.error("Child order parsing failed from: " + childOrderString, e);
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CHILD_ORDER_INVALID_VALUE));
             }
+        }
+        else {
+            final String broader = parseStringFromCsvRecord(record, CONTENT_HEADER_BROADER);
+            if (broader == null || broader.isEmpty())
+                return 1;
         }
         return null;
     }
