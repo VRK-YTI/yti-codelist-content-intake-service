@@ -24,6 +24,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -41,6 +43,8 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Service
 public class ExternalReferenceParser extends AbstractBaseParser {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceParser.class);
 
     public ExternalReferenceDTO parseExternalReferenceFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
@@ -100,8 +104,10 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 externalReferences.add(externalReference);
             }
         } catch (final IllegalArgumentException e) {
+            LOG.error("Duplicate header value found in CSV!", e);
             throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
         } catch (final IOException e) {
+            LOG.error("Error parsing CSV file!", e);
             throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         return externalReferences;
@@ -147,6 +153,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 }
             }
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
+            LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
         return externalReferences;

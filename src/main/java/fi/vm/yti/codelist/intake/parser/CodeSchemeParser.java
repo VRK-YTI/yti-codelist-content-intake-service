@@ -21,6 +21,8 @@ import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +48,8 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Service
 public class CodeSchemeParser extends AbstractBaseParser {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParser.class);
 
     public CodeSchemeDTO parseCodeSchemeFromJsonData(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
@@ -123,8 +127,10 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 codeSchemes.add(codeScheme);
             }
         } catch (final IllegalArgumentException e) {
+            LOG.error("Duplicate header value found in CSV!", e);
             throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
         } catch (final IOException e) {
+            LOG.error("Error parsing CSV file!", e);
             throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         return codeSchemes;

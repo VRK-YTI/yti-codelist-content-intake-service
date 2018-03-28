@@ -23,6 +23,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +49,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Service
 public class CodeParser extends AbstractBaseParser {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CodeParser.class);
     private int maxFlatValue = 0;
 
     public Set<CodeDTO> parseCodesFromCsvInputStream(final InputStream inputStream,
@@ -96,8 +99,10 @@ public class CodeParser extends AbstractBaseParser {
                 codes.add(code);
             }
         } catch (final IllegalArgumentException e) {
+            LOG.error("Duplicate header value found in CSV!", e);
             throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
         } catch (final IOException e) {
+            LOG.error("Error parsing CSV file!", e);
             throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         return codes;
@@ -108,6 +113,7 @@ public class CodeParser extends AbstractBaseParser {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             return parseCodesFromExcelWorkbook(workbook, broaderCodeMapping);
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
+            LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
     }
@@ -179,6 +185,7 @@ public class CodeParser extends AbstractBaseParser {
             code = mapper.readValue(jsonPayload, CodeDTO.class);
             validateStartDateIsBeforeEndDate(code);
         } catch (final IOException e) {
+            LOG.error("Error parsing code from JSON!", e);
             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
         }
         return code;
@@ -230,6 +237,7 @@ public class CodeParser extends AbstractBaseParser {
             try {
                 hierarchyLevel = Integer.parseInt(hierarchyLevelString);
             } catch (final NumberFormatException e) {
+                LOG.error("Error parsing hierarchyLevel value from: " + hierarchyLevelString, e);
                 throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     ERR_MSG_USER_HIERARCHY_LEVEL_INVALID_VALUE));
             }
@@ -285,6 +293,7 @@ public class CodeParser extends AbstractBaseParser {
             try {
                 flatOrder = Integer.parseInt(flatOrderString);
             } catch (final NumberFormatException e) {
+                LOG.error("Error parsing flatOrder from: " + flatOrderString, e);
                 throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     ERR_MSG_USER_FLAT_ORDER_INVALID_VALUE));
             }
@@ -326,14 +335,17 @@ public class CodeParser extends AbstractBaseParser {
         // This problem happens for example when the user specifies CSV but gives Excel with certain kind of data.
         try {
             record.get(CONTENT_HEADER_ID);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
+            LOG.error("ID header not found on CSV file!", e);
             throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).isEmpty()) {
+            LOG.error("CODEVALUE header not found or value empty in CSV file!");
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(record.getRecordNumber() + 1)));
         }
         if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).isEmpty()) {
+            LOG.error("STATUS header not found or value empty in CSV file!");
             throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(record.getRecordNumber() + 1)));
         }
@@ -355,6 +367,7 @@ public class CodeParser extends AbstractBaseParser {
             try {
                 return Integer.parseInt(childOrderString);
             } catch (final NumberFormatException e) {
+                LOG.error("Child order parsing failed from: " + childOrderString, e);
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CHILD_ORDER_INVALID_VALUE));
             }
         }

@@ -123,6 +123,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                             codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), workbook);
                         }
                     } catch (final InvalidFormatException | IOException | POIXMLException e) {
+                        LOG.error("Error parsing Excel file!", e);
                         throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
                     }
                     break;
