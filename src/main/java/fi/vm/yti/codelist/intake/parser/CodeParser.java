@@ -5,12 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import fi.vm.yti.codelist.intake.model.Code;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -53,6 +50,7 @@ public class CodeParser extends AbstractBaseParser {
                                                      final Map<String, String> broaderCodeMapping) {
         final Set<CodeDTO> codes = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
+        final List<String> codeValuelist = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -61,27 +59,32 @@ public class CodeParser extends AbstractBaseParser {
             final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
             final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
             validateRequiredCodeHeaders(headerMap);
+            String previousBroader = null;
+            int childOrderIndex = 1;
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
+                String broaderCode = null;
                 validateRequiredDataOnRecord(record);
                 final CodeDTO code = new CodeDTO();
                 code.setId(parseIdFromRecord(record));
                 final String codeValue = parseCodeValueFromRecord(record);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
+                codeValuelist.add(codeValue);
                 code.setCodeValue(codeValue);
                 code.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 code.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                 code.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
                 code.setShortName(parseShortNameFromCsvRecord(record));
                 code.setFlatOrder(resolveFlatOrderFromCsvRecord(record));
-                code.setChildOrder(parseChildOrderFromCsvRecord(record));
                 if (record.isMapped(CONTENT_HEADER_BROADER)) {
                     final String broaderCodeCodeValue = record.get(CONTENT_HEADER_BROADER);
                     if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
                         broaderCodeMapping.put(codeValue, broaderCodeCodeValue);
+                        broaderCode = broaderCodeCodeValue;
                     } else {
                         broaderCodeMapping.put(codeValue, null);
+                        broaderCode = null;
                     }
                 }
                 code.setHierarchyLevel(resolveHierarchyLevelFromCsvRecord(record));
@@ -93,8 +96,24 @@ public class CodeParser extends AbstractBaseParser {
                     code.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 }
                 validateStartDateIsBeforeEndDate(code);
+
+                Integer IntChildOrder = parseChildOrderFromCsvRecord(record);
+                if (codeValues.contains(broaderCode)) {
+                  String parentCode = codeValuelist.get(codeValuelist.indexOf(code.getCodeValue()));
+                  if (parentCode != null && !parentCode.isEmpty()) {
+                    if (broaderCode == previousBroader) {
+                        code.setChildOrder(childOrderIndex);
+                        childOrderIndex++;
+                    } else {
+                        childOrderIndex = 1;
+                    }
+                  }
+                }
+                else code.setChildOrder(IntChildOrder);
+                previousBroader = broaderCode;
                 codes.add(code);
             }
+
         } catch (final IllegalArgumentException e) {
             throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
         } catch (final IOException e) {
