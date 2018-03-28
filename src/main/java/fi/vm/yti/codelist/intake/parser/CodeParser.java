@@ -224,6 +224,7 @@ public class CodeParser extends AbstractBaseParser {
                 codeValues.add(code.getCodeValue());
             }
         } catch (final IOException e) {
+            LOG.error("Error parsing codes from JSON data!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
         return codes;
