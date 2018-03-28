@@ -5,9 +5,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import fi.vm.yti.codelist.intake.model.Code;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -100,17 +104,16 @@ public class CodeParser extends AbstractBaseParser {
 
                 Integer IntChildOrder = parseChildOrderFromCsvRecord(record);
                 if (codeValues.contains(broaderCode)) {
-                  String parentCode = codeValuelist.get(codeValuelist.indexOf(code.getCodeValue()));
-                  if (parentCode != null && !parentCode.isEmpty()) {
-                    if (broaderCode == previousBroader) {
-                        code.setChildOrder(childOrderIndex);
-                        childOrderIndex++;
-                    } else {
-                        childOrderIndex = 1;
+                    String parentCode = codeValuelist.get(codeValuelist.indexOf(code.getCodeValue()));
+                    if (parentCode != null && !parentCode.isEmpty()) {
+                        if (broaderCode == previousBroader) {
+                            code.setChildOrder(childOrderIndex);
+                            childOrderIndex++;
+                        } else {
+                            childOrderIndex = 1;
+                        }
                     }
-                  }
-                }
-                else code.setChildOrder(IntChildOrder);
+                } else code.setChildOrder(IntChildOrder);
                 previousBroader = broaderCode;
                 codes.add(code);
             }
@@ -303,10 +306,8 @@ public class CodeParser extends AbstractBaseParser {
                 final String broader = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_BROADER)));
                 if (broader == null || broader.isEmpty()) {
                     order = 1;
-                }
-                else order = null; // TODO get the actual childorder
-            }
-            else order = null;
+                } else order = null; // TODO get the actual childorder
+            } else order = null;
         }
         return order;
     }
@@ -334,10 +335,9 @@ public class CodeParser extends AbstractBaseParser {
                 childOrder = Integer.parseInt(childOrderString);
             } catch (final NumberFormatException e) {
                 throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        ERR_MSG_USER_CHILD_ORDER_INVALID_VALUE));
+                    ERR_MSG_USER_CHILD_ORDER_INVALID_VALUE));
             }
-        }
-        else {
+        } else {
             childOrder = null;
         }
         return childOrder;
@@ -410,8 +410,7 @@ public class CodeParser extends AbstractBaseParser {
                 LOG.error("Child order parsing failed from: " + childOrderString, e);
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CHILD_ORDER_INVALID_VALUE));
             }
-        }
-        else {
+        } else {
             final String broader = parseStringFromCsvRecord(record, CONTENT_HEADER_BROADER);
             if (broader == null || broader.isEmpty())
                 return 1;
