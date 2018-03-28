@@ -44,7 +44,7 @@ public class SpringAppConfig {
     @Value(value = "${application.contextPath}")
     private String contextPath;
 
-    private static int CONNECTION_TIMEOUT = 10000;
+    private static final int CONNECTION_TIMEOUT = 10000;
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
