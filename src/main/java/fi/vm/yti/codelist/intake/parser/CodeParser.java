@@ -102,7 +102,7 @@ public class CodeParser extends AbstractBaseParser {
                 }
                 validateStartDateIsBeforeEndDate(code);
 
-                Integer IntChildOrder = parseChildOrderFromCsvRecord(record);
+                final Integer intChildOrder = parseChildOrderFromCsvRecord(record);
                 if (codeValues.contains(broaderCode)) {
                     String parentCode = codeValuelist.get(codeValuelist.indexOf(code.getCodeValue()));
                     if (parentCode != null && !parentCode.isEmpty()) {
@@ -113,7 +113,7 @@ public class CodeParser extends AbstractBaseParser {
                             childOrderIndex = 1;
                         }
                     }
-                } else code.setChildOrder(IntChildOrder);
+                } else code.setChildOrder(intChildOrder);
                 previousBroader = broaderCode;
                 codes.add(code);
             }
