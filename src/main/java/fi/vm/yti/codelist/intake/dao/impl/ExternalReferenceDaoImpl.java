@@ -85,7 +85,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         } else if (!isGlobal) {
             externalReference = createExternalReference(fromExternalReference, codeScheme);
         } else if (codeScheme == null) {
-            externalReference = createExternalReference(fromExternalReference, codeScheme);
+            externalReference = createExternalReference(fromExternalReference, null);
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
         }
