@@ -58,6 +58,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
             codeScheme = mapper.readValue(jsonPayload, CodeSchemeDTO.class);
             validateStartDateIsBeforeEndDate(codeScheme);
         } catch (final IOException e) {
+            LOG.error("CodeScheme parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
         return codeScheme;
@@ -71,6 +72,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
             codeSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<CodeSchemeDTO>>() {
             });
         } catch (final IOException e) {
+            LOG.error("CodeSchemes parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
         for (final CodeSchemeDTO codeScheme : codeSchemes) {

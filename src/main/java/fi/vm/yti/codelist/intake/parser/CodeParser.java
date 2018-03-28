@@ -117,7 +117,6 @@ public class CodeParser extends AbstractBaseParser {
                 previousBroader = broaderCode;
                 codes.add(code);
             }
-
         } catch (final IllegalArgumentException e) {
             LOG.error("Duplicate header value found in CSV!", e);
             throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
@@ -205,7 +204,7 @@ public class CodeParser extends AbstractBaseParser {
             code = mapper.readValue(jsonPayload, CodeDTO.class);
             validateStartDateIsBeforeEndDate(code);
         } catch (final IOException e) {
-            LOG.error("Error parsing code from JSON!", e);
+            LOG.error("Code parsing failed from JSON!", e);
             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
         }
         return code;
@@ -224,7 +223,7 @@ public class CodeParser extends AbstractBaseParser {
                 codeValues.add(code.getCodeValue());
             }
         } catch (final IOException e) {
-            LOG.error("Error parsing codes from JSON data!", e);
+            LOG.error("Codes parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
         return codes;

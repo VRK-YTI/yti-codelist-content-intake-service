@@ -49,6 +49,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
         try {
             fromPropertyType = mapper.readValue(jsonPayload, PropertyTypeDTO.class);
         } catch (final IOException e) {
+            LOG.error("PropertyType parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
         return fromPropertyType;
@@ -61,6 +62,7 @@ public class PropertyTypeParser extends AbstractBaseParser {
             propertyTypes = mapper.readValue(jsonPayload, new TypeReference<Set<PropertyTypeDTO>>() {
             });
         } catch (final IOException e) {
+            LOG.error("PropertyTypes parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
         return propertyTypes;

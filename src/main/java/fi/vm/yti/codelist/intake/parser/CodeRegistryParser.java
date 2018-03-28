@@ -54,6 +54,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
         try {
             fromCodeRegistry = mapper.readValue(jsonPayload, CodeRegistryDTO.class);
         } catch (final IOException e) {
+            LOG.error("CodeRegistry parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
         return fromCodeRegistry;
@@ -67,6 +68,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
             fromCodeRegistries = mapper.readValue(jsonPayload, new TypeReference<Set<CodeRegistryDTO>>() {
             });
         } catch (final IOException e) {
+            LOG.error("CodeRegistries parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
         for (final CodeRegistryDTO fromCodeRegistry : fromCodeRegistries) {
