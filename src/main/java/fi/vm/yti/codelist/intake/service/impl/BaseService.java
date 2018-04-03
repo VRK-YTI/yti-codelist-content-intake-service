@@ -201,7 +201,9 @@ abstract class BaseService {
         organizationDto.setDescription(organization.getDescription());
         organizationDto.setPrefLabel(organization.getPrefLabel());
         if (deep) {
-            organizationDto.setCodeRegistries(mapCodeRegistryDtos(organization.getCodeRegistries()));
+            if (organization.getCodeRegistries() != null) {
+                organizationDto.setCodeRegistries(mapCodeRegistryDtos(organization.getCodeRegistries()));
+            }
         }
         return organizationDto;
     }
