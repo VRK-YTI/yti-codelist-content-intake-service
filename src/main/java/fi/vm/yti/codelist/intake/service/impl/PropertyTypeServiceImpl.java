@@ -57,8 +57,16 @@ public class PropertyTypeServiceImpl extends BaseService implements PropertyType
     public Set<PropertyTypeDTO> parseAndPersistPropertyTypesFromSourceData(final String format,
                                                                            final InputStream inputStream,
                                                                            final String jsonPayload) {
+        return parseAndPersistPropertyTypesFromSourceData(false, format, inputStream, jsonPayload);
+    }
+
+    @Transactional
+    public Set<PropertyTypeDTO> parseAndPersistPropertyTypesFromSourceData(final boolean internal,
+                                                                           final String format,
+                                                                           final InputStream inputStream,
+                                                                           final String jsonPayload) {
         Set<PropertyType> propertyTypes;
-        if (!authorizationManager.isSuperUser()) {
+        if (!internal && !authorizationManager.isSuperUser()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         switch (format.toLowerCase()) {

@@ -63,8 +63,17 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
                                                                                      final InputStream inputStream,
                                                                                      final String jsonPayload,
                                                                                      final CodeScheme codeScheme) {
+        return parseAndPersistExternalReferencesFromSourceData(false, format, inputStream, jsonPayload, codeScheme);
+    }
+
+    @Transactional
+    public Set<ExternalReferenceDTO> parseAndPersistExternalReferencesFromSourceData(final boolean internal,
+                                                                                     final String format,
+                                                                                     final InputStream inputStream,
+                                                                                     final String jsonPayload,
+                                                                                     final CodeScheme codeScheme) {
         Set<ExternalReference> externalReferences;
-        if (!authorizationManager.isSuperUser()) {
+        if (!internal && !authorizationManager.isSuperUser()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         switch (format.toLowerCase()) {

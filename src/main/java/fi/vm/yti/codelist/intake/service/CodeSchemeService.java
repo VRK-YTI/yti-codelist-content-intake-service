@@ -15,6 +15,12 @@ public interface CodeSchemeService {
     CodeSchemeDTO findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                           final String codeSchemeCodeValue);
 
+    Set<CodeSchemeDTO> parseAndPersistCodeSchemesFromSourceData(final boolean internal,
+                                                                final String codeRegistryCodeValue,
+                                                                final String format,
+                                                                final InputStream inputStream,
+                                                                final String jsonPayload);
+
     Set<CodeSchemeDTO> parseAndPersistCodeSchemesFromSourceData(final String codeRegistryCodeValue,
                                                                 final String format,
                                                                 final InputStream inputStream,

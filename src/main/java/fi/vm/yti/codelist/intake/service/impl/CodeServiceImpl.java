@@ -110,10 +110,20 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                                                            final String format,
                                                            final InputStream inputStream,
                                                            final String jsonPayload) {
+        return parseAndPersistCodesFromSourceData(false, codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload);
+    }
+
+    @Transactional
+    public Set<CodeDTO> parseAndPersistCodesFromSourceData(final boolean internal,
+                                                           final String codeRegistryCodeValue,
+                                                           final String codeSchemeCodeValue,
+                                                           final String format,
+                                                           final InputStream inputStream,
+                                                           final String jsonPayload) {
         Set<Code> codes;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
+            if (!internal && !authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);

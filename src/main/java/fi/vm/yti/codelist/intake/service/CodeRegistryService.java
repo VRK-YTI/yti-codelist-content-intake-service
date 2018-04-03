@@ -11,6 +11,11 @@ public interface CodeRegistryService {
 
     CodeRegistryDTO findByCodeValue(final String codeValue);
 
+    Set<CodeRegistryDTO> parseAndPersistCodeRegistriesFromSourceData(final boolean internal,
+                                                                     final String format,
+                                                                     final InputStream inputStream,
+                                                                     final String jsonPayload);
+
     Set<CodeRegistryDTO> parseAndPersistCodeRegistriesFromSourceData(final String format,
                                                                      final InputStream inputStream,
                                                                      final String jsonPayload);

@@ -15,6 +15,11 @@ public interface PropertyTypeService {
                                                                     final InputStream inputStream,
                                                                     final String jsonPayload);
 
+    Set<PropertyTypeDTO> parseAndPersistPropertyTypesFromSourceData(final boolean internal,
+                                                                    final String format,
+                                                                    final InputStream inputStream,
+                                                                    final String jsonPayload);
+
     PropertyTypeDTO parseAndPersistPropertyTypeFromJson(final String propertyTypeId,
                                                         final String jsonPayload);
 }

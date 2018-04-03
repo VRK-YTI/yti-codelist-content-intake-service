@@ -61,8 +61,16 @@ public class CodeRegistryServiceImpl extends BaseService implements CodeRegistry
     public Set<CodeRegistryDTO> parseAndPersistCodeRegistriesFromSourceData(final String format,
                                                                             final InputStream inputStream,
                                                                             final String jsonPayload) {
+        return parseAndPersistCodeRegistriesFromSourceData(false, format, inputStream, jsonPayload);
+    }
+
+    @Transactional
+    public Set<CodeRegistryDTO> parseAndPersistCodeRegistriesFromSourceData(final boolean internal,
+                                                                            final String format,
+                                                                            final InputStream inputStream,
+                                                                            final String jsonPayload) {
         Set<CodeRegistry> codeRegistries;
-        if (!authorizationManager.isSuperUser()) {
+        if (!internal && !authorizationManager.isSuperUser()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         switch (format.toLowerCase()) {

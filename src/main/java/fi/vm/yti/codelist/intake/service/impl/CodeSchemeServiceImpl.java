@@ -92,10 +92,19 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                                                        final String format,
                                                                        final InputStream inputStream,
                                                                        final String jsonPayload) {
+        return parseAndPersistCodeSchemesFromSourceData(false, codeRegistryCodeValue, format, inputStream, jsonPayload);
+    }
+
+    @Transactional
+    public Set<CodeSchemeDTO> parseAndPersistCodeSchemesFromSourceData(final boolean internal,
+                                                                       final String codeRegistryCodeValue,
+                                                                       final String format,
+                                                                       final InputStream inputStream,
+                                                                       final String jsonPayload) {
         final Set<CodeScheme> codeSchemes;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
+            if (!internal && !authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
             switch (format.toLowerCase()) {

@@ -13,6 +13,12 @@ public interface ExternalReferenceService {
 
     Set<ExternalReferenceDTO> findByParentCodeSchemeId(final UUID codeSchemeId);
 
+    Set<ExternalReferenceDTO> parseAndPersistExternalReferencesFromSourceData(final boolean internal,
+                                                                              final String format,
+                                                                              final InputStream inputStream,
+                                                                              final String jsonPayload,
+                                                                              final CodeScheme codeScheme);
+
     Set<ExternalReferenceDTO> parseAndPersistExternalReferencesFromSourceData(final String format,
                                                                               final InputStream inputStream,
                                                                               final String jsonPayload,

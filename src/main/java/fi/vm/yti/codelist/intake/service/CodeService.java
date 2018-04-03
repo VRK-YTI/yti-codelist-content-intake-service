@@ -18,6 +18,13 @@ public interface CodeService {
                                                        final String codeSchemeCodeValue,
                                                        final Workbook workbook);
 
+    Set<CodeDTO> parseAndPersistCodesFromSourceData(final boolean internal,
+                                                    final String codeRegistryCodeValue,
+                                                    final String codeSchemeCodeValue,
+                                                    final String format,
+                                                    final InputStream inputStream,
+                                                    final String jsonPayload);
+
     Set<CodeDTO> parseAndPersistCodesFromSourceData(final String codeRegistryCodeValue,
                                                     final String codeSchemeCodeValue,
                                                     final String format,
