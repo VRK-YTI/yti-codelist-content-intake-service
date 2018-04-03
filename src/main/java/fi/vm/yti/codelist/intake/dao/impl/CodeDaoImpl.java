@@ -175,6 +175,14 @@ public class CodeDaoImpl implements CodeDao {
             existingCode.setHierarchyLevel(fromCode.getHierarchyLevel());
             hasChanges = true;
         }
+        if (!Objects.equals(existingCode.getFlatOrder(), fromCode.getFlatOrder())) {
+            existingCode.setFlatOrder(fromCode.getFlatOrder());
+            hasChanges = true;
+        }
+        if (!Objects.equals(existingCode.getChildOrder(), fromCode.getChildOrder())) {
+            existingCode.setChildOrder(fromCode.getChildOrder());
+            hasChanges = true;
+        }
         if (!Objects.equals(existingCode.getBroaderCodeId(), fromCode.getBroaderCodeId())) {
             existingCode.setBroaderCodeId(fromCode.getBroaderCodeId());
             hasChanges = true;
@@ -233,6 +241,9 @@ public class CodeDaoImpl implements CodeDao {
         code.setShortName(fromCode.getShortName());
         code.setHierarchyLevel(fromCode.getHierarchyLevel());
         code.setBroaderCodeId(fromCode.getBroaderCodeId());
+        code.setFlatOrder(fromCode.getFlatOrder());
+        code.setChildOrder(fromCode.getChildOrder());
+
         final Date timeStamp = new Date(System.currentTimeMillis());
         code.setModified(timeStamp);
         for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
