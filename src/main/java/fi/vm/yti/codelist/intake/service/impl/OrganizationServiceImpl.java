@@ -63,8 +63,10 @@ public class OrganizationServiceImpl extends BaseService implements Organization
         final Set<Organization> organizations = new HashSet<>();
         for (final GroupManagementOrganizationDTO groupManagementOrganization : groupManagementOrganizations) {
             final Organization organization = createOrUpdateOrganizationFromGroupManagementOrganizationDto(groupManagementOrganization);
-            // Below used to resolve lazy
-            final Integer size = organization.getCodeRegistries().size();
+            if (organization.getCodeRegistries() != null) {
+                // Below used to resolve lazy
+                final Integer size = organization.getCodeRegistries().size();
+            }
             organizations.add(organization);
         }
         if (!organizations.isEmpty()) {
