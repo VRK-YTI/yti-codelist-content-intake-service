@@ -61,7 +61,6 @@ public class ApiUtils {
         builder.append("/");
         if (resourceId != null) {
             builder.append(resourceId);
-            builder.append("/");
         }
         return builder.toString();
     }
@@ -83,7 +82,6 @@ public class ApiUtils {
         builder.append("/");
         if (resourcePath != null) {
             builder.append(resourcePath);
-            builder.append("/");
         }
         return builder.toString();
     }
