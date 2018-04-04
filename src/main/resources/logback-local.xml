@@ -2,7 +2,6 @@
 <configuration>
 
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
-    <property name="SERVICE_NAME" value="yti-codelist-content-intake-service"/>
 
     <!--<logger name="org.hibernate.SQL" level="DEBUG" />-->
     <!--<logger name="org.hibernate.type" level="DEBUG" />-->
