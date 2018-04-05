@@ -31,6 +31,8 @@ public class ErrorConstants {
     public static final String ERR_MSG_PATH_CODE_MISMATCH = "ERR_MSG_PATH_CODE_MISMATCH";
     public static final String ERR_MSG_STATUS_CHANGE_NOT_ALLOWED = "ERR_MSG_STATUS_CHANGE_NOT_ALLOWED";
     public static final String ERR_MSG_INVALID_ID = "ERR_MSG_INVALID_ID";
+    public static final String ERR_MSG_INVALID_CODE_CODEVALUE = "ERR_MSG_INVALID_CODE_CODEVALUE";
+    public static final String ERR_MSG_INVALID_CODEVALUE = "ERR_MSG_INVALID_CODEVALUE";
 
     private ErrorConstants() {
     }

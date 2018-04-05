@@ -103,6 +103,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 validateRequiredDataOnRecord(record);
                 final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
                 final String codeValue = parseCodeValueFromRecord(record);
+                validateCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
                 codeScheme.setCodeValue(codeValue);
@@ -186,6 +187,7 @@ public class CodeSchemeParser extends AbstractBaseParser {
                 if (codeValue == null || codeValue.trim().isEmpty()) {
                     continue;
                 }
+                validateCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
                 codeScheme.setCodeValue(codeValue);

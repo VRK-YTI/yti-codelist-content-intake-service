@@ -20,6 +20,7 @@ import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.Organization;
+import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.validateCodeValue;
 
 @Component
 public class CodeRegistryDaoImpl implements CodeRegistryDao {
@@ -123,7 +124,9 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         final Date timeStamp = new Date(System.currentTimeMillis());
         final CodeRegistry codeRegistry = new CodeRegistry();
         codeRegistry.setId(UUID.randomUUID());
-        codeRegistry.setCodeValue(fromCodeRegistry.getCodeValue());
+        final String codeValue = fromCodeRegistry.getCodeValue();
+        validateCodeValue(codeValue);
+        codeRegistry.setCodeValue(codeValue);
         codeRegistry.setModified(timeStamp);
         codeRegistry.setOrganizations(resolveOrganizationsFromDtos(fromCodeRegistry.getOrganizations()));
         for (Map.Entry<String, String> entry : fromCodeRegistry.getPrefLabel().entrySet()) {

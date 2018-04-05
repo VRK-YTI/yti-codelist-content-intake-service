@@ -29,8 +29,7 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ErrorModel;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
-import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.JUPO_REGISTRY;
-import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
+import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.*;
 
 @Component
 public class CodeSchemeDaoImpl implements CodeSchemeDao {
@@ -253,7 +252,9 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             final UUID uuid = UUID.randomUUID();
             codeScheme.setId(uuid);
         }
-        codeScheme.setCodeValue(fromCodeScheme.getCodeValue());
+        final String codeValue = fromCodeScheme.getCodeValue();
+        validateCodeValue(codeValue);
+        codeScheme.setCodeValue(codeValue);
         codeScheme.setSource(fromCodeScheme.getSource());
         codeScheme.setLegalBase(fromCodeScheme.getLegalBase());
         codeScheme.setGovernancePolicy(fromCodeScheme.getGovernancePolicy());

@@ -91,6 +91,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
             records.forEach(record -> {
                 final CodeRegistryDTO fromCodeRegistry = new CodeRegistryDTO();
                 final String codeValue = parseCodeValueFromRecord(record);
+                validateCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
                 fromCodeRegistry.setCodeValue(codeValue);
@@ -138,6 +139,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
                     if (codeValue == null || codeValue.trim().isEmpty()) {
                         continue;
                     }
+                    validateCodeValue(codeValue);
                     checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                     codeValues.add(codeValue);
                     fromCodeRegistry.setCodeValue(codeValue);

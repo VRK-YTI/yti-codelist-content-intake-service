@@ -36,6 +36,8 @@ public abstract class AbstractBaseParser {
     public static final String JUPO_REGISTRY = "jupo";
     public static final String YTI_DATACLASSIFICATION_CODESCHEME = "serviceclassification";
     private static final Logger LOG = LoggerFactory.getLogger(AbstractBaseParser.class);
+    private static final String CODE_CODEVALUE_VALIDATOR = "^[a-zA-Z0-9_\\-\\.]*$";
+    private static final String CODESCHEME_CODEVALUE_VALIDATOR = "^[a-zA-Z0-9_\\-]*$";
 
     public static boolean isRowEmpty(final Row row) {
         for (int cellIndex = row.getFirstCellNum(); cellIndex < row.getLastCellNum(); cellIndex++) {
@@ -226,5 +228,19 @@ public abstract class AbstractBaseParser {
 
     public String parseEndDateStringFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_ENDDATE);
+    }
+
+    public static void validateCodeCodeValue(final String codeValue) {
+        if (!codeValue.matches(CODE_CODEVALUE_VALIDATOR)) {
+            LOG.error("Error with code: " + codeValue);
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODE_CODEVALUE));
+        }
+    }
+
+    public static void validateCodeValue(final String codeValue) {
+        if (!codeValue.matches(CODESCHEME_CODEVALUE_VALIDATOR)) {
+            LOG.error("Error with code: " + codeValue);
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODEVALUE));
+        }
     }
 }

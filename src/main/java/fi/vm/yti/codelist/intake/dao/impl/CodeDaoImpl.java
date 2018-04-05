@@ -26,6 +26,7 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ErrorModel;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
+import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.validateCodeCodeValue;
 
 @Component
 public class CodeDaoImpl implements CodeDao {
@@ -237,7 +238,9 @@ public class CodeDaoImpl implements CodeDao {
         }
         code.setStatus(fromCode.getStatus());
         code.setCodeScheme(codeScheme);
-        code.setCodeValue(fromCode.getCodeValue());
+        final String codeValue = fromCode.getCodeValue();
+        validateCodeCodeValue(codeValue);
+        code.setCodeValue(codeValue);
         code.setShortName(fromCode.getShortName());
         code.setHierarchyLevel(fromCode.getHierarchyLevel());
         code.setBroaderCodeId(fromCode.getBroaderCodeId());

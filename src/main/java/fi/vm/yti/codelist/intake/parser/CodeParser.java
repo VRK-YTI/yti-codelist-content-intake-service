@@ -75,6 +75,7 @@ public class CodeParser extends AbstractBaseParser {
                 final CodeDTO code = new CodeDTO();
                 code.setId(parseIdFromRecord(record));
                 final String codeValue = parseCodeValueFromRecord(record);
+                validateCodeCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
                 codeValuelist.add(codeValue);
@@ -169,6 +170,10 @@ public class CodeParser extends AbstractBaseParser {
                 validateRequiredDataOnRow(row, headerMap, formatter);
                 final CodeDTO code = new CodeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
+                if (codeValue == null || codeValue.trim().isEmpty()) {
+                    continue;
+                }
+                validateCodeCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
                 code.setCodeValue(codeValue);
