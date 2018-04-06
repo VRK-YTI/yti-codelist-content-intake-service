@@ -116,7 +116,12 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
 
     private Set<Organization> resolveOrganizationsFromDtos(final Set<OrganizationDTO> organizationDtos) {
         final Set<Organization> organizations = new HashSet<>();
-        organizationDtos.forEach(organizationDto -> organizations.add(organizationRepository.findById(organizationDto.getId())));
+        organizationDtos.forEach(organizationDto -> {
+            final Organization organization = organizationRepository.findById(organizationDto.getId());
+            if (organization != null) {
+                organizations.add(organization);
+            }
+        });
         return organizations;
     }
 

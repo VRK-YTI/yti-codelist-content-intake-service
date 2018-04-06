@@ -37,12 +37,17 @@ public class OrganizationServiceImpl extends BaseService implements Organization
 
     @Transactional
     public Set<OrganizationDTO> findAll() {
-        return mapOrganizationDtos(organizationRepository.findAll(), false);
+        return mapOrganizationDtos(organizationRepository.findAll(), true);
+    }
+
+    @Transactional
+    public Set<OrganizationDTO> findByRemovedIsFalse() {
+        return mapOrganizationDtos(organizationRepository.findByRemovedIsFalse(), true);
     }
 
     @Transactional
     public OrganizationDTO findById(final UUID organizationId) {
-        return mapOrganizationDto(organizationRepository.findById(organizationId), false);
+        return mapOrganizationDto(organizationRepository.findById(organizationId), true);
     }
 
     @Transactional

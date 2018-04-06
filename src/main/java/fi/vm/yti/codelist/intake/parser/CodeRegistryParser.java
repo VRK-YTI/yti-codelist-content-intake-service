@@ -169,6 +169,7 @@ public class CodeRegistryParser extends AbstractBaseParser {
             for (final String organizationId : organizationsString.split(";")) {
                 final OrganizationDTO organization = new OrganizationDTO();
                 organization.setId(UUID.fromString(organizationId));
+                organizations.add(organization);
             }
         }
         return organizations;

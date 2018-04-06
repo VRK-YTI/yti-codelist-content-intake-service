@@ -9,6 +9,8 @@ public interface OrganizationService {
 
     Set<OrganizationDTO> findAll();
 
+    Set<OrganizationDTO> findByRemovedIsFalse();
+
     OrganizationDTO findById(final UUID organizationId);
 
     Set<OrganizationDTO> parseAndPersistGroupManagementOrganizationsFromJson(final String jsonPayload);

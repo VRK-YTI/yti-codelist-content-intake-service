@@ -19,10 +19,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
-import fi.vm.yti.codelist.intake.model.Meta;
-import fi.vm.yti.codelist.intake.model.Organization;
+import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
-import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
+import fi.vm.yti.codelist.intake.model.Meta;
+import fi.vm.yti.codelist.intake.service.OrganizationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -36,11 +36,11 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 public class OrganizationResource extends AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrganizationResource.class);
-    private final OrganizationRepository organizationRepository;
+    private final OrganizationService organizationService;
 
     @Inject
-    public OrganizationResource(final OrganizationRepository organizationRepository) {
-        this.organizationRepository = organizationRepository;
+    public OrganizationResource(final OrganizationService organizationService) {
+        this.organizationService = organizationService;
     }
 
     @GET
@@ -52,11 +52,10 @@ public class OrganizationResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ORGANIZATIONS + "/");
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_ORGANIZATION, expand)));
         final Meta meta = new Meta();
-        final ResponseWrapper<Organization> wrapper = new ResponseWrapper<>();
+        final ResponseWrapper<OrganizationDTO> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);
         final ObjectMapper mapper = createObjectMapper();
-        final Set<Organization> organizations = organizationRepository.findByRemovedIsFalse();
-        organizations.forEach(organization -> organization.getCodeRegistries().size());
+        final Set<OrganizationDTO> organizations = organizationService.findByRemovedIsFalse();
         meta.setCode(200);
         meta.setResultCount(organizations.size());
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
