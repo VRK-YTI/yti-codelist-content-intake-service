@@ -231,7 +231,7 @@ public abstract class AbstractBaseParser {
     }
 
     public static void validateCodeCodeValue(final String codeValue) {
-        if (!codeValue.matches(CODE_CODEVALUE_VALIDATOR)) {
+        if (codeValue == null || !codeValue.matches(CODE_CODEVALUE_VALIDATOR)) {
             LOG.error("Error with code: " + codeValue);
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODE_CODEVALUE));
         }
