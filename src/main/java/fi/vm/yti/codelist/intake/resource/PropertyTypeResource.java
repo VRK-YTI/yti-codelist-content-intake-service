@@ -59,8 +59,8 @@ public class PropertyTypeResource extends AbstractBaseResource {
     @ApiOperation(value = "Parses PropertyTypes from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response addOrUpdatePropertyTypesFromJson(@ApiParam(value = "JSON playload for PropertyType data.") final String jsonPayload) {
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/");
-        return parseAndPersistExistingReferencesFromSource(FORMAT_JSON, null, jsonPayload);
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_PROPERTYTYPES + "/");
+        return parseAndPersistPropertyTypesFromSource(FORMAT_JSON, null, jsonPayload);
     }
 
     @POST
@@ -73,8 +73,8 @@ public class PropertyTypeResource extends AbstractBaseResource {
     })
     public Response addOrUpdatePropertyTypesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
                                                      @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/");
-        return parseAndPersistExistingReferencesFromSource(FORMAT_JSON, inputStream, null);
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_PROPERTYTYPES + "/");
+        return parseAndPersistPropertyTypesFromSource(FORMAT_JSON, inputStream, null);
     }
 
     @POST
@@ -85,7 +85,7 @@ public class PropertyTypeResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Returns success.")
     public Response updatePropertyType(@ApiParam(value = "PropertyType ID", required = true) @PathParam("PropertyTypeId") final String propertyTypeId,
                                        @ApiParam(value = "JSON playload for PropertyType data.") final String jsonPayload) {
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_EXTERNALREFERENCES + "/" + propertyTypeId + "/");
+        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_PROPERTYTYPES + "/" + propertyTypeId + "/");
         final PropertyTypeDTO propertyType = propertyTypeService.parseAndPersistPropertyTypeFromJson(propertyTypeId, jsonPayload);
         indexing.updatePropertyType(propertyType);
         final Meta meta = new Meta();
@@ -93,9 +93,9 @@ public class PropertyTypeResource extends AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
-    private Response parseAndPersistExistingReferencesFromSource(final String format,
-                                                                 final InputStream inputStream,
-                                                                 final String jsonPayload) {
+    private Response parseAndPersistPropertyTypesFromSource(final String format,
+                                                            final InputStream inputStream,
+                                                            final String jsonPayload) {
         final Set<PropertyTypeDTO> propertyTypes = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(format, inputStream, jsonPayload);
         indexing.updatePropertyTypes(propertyTypes);
         final Meta meta = new Meta();
