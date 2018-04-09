@@ -43,7 +43,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     @Transactional
     public ExternalReference updateExternalReferenceFromDto(final ExternalReferenceDTO externalReferenceDto,
                                                             final CodeScheme codeScheme) {
-        ExternalReference externalReference = createOrUpdateExternalReference(externalReferenceDto, codeScheme);
+        ExternalReference externalReference = createOrUpdateExternalReference(false, externalReferenceDto, codeScheme);
         externalReferenceRepository.save(externalReference);
         return externalReference;
     }
@@ -51,10 +51,17 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     @Transactional
     public Set<ExternalReference> updateExternalReferenceEntitiesFromDtos(final Set<ExternalReferenceDTO> externalReferenceDtos,
                                                                           final CodeScheme codeScheme) {
+        return updateExternalReferenceEntitiesFromDtos(false, externalReferenceDtos, codeScheme);
+    }
+
+    @Transactional
+    public Set<ExternalReference> updateExternalReferenceEntitiesFromDtos(final boolean internal,
+                                                                          final Set<ExternalReferenceDTO> externalReferenceDtos,
+                                                                          final CodeScheme codeScheme) {
         final Set<ExternalReference> externalReferences = new HashSet<>();
         if (externalReferenceDtos != null) {
             for (final ExternalReferenceDTO externalReferenceDto : externalReferenceDtos) {
-                final ExternalReference externalReference = createOrUpdateExternalReference(externalReferenceDto, codeScheme);
+                final ExternalReference externalReference = createOrUpdateExternalReference(internal, externalReferenceDto, codeScheme);
                 if (externalReference != null) {
                     externalReferences.add(externalReference);
                 }
@@ -66,7 +73,8 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         return externalReferences;
     }
 
-    public ExternalReference createOrUpdateExternalReference(final ExternalReferenceDTO fromExternalReference,
+    public ExternalReference createOrUpdateExternalReference(final boolean internal,
+                                                             final ExternalReferenceDTO fromExternalReference,
                                                              final CodeScheme codeScheme) {
         final boolean isGlobal = fromExternalReference.getGlobal() != null ? fromExternalReference.getGlobal() : true;
         final ExternalReference existingExternalReference;
@@ -78,7 +86,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
             existingExternalReference = null;
         }
         final ExternalReference externalReference;
-        if (existingExternalReference != null && isGlobal) {
+        if (!internal && existingExternalReference != null && isGlobal) {
             externalReference = existingExternalReference;
         } else if (existingExternalReference != null) {
             externalReference = updateExternalReference(existingExternalReference, fromExternalReference, codeScheme);

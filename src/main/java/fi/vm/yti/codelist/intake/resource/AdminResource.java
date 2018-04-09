@@ -175,7 +175,7 @@ public class AdminResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_GET, API_PATH_ADMIN + API_PATH_EXTERNALREFERENCES + API_PATH_RELOAD);
         if (authorizationManager.isSuperUser()) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_EXTERNALREFERENCES + "/" + DEFAULT_EXTERNALREFERENCE_FILENAME)) {
-                final Set<ExternalReferenceDTO> externalReferenceDtos = externalReferenceService.parseAndPersistExternalReferencesFromSourceData(FORMAT_CSV, inputStream, null, null);
+                final Set<ExternalReferenceDTO> externalReferenceDtos = externalReferenceService.parseAndPersistExternalReferencesFromSourceData(true, FORMAT_CSV, inputStream, null, null);
                 LOG.info("Reloaded " + externalReferenceDtos.size() + " ExternalReferences from initial data!");
                 indexing.reIndexEverything();
                 LOG.info("Reindexing finished.");
@@ -199,7 +199,7 @@ public class AdminResource extends AbstractBaseResource {
         logApiRequest(LOG, METHOD_GET, API_PATH_ADMIN + API_PATH_PROPERTYTYPES + API_PATH_RELOAD);
         if (authorizationManager.isSuperUser()) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME)) {
-                final Set<PropertyTypeDTO> propertyTypeDtos = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(FORMAT_CSV, inputStream, null);
+                final Set<PropertyTypeDTO> propertyTypeDtos = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(true, FORMAT_CSV, inputStream, null);
                 LOG.info("Reloaded " + propertyTypeDtos.size() + " PropertyTypes from initial data!");
                 indexing.reIndexEverything();
                 LOG.info("Reindexing finished.");

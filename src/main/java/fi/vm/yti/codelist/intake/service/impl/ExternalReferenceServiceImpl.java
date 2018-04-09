@@ -72,23 +72,23 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
                                                                                      final InputStream inputStream,
                                                                                      final String jsonPayload,
                                                                                      final CodeScheme codeScheme) {
-        Set<ExternalReference> externalReferences;
         if (!internal && !authorizationManager.isSuperUser()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
+        Set<ExternalReference> externalReferences;
         switch (format.toLowerCase()) {
             case FORMAT_JSON:
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                    externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(externalReferenceParser.parseExternalReferencesFromJson(jsonPayload), codeScheme);
+                    externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(internal, externalReferenceParser.parseExternalReferencesFromJson(jsonPayload), codeScheme);
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                 }
                 break;
             case FORMAT_EXCEL:
-                externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(externalReferenceParser.parseExternalReferencesFromExcelInputStream(inputStream), codeScheme);
+                externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(internal, externalReferenceParser.parseExternalReferencesFromExcelInputStream(inputStream), codeScheme);
                 break;
             case FORMAT_CSV:
-                externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream), codeScheme);
+                externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(internal, externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream), codeScheme);
                 break;
             default:
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
@@ -100,12 +100,12 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
     public ExternalReferenceDTO parseAndPersistExternalReferenceFromJson(final String externalReferenceId,
                                                                          final String jsonPayload,
                                                                          final CodeScheme codeScheme) {
+        if (!authorizationManager.isSuperUser()) {
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+        }
         final ExternalReference existingExternalReference = externalReferenceRepository.findById(UUID.fromString(externalReferenceId));
         final ExternalReference externalReference;
         if (existingExternalReference != null) {
-            if (!authorizationManager.isSuperUser()) {
-                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
-            }
             try {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     final ExternalReferenceDTO externalReferenceDto = externalReferenceParser.parseExternalReferenceFromJson(jsonPayload);

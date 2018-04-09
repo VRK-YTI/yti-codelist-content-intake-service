@@ -8,7 +8,13 @@ import fi.vm.yti.codelist.intake.model.ExternalReference;
 
 public interface ExternalReferenceDao {
 
-    ExternalReference updateExternalReferenceFromDto(final ExternalReferenceDTO externalReferenceDto, final CodeScheme codeScheme);
+    ExternalReference updateExternalReferenceFromDto(final ExternalReferenceDTO externalReferenceDto,
+                                                     final CodeScheme codeScheme);
 
-    Set<ExternalReference> updateExternalReferenceEntitiesFromDtos(final Set<ExternalReferenceDTO> externalReferenceDtos, final CodeScheme codeScheme);
+    Set<ExternalReference> updateExternalReferenceEntitiesFromDtos(final Set<ExternalReferenceDTO> externalReferenceDtos,
+                                                                   final CodeScheme codeScheme);
+
+    Set<ExternalReference> updateExternalReferenceEntitiesFromDtos(final boolean internal,
+                                                                   final Set<ExternalReferenceDTO> externalReferenceDtos,
+                                                                   final CodeScheme codeScheme);
 }
