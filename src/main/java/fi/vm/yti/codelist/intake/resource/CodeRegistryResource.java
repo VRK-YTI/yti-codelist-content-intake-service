@@ -101,7 +101,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Path("{codeRegistryCodeValue}/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Modifies single existing CodeScheme.")
+    @ApiOperation(value = "Modifies single existing CodeRegistry.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response updateCodeRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                        @ApiParam(value = "JSON playload for Code data.") final String jsonPayload) {
