@@ -20,6 +20,7 @@ import javax.ws.rs.core.Response;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -32,8 +33,11 @@ import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
+import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
+import fi.vm.yti.codelist.intake.model.ErrorModel;
 import fi.vm.yti.codelist.intake.model.Meta;
+import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeRegistryService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
@@ -46,6 +50,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_401;
 
 @Component
 @Path("/v1/coderegistries")
@@ -59,13 +64,16 @@ public class CodeRegistryResource extends AbstractBaseResource {
     private final CodeRegistryService codeRegistryService;
     private final ExternalReferenceService externalReferenceService;
     private final Indexing indexing;
+    private final AuthorizationManager authorizationManager;
 
     @Inject
-    public CodeRegistryResource(final CodeService codeService,
+    public CodeRegistryResource(final AuthorizationManager authorizationManager,
+                                final CodeService codeService,
                                 final CodeSchemeService codeSchemeService,
                                 final CodeRegistryService codeRegistryService,
                                 final ExternalReferenceService externalReferenceService,
                                 final Indexing indexing) {
+        this.authorizationManager = authorizationManager;
         this.codeService = codeService;
         this.codeSchemeService = codeSchemeService;
         this.codeRegistryService = codeRegistryService;
@@ -177,6 +185,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue) {
 
         logApiRequest(LOG, METHOD_DELETE, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + "/");
+        checkForSuperUser();
         final CodeSchemeDTO existingCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (existingCodeScheme != null) {
             final UUID codeSchemeId = existingCodeScheme.getId();
@@ -266,8 +275,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
     public Response deleteCode(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue) {
-
         logApiRequest(LOG, METHOD_DELETE, API_PATH_VERSION_V1, API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + codeCodeValue + "/");
+        checkForSuperUser();
         final CodeDTO code = codeService.deleteCode(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
         if (code != null) {
             final Set<CodeDTO> referencedCodes = codeService.removeBroaderCodeId(code.getId());
@@ -383,5 +392,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
             return Response.status(404).build();
         }
         return Response.status(200).build();
+    }
+
+    private void checkForSuperUser() {
+        if (!this.authorizationManager.isSuperUser()) {
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+        }
     }
 }
