@@ -22,12 +22,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ErrorModel;
@@ -50,6 +52,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     private final ExternalReferenceDao externalReferenceDao;
     private final CodeSchemeParser codeSchemeParser;
     private final CodeService codeService;
+    private final CodeDao codeDao;
 
     @Inject
     public CodeSchemeServiceImpl(final AuthorizationManager authorizationManager,
@@ -57,13 +60,15 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                  final CodeSchemeDao codeSchemeDao,
                                  final ExternalReferenceDao externalReferenceDao,
                                  final CodeSchemeParser codeSchemeParser,
-                                 final CodeService codeService) {
+                                 final CodeService codeService,
+                                 final CodeDao codeDao) {
         this.codeRegistryDao = codeRegistryDao;
         this.authorizationManager = authorizationManager;
         this.externalReferenceDao = externalReferenceDao;
         this.codeSchemeParser = codeSchemeParser;
         this.codeService = codeService;
         this.codeSchemeDao = codeSchemeDao;
+        this.codeDao = codeDao;
     }
 
     @Transactional
@@ -189,6 +194,14 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         if (authorizationManager.isSuperUser()) {
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
+            final Set<Code> codes = codeScheme.getCodes();
+            if (codes != null) {
+                codeDao.delete(codeScheme.getCodes());
+            }
+            final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
+            if (externalReferences != null) {
+                externalReferenceDao.delete(externalReferences);
+            }
             codeSchemeDao.delete(codeScheme);
             return codeSchemeDto;
         } else {

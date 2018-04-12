@@ -57,8 +57,10 @@ abstract class BaseService {
     public Set<CodeDTO> mapCodeDtos(final Set<Code> codes,
                                     final boolean deep) {
         final Set<CodeDTO> codeDtos = new HashSet<>();
-        for (final Code code : codes) {
-            codeDtos.add(mapCodeDto(code, deep));
+        if (codes != null) {
+            for (final Code code : codes) {
+                codeDtos.add(mapCodeDto(code, deep));
+            }
         }
         return codeDtos;
     }
@@ -104,8 +106,10 @@ abstract class BaseService {
     public Set<CodeSchemeDTO> mapCodeSchemeDtos(final Set<CodeScheme> codeSchemes,
                                                 final boolean deep) {
         final Set<CodeSchemeDTO> codeSchemeDTOS = new HashSet<>();
-        for (final CodeScheme codeScheme : codeSchemes) {
-            codeSchemeDTOS.add(mapCodeSchemeDto(codeScheme, deep));
+        if (codeSchemes != null) {
+            for (final CodeScheme codeScheme : codeSchemes) {
+                codeSchemeDTOS.add(mapCodeSchemeDto(codeScheme, deep));
+            }
         }
         return codeSchemeDTOS;
     }
@@ -125,8 +129,10 @@ abstract class BaseService {
 
     public Set<CodeRegistryDTO> mapCodeRegistryDtos(final Set<CodeRegistry> codeRegistries) {
         final Set<CodeRegistryDTO> codeRegistryDtos = new HashSet<>();
-        for (final CodeRegistry codeRegistry : codeRegistries) {
-            codeRegistryDtos.add(mapCodeRegistryDto(codeRegistry));
+        if (codeRegistries != null) {
+            for (final CodeRegistry codeRegistry : codeRegistries) {
+                codeRegistryDtos.add(mapCodeRegistryDto(codeRegistry));
+            }
         }
         return codeRegistryDtos;
     }
@@ -165,8 +171,10 @@ abstract class BaseService {
 
     public Set<ExternalReferenceDTO> mapExternalReferenceDtos(final Set<ExternalReference> externalReferences, final boolean deep) {
         final Set<ExternalReferenceDTO> externalReferenceDtos = new HashSet<>();
-        for (final ExternalReference externalReference : externalReferences) {
-            externalReferenceDtos.add(mapExternalReferenceDto(externalReference, deep));
+        if (externalReferences != null) {
+            for (final ExternalReference externalReference : externalReferences) {
+                externalReferenceDtos.add(mapExternalReferenceDto(externalReference, deep));
+            }
         }
         return externalReferenceDtos;
     }
@@ -186,8 +194,10 @@ abstract class BaseService {
 
     public Set<PropertyTypeDTO> mapPropertyTypeDtos(final Set<PropertyType> propertyTypes) {
         final Set<PropertyTypeDTO> propertyTypeDtos = new HashSet<>();
-        for (final PropertyType propertyType : propertyTypes) {
-            propertyTypeDtos.add(mapPropertyTypeDto(propertyType));
+        if (propertyTypes != null) {
+            for (final PropertyType propertyType : propertyTypes) {
+                propertyTypeDtos.add(mapPropertyTypeDto(propertyType));
+            }
         }
         return propertyTypeDtos;
     }
@@ -211,8 +221,10 @@ abstract class BaseService {
     public Set<OrganizationDTO> mapOrganizationDtos(final Set<Organization> organizations,
                                                     final boolean deep) {
         final Set<OrganizationDTO> organizationDtos = new HashSet<>();
-        for (final Organization organization : organizations) {
-            organizationDtos.add(mapOrganizationDto(organization, deep));
+        if (organizations != null) {
+            for (final Organization organization : organizations) {
+                organizationDtos.add(mapOrganizationDto(organization, deep));
+            }
         }
         return organizationDtos;
     }

@@ -182,10 +182,14 @@ public class CodeRegistryResource extends AbstractBaseResource {
             final UUID codeSchemeId = existingCodeScheme.getId();
             final Set<CodeDTO> codes = codeService.findByCodeSchemeId(codeSchemeId);
             final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
-            final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(codeRegistryCodeValue, codeSchemeCodeValue);
+            final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue());
             indexing.deleteCodeScheme(codeScheme);
-            indexing.deleteCodes(codes);
-            indexing.deleteExternalReferences(externalReferences);
+            if (codes != null) {
+                indexing.deleteCodes(codes);
+            }
+            if (externalReferences != null) {
+                indexing.deleteExternalReferences(externalReferences);
+            }
         } else {
             return Response.status(404).build();
         }

@@ -41,6 +41,16 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     }
 
     @Transactional
+    public void delete(ExternalReference externalReference) {
+        externalReferenceRepository.delete(externalReference);
+    }
+
+    @Transactional
+    public void delete(Set<ExternalReference> externalReferences) {
+        externalReferenceRepository.delete(externalReferences);
+    }
+
+    @Transactional
     public ExternalReference updateExternalReferenceFromDto(final ExternalReferenceDTO externalReferenceDto,
                                                             final CodeScheme codeScheme) {
         ExternalReference externalReference = createOrUpdateExternalReference(false, externalReferenceDto, codeScheme);
@@ -71,6 +81,21 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
             }
         }
         return externalReferences;
+    }
+
+    @Override
+    public ExternalReference findById(UUID id) {
+        return null;
+    }
+
+    @Override
+    public Set<ExternalReference> findAll() {
+        return null;
+    }
+
+    @Override
+    public Set<ExternalReference> findByParentCodeSchemeId(UUID parentCodeSchemeId) {
+        return null;
     }
 
     public ExternalReference createOrUpdateExternalReference(final boolean internal,

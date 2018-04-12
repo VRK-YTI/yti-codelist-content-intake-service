@@ -33,7 +33,6 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
 
     private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceServiceImpl.class);
     private final AuthorizationManager authorizationManager;
-    private final ExternalReferenceRepository externalReferenceRepository;
     private final ExternalReferenceParser externalReferenceParser;
     private final ExternalReferenceDao externalReferenceDao;
 
@@ -43,19 +42,18 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
                                         final ExternalReferenceParser externalReferenceParser,
                                         final ExternalReferenceDao externalReferenceDao) {
         this.authorizationManager = authorizationManager;
-        this.externalReferenceRepository = externalReferenceRepository;
         this.externalReferenceParser = externalReferenceParser;
         this.externalReferenceDao = externalReferenceDao;
     }
 
     @Transactional
     public Set<ExternalReferenceDTO> findAll() {
-        return mapDeepExternalReferenceDtos(externalReferenceRepository.findAll());
+        return mapDeepExternalReferenceDtos(externalReferenceDao.findAll());
     }
 
     @Transactional
     public Set<ExternalReferenceDTO> findByParentCodeSchemeId(final UUID codeSchemeId) {
-        return mapDeepExternalReferenceDtos(externalReferenceRepository.findByParentCodeSchemeId(codeSchemeId));
+        return mapDeepExternalReferenceDtos(externalReferenceDao.findByParentCodeSchemeId(codeSchemeId));
     }
 
     @Transactional
@@ -103,7 +101,7 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
         if (!authorizationManager.isSuperUser()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
-        final ExternalReference existingExternalReference = externalReferenceRepository.findById(UUID.fromString(externalReferenceId));
+        final ExternalReference existingExternalReference = externalReferenceDao.findById(UUID.fromString(externalReferenceId));
         final ExternalReference externalReference;
         if (existingExternalReference != null) {
             try {

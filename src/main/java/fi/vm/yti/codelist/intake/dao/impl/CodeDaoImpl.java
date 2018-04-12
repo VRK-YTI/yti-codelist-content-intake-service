@@ -58,6 +58,10 @@ public class CodeDaoImpl implements CodeDao {
         codeRepository.delete(code);
     }
 
+    public void delete(Set<Code> code) {
+        codeRepository.delete(code);
+    }
+
     public Set<Code> findAll() {
         return codeRepository.findAll();
     }

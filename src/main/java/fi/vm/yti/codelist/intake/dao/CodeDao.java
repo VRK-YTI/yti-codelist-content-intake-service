@@ -16,6 +16,8 @@ public interface CodeDao {
 
     void delete(final Code code);
 
+    void delete(final Set<Code> code);
+
     Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme, final String codeValue);
 
     Code findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme, final String codeValue, final UUID broaderCodeId);
