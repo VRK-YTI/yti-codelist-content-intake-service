@@ -85,17 +85,17 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
     @Override
     public ExternalReference findById(UUID id) {
-        return null;
+        return externalReferenceRepository.findById(id);
     }
 
     @Override
     public Set<ExternalReference> findAll() {
-        return null;
+        return externalReferenceRepository.findAll();
     }
 
     @Override
     public Set<ExternalReference> findByParentCodeSchemeId(UUID parentCodeSchemeId) {
-        return null;
+        return externalReferenceRepository.findByParentCodeSchemeId(parentCodeSchemeId);
     }
 
     public ExternalReference createOrUpdateExternalReference(final boolean internal,
