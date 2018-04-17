@@ -276,11 +276,13 @@ public class CodeParser extends AbstractBaseParser {
     }
 
     private Integer resolveFlatOrderFromCsvRecord(final CSVRecord record) {
-        final Integer flatOrder;
+        Integer flatOrder;
         if (record.isMapped(CONTENT_HEADER_FLATORDER)) {
             flatOrder = resolveFlatOrderFromString(record.get(CONTENT_HEADER_FLATORDER));
-            if (maxFlatValue > flatOrder) {
+            if (flatOrder != null && (maxFlatValue > flatOrder)) {
                 maxFlatValue = flatOrder;
+            } else {
+                flatOrder = ++maxFlatValue;
             }
         } else {
             flatOrder = ++maxFlatValue;
@@ -291,11 +293,13 @@ public class CodeParser extends AbstractBaseParser {
     private Integer resolveFlatOrderFromExcelRow(final Map<String, Integer> headerMap,
                                                  final Row row,
                                                  final DataFormatter formatter) {
-        final Integer flatOrder;
+        Integer flatOrder;
         if (headerMap.containsKey(CONTENT_HEADER_FLATORDER)) {
             flatOrder = resolveFlatOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_FLATORDER))));
-            if (flatOrder > maxFlatValue) {
+            if (flatOrder != null && (flatOrder > maxFlatValue)) {
                 maxFlatValue = flatOrder;
+            } else {
+                flatOrder = ++maxFlatValue;
             }
         } else {
             flatOrder = ++maxFlatValue;
