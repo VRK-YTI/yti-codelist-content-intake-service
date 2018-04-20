@@ -88,6 +88,7 @@ abstract class BaseService {
         codeSchemeDto.setVersion(codeScheme.getVersion());
         codeSchemeDto.setGovernancePolicy(codeScheme.getGovernancePolicy());
         codeSchemeDto.setLegalBase(codeScheme.getLegalBase());
+        codeSchemeDto.setConceptUriInVocabularies(codeScheme.getConceptUriInVocabularies());
         if (deep) {
             if (codeScheme.getDataClassifications() != null) {
                 codeSchemeDto.setDataClassifications(mapCodeDtos(codeScheme.getDataClassifications(), false));
