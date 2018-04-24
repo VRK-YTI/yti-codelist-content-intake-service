@@ -1,4 +1,4 @@
-package fi.vm.yti.codelist.intake.configuration;
+package fi.vm.yti.codelist.intake.filter;
 
 import java.io.IOException;
 

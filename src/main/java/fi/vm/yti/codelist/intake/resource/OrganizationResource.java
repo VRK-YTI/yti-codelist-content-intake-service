@@ -11,8 +11,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +25,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_ORGANIZATION;
 
 @Component
 @Path("/v1/organizations")
@@ -35,7 +33,6 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 @Produces(MediaType.APPLICATION_JSON)
 public class OrganizationResource extends AbstractBaseResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(OrganizationResource.class);
     private final OrganizationService organizationService;
 
     @Inject
@@ -49,7 +46,6 @@ public class OrganizationResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Returns organizations.")
     @Transactional
     public Response getOrganizations(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand) {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_ORGANIZATIONS + "/");
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_ORGANIZATION, expand)));
         final Meta meta = new Meta();
         final ResponseWrapper<OrganizationDTO> wrapper = new ResponseWrapper<>();

@@ -57,7 +57,6 @@ public class CodeParser extends AbstractBaseParser {
                                                      final Map<String, String> broaderCodeMapping) {
         final Set<CodeDTO> codes = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
-        final List<String> codeValuelist = new ArrayList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -76,7 +75,6 @@ public class CodeParser extends AbstractBaseParser {
                 validateCodeCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
-                codeValuelist.add(codeValue);
                 code.setCodeValue(codeValue);
                 code.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 code.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));

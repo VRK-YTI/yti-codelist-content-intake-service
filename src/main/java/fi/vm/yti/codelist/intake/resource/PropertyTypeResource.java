@@ -15,17 +15,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
-import fi.vm.yti.codelist.intake.model.Meta;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
+import fi.vm.yti.codelist.intake.model.Meta;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -33,15 +31,14 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_CODEREGISTRY;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_JSON;
 
 @Component
 @Path("/v1/propertytypes")
 @Api(value = "propertytypes")
 @Produces(MediaType.APPLICATION_JSON)
 public class PropertyTypeResource extends AbstractBaseResource {
-
-    private static final Logger LOG = LoggerFactory.getLogger(PropertyTypeResource.class);
 
     private final PropertyTypeService propertyTypeService;
     private final Indexing indexing;
@@ -59,7 +56,6 @@ public class PropertyTypeResource extends AbstractBaseResource {
     @ApiOperation(value = "Parses PropertyTypes from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response addOrUpdatePropertyTypesFromJson(@ApiParam(value = "JSON playload for PropertyType data.") final String jsonPayload) {
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_PROPERTYTYPES + "/");
         return parseAndPersistPropertyTypesFromSource(FORMAT_JSON, null, jsonPayload);
     }
 
@@ -73,7 +69,6 @@ public class PropertyTypeResource extends AbstractBaseResource {
     })
     public Response addOrUpdatePropertyTypesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
                                                      @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_PROPERTYTYPES + "/");
         return parseAndPersistPropertyTypesFromSource(FORMAT_JSON, inputStream, null);
     }
 
@@ -85,7 +80,6 @@ public class PropertyTypeResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Returns success.")
     public Response updatePropertyType(@ApiParam(value = "PropertyType ID", required = true) @PathParam("PropertyTypeId") final String propertyTypeId,
                                        @ApiParam(value = "JSON playload for PropertyType data.") final String jsonPayload) {
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_PROPERTYTYPES + "/" + propertyTypeId + "/");
         final PropertyTypeDTO propertyType = propertyTypeService.parseAndPersistPropertyTypeFromJson(propertyTypeId, jsonPayload);
         indexing.updatePropertyType(propertyType);
         final Meta meta = new Meta();

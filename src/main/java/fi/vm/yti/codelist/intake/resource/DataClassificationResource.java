@@ -76,7 +76,6 @@ public class DataClassificationResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Returns data classifications and counts.")
     @Transactional
     public Response getDataClassifications(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand) {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_DATACLASSIFICATIONS + "/");
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_DATACLASSIFICATION, expand)));
         final Meta meta = new Meta();
         final ResponseWrapper<DataClassification> wrapper = new ResponseWrapper<>();

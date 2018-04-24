@@ -69,7 +69,6 @@ public class GroupManagementProxyResource extends AbstractBaseResource {
     @ApiOperation(value = "Returns a list of user requests that the user has made.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response getUserRequests() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_GROUPMANAGEMENT + API_PATH_REQUESTS);
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
@@ -101,7 +100,6 @@ public class GroupManagementProxyResource extends AbstractBaseResource {
     @ApiOperation(value = "Sends user request to add user to an organization to groupmanagement service.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response sendUserRequest(@ApiParam(value = "UUID for the requested organization.", required = true) @QueryParam("organizationId") final String organizationId) {
-        logApiRequest(LOG, METHOD_POST, API_PATH_VERSION_V1, API_PATH_GROUPMANAGEMENT + API_PATH_REQUEST);
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));

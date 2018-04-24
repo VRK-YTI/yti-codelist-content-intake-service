@@ -7,8 +7,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +16,6 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 @Component
 @Path("/v1/configuration")
@@ -26,7 +23,6 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 @Produces("text/plain")
 public class ConfigurationResource extends AbstractBaseResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ConfigurationResource.class);
     private final ApiUtils apiUtils;
 
     @Inject
@@ -39,7 +35,6 @@ public class ConfigurationResource extends AbstractBaseResource {
     @ApiOperation(value = "Get configuration values as JSON")
     @ApiResponse(code = 200, message = "Returns the configuration JSON element to the frontend related to this service.")
     public Response getConfig() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_CONFIGURATION);
         final String groupManagementPublicUrl = apiUtils.getGroupmanagementPublicUrl();
         final ObjectMapper mapper = new ObjectMapper();
         final ObjectNode configJson = mapper.createObjectNode();

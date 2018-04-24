@@ -3,26 +3,29 @@ package fi.vm.yti.codelist.intake.configuration;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.MediaType;
 
-import fi.vm.yti.codelist.intake.exception.exceptionmapping.UncaughtExceptionMapper;
-import fi.vm.yti.codelist.intake.resource.externalresources.TerminologyProxyResource;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.intake.exception.exceptionmapping.UncaughtExceptionMapper;
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.YtiCodeListExceptionMapper;
+import fi.vm.yti.codelist.intake.filter.CacheFilter;
+import fi.vm.yti.codelist.intake.filter.CorsFilter;
+import fi.vm.yti.codelist.intake.filter.RequestLoggingFilter;
 import fi.vm.yti.codelist.intake.resource.AdminResource;
 import fi.vm.yti.codelist.intake.resource.AuthenticatedUserResource;
 import fi.vm.yti.codelist.intake.resource.CodeRegistryResource;
 import fi.vm.yti.codelist.intake.resource.ConfigurationResource;
 import fi.vm.yti.codelist.intake.resource.DataClassificationResource;
 import fi.vm.yti.codelist.intake.resource.ExternalReferenceResource;
-import fi.vm.yti.codelist.intake.resource.externalresources.GroupManagementProxyResource;
 import fi.vm.yti.codelist.intake.resource.ImpersonateUserResource;
 import fi.vm.yti.codelist.intake.resource.OrganizationResource;
 import fi.vm.yti.codelist.intake.resource.PingResource;
 import fi.vm.yti.codelist.intake.resource.PropertyTypeResource;
 import fi.vm.yti.codelist.intake.resource.SwaggerResource;
 import fi.vm.yti.codelist.intake.resource.VersionResource;
+import fi.vm.yti.codelist.intake.resource.externalresources.GroupManagementProxyResource;
+import fi.vm.yti.codelist.intake.resource.externalresources.TerminologyProxyResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.Contact;
 import io.swagger.annotations.Info;
@@ -65,6 +68,13 @@ public class JerseyConfig extends ResourceConfig {
         // Cache control headers to no cache.
         register(CacheFilter.class);
 
+        // ExceptionMappers
+        register(YtiCodeListExceptionMapper.class);
+        register(UncaughtExceptionMapper.class);
+
+        // Logging
+        register(RequestLoggingFilter.class);
+
         // Health
         register(PingResource.class);
 
@@ -97,9 +107,5 @@ public class JerseyConfig extends ResourceConfig {
         register(ExternalReferenceResource.class);
         register(PropertyTypeResource.class);
         register(DataClassificationResource.class);
-
-        // ExceptionMappers
-        register(YtiCodeListExceptionMapper.class);
-        register(UncaughtExceptionMapper.class);
     }
 }

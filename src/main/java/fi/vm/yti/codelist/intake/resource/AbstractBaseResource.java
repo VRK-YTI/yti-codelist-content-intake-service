@@ -7,8 +7,6 @@ import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.slf4j.Logger;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,19 +49,6 @@ public abstract class AbstractBaseResource {
             }
         }
         return filterProvider;
-    }
-
-    public void logApiRequest(final Logger logger,
-                              final String method,
-                              final String apiPath) {
-        logger.info(method + " " + apiPath + " requested!");
-    }
-
-    public void logApiRequest(final Logger logger,
-                              final String method,
-                              final String apiVersionPath,
-                              final String apiPath) {
-        logger.info(method + " " + apiVersionPath + apiPath + " requested!");
     }
 
     public ObjectMapper createObjectMapper() {

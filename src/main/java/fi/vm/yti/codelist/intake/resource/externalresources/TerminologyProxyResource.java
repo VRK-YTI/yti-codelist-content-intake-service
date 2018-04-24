@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.util.Set;
 
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.terminology.Concept;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.model.ErrorModel;
 import fi.vm.yti.codelist.intake.model.Meta;
 import fi.vm.yti.codelist.intake.resource.AbstractBaseResource;
+import fi.vm.yti.codelist.intake.terminology.Concept;
 import fi.vm.yti.codelist.intake.terminology.Vocabulary;
 import fi.vm.yti.security.AuthenticatedUserProvider;
 import fi.vm.yti.security.YtiUser;
@@ -34,7 +36,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_401;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 
 @Component
 @Path("/v1/terminology")
@@ -62,7 +63,6 @@ public class TerminologyProxyResource extends AbstractBaseResource {
     @ApiResponse(code = 200, message = "Returns success.")
     @SuppressWarnings("Duplicates")
     public Response getVocabularities() {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_TERMINOLOGY + API_PATH_VOCABULARIES);
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
@@ -82,7 +82,7 @@ public class TerminologyProxyResource extends AbstractBaseResource {
             wrapper.setResults(vocabularies);
             return Response.ok(wrapper).build();
         } catch (final IOException e) {
-            LOG.error("Error parsing vocabularies from terminology response! ", e);
+            LOG.error("Error parsing vocabularies from terminology response!", e);
             meta.setMessage("Error parsing vocabularies from terminology!");
             meta.setCode(500);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
@@ -101,7 +101,6 @@ public class TerminologyProxyResource extends AbstractBaseResource {
     @SuppressWarnings("Duplicates")
     public Response getConcepts(@PathParam("searchTerm") String searchTerm,
                                 @PathParam("vocabularyId") String vocabularyId) {
-        logApiRequest(LOG, METHOD_GET, API_PATH_VERSION_V1, API_PATH_TERMINOLOGY + API_PATH_CONCEPTS);
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
@@ -113,7 +112,7 @@ public class TerminologyProxyResource extends AbstractBaseResource {
         try {
             response = restTemplate.getForObject(createTerminologyConceptsApiUrl(searchTerm, vocabularyId), String.class);
         } catch (Exception e) {
-            LOG.error("Error getting concepts from terminology-api! ", e);
+            LOG.error("Error getting concepts from terminology-api!", e);
             meta.setMessage("Error parsing concepts from terminology!");
             meta.setCode(500);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
@@ -129,7 +128,7 @@ public class TerminologyProxyResource extends AbstractBaseResource {
             wrapper.setResults(concepts);
             return Response.ok(wrapper).build();
         } catch (final IOException e) {
-            LOG.error("Error parsing concepts from terminology response! ", e);
+            LOG.error("Error parsing concepts from terminology response!", e);
             meta.setMessage("Error parsing concepts from terminology!");
             meta.setCode(500);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();

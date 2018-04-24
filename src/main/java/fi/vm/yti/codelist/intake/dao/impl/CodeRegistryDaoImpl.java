@@ -137,7 +137,7 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         for (Map.Entry<String, String> entry : fromCodeRegistry.getPrefLabel().entrySet()) {
             codeRegistry.setPrefLabel(entry.getKey(), entry.getValue());
         }
-        for (Map.Entry<String, String> entry : fromCodeRegistry.getDefinition().entrySet()) {
+        for (final Map.Entry<String, String> entry : fromCodeRegistry.getDefinition().entrySet()) {
             codeRegistry.setDefinition(entry.getKey(), entry.getValue());
         }
         codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));

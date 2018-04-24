@@ -4,16 +4,12 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.intake.configuration.VersionInformation;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_VERSION;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.METHOD_GET;
 
 @Component
 @Path("/version")
@@ -21,7 +17,6 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.METHOD_GET;
 @Produces("text/plain")
 public class VersionResource extends AbstractBaseResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(VersionResource.class);
     private VersionInformation versionInformation;
 
     public VersionResource(final VersionInformation versionInformation) {
@@ -32,7 +27,6 @@ public class VersionResource extends AbstractBaseResource {
     @ApiOperation(value = "Get version information", response = String.class)
     @ApiResponse(code = 200, message = "Returns the version of the running Content Intake Service application.")
     public String getVersionInformation() {
-        logApiRequest(LOG, METHOD_GET, "", API_PATH_VERSION);
         return "\n" +
             "          __  .__          .__        __          __           \n" +
             " ___.__._/  |_|__|         |__| _____/  |______  |  | __ ____  \n" +

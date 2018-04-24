@@ -41,17 +41,34 @@
 
         <logger name="org.apache" level="WARN"/>
         <logger name="org.springframework" level="INFO"/>
-        <logger name="fi.vm" level="DEBUG"/>
+        <logger name="fi.vm" level="INFO"/>
 
         <root level="INFO">
             <appender-ref ref="ROLLING"/>
         </root>
     </springProfile>
+
     <springProfile name="local">
         <include resource="org/springframework/boot/logging/logback/base.xml"/>
         <logger name="org.apache" level="WARN"/>
         <logger name="org.springframework" level="INFO"/>
         <logger name="fi.vm" level="DEBUG"/>
+    </springProfile>
+
+    <springProfile name="test">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+            </layout>
+        </appender>
+
+        <logger name="org.apache" level="WARN"/>
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="fi.vm" level="DEBUG"/>
+
+        <root level="debug">
+            <appender-ref ref="CONSOLE"/>
+        </root>
     </springProfile>
 </configuration>
 

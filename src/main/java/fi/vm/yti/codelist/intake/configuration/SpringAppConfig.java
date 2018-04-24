@@ -32,19 +32,15 @@ import com.zaxxer.hikari.HikariDataSource;
 @PropertySource(value = "classpath", ignoreResourceNotFound = true)
 public class SpringAppConfig {
 
+    private static final int CONNECTION_TIMEOUT = 10000;
     @Value("${yti_codelist_content_intake_service_elastic_host}")
     private String elasticsearchHost;
-
     @Value("${yti_codelist_content_intake_service_elastic_port}")
     private Integer elasticsearchPort;
-
     @Value("${yti_codelist_content_intake_service_elastic_cluster}")
     private String clusterName;
-
     @Value(value = "${application.contextPath}")
     private String contextPath;
-
-    private static final int CONNECTION_TIMEOUT = 10000;
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
