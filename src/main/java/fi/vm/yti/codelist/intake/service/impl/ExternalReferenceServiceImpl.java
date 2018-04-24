@@ -17,7 +17,6 @@ import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ErrorModel;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
@@ -38,7 +37,6 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
 
     @Inject
     public ExternalReferenceServiceImpl(final AuthorizationManager authorizationManager,
-                                        final ExternalReferenceRepository externalReferenceRepository,
                                         final ExternalReferenceParser externalReferenceParser,
                                         final ExternalReferenceDao externalReferenceDao) {
         this.authorizationManager = authorizationManager;
