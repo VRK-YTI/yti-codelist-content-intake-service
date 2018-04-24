@@ -260,7 +260,7 @@ public class CodeParser extends AbstractBaseParser {
         Integer order;
         if (record.isMapped(CONTENT_HEADER_ORDER)) {
             order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER));
-            if (order != null && (maxOrderValue > order)) {
+            if (order != null && maxOrderValue > order) {
                 maxOrderValue = order;
             } else {
                 order = ++maxOrderValue;
@@ -277,7 +277,7 @@ public class CodeParser extends AbstractBaseParser {
         Integer order;
         if (headerMap.containsKey(CONTENT_HEADER_ORDER)) {
             order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER))));
-            if (order != null && (order > maxOrderValue)) {
+            if (order != null && order > maxOrderValue) {
                 maxOrderValue = order;
             } else {
                 order = ++maxOrderValue;
