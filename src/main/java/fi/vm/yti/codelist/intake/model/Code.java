@@ -33,7 +33,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("code")
 @Table(name = "code")
 @XmlRootElement
-@XmlType(propOrder = {"id", "codeValue", "uri", "url", "status", "hierarchyLevel", "startDate", "endDate", "modified", "prefLabel", "description", "definition", "codeScheme", "shortName", "externalReferences", "broaderCodeId",  "flatOrder", "childOrder"})
+@XmlType(propOrder = {"id", "codeValue", "uri", "url", "status", "hierarchyLevel", "startDate", "endDate", "modified", "prefLabel", "description", "definition", "codeScheme", "shortName", "externalReferences", "broaderCodeId",  "order"})
 @ApiModel(value = "Code", description = "Code model that represents data for one single generic registeritem.")
 public class Code extends AbstractHistoricalCode implements Serializable {
 
@@ -47,8 +47,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     private Map<String, String> definition;
     private Set<ExternalReference> externalReferences;
     private UUID broaderCodeId;
-    private Integer flatOrder;
-    private Integer childOrder;
+    private Integer order;
 
     @Column(name = "broadercode_id")
     public UUID getBroaderCodeId() {
@@ -207,20 +206,11 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     }
 
     @Column(name = "flatorder")
-    public Integer getFlatOrder() {
-        return flatOrder;
+    public Integer getOrder() {
+        return order;
     }
 
-    public void setFlatOrder(final Integer flatOrder) {
-        this.flatOrder = flatOrder;
-    }
-
-    @Column(name = "childorder")
-    public Integer getChildOrder() {
-        return childOrder;
-    }
-
-    public void setChildOrder(final Integer childOrder) {
-        this.childOrder = childOrder;
+    public void setOrder(final Integer order) {
+        this.order = order;
     }
 }

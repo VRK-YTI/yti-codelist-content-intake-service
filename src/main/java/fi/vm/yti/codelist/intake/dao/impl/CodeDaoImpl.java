@@ -180,12 +180,8 @@ public class CodeDaoImpl implements CodeDao {
             existingCode.setHierarchyLevel(fromCode.getHierarchyLevel());
             hasChanges = true;
         }
-        if (!Objects.equals(existingCode.getFlatOrder(), fromCode.getFlatOrder())) {
-            existingCode.setFlatOrder(fromCode.getFlatOrder());
-            hasChanges = true;
-        }
-        if (!Objects.equals(existingCode.getChildOrder(), fromCode.getChildOrder())) {
-            existingCode.setChildOrder(fromCode.getChildOrder());
+        if (!Objects.equals(existingCode.getOrder(), fromCode.getOrder())) {
+            existingCode.setOrder(fromCode.getOrder());
             hasChanges = true;
         }
         if (!Objects.equals(existingCode.getBroaderCodeId(), fromCode.getBroaderCodeId())) {
@@ -248,8 +244,7 @@ public class CodeDaoImpl implements CodeDao {
         code.setShortName(fromCode.getShortName());
         code.setHierarchyLevel(fromCode.getHierarchyLevel());
         code.setBroaderCodeId(fromCode.getBroaderCodeId());
-        code.setFlatOrder(fromCode.getFlatOrder());
-        code.setChildOrder(fromCode.getChildOrder());
+        code.setOrder(fromCode.getOrder());
 
         final Date timeStamp = new Date(System.currentTimeMillis());
         code.setModified(timeStamp);

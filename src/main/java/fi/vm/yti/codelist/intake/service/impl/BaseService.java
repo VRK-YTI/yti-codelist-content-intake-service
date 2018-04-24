@@ -45,8 +45,7 @@ abstract class BaseService {
             }
         }
         codeDto.setDescription(code.getDescription());
-        codeDto.setFlatOrder(code.getFlatOrder());
-        codeDto.setChildOrder(code.getChildOrder());
+        codeDto.setOrder(code.getOrder());
         return codeDto;
     }
 
