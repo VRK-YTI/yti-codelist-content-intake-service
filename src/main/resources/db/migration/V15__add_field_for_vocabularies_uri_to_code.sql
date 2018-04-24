@@ -1,0 +1,1 @@
+ALTER TABLE public.code ADD vocabularies_uri text NULL;

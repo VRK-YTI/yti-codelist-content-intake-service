@@ -34,7 +34,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeScheme")
 @Table(name = "codescheme")
 @XmlRootElement
-@XmlType(propOrder = {"id", "codeValue", "uri", "url", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "modified", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "externalReferences"})
+@XmlType(propOrder = {"id", "codeValue", "uri", "url", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "modified", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "externalReferences", "conceptUriInVocabularies"})
 @ApiModel(value = "CodeScheme", description = "CodeScheme model that represents data for one single codescheme.")
 public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
@@ -52,6 +52,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private Set<Code> codes;
     private Set<Code> dataClassifications;
     private Set<ExternalReference> externalReferences;
+    private String conceptUriInVocabularies;
 
     public CodeScheme() {
         prefLabel = new HashMap<>();
@@ -290,5 +291,14 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     public void setDataClassifications(final Set<Code> dataClassifications) {
         this.dataClassifications = dataClassifications;
+    }
+
+    @Column(name = "vocabularies_uri")
+    public String getConceptUriInVocabularies() {
+        return conceptUriInVocabularies;
+    }
+
+    public void setConceptUriInVocabularies(String conceptUriInVocabularies) {
+        this.conceptUriInVocabularies = conceptUriInVocabularies;
     }
 }

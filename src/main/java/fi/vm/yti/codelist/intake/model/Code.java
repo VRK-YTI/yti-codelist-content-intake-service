@@ -33,7 +33,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("code")
 @Table(name = "code")
 @XmlRootElement
-@XmlType(propOrder = {"id", "codeValue", "uri", "url", "status", "hierarchyLevel", "startDate", "endDate", "modified", "prefLabel", "description", "definition", "codeScheme", "shortName", "externalReferences", "broaderCodeId",  "order"})
+@XmlType(propOrder = {"id", "codeValue", "uri", "url", "status", "hierarchyLevel", "startDate", "endDate", "modified", "prefLabel", "description", "definition", "codeScheme", "shortName", "externalReferences", "broaderCodeId",  "order", "conceptUriInVocabularies"})
 @ApiModel(value = "Code", description = "Code model that represents data for one single generic registeritem.")
 public class Code extends AbstractHistoricalCode implements Serializable {
 
@@ -48,6 +48,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     private Set<ExternalReference> externalReferences;
     private UUID broaderCodeId;
     private Integer order;
+    private String conceptUriInVocabularies;
 
     @Column(name = "broadercode_id")
     public UUID getBroaderCodeId() {
@@ -212,5 +213,14 @@ public class Code extends AbstractHistoricalCode implements Serializable {
 
     public void setOrder(final Integer order) {
         this.order = order;
+    }
+
+    @Column(name = "vocabularies_uri")
+    public String getConceptUriInVocabularies() {
+        return conceptUriInVocabularies;
+    }
+
+    public void setConceptUriInVocabularies(String conceptUriInVocabularies) {
+        this.conceptUriInVocabularies = conceptUriInVocabularies;
     }
 }

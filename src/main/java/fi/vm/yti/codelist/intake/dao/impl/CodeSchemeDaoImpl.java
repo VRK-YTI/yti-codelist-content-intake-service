@@ -234,6 +234,10 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             existingCodeScheme.setEndDate(fromCodeScheme.getEndDate());
             hasChanges = true;
         }
+        if (!Objects.equals(existingCodeScheme.getConceptUriInVocabularies(), fromCodeScheme.getConceptUriInVocabularies())) {
+            existingCodeScheme.setConceptUriInVocabularies(fromCodeScheme.getConceptUriInVocabularies());
+            hasChanges = true;
+        }
         if (hasChanges) {
             final Date timeStamp = new Date(System.currentTimeMillis());
             existingCodeScheme.setModified(timeStamp);
@@ -278,6 +282,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeScheme.setEndDate(fromCodeScheme.getEndDate());
         codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
         codeScheme.setUrl(apiUtils.createCodeSchemeUrl(codeRegistry, codeScheme));
+        codeScheme.setConceptUriInVocabularies(fromCodeScheme.getConceptUriInVocabularies());
         return codeScheme;
     }
 

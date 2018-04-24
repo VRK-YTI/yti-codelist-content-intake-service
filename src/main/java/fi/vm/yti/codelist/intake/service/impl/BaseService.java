@@ -39,6 +39,7 @@ abstract class BaseService {
         codeDto.setPrefLabel(code.getPrefLabel());
         codeDto.setDefinition(code.getDefinition());
         codeDto.setCodeScheme(mapCodeSchemeDto(code.getCodeScheme(), false));
+        codeDto.setConceptUriInVocabularies(code.getConceptUriInVocabularies());
         if (deep) {
             if (code.getExternalReferences() != null) {
                 codeDto.setExternalReferences(mapExternalReferenceDtos(code.getExternalReferences(), false));
@@ -87,6 +88,7 @@ abstract class BaseService {
         codeSchemeDto.setVersion(codeScheme.getVersion());
         codeSchemeDto.setGovernancePolicy(codeScheme.getGovernancePolicy());
         codeSchemeDto.setLegalBase(codeScheme.getLegalBase());
+        codeSchemeDto.setConceptUriInVocabularies(codeScheme.getConceptUriInVocabularies());
         if (deep) {
             if (codeScheme.getDataClassifications() != null) {
                 codeSchemeDto.setDataClassifications(mapCodeDtos(codeScheme.getDataClassifications(), false));
