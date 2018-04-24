@@ -39,6 +39,7 @@ abstract class BaseService {
         codeDto.setPrefLabel(code.getPrefLabel());
         codeDto.setDefinition(code.getDefinition());
         codeDto.setCodeScheme(mapCodeSchemeDto(code.getCodeScheme(), false));
+        codeDto.setConceptUriInVocabularies(code.getConceptUriInVocabularies());
         if (deep) {
             if (code.getExternalReferences() != null) {
                 codeDto.setExternalReferences(mapExternalReferenceDtos(code.getExternalReferences(), false));

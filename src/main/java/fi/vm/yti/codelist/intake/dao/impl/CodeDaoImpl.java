@@ -224,6 +224,10 @@ public class CodeDaoImpl implements CodeDao {
             existingCode.setEndDate(fromCode.getEndDate());
             hasChanges = true;
         }
+        if(!Objects.equals(existingCode.getConceptUriInVocabularies(), fromCode.getConceptUriInVocabularies())) {
+            existingCode.setConceptUriInVocabularies(fromCode.getConceptUriInVocabularies());
+            hasChanges = true;
+        }
         if (hasChanges) {
             final Date timeStamp = new Date(System.currentTimeMillis());
             existingCode.setModified(timeStamp);
@@ -266,6 +270,7 @@ public class CodeDaoImpl implements CodeDao {
         code.setEndDate(fromCode.getEndDate());
         code.setUri(apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, code));
         code.setUrl(apiUtils.createCodeUrl(codeScheme.getCodeRegistry(), codeScheme, code));
+        code.setConceptUriInVocabularies(fromCode.getConceptUriInVocabularies());
         return code;
     }
 
