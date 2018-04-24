@@ -1,0 +1,1 @@
+ALTER TABLE code DROP COLUMN childorder CASCADE;
