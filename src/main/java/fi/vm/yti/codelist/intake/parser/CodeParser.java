@@ -55,6 +55,7 @@ public class CodeParser extends AbstractBaseParser {
 
     public Set<CodeDTO> parseCodesFromCsvInputStream(final InputStream inputStream,
                                                      final Map<String, String> broaderCodeMapping) {
+        maxOrderValue = 0;
         final Set<CodeDTO> codes = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
@@ -124,6 +125,7 @@ public class CodeParser extends AbstractBaseParser {
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeDTO> parseCodesFromExcelWorkbook(final Workbook workbook,
                                                     final Map<String, String> broaderCodeMapping) {
+        maxOrderValue = 0;
         final Set<CodeDTO> codes = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
         final DataFormatter formatter = new DataFormatter();
