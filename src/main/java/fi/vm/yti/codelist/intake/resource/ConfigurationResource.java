@@ -18,7 +18,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 
 @Component
-@Path("/v1/configuration")
+@Path("/configuration")
 @Api(value = "configuration")
 @Produces("text/plain")
 public class ConfigurationResource extends AbstractBaseResource {
