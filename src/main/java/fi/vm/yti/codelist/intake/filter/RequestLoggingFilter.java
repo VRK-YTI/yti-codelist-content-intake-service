@@ -51,7 +51,7 @@ public class RequestLoggingFilter implements ContainerRequestFilter, ContainerRe
 
         final String entity = readEntityStream(requestContext);
         if (entity.trim().length() > 0) {
-            LOG.debug("Entity Stream : {}", entity);
+            LOG.debug("Entity Stream: {}", entity);
         }
     }
 
@@ -100,16 +100,23 @@ public class RequestLoggingFilter implements ContainerRequestFilter, ContainerRe
     @Override
     public void filter(final ContainerRequestContext requestContext,
                        final ContainerResponseContext responseContext) {
-        final long executionTime = getExecutionTime();
+        final Long executionTime = getExecutionTime();
+        if (executionTime == null) {
+            return;
+        }
         LOG.debug("Request execution time: {} ms", executionTime);
         LOG.debug("*** End request logging ***");
         logRequestInfo(requestContext, responseContext, executionTime);
         MDC.clear();
     }
 
-    private long getExecutionTime() {
-        final long startTime = Long.parseLong(MDC.get("startTime"));
-        return System.currentTimeMillis() - startTime;
+    private Long getExecutionTime() {
+        final String startTimeString = MDC.get("startTime");
+        if (startTimeString != null && !startTimeString.isEmpty()) {
+            final Long startTime = Long.parseLong(startTimeString);
+            return System.currentTimeMillis() - startTime;
+        }
+        return null;
     }
 
     private void logRequestInfo(final ContainerRequestContext requestContext,
