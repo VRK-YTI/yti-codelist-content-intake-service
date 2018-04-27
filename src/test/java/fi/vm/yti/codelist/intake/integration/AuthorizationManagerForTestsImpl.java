@@ -21,7 +21,7 @@ import java.util.Collection;
  */
 
 @Component
-@Profile("test")
+@Profile("automatedtest")
 public class AuthorizationManagerForTestsImpl implements AuthorizationManager {
 
     public boolean canBeModifiedByUserInOrganization(final Collection<Organization> organizations ) {

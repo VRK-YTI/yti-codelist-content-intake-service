@@ -8,11 +8,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.context.ActiveProfiles;
 
 import fi.vm.yti.codelist.intake.dao.impl.CodeDaoImpl;
 import fi.vm.yti.codelist.intake.model.Code;
 import static org.junit.Assert.assertEquals;
 
+@ActiveProfiles({"automatedtest"})
 public class CodeDaoTest {
 
     @InjectMocks

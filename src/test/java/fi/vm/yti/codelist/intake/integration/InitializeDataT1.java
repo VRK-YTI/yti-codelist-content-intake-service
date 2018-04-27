@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {ContentIntakeServiceApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles({"test"})
+@ActiveProfiles({"automatedtest"})
 @TestPropertySource(locations = "classpath:test-port.properties")
 public class InitializeDataT1 extends AbstractIntegrationTestBase {
 

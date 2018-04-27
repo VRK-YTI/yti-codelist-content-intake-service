@@ -1,6 +1,6 @@
 ---
 spring:
-  profiles: test
+  profiles: automatedtest
   jpa:
     generate-ddl: false
     hibernate:

@@ -32,7 +32,7 @@ import static fi.vm.yti.security.Role.CODE_LIST_EDITOR;
  */
 
 @Service
-@Profile("!test")
+@Profile("!automatedtest")
 public class AuthorizationManagerImpl implements AuthorizationManager {
 
     private final AuthenticatedUserProvider userProvider;
