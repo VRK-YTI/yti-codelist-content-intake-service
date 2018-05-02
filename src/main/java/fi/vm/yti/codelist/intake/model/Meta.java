@@ -160,7 +160,7 @@ public class Meta {
         return entityIdentifier;
     }
 
-    public void setEntityIdentifier(String entityIdentifier) {
+    public void setEntityIdentifier(final String entityIdentifier) {
         this.entityIdentifier = entityIdentifier;
     }
 }

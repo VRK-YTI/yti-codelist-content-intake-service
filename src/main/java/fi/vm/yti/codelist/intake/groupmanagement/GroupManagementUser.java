@@ -12,7 +12,9 @@ public class GroupManagementUser {
         this("", "", "");
     }
 
-    public GroupManagementUser(String email, String firstName, String lastName) {
+    public GroupManagementUser(final String email,
+                               final String firstName,
+                               final String lastName) {
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;

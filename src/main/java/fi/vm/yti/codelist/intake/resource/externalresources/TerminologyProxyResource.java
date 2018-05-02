@@ -137,7 +137,8 @@ public class TerminologyProxyResource extends AbstractBaseResource {
         }
     }
 
-    private String createTerminologyConceptsApiUrl(String searchTerm, String vocabularyId) {
+    private String createTerminologyConceptsApiUrl(final String searchTerm,
+                                                   final String vocabularyId) {
         return terminologyProperties.getUrl() + API_PATH_TERMINOLOGY + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_CONCEPTS + "/searchterm" + "/" + searchTerm + "/" + "/vocabulary" + "/" + vocabularyId;
     }
 }

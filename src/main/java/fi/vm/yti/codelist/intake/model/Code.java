@@ -220,7 +220,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
         return conceptUriInVocabularies;
     }
 
-    public void setConceptUriInVocabularies(String conceptUriInVocabularies) {
+    public void setConceptUriInVocabularies(final String conceptUriInVocabularies) {
         this.conceptUriInVocabularies = conceptUriInVocabularies;
     }
 }
