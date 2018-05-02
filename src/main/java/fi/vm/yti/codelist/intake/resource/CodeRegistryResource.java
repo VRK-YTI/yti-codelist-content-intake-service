@@ -171,7 +171,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
         @ApiResponse(code = 200, message = "CodeScheme deleted"),
         @ApiResponse(code = 404, message = "CodeScheme not found")
     })
-
     public Response deleteCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue) {
 
