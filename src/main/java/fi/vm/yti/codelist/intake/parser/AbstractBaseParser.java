@@ -24,10 +24,10 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.model.ErrorModel;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
@@ -46,6 +46,20 @@ public abstract class AbstractBaseParser {
                 return false;
         }
         return true;
+    }
+
+    public static void validateCodeCodeValue(final String codeValue) {
+        if (codeValue == null || !codeValue.matches(CODE_CODEVALUE_VALIDATOR)) {
+            LOG.error("Error with code: " + codeValue);
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODE_CODEVALUE));
+        }
+    }
+
+    public static void validateCodeValue(final String codeValue) {
+        if (!codeValue.matches(CODESCHEME_CODEVALUE_VALIDATOR)) {
+            LOG.error("Error with code: " + codeValue);
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODEVALUE));
+        }
     }
 
     public String resolveLanguageFromHeader(final String prefix,
@@ -228,19 +242,5 @@ public abstract class AbstractBaseParser {
 
     public String parseEndDateStringFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_ENDDATE);
-    }
-
-    public static void validateCodeCodeValue(final String codeValue) {
-        if (codeValue == null || !codeValue.matches(CODE_CODEVALUE_VALIDATOR)) {
-            LOG.error("Error with code: " + codeValue);
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODE_CODEVALUE));
-        }
-    }
-
-    public static void validateCodeValue(final String codeValue) {
-        if (!codeValue.matches(CODESCHEME_CODEVALUE_VALIDATOR)) {
-            LOG.error("Error with code: " + codeValue);
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODEVALUE));
-        }
     }
 }

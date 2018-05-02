@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.intake.exception.BadClassificationException;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
@@ -42,7 +43,6 @@ import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
-import fi.vm.yti.codelist.intake.model.ErrorModel;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
@@ -146,9 +146,9 @@ public class CodeSchemeParser extends AbstractBaseParser {
         }
         final List<String> codes = Arrays.asList(dataClassificationCodes.split(";"));
         codes.forEach(code -> {
-           final CodeDTO classification = new CodeDTO();
-           classification.setCodeValue(code);
-           classifications.add(classification);
+            final CodeDTO classification = new CodeDTO();
+            classification.setCodeValue(code);
+            classifications.add(classification);
         });
         return classifications;
     }

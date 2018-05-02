@@ -14,11 +14,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
-import fi.vm.yti.codelist.intake.model.ErrorModel;
 import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeRegistryService;
