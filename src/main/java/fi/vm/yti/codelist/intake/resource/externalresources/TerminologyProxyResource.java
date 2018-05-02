@@ -11,6 +11,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fi.vm.yti.codelist.intake.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -68,7 +69,14 @@ public class TerminologyProxyResource extends AbstractBaseResource {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
 
-        final String response = restTemplate.getForObject(createTerminologyVocabulariesApiUrl(), String.class);
+        String response = null;
+        try {
+            response = restTemplate.getForObject(createTerminologyVocabulariesApiUrl(), String.class);
+        } catch (final Exception e) {
+            LOG.error("Error getting vocabularies from terminology response!", e);
+            throw new UnreachableTerminologyApiException(ErrorConstants.ERR_MSG_CANT_REACH_TERMINOLOGY_API);
+        }
+
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         final Meta meta = new Meta();
@@ -83,9 +91,7 @@ public class TerminologyProxyResource extends AbstractBaseResource {
             return Response.ok(wrapper).build();
         } catch (final IOException e) {
             LOG.error("Error parsing vocabularies from terminology response!", e);
-            meta.setMessage("Error parsing vocabularies from terminology!");
-            meta.setCode(500);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
+            throw new UnreachableTerminologyApiException(ErrorConstants.ERR_MSG_CANT_REACH_TERMINOLOGY_API);
         }
     }
 
@@ -113,9 +119,7 @@ public class TerminologyProxyResource extends AbstractBaseResource {
             response = restTemplate.getForObject(createTerminologyConceptsApiUrl(searchTerm, vocabularyId), String.class);
         } catch (Exception e) {
             LOG.error("Error getting concepts from terminology-api!", e);
-            meta.setMessage("Error parsing concepts from terminology!");
-            meta.setCode(500);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
+            throw new UnreachableTerminologyApiException(ErrorConstants.ERR_MSG_CANT_REACH_TERMINOLOGY_API);
         }
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
@@ -129,9 +133,7 @@ public class TerminologyProxyResource extends AbstractBaseResource {
             return Response.ok(wrapper).build();
         } catch (final IOException e) {
             LOG.error("Error parsing concepts from terminology response!", e);
-            meta.setMessage("Error parsing concepts from terminology!");
-            meta.setCode(500);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(wrapper).build();
+            throw new UnreachableTerminologyApiException(ErrorConstants.ERR_MSG_CANT_REACH_TERMINOLOGY_API);
         }
     }
 

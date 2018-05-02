@@ -13,18 +13,20 @@ public final class Concept {
     private final UUID vocabularyId;
     private final Map<String, String> prefLabel;
     private final Map<String, String> definition;
+    private final Map<String, String> vocabularyPrefLabel;
     private final String uri;
 
     // Jackson constructor
     private Concept() {
-        this(randomUUID(), randomUUID(), Collections.emptyMap(), Collections.emptyMap(), "");
+        this(randomUUID(), randomUUID(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), "");
     }
 
-    public Concept(final UUID id, final UUID vocabularyId, final Map prefLabel, final Map definition, final String uri) {
+    public Concept(final UUID id, final UUID vocabularyId, final Map prefLabel, final Map definition, final Map vocabularyPrefLabel, final String uri) {
         this.id = id;
         this.vocabularyId = vocabularyId;
         this.prefLabel = prefLabel;
         this.definition = definition;
+        this.vocabularyPrefLabel = vocabularyPrefLabel;
         this.uri = uri;
     }
 
@@ -42,6 +44,10 @@ public final class Concept {
 
     public Map getDefinition() {
         return definition;
+    }
+
+    public Map<String, String> getVocabularyPrefLabel() {
+        return vocabularyPrefLabel;
     }
 
     public String getUri() {
