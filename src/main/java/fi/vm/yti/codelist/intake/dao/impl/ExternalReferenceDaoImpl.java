@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.changelog.ChangeLogger;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
@@ -28,33 +29,50 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_50
 @Component
 public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
+    private final ChangeLogger changeLogger;
     private final ApiUtils apiUtils;
     private final ExternalReferenceRepository externalReferenceRepository;
     private final PropertyTypeRepository propertyTypeRepository;
 
-    public ExternalReferenceDaoImpl(final ApiUtils apiUtils,
+    public ExternalReferenceDaoImpl(final ChangeLogger changeLogger,
+                                    final ApiUtils apiUtils,
                                     final ExternalReferenceRepository externalReferenceRepository,
                                     final PropertyTypeRepository propertyTypeRepository) {
+        this.changeLogger = changeLogger;
         this.apiUtils = apiUtils;
         this.externalReferenceRepository = externalReferenceRepository;
         this.propertyTypeRepository = propertyTypeRepository;
     }
 
     @Transactional
-    public void delete(ExternalReference externalReference) {
+    public void delete(final ExternalReference externalReference) {
+        changeLogger.logExternalReferenceChange(externalReference);
         externalReferenceRepository.delete(externalReference);
     }
 
     @Transactional
-    public void delete(Set<ExternalReference> externalReferences) {
+    public void delete(final Set<ExternalReference> externalReferences) {
+        externalReferences.forEach(externalReference -> changeLogger.logExternalReferenceChange(externalReference));
         externalReferenceRepository.delete(externalReferences);
+    }
+
+    @Transactional
+    public void save(final Set<ExternalReference> externalReferences) {
+        externalReferenceRepository.save(externalReferences);
+        externalReferences.forEach(externalReference -> changeLogger.logExternalReferenceChange(externalReference));
+    }
+
+    @Transactional
+    public void save(final ExternalReference externalReference) {
+        externalReferenceRepository.save(externalReference);
+        changeLogger.logExternalReferenceChange(externalReference);
     }
 
     @Transactional
     public ExternalReference updateExternalReferenceFromDto(final ExternalReferenceDTO externalReferenceDto,
                                                             final CodeScheme codeScheme) {
         ExternalReference externalReference = createOrUpdateExternalReference(false, externalReferenceDto, codeScheme);
-        externalReferenceRepository.save(externalReference);
+        save(externalReference);
         return externalReference;
     }
 
@@ -77,7 +95,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
                 }
             }
             if (!externalReferences.isEmpty()) {
-                externalReferenceRepository.save(externalReferences);
+                save(externalReferences);
             }
         }
         return externalReferences;

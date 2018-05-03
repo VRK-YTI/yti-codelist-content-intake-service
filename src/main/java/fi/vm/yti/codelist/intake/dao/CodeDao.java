@@ -34,5 +34,5 @@ public interface CodeDao {
 
     Code updateCodeFromDto(final CodeScheme codeScheme, final CodeDTO codeDto);
 
-    Set<Code> updateCodesFromDtos(final CodeScheme codeScheme, final Set<CodeDTO> codes, final Map<String, String> broaderCodeMapping);
+    Set<Code> updateCodesFromDtos(final CodeScheme codeScheme, final Set<CodeDTO> codes, final Map<String, String> broaderCodeMapping, final boolean updateExternalReferences);
 }

@@ -18,7 +18,9 @@ import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.changelog.ChangeLogger;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
+import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
@@ -27,6 +29,7 @@ import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.*;
@@ -34,35 +37,44 @@ import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.*;
 @Component
 public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
+    private final ChangeLogger changeLogger;
+    private final ApiUtils apiUtils;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeRepository codeRepository;
     private final AuthorizationManager authorizationManager;
-    private final ApiUtils apiUtils;
+    private final ExternalReferenceDao externalReferenceDao;
 
     @Inject
-    public CodeSchemeDaoImpl(final CodeRegistryRepository codeRegistryRepository,
+    public CodeSchemeDaoImpl(final ChangeLogger changeLogger,
+                             final ApiUtils apiUtils,
+                             final CodeRegistryRepository codeRegistryRepository,
                              final CodeSchemeRepository codeSchemeRepository,
                              final CodeRepository codeRepository,
                              final AuthorizationManager authorizationManager,
-                             final ApiUtils apiUtils) {
+                             final ExternalReferenceDao externalReferenceDao) {
+        this.changeLogger = changeLogger;
+        this.apiUtils = apiUtils;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeRepository = codeRepository;
         this.authorizationManager = authorizationManager;
-        this.apiUtils = apiUtils;
+        this.externalReferenceDao = externalReferenceDao;
     }
 
     public void delete(final CodeScheme codeScheme) {
+        changeLogger.logCodeSchemeChange(codeScheme);
         codeSchemeRepository.delete(codeScheme);
     }
 
     public void save(final CodeScheme codeScheme) {
         codeSchemeRepository.save(codeScheme);
+        changeLogger.logCodeSchemeChange(codeScheme);
     }
 
     public void save(final Set<CodeScheme> codeSchemes) {
         codeSchemeRepository.save(codeSchemes);
+        codeSchemes.forEach(codeScheme -> changeLogger.logCodeSchemeChange(codeScheme));
     }
 
     public CodeScheme findById(final UUID id) {
@@ -89,29 +101,38 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         CodeScheme codeScheme = null;
         if (codeRegistry != null) {
             codeScheme = createOrUpdateCodeScheme(codeRegistry, codeSchemeDto);
+            updateExternalReferences(codeScheme, codeSchemeDto);
         }
-        codeSchemeRepository.save(codeScheme);
+        save(codeScheme);
         codeRegistryRepository.save(codeRegistry);
         return codeScheme;
     }
 
     @Transactional
     public Set<CodeScheme> updateCodeSchemesFromDtos(final CodeRegistry codeRegistry,
-                                                     final Set<CodeSchemeDTO> codeSchemeDtos) {
+                                                     final Set<CodeSchemeDTO> codeSchemeDtos,
+                                                     final boolean updateExternalReferences) {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (codeRegistry != null) {
-            for (final CodeSchemeDTO fromCodeScheme : codeSchemeDtos) {
-                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, fromCodeScheme);
-                if (codeScheme != null) {
-                    codeSchemes.add(codeScheme);
+            for (final CodeSchemeDTO codeSchemeDto : codeSchemeDtos) {
+                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, codeSchemeDto);
+                if (updateExternalReferences) {
+                    updateExternalReferences(codeScheme, codeSchemeDto);
                 }
+                codeSchemes.add(codeScheme);
             }
         }
         if (!codeSchemes.isEmpty()) {
-            codeSchemeRepository.save(codeSchemes);
+            save(codeSchemes);
             codeRegistryRepository.save(codeRegistry);
         }
         return codeSchemes;
+    }
+
+    private void updateExternalReferences(final CodeScheme codeScheme,
+                                          final CodeSchemeDTO codeSchemeDto) {
+        final Set<ExternalReference> externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(codeSchemeDto.getExternalReferences(), codeScheme);
+        codeScheme.setExternalReferences(externalReferences);
     }
 
     private CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,

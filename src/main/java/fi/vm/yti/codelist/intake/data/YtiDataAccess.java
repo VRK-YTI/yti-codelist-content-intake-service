@@ -146,8 +146,8 @@ public class YtiDataAccess {
     private Set<CodeSchemeDTO> loadDefaultCodeSchemes(final Set<CodeRegistryDTO> codeRegistries) {
         LOG.info("Loading default CodeSchemes...");
         final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
-        final Stopwatch watch = Stopwatch.createStarted();
         codeRegistries.forEach(codeRegistry -> {
+            final Stopwatch watch = Stopwatch.createStarted();
             final String identifier = codeRegistry.getCodeValue();
             if (updateManager.shouldUpdateData(DATA_CODESCHEMES, identifier, identifier + ".csv")) {
                 LOG.info("Loading CodeSchemes from CodeRegistry: " + identifier);
@@ -176,8 +176,8 @@ public class YtiDataAccess {
 
     private void loadDefaultCodes(final Set<CodeSchemeDTO> codeSchemes) {
         LOG.info("Loading default Codes...");
-        final Stopwatch watch = Stopwatch.createStarted();
         codeSchemes.forEach(codeScheme -> {
+            final Stopwatch watch = Stopwatch.createStarted();
             final String identifier = codeScheme.getCodeRegistry().getCodeValue() + "_" + codeScheme.getCodeValue();
             if (updateManager.shouldUpdateData(DATA_CODES, identifier, identifier + ".csv")) {
                 LOG.info("Loading Codes from CodeScheme: " + identifier);

@@ -3,7 +3,6 @@ package fi.vm.yti.codelist.intake.service.impl;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,13 +22,11 @@ import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
-import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeService;
@@ -45,7 +42,6 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     private final CodeRegistryDao codeRegistryDao;
     private final CodeSchemeDao codeSchemeDao;
     private final CodeDao codeDao;
-    private final ExternalReferenceDao externalReferenceDao;
     private final CodeParser codeParser;
 
     @Inject
@@ -53,14 +49,12 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                            final CodeRegistryDao codeRegistryDao,
                            final CodeSchemeDao codeSchemeDao,
                            final CodeParser codeParser,
-                           final CodeDao codeDao,
-                           final ExternalReferenceDao externalReferenceDao) {
+                           final CodeDao codeDao) {
         this.authorizationManager = authorizationManager;
         this.codeRegistryDao = codeRegistryDao;
         this.codeSchemeDao = codeSchemeDao;
         this.codeParser = codeParser;
         this.codeDao = codeDao;
-        this.externalReferenceDao = externalReferenceDao;
     }
 
     @Transactional
@@ -94,7 +88,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
             final HashMap<String, String> broaderCodeMapping = new HashMap<>();
             if (codeScheme != null) {
                 final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelWorkbook(workbook, broaderCodeMapping);
-                codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping);
+                codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, false);
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
             }
@@ -133,24 +127,16 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                     case FORMAT_JSON:
                         if (jsonPayload != null && !jsonPayload.isEmpty()) {
                             final Set<CodeDTO> codeDtos = codeParser.parseCodesFromJsonData(jsonPayload);
-                            codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping);
-                            final Map<String, Code> codeMap = new HashMap<>();
-                            codes.forEach(code -> codeMap.put(code.getCodeValue(), code));
-                            codeDtos.forEach(codeDto -> {
-                                final Set<ExternalReference> externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(codeDto.getExternalReferences(), codeScheme);
-                                final Code code = codeMap.get(codeDto.getCodeValue());
-                                code.setExternalReferences(externalReferences);
-                            });
-                            codeDao.save(codes);
+                            codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, true);
                         } else {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
                         }
                         break;
                     case FORMAT_EXCEL:
-                        codes = codeDao.updateCodesFromDtos(codeScheme, codeParser.parseCodesFromExcelInputStream(inputStream, broaderCodeMapping), broaderCodeMapping);
+                        codes = codeDao.updateCodesFromDtos(codeScheme, codeParser.parseCodesFromExcelInputStream(inputStream, broaderCodeMapping), broaderCodeMapping, false);
                         break;
                     case FORMAT_CSV:
-                        codes = codeDao.updateCodesFromDtos(codeScheme, codeParser.parseCodesFromCsvInputStream(inputStream, broaderCodeMapping), broaderCodeMapping);
+                        codes = codeDao.updateCodesFromDtos(codeScheme, codeParser.parseCodesFromCsvInputStream(inputStream, broaderCodeMapping), broaderCodeMapping, false);
                         break;
                     default:
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
@@ -184,9 +170,6 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
                         }
                         code = codeDao.updateCodeFromDto(codeScheme, codeDto);
-                        final Set<ExternalReference> externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(codeDto.getExternalReferences(), codeScheme);
-                        code.setExternalReferences(externalReferences);
-                        codeDao.save(code);
                     } else {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
                     }

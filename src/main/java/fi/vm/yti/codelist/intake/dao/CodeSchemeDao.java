@@ -25,5 +25,5 @@ public interface CodeSchemeDao {
 
     CodeScheme updateCodeSchemeFromDto(final CodeRegistry codeRegistry, final CodeSchemeDTO codeSchemeDto);
 
-    Set<CodeScheme> updateCodeSchemesFromDtos(final CodeRegistry codeRegistry, final Set<CodeSchemeDTO> codeSchemeDtos);
+    Set<CodeScheme> updateCodeSchemesFromDtos(final CodeRegistry codeRegistry, final Set<CodeSchemeDTO> codeSchemeDtos, final boolean updateExternalReferences);
 }

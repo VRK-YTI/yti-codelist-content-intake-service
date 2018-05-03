@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Profile;
 
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * This class is used in integration tests to replace the production-code-version of
@@ -31,4 +32,6 @@ public class AuthorizationManagerForTestsImpl implements AuthorizationManager {
     public boolean isSuperUser() {
         return true;
     }
+
+    public UUID getUserId() { return UUID.randomUUID(); }
 }

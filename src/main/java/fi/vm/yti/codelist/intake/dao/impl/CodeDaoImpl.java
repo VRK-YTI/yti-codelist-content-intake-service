@@ -17,13 +17,16 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.changelog.ChangeLogger;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
+import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.validateCodeCodeValue;
@@ -31,35 +34,45 @@ import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.validateCodeCo
 @Component
 public class CodeDaoImpl implements CodeDao {
 
+    private final ChangeLogger changeLogger;
     private final ApiUtils apiUtils;
     private final AuthorizationManager authorizationManager;
     private final CodeRepository codeRepository;
     private final CodeSchemeRepository codeSchemeRepository;
+    private final ExternalReferenceDao externalReferenceDao;
 
-    public CodeDaoImpl(final ApiUtils apiUtils,
+    public CodeDaoImpl(final ChangeLogger changeLogger,
+                       final ApiUtils apiUtils,
                        final AuthorizationManager authorizationManager,
                        final CodeRepository codeRepository,
-                       final CodeSchemeRepository codeSchemeRepository) {
+                       final CodeSchemeRepository codeSchemeRepository,
+                       final ExternalReferenceDao externalReferenceDao) {
+        this.changeLogger = changeLogger;
         this.apiUtils = apiUtils;
         this.authorizationManager = authorizationManager;
         this.codeRepository = codeRepository;
         this.codeSchemeRepository = codeSchemeRepository;
-    }
-
-    public void save(final Set<Code> codes) {
-        codeRepository.save(codes);
+        this.externalReferenceDao = externalReferenceDao;
     }
 
     public void save(final Code code) {
         codeRepository.save(code);
+        changeLogger.logCodeChange(code);
+    }
+
+    public void save(final Set<Code> codes) {
+        codeRepository.save(codes);
+        codes.forEach(code -> changeLogger.logCodeChange(code));
     }
 
     public void delete(final Code code) {
+        changeLogger.logCodeChange(code);
         codeRepository.delete(code);
     }
 
-    public void delete(Set<Code> code) {
-        codeRepository.delete(code);
+    public void delete(final Set<Code> codes) {
+        codes.forEach(code -> changeLogger.logCodeChange(code));
+        codeRepository.delete(codes);
     }
 
     public Set<Code> findAll() {
@@ -99,8 +112,9 @@ public class CodeDaoImpl implements CodeDao {
         Code code = null;
         if (codeScheme != null) {
             code = createOrUpdateCode(codeScheme, codeDto);
+            updateExternalReferences(codeScheme, code, codeDto);
         }
-        codeRepository.save(code);
+        save(code);
         codeSchemeRepository.save(codeScheme);
         return code;
     }
@@ -108,11 +122,15 @@ public class CodeDaoImpl implements CodeDao {
     @Transactional
     public Set<Code> updateCodesFromDtos(final CodeScheme codeScheme,
                                          final Set<CodeDTO> codeDtos,
-                                         final Map<String, String> broaderCodeMapping) {
+                                         final Map<String, String> broaderCodeMapping,
+                                         final boolean updateExternalReferences) {
         final Set<Code> codes = new HashSet<>();
         if (codeScheme != null) {
-            for (final CodeDTO fromCode : codeDtos) {
-                final Code code = createOrUpdateCode(codeScheme, fromCode);
+            for (final CodeDTO codeDto : codeDtos) {
+                final Code code = createOrUpdateCode(codeScheme, codeDto);
+                if (updateExternalReferences) {
+                    updateExternalReferences(codeScheme, code, codeDto);
+                }
                 if (code != null) {
                     codes.add(code);
                 }
@@ -120,29 +138,36 @@ public class CodeDaoImpl implements CodeDao {
             setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes);
         }
         if (!codes.isEmpty()) {
-            codeRepository.save(codes);
+            save(codes);
             codeSchemeRepository.save(codeScheme);
         }
         return codes;
     }
 
+    private void updateExternalReferences(final CodeScheme codeScheme,
+                                          final Code code,
+                                          final CodeDTO codeDto) {
+        final Set<ExternalReference> externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(codeDto.getExternalReferences(), codeScheme);
+        code.setExternalReferences(externalReferences);
+    }
+
     private Code createOrUpdateCode(final CodeScheme codeScheme,
-                                    final CodeDTO fromCode) {
-        validateCodeForCodeScheme(fromCode);
+                                    final CodeDTO codeDto) {
+        validateCodeForCodeScheme(codeDto);
         final Code existingCode;
-        if (fromCode.getId() != null) {
-            existingCode = codeRepository.findById(fromCode.getId());
+        if (codeDto.getId() != null) {
+            existingCode = codeRepository.findById(codeDto.getId());
             if (existingCode == null) {
-                checkForExistingCodeInCodeScheme(codeScheme, fromCode);
+                checkForExistingCodeInCodeScheme(codeScheme, codeDto);
             }
         } else {
-            existingCode = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, fromCode.getCodeValue());
+            existingCode = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
         }
         final Code code;
         if (existingCode != null) {
-            code = updateCode(codeScheme, existingCode, fromCode);
+            code = updateCode(codeScheme, existingCode, codeDto);
         } else {
-            code = createCode(codeScheme, fromCode);
+            code = createCode(codeScheme, codeDto);
         }
         return code;
     }

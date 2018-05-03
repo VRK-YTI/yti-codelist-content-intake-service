@@ -51,4 +51,8 @@ public class AuthorizationManagerImpl implements AuthorizationManager {
     public boolean isSuperUser() {
         return userProvider.getUser().isSuperuser();
     }
+
+    public UUID getUserId() {
+        return userProvider.getUser().getId();
+    }
 }
