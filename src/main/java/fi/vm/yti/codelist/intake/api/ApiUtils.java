@@ -4,13 +4,13 @@ import javax.inject.Inject;
 
 import org.springframework.stereotype.Component;
 
-import fi.vm.yti.codelist.intake.model.Code;
-import fi.vm.yti.codelist.intake.model.CodeRegistry;
-import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
+import fi.vm.yti.codelist.intake.model.Code;
+import fi.vm.yti.codelist.intake.model.CodeRegistry;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
 /**

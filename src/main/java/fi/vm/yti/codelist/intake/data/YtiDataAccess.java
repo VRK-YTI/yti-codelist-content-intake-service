@@ -2,7 +2,6 @@ package fi.vm.yti.codelist.intake.data;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 

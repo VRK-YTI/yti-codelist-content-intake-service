@@ -1,6 +1,5 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;

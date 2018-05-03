@@ -40,7 +40,6 @@ import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.indexing.IndexingTools;
 import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.jpa.IndexStatusRepository;
-import fi.vm.yti.codelist.intake.model.Commit;
 import fi.vm.yti.codelist.intake.model.IndexStatus;
 import fi.vm.yti.codelist.intake.service.CodeRegistryService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;

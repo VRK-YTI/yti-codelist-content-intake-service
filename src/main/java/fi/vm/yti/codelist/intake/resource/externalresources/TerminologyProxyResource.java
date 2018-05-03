@@ -11,7 +11,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import fi.vm.yti.codelist.intake.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -25,7 +24,9 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.configuration.TerminologyProperties;
+import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
+import fi.vm.yti.codelist.intake.exception.UnreachableTerminologyApiException;
 import fi.vm.yti.codelist.intake.model.Meta;
 import fi.vm.yti.codelist.intake.resource.AbstractBaseResource;
 import fi.vm.yti.codelist.intake.terminology.Concept;
