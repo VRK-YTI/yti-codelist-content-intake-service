@@ -256,7 +256,6 @@ public class YtiDataAccess {
         final Set<Code> classifications = new HashSet<>();
         classifications.add(classification);
         codeScheme.setDataClassifications(classifications);
-        codeScheme.setModified(new Date(System.currentTimeMillis()));
         codeSchemeDao.save(codeScheme);
     }
 

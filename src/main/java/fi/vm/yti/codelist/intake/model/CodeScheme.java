@@ -34,7 +34,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeScheme")
 @Table(name = "codescheme")
 @XmlRootElement
-@XmlType(propOrder = {"id", "codeValue", "uri", "url", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "modified", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "externalReferences", "conceptUriInVocabularies"})
+@XmlType(propOrder = {"id", "codeValue", "uri", "url", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "externalReferences", "conceptUriInVocabularies"})
 @ApiModel(value = "CodeScheme", description = "CodeScheme model that represents data for one single codescheme.")
 public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 

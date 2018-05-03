@@ -146,32 +146,26 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     private ExternalReference updateExternalReference(final ExternalReference existingExternalReference,
                                                       final ExternalReferenceDTO fromExternalReference,
                                                       final CodeScheme parentCodeScheme) {
-        boolean hasChanges = false;
         final String uri = apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, fromExternalReference.getId().toString());
         if (!Objects.equals(existingExternalReference.getUri(), uri)) {
             existingExternalReference.setUri(uri);
-            hasChanges = true;
         }
         if (!Objects.equals(existingExternalReference.getUrl(), fromExternalReference.getUrl())) {
             existingExternalReference.setUrl(fromExternalReference.getUrl());
-            hasChanges = true;
         }
         if (!Objects.equals(existingExternalReference.getParentCodeScheme(), parentCodeScheme)) {
             existingExternalReference.setParentCodeScheme(parentCodeScheme);
             existingExternalReference.setGlobal(parentCodeScheme == null);
-            hasChanges = true;
         }
         final PropertyType propertyType = propertyTypeRepository.findByLocalName(fromExternalReference.getPropertyType().getLocalName());
         if (!Objects.equals(existingExternalReference.getPropertyType(), propertyType)) {
             existingExternalReference.setPropertyType(propertyType);
-            hasChanges = true;
         }
         for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
             final String language = entry.getKey();
             final String value = entry.getValue();
             if (!Objects.equals(existingExternalReference.getTitle(language), value)) {
                 existingExternalReference.setTitle(language, value);
-                hasChanges = true;
             }
         }
         for (final Map.Entry<String, String> entry : fromExternalReference.getDescription().entrySet()) {
@@ -179,12 +173,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
             final String value = entry.getValue();
             if (!Objects.equals(existingExternalReference.getDescription(language), value)) {
                 existingExternalReference.setDescription(language, value);
-                hasChanges = true;
             }
-        }
-        if (hasChanges) {
-            final Date timeStamp = new Date(System.currentTimeMillis());
-            existingExternalReference.setModified(timeStamp);
         }
         return existingExternalReference;
     }
@@ -212,8 +201,6 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         for (final Map.Entry<String, String> entry : fromExternalReference.getDescription().entrySet()) {
             externalReference.setDescription(entry.getKey(), entry.getValue());
         }
-        final Date timeStamp = new Date(System.currentTimeMillis());
-        externalReference.setModified(timeStamp);
         return externalReference;
     }
 }

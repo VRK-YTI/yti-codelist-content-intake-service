@@ -177,48 +177,38 @@ public class CodeDaoImpl implements CodeDao {
                             final CodeDTO fromCode) {
         final String uri = apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, existingCode);
         final String url = apiUtils.createCodeUrl(codeScheme.getCodeRegistry(), codeScheme, existingCode);
-        boolean hasChanges = false;
         if (!Objects.equals(existingCode.getStatus(), fromCode.getStatus())) {
             if (!authorizationManager.isSuperUser() && Status.valueOf(existingCode.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCode.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
             }
             existingCode.setStatus(fromCode.getStatus());
-            hasChanges = true;
         }
         if (!Objects.equals(existingCode.getCodeScheme(), codeScheme)) {
             existingCode.setCodeScheme(codeScheme);
-            hasChanges = true;
         }
         if (!Objects.equals(existingCode.getUri(), uri)) {
             existingCode.setUri(uri);
-            hasChanges = true;
         }
         if (!Objects.equals(existingCode.getUrl(), url)) {
             existingCode.setUrl(url);
-            hasChanges = true;
         }
         if (!Objects.equals(existingCode.getShortName(), fromCode.getShortName())) {
             existingCode.setShortName(fromCode.getShortName());
-            hasChanges = true;
         }
         if (!Objects.equals(existingCode.getHierarchyLevel(), fromCode.getHierarchyLevel())) {
             existingCode.setHierarchyLevel(fromCode.getHierarchyLevel());
-            hasChanges = true;
         }
         if (!Objects.equals(existingCode.getOrder(), fromCode.getOrder())) {
             existingCode.setOrder(fromCode.getOrder());
-            hasChanges = true;
         }
         if (!Objects.equals(existingCode.getBroaderCodeId(), fromCode.getBroaderCodeId())) {
             existingCode.setBroaderCodeId(fromCode.getBroaderCodeId());
-            hasChanges = true;
         }
         for (final Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
             final String value = entry.getValue();
             if (!Objects.equals(existingCode.getPrefLabel(language), value)) {
                 existingCode.setPrefLabel(language, value);
-                hasChanges = true;
             }
         }
         for (final Map.Entry<String, String> entry : fromCode.getDescription().entrySet()) {
@@ -226,7 +216,6 @@ public class CodeDaoImpl implements CodeDao {
             final String value = entry.getValue();
             if (!Objects.equals(existingCode.getDescription(language), value)) {
                 existingCode.setDescription(language, value);
-                hasChanges = true;
             }
         }
         for (final Map.Entry<String, String> entry : fromCode.getDefinition().entrySet()) {
@@ -234,24 +223,16 @@ public class CodeDaoImpl implements CodeDao {
             final String value = entry.getValue();
             if (!Objects.equals(existingCode.getDefinition(language), value)) {
                 existingCode.setDefinition(language, value);
-                hasChanges = true;
             }
         }
         if (!Objects.equals(existingCode.getStartDate(), fromCode.getStartDate())) {
             existingCode.setStartDate(fromCode.getStartDate());
-            hasChanges = true;
         }
         if (!Objects.equals(existingCode.getEndDate(), fromCode.getEndDate())) {
             existingCode.setEndDate(fromCode.getEndDate());
-            hasChanges = true;
         }
         if (!Objects.equals(existingCode.getConceptUriInVocabularies(), fromCode.getConceptUriInVocabularies())) {
             existingCode.setConceptUriInVocabularies(fromCode.getConceptUriInVocabularies());
-            hasChanges = true;
-        }
-        if (hasChanges) {
-            final Date timeStamp = new Date(System.currentTimeMillis());
-            existingCode.setModified(timeStamp);
         }
         return existingCode;
     }
@@ -276,7 +257,6 @@ public class CodeDaoImpl implements CodeDao {
         code.setOrder(fromCode.getOrder());
 
         final Date timeStamp = new Date(System.currentTimeMillis());
-        code.setModified(timeStamp);
         for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             code.setPrefLabel(entry.getKey(), entry.getValue());
         }

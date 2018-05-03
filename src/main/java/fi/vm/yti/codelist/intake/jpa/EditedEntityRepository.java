@@ -9,6 +9,6 @@ import fi.vm.yti.codelist.intake.model.EditedEntity;
 
 @Repository
 @Transactional
-public interface EditedEntryRepository extends CrudRepository<EditedEntity, String> {
+public interface EditedEntityRepository extends CrudRepository<EditedEntity, String> {
 
 }

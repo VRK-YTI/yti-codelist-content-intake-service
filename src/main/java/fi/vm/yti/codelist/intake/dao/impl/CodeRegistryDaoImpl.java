@@ -79,17 +79,13 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
 
     private CodeRegistry updateCodeRegistry(final CodeRegistry codeRegistry,
                                             final CodeRegistryDTO fromCodeRegistry) {
-        final Date timeStamp = new Date(System.currentTimeMillis());
         final String uri = apiUtils.createCodeRegistryUri(codeRegistry);
         final String url = apiUtils.createCodeRegistryUrl(codeRegistry);
-        boolean hasChanges = false;
         if (!Objects.equals(codeRegistry.getUri(), uri)) {
             codeRegistry.setUri(uri);
-            hasChanges = true;
         }
         if (!Objects.equals(codeRegistry.getUrl(), url)) {
             codeRegistry.setUrl(url);
-            hasChanges = true;
         }
         codeRegistry.setOrganizations(resolveOrganizationsFromDtos(fromCodeRegistry.getOrganizations()));
         for (final Map.Entry<String, String> entry : fromCodeRegistry.getPrefLabel().entrySet()) {
@@ -97,7 +93,6 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
             final String value = entry.getValue();
             if (!Objects.equals(codeRegistry.getPrefLabel(language), value)) {
                 codeRegistry.setPrefLabel(language, value);
-                hasChanges = true;
             }
         }
         for (final Map.Entry<String, String> entry : fromCodeRegistry.getDefinition().entrySet()) {
@@ -105,11 +100,7 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
             final String value = entry.getValue();
             if (!Objects.equals(codeRegistry.getDefinition(language), value)) {
                 codeRegistry.setDefinition(language, value);
-                hasChanges = true;
             }
-        }
-        if (hasChanges) {
-            codeRegistry.setModified(timeStamp);
         }
         return codeRegistry;
     }
@@ -126,13 +117,11 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
     }
 
     private CodeRegistry createCodeRegistry(final CodeRegistryDTO fromCodeRegistry) {
-        final Date timeStamp = new Date(System.currentTimeMillis());
         final CodeRegistry codeRegistry = new CodeRegistry();
         codeRegistry.setId(UUID.randomUUID());
         final String codeValue = fromCodeRegistry.getCodeValue();
         validateCodeValue(codeValue);
         codeRegistry.setCodeValue(codeValue);
-        codeRegistry.setModified(timeStamp);
         codeRegistry.setOrganizations(resolveOrganizationsFromDtos(fromCodeRegistry.getOrganizations()));
         for (Map.Entry<String, String> entry : fromCodeRegistry.getPrefLabel().entrySet()) {
             codeRegistry.setPrefLabel(entry.getKey(), entry.getValue());

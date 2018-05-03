@@ -1,5 +1,9 @@
 package fi.vm.yti.codelist.intake.indexing.impl;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -7,6 +11,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -16,6 +21,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,12 +31,16 @@ import fi.vm.yti.codelist.common.dto.AbstractIdentifyableCodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.Views;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.indexing.IndexingTools;
+import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.jpa.IndexStatusRepository;
+import fi.vm.yti.codelist.intake.model.Commit;
 import fi.vm.yti.codelist.intake.model.IndexStatus;
 import fi.vm.yti.codelist.intake.service.CodeRegistryService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
@@ -38,6 +48,7 @@ import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 import static fi.vm.yti.codelist.intake.update.UpdateManager.UPDATE_FAILED;
 
 @Singleton
@@ -65,6 +76,8 @@ public class IndexingImpl implements Indexing {
     private IndexingTools indexingTools;
     private boolean hasError;
     private boolean fullIndexInProgress;
+    private CommitRepository commitRepository;
+    private DataSource dataSource;
 
     @Inject
     public IndexingImpl(final IndexingTools indexingTools,
@@ -74,7 +87,9 @@ public class IndexingImpl implements Indexing {
                         final CodeSchemeService codeSchemeService,
                         final CodeService codeService,
                         final ExternalReferenceService externalReferenceService,
-                        final PropertyTypeService propertyTypeService) {
+                        final PropertyTypeService propertyTypeService,
+                        final CommitRepository commitRepository,
+                        final DataSource dataSource) {
         this.indexingTools = indexingTools;
         this.client = client;
         this.indexStatusRepository = indexStatusRepository;
@@ -83,6 +98,8 @@ public class IndexingImpl implements Indexing {
         this.codeService = codeService;
         this.externalReferenceService = externalReferenceService;
         this.propertyTypeService = propertyTypeService;
+        this.commitRepository = commitRepository;
+        this.dataSource = dataSource;
     }
 
     private boolean indexCodeRegistries(final String indexName) {
@@ -92,12 +109,14 @@ public class IndexingImpl implements Indexing {
 
     private boolean indexCodeSchemes(final String indexName) {
         final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.findAll();
+        setCodeSchemesModified(codeSchemes);
         return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
     }
 
     private boolean indexCodes(final String indexName) {
-        final Set<CodeDTO> regions = codeService.findAll();
-        return indexData(regions, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
+        final Set<CodeDTO> codes = codeService.findAll();
+        setCodesModified(codes);
+        return indexData(codes, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
     }
 
     private boolean indexPropertyTypes(final String indexName) {
@@ -107,6 +126,7 @@ public class IndexingImpl implements Indexing {
 
     private boolean indexExternalReferences(final String indexName) {
         final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findAll();
+        setExternalReferencesModified(externalReferences);
         return indexData(externalReferences, indexName, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
     }
 
@@ -221,6 +241,7 @@ public class IndexingImpl implements Indexing {
 
     public boolean updateCodes(final Set<CodeDTO> codes) {
         if (!codes.isEmpty()) {
+            setCodesModified(codes);
             return indexData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
         }
         return true;
@@ -234,6 +255,7 @@ public class IndexingImpl implements Indexing {
 
     public boolean updateCodeSchemes(final Set<CodeSchemeDTO> codeSchemes) {
         if (!codeSchemes.isEmpty()) {
+            setCodeSchemesModified(codeSchemes);
             return indexData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
         }
         return true;
@@ -273,6 +295,7 @@ public class IndexingImpl implements Indexing {
 
     public boolean updateExternalReferences(final Set<ExternalReferenceDTO> externalReferences) {
         if (!externalReferences.isEmpty()) {
+            setExternalReferencesModified(externalReferences);
             return indexData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
         }
         return true;
@@ -389,5 +412,43 @@ public class IndexingImpl implements Indexing {
 
     public void setHasError(boolean hasError) {
         this.hasError = hasError;
+    }
+
+    private void setCodesModified(final Set<CodeDTO> codes) {
+        codes.forEach(this::setCodeModified);
+    }
+
+    private void setCodeModified(final CodeDTO code) {
+        code.setModified(getLastModificationDate("code", code.getId().toString()));
+    }
+
+    private void setCodeSchemesModified(final Set<CodeSchemeDTO> codeSchemes) {
+        codeSchemes.forEach(this::setCodeSchemeModified);
+    }
+
+    private void setCodeSchemeModified(final CodeSchemeDTO codeScheme) {
+        codeScheme.setModified(getLastModificationDate("codescheme", codeScheme.getId().toString()));
+    }
+
+    private void setExternalReferencesModified(final Set<ExternalReferenceDTO> externalReferences) {
+        externalReferences.forEach(externalReference -> {
+            externalReference.setModified(getLastModificationDate("externalreference", externalReference.getId().toString()));
+        });
+    }
+
+    private Date getLastModificationDate(final String entityName,
+                                         final String entityId) {
+        Date modified = null;
+        try (final Connection connection = dataSource.getConnection();
+             final PreparedStatement ps = connection.prepareStatement(String.format("SELECT c.modified FROM commit as c WHERE c.id IN (SELECT e.commit_id FROM editedentity AS e WHERE e.%s_id = '%s') ORDER BY c.modified DESC LIMIT 1;", entityName, entityId));
+             final ResultSet results = ps.executeQuery()) {
+            if (results.next()) {
+                modified = results.getTimestamp(1);
+            }
+        } catch (final SQLException e) {
+            LOG.error("SQL query failed: ", e);
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+        }
+        return modified;
     }
 }

@@ -168,17 +168,14 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     private CodeScheme updateCodeScheme(final CodeRegistry codeRegistry,
                                         final CodeScheme existingCodeScheme,
                                         final CodeSchemeDTO fromCodeScheme) {
-        boolean hasChanges = false;
         if (!Objects.equals(existingCodeScheme.getStatus(), fromCodeScheme.getStatus())) {
             if (!authorizationManager.isSuperUser() && Status.valueOf(existingCodeScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCodeScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
             }
             existingCodeScheme.setStatus(fromCodeScheme.getStatus());
-            hasChanges = true;
         }
         if (!Objects.equals(existingCodeScheme.getCodeRegistry(), codeRegistry)) {
             existingCodeScheme.setCodeRegistry(codeRegistry);
-            hasChanges = true;
         }
         final Set<Code> classifications = resolveDataClassificationsFromDtos(fromCodeScheme.getDataClassifications());
         if (!Objects.equals(existingCodeScheme.getDataClassifications(), classifications)) {
@@ -187,36 +184,29 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             } else {
                 existingCodeScheme.setDataClassifications(null);
             }
-            hasChanges = true;
         }
         final String uri = apiUtils.createCodeSchemeUri(codeRegistry, existingCodeScheme);
         if (!Objects.equals(existingCodeScheme.getUri(), uri)) {
             existingCodeScheme.setUri(uri);
-            hasChanges = true;
         }
         final String url = apiUtils.createCodeSchemeUrl(codeRegistry, existingCodeScheme);
         if (!Objects.equals(existingCodeScheme.getUrl(), url)) {
             existingCodeScheme.setUrl(url);
-            hasChanges = true;
         }
         if (!Objects.equals(existingCodeScheme.getSource(), fromCodeScheme.getSource())) {
             existingCodeScheme.setSource(fromCodeScheme.getSource());
-            hasChanges = true;
         }
         if (!Objects.equals(existingCodeScheme.getLegalBase(), fromCodeScheme.getLegalBase())) {
             existingCodeScheme.setLegalBase(fromCodeScheme.getLegalBase());
-            hasChanges = true;
         }
         if (!Objects.equals(existingCodeScheme.getGovernancePolicy(), fromCodeScheme.getGovernancePolicy())) {
             existingCodeScheme.setGovernancePolicy(fromCodeScheme.getGovernancePolicy());
-            hasChanges = true;
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
             final String value = entry.getValue();
             if (!Objects.equals(existingCodeScheme.getPrefLabel(language), value)) {
                 existingCodeScheme.setPrefLabel(language, value);
-                hasChanges = true;
             }
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getDescription().entrySet()) {
@@ -224,7 +214,6 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             final String value = entry.getValue();
             if (!Objects.equals(existingCodeScheme.getDescription(language), value)) {
                 existingCodeScheme.setDescription(language, value);
-                hasChanges = true;
             }
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getDefinition().entrySet()) {
@@ -232,7 +221,6 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             final String value = entry.getValue();
             if (!Objects.equals(existingCodeScheme.getDefinition(language), value)) {
                 existingCodeScheme.setDefinition(language, value);
-                hasChanges = true;
             }
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getChangeNote().entrySet()) {
@@ -240,28 +228,19 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             final String value = entry.getValue();
             if (!Objects.equals(existingCodeScheme.getChangeNote(language), value)) {
                 existingCodeScheme.setChangeNote(language, value);
-                hasChanges = true;
             }
         }
         if (!Objects.equals(existingCodeScheme.getVersion(), fromCodeScheme.getVersion())) {
             existingCodeScheme.setVersion(fromCodeScheme.getVersion());
-            hasChanges = true;
         }
         if (!Objects.equals(existingCodeScheme.getStartDate(), fromCodeScheme.getStartDate())) {
             existingCodeScheme.setStartDate(fromCodeScheme.getStartDate());
-            hasChanges = true;
         }
         if (!Objects.equals(existingCodeScheme.getEndDate(), fromCodeScheme.getEndDate())) {
             existingCodeScheme.setEndDate(fromCodeScheme.getEndDate());
-            hasChanges = true;
         }
         if (!Objects.equals(existingCodeScheme.getConceptUriInVocabularies(), fromCodeScheme.getConceptUriInVocabularies())) {
             existingCodeScheme.setConceptUriInVocabularies(fromCodeScheme.getConceptUriInVocabularies());
-            hasChanges = true;
-        }
-        if (hasChanges) {
-            final Date timeStamp = new Date(System.currentTimeMillis());
-            existingCodeScheme.setModified(timeStamp);
         }
         return existingCodeScheme;
     }
@@ -283,8 +262,6 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeScheme.setSource(fromCodeScheme.getSource());
         codeScheme.setLegalBase(fromCodeScheme.getLegalBase());
         codeScheme.setGovernancePolicy(fromCodeScheme.getGovernancePolicy());
-        final Date timeStamp = new Date(System.currentTimeMillis());
-        codeScheme.setModified(timeStamp);
         for (final Map.Entry<String, String> entry : fromCodeScheme.getPrefLabel().entrySet()) {
             codeScheme.setPrefLabel(entry.getKey(), entry.getValue());
         }

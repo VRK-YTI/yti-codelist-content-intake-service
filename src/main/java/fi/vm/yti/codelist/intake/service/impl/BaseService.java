@@ -29,7 +29,6 @@ abstract class BaseService {
         codeDto.setCodeValue(code.getCodeValue());
         codeDto.setUri(code.getUri());
         codeDto.setUrl(code.getUrl());
-        codeDto.setModified(code.getModified());
         codeDto.setBroaderCodeId(code.getBroaderCodeId());
         codeDto.setStartDate(code.getStartDate());
         codeDto.setEndDate(code.getEndDate());
@@ -74,7 +73,6 @@ abstract class BaseService {
         final CodeSchemeDTO codeSchemeDto = new CodeSchemeDTO();
         codeSchemeDto.setId(codeScheme.getId());
         codeSchemeDto.setCodeValue(codeScheme.getCodeValue());
-        codeSchemeDto.setModified(codeScheme.getModified());
         codeSchemeDto.setUri(codeScheme.getUri());
         codeSchemeDto.setUrl(codeScheme.getUrl());
         codeSchemeDto.setChangeNote(codeScheme.getChangeNote());
@@ -121,7 +119,6 @@ abstract class BaseService {
         codeRegistryDto.setCodeValue(codeRegistry.getCodeValue());
         codeRegistryDto.setUri(codeRegistry.getUri());
         codeRegistryDto.setUrl(codeRegistry.getUrl());
-        codeRegistryDto.setModified(codeRegistry.getModified());
         codeRegistryDto.setPrefLabel(codeRegistry.getPrefLabel());
         codeRegistryDto.setDefinition(codeRegistry.getDefinition());
         codeRegistryDto.setOrganizations(mapOrganizationDtos(codeRegistry.getOrganizations(), false));
@@ -145,7 +142,6 @@ abstract class BaseService {
     public ExternalReferenceDTO mapExternalReferenceDto(final ExternalReference externalReference, final boolean deep) {
         final ExternalReferenceDTO externalReferenceDto = new ExternalReferenceDTO();
         externalReferenceDto.setId(externalReference.getId());
-        externalReferenceDto.setModified(externalReference.getModified());
         externalReferenceDto.setDescription(externalReference.getDescription());
         externalReferenceDto.setGlobal(externalReference.getGlobal());
         externalReferenceDto.setTitle(externalReference.getTitle());

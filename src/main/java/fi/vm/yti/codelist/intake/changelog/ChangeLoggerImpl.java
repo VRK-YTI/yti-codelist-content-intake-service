@@ -7,7 +7,7 @@ import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.intake.jpa.CommitRepository;
-import fi.vm.yti.codelist.intake.jpa.EditedEntryRepository;
+import fi.vm.yti.codelist.intake.jpa.EditedEntityRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Commit;
@@ -21,12 +21,12 @@ public class ChangeLoggerImpl implements ChangeLogger {
     final AuthorizationManager authorizationManager;
     final Tracer tracer;
     final CommitRepository commitRepository;
-    final EditedEntryRepository editedEntryRepository;
+    final EditedEntityRepository editedEntryRepository;
 
     public ChangeLoggerImpl(final AuthorizationManager authorizationManager,
                             final Tracer tracer,
                             final CommitRepository commitRepository,
-                            final EditedEntryRepository editedEntryRepository) {
+                            final EditedEntityRepository editedEntryRepository) {
         this.authorizationManager = authorizationManager;
         this.tracer = tracer;
         this.commitRepository = commitRepository;
