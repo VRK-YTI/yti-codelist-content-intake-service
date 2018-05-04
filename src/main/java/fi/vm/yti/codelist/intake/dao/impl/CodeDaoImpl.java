@@ -1,6 +1,5 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -17,13 +16,13 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
-import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
+import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
@@ -256,7 +255,6 @@ public class CodeDaoImpl implements CodeDao {
         code.setBroaderCodeId(fromCode.getBroaderCodeId());
         code.setOrder(fromCode.getOrder());
 
-        final Date timeStamp = new Date(System.currentTimeMillis());
         for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             code.setPrefLabel(entry.getKey(), entry.getValue());
         }
