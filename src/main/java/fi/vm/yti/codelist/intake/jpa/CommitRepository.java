@@ -11,5 +11,5 @@ import fi.vm.yti.codelist.intake.model.Commit;
 @Transactional
 public interface CommitRepository extends CrudRepository<Commit, String> {
 
-    Commit findById(final String id);
+    Commit findByTraceId(final String traceId);
 }

@@ -430,9 +430,7 @@ public class IndexingImpl implements Indexing {
     }
 
     private void setExternalReferencesModified(final Set<ExternalReferenceDTO> externalReferences) {
-        externalReferences.forEach(externalReference -> {
-            externalReference.setModified(getLastModificationDate("externalreference", externalReference.getId().toString()));
-        });
+        externalReferences.forEach(externalReference -> externalReference.setModified(getLastModificationDate("externalreference", externalReference.getId().toString())));
     }
 
     private Date getLastModificationDate(final String entityName,

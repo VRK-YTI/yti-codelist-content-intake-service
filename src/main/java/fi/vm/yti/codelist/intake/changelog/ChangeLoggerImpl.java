@@ -1,7 +1,5 @@
 package fi.vm.yti.codelist.intake.changelog;
 
-import java.util.UUID;
-
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Service;
@@ -21,46 +19,43 @@ public class ChangeLoggerImpl implements ChangeLogger {
     final AuthorizationManager authorizationManager;
     final Tracer tracer;
     final CommitRepository commitRepository;
-    final EditedEntityRepository editedEntryRepository;
+    final EditedEntityRepository editedEntityRepository;
 
     public ChangeLoggerImpl(final AuthorizationManager authorizationManager,
                             final Tracer tracer,
                             final CommitRepository commitRepository,
-                            final EditedEntityRepository editedEntryRepository) {
+                            final EditedEntityRepository editedEntityRepository) {
         this.authorizationManager = authorizationManager;
         this.tracer = tracer;
         this.commitRepository = commitRepository;
-        this.editedEntryRepository = editedEntryRepository;
+        this.editedEntityRepository = editedEntityRepository;
     }
 
     public void logCodeSchemeChange(final CodeScheme codeScheme) {
         final EditedEntity editedEntity = new EditedEntity(createCommit());
         editedEntity.setCodeScheme(codeScheme);
-        editedEntryRepository.save(editedEntity);
+        editedEntityRepository.save(editedEntity);
     }
 
     public void logCodeChange(final Code code) {
         final EditedEntity editedEntity = new EditedEntity(createCommit());
         editedEntity.setCode(code);
-        editedEntryRepository.save(editedEntity);
+        editedEntityRepository.save(editedEntity);
     }
 
     public void logExternalReferenceChange(final ExternalReference externalReference) {
         final EditedEntity editedEntity = new EditedEntity(createCommit());
         editedEntity.setExternalReference(externalReference);
-        editedEntryRepository.save(editedEntity);
+        editedEntityRepository.save(editedEntity);
     }
 
     private Commit createCommit() {
-        String traceId = getTraceId();
+        final String traceId = getTraceId();
         Commit commit = null;
         if (traceId != null) {
-            commit = commitRepository.findById(traceId);
+            commit = commitRepository.findByTraceId(traceId);
         }
         if (commit == null) {
-            if (traceId == null) {
-                traceId = UUID.randomUUID().toString();
-            }
             commit = new Commit(traceId, authorizationManager.getUserId());
             commitRepository.save(commit);
         }

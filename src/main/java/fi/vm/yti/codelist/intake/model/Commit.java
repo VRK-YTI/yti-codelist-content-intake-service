@@ -22,11 +22,12 @@ import io.swagger.annotations.ApiModelProperty;
 
 @Entity
 @XmlRootElement
-@XmlType(propOrder = {"id", "userId", "modified", "description"})
+@XmlType(propOrder = {"id", "traceId", "userId", "modified", "description"})
 @Table(name = "commit")
 public class Commit {
 
-    private String id;
+    private UUID id;
+    private String traceId;
     private UUID userId;
     private Date modified;
     private String description;
@@ -37,19 +38,29 @@ public class Commit {
 
     public Commit(final String traceId,
                   final UUID userId) {
-        this.id = traceId;
+        this.id = UUID.randomUUID();
+        this.traceId = traceId;
         this.userId = userId;
         this.modified = new Date(System.currentTimeMillis());
     }
 
     @Id
     @Column(name = "id")
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(final String id) {
+    public void setId(final UUID id) {
         this.id = id;
+    }
+
+    @Column(name = "trace_id")
+    public String getTraceId() {
+        return traceId;
+    }
+
+    public void setTraceId(final String traceId) {
+        this.traceId = traceId;
     }
 
     @ApiModelProperty(dataType = "dateTime")
