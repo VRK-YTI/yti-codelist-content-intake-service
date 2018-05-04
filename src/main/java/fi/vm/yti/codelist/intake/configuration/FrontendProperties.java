@@ -11,11 +11,21 @@ public class FrontendProperties {
 
     private String defaultStatus;
 
+    private String codeSchemeSortMode;
+
     public String getDefaultStatus() {
         return defaultStatus;
     }
 
     public void setDefaultStatus(final String defaultStatus) {
         this.defaultStatus = defaultStatus;
+    }
+
+    public String getCodeSchemeSortMode() {
+        return codeSchemeSortMode;
+    }
+
+    public void setCodeSchemeSortMode(final String codeSchemeSortMode) {
+        this.codeSchemeSortMode = codeSchemeSortMode;
     }
 }

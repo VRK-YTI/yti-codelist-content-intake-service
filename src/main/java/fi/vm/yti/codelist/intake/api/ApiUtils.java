@@ -142,6 +142,10 @@ public class ApiUtils {
         return frontendProperties.getDefaultStatus();
     }
 
+    public String getCodeSchemeSortMode() {
+        return frontendProperties.getCodeSchemeSortMode();
+    }
+
     public String getGroupmanagementPublicUrl() {
         return groupManagementProperties.getPublicUrl();
     }

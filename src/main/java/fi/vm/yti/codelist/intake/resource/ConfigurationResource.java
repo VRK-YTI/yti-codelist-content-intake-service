@@ -43,6 +43,7 @@ public class ConfigurationResource extends AbstractBaseResource {
         configJson.set("groupManagementConfig", groupManagementConfig);
         configJson.put("dev", apiUtils.isDev());
         configJson.put("defaultStatus", apiUtils.getDefaultStatus());
+        configJson.put("codeSchemeSortMode", apiUtils.getCodeSchemeSortMode());
         return Response.ok(configJson).build();
     }
 }
