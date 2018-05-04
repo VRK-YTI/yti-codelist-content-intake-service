@@ -8,7 +8,6 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -43,7 +42,8 @@ public class EditedEntity {
         this.id = id;
     }
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "commit_id", nullable = false, insertable = true, updatable = false)
     public Commit getCommit() {
         return commit;
     }
@@ -52,7 +52,7 @@ public class EditedEntity {
         this.commit = commit;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "code_id", nullable = true, insertable = true, updatable = true)
     public Code getCode() {
         return code;
@@ -62,7 +62,7 @@ public class EditedEntity {
         this.code = code;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "codescheme_id", nullable = true, insertable = true, updatable = true)
     public CodeScheme getCodeScheme() {
         return codeScheme;
@@ -72,7 +72,7 @@ public class EditedEntity {
         this.codeScheme = codeScheme;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "externalreference_id", nullable = true, insertable = true, updatable = true)
     public ExternalReference getExternalReference() {
         return externalReference;
