@@ -13,6 +13,7 @@ public class GroupManagementProperties {
 
     @NotNull
     private String url;
+
     @NotNull
     private String publicUrl;
 

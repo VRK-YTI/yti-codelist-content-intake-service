@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
+import fi.vm.yti.codelist.intake.configuration.FrontendProperties;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
@@ -23,16 +24,19 @@ public class ApiUtils {
     private UriSuomiProperties uriSuomiProperties;
     private ContentIntakeServiceProperties contentIntakeServiceProperties;
     private GroupManagementProperties groupManagementProperties;
+    private FrontendProperties frontendProperties;
 
     @Inject
     public ApiUtils(final PublicApiServiceProperties publicApiServiceProperties,
                     final ContentIntakeServiceProperties contentIntakeServiceProperties,
                     final GroupManagementProperties groupManagementProperties,
-                    final UriSuomiProperties uriSuomiProperties) {
+                    final UriSuomiProperties uriSuomiProperties,
+                    final FrontendProperties frontendProperties) {
         this.publicApiServiceProperties = publicApiServiceProperties;
         this.uriSuomiProperties = uriSuomiProperties;
         this.contentIntakeServiceProperties = contentIntakeServiceProperties;
         this.groupManagementProperties = groupManagementProperties;
+        this.frontendProperties = frontendProperties;
     }
 
     public boolean isDev() {
@@ -132,6 +136,10 @@ public class ApiUtils {
         builder.append(contentIntakeServiceProperties.getHost());
         appendPortToUrlIfNotEmpty(port, builder);
         return builder.toString();
+    }
+
+    public String getDefaultStatus() {
+        return frontendProperties.getDefaultStatus();
     }
 
     public String getGroupmanagementPublicUrl() {

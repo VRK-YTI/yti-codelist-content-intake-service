@@ -42,6 +42,7 @@ public class ConfigurationResource extends AbstractBaseResource {
         groupManagementConfig.put("url", groupManagementPublicUrl);
         configJson.set("groupManagementConfig", groupManagementConfig);
         configJson.put("dev", apiUtils.isDev());
+        configJson.put("defaultStatus", apiUtils.getDefaultStatus());
         return Response.ok(configJson).build();
     }
 }
