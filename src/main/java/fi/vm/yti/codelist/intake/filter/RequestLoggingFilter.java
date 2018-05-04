@@ -1,9 +1,5 @@
 package fi.vm.yti.codelist.intake.filter;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -15,7 +11,6 @@ import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 
-import org.glassfish.jersey.message.internal.ReaderWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -48,11 +43,6 @@ public class RequestLoggingFilter implements ContainerRequestFilter, ContainerRe
         }
         logQueryParameters(requestContext);
         logRequestHeader(requestContext);
-
-        final String entity = readEntityStream(requestContext);
-        if (entity.trim().length() > 0) {
-            LOG.debug("Entity Stream: {}", entity);
-        }
     }
 
     private void logQueryParameters(final ContainerRequestContext requestContext) {
@@ -77,24 +67,6 @@ public class RequestLoggingFilter implements ContainerRequestFilter, ContainerRe
             LOG.debug("Header: {}, Value: {} ", headerName, headerValue);
         });
         LOG.debug("*** End header section of request ***");
-    }
-
-    private String readEntityStream(final ContainerRequestContext requestContext) {
-        final StringBuilder builder = new StringBuilder();
-        try (final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-             final InputStream inputStream = requestContext.getEntityStream()) {
-            ReaderWriter.writeTo(inputStream, outStream);
-            final byte[] requestEntity = outStream.toByteArray();
-            if (requestEntity.length == 0) {
-                builder.append("");
-            } else {
-                builder.append(new String(requestEntity, "UTF-8"));
-            }
-            requestContext.setEntityStream(new ByteArrayInputStream(requestEntity));
-        } catch (final IOException ex) {
-            LOG.debug("*** Exception while reading entity: {}", ex.getMessage());
-        }
-        return builder.toString();
     }
 
     @Override

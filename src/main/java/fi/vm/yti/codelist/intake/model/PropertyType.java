@@ -17,7 +17,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonView;
 
+import fi.vm.yti.codelist.common.dto.Views;
 import io.swagger.annotations.ApiModel;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
@@ -40,6 +42,7 @@ public class PropertyType extends AbstractIdentifyableCode implements Serializab
     private Map<String, String> definition;
 
     @Column(name = "localname")
+    @JsonView(Views.Normal.class)
     public String getLocalName() {
         return localName;
     }
@@ -49,6 +52,7 @@ public class PropertyType extends AbstractIdentifyableCode implements Serializab
     }
 
     @Column(name = "context")
+    @JsonView(Views.Normal.class)
     public String getContext() {
         return context;
     }
@@ -58,6 +62,7 @@ public class PropertyType extends AbstractIdentifyableCode implements Serializab
     }
 
     @Column(name = "type")
+    @JsonView(Views.Normal.class)
     public String getType() {
         return type;
     }
@@ -67,6 +72,7 @@ public class PropertyType extends AbstractIdentifyableCode implements Serializab
     }
 
     @Column(name = "uri")
+    @JsonView(Views.Normal.class)
     public String getUri() {
         return uri;
     }
@@ -76,6 +82,7 @@ public class PropertyType extends AbstractIdentifyableCode implements Serializab
     }
 
     @Column(name = "propertyuri")
+    @JsonView(Views.Normal.class)
     public String getPropertyUri() {
         return propertyUri;
     }
@@ -89,6 +96,7 @@ public class PropertyType extends AbstractIdentifyableCode implements Serializab
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
+    @JsonView(Views.Normal.class)
     public Map<String, String> getPrefLabel() {
         if (prefLabel == null) {
             prefLabel = new HashMap<>();
@@ -125,6 +133,7 @@ public class PropertyType extends AbstractIdentifyableCode implements Serializab
     @MapKeyColumn(name = "language")
     @Column(name = "definition")
     @OrderColumn
+    @JsonView(Views.Normal.class)
     public Map<String, String> getDefinition() {
         if (definition == null) {
             definition = new HashMap<>();

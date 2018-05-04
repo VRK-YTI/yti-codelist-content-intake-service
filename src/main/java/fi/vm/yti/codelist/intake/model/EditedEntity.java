@@ -20,9 +20,11 @@ public class EditedEntity {
 
     private UUID id;
     private Commit commit;
-    private Code code;
+    private CodeRegistry codeRegistry;
     private CodeScheme codeScheme;
+    private Code code;
     private ExternalReference externalReference;
+    private PropertyType propertyType;
 
     public EditedEntity() {
     }
@@ -53,13 +55,13 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "code_id", nullable = true, insertable = true, updatable = true)
-    public Code getCode() {
-        return code;
+    @JoinColumn(name = "coderegistry_id", nullable = true, insertable = true, updatable = true)
+    public CodeRegistry getCodeRegistry() {
+        return codeRegistry;
     }
 
-    public void setCode(final Code code) {
-        this.code = code;
+    public void setCodeRegistry(final CodeRegistry codeRegistry) {
+        this.codeRegistry = codeRegistry;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -73,6 +75,16 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "code_id", nullable = true, insertable = true, updatable = true)
+    public Code getCode() {
+        return code;
+    }
+
+    public void setCode(final Code code) {
+        this.code = code;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "externalreference_id", nullable = true, insertable = true, updatable = true)
     public ExternalReference getExternalReference() {
         return externalReference;
@@ -80,5 +92,15 @@ public class EditedEntity {
 
     public void setExternalReference(final ExternalReference externalReference) {
         this.externalReference = externalReference;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "propertytype_id", nullable = true, insertable = true, updatable = true)
+    public PropertyType getPropertyType() {
+        return propertyType;
+    }
+
+    public void setPropertyType(final PropertyType propertyType) {
+        this.propertyType = propertyType;
     }
 }

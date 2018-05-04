@@ -17,7 +17,7 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
-import fi.vm.yti.codelist.intake.changelog.ChangeLogger;
+import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
@@ -34,20 +34,20 @@ import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.validateCodeCo
 @Component
 public class CodeDaoImpl implements CodeDao {
 
-    private final ChangeLogger changeLogger;
+    private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
     private final AuthorizationManager authorizationManager;
     private final CodeRepository codeRepository;
     private final CodeSchemeRepository codeSchemeRepository;
     private final ExternalReferenceDao externalReferenceDao;
 
-    public CodeDaoImpl(final ChangeLogger changeLogger,
+    public CodeDaoImpl(final EntityChangeLogger entityChangeLogger,
                        final ApiUtils apiUtils,
                        final AuthorizationManager authorizationManager,
                        final CodeRepository codeRepository,
                        final CodeSchemeRepository codeSchemeRepository,
                        final ExternalReferenceDao externalReferenceDao) {
-        this.changeLogger = changeLogger;
+        this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.authorizationManager = authorizationManager;
         this.codeRepository = codeRepository;
@@ -57,21 +57,21 @@ public class CodeDaoImpl implements CodeDao {
 
     public void save(final Code code) {
         codeRepository.save(code);
-        changeLogger.logCodeChange(code);
+        entityChangeLogger.logCodeChange(code);
     }
 
     public void save(final Set<Code> codes) {
         codeRepository.save(codes);
-        codes.forEach(code -> changeLogger.logCodeChange(code));
+        codes.forEach(code -> entityChangeLogger.logCodeChange(code));
     }
 
     public void delete(final Code code) {
-        changeLogger.logCodeChange(code);
+        entityChangeLogger.logCodeChange(code);
         codeRepository.delete(code);
     }
 
     public void delete(final Set<Code> codes) {
-        codes.forEach(code -> changeLogger.logCodeChange(code));
+        codes.forEach(code -> entityChangeLogger.logCodeChange(code));
         codeRepository.delete(codes);
     }
 

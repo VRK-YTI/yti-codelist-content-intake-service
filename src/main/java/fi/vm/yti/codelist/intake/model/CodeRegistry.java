@@ -22,7 +22,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonView;
 
+import fi.vm.yti.codelist.common.dto.Views;
 import io.swagger.annotations.ApiModel;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
@@ -49,6 +51,7 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
+    @JsonView(Views.Normal.class)
     public Map<String, String> getPrefLabel() {
         if (prefLabel == null) {
             prefLabel = new HashMap<>();
@@ -85,6 +88,7 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
     @MapKeyColumn(name = "language")
     @Column(name = "definition")
     @OrderColumn
+    @JsonView(Views.Normal.class)
     public Map<String, String> getDefinition() {
         if (definition == null) {
             definition = new HashMap<>();
@@ -122,6 +126,7 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
             @JoinColumn(name = "coderegistry_id", referencedColumnName = "id", nullable = false, updatable = false)},
         inverseJoinColumns = {
             @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false)})
+    @JsonView(Views.Normal.class)
     public Set<Organization> getOrganizations() {
         return organizations;
     }
@@ -131,6 +136,7 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "codeRegistry", cascade = CascadeType.ALL)
+    @JsonView(Views.ExtendedCodeRegistry.class)
     public Set<CodeScheme> getCodeSchemes() {
         return codeSchemes;
     }

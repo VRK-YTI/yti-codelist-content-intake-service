@@ -1,6 +1,5 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -18,6 +17,7 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
+import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.Organization;
 import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.validateCodeValue;
@@ -25,15 +25,17 @@ import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.validateCodeVa
 @Component
 public class CodeRegistryDaoImpl implements CodeRegistryDao {
 
+    private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
     private final CodeRegistryRepository codeRegistryRepository;
     private final OrganizationRepository organizationRepository;
 
     @Inject
-    public CodeRegistryDaoImpl(final ApiUtils apiUtils,
+    public CodeRegistryDaoImpl(final EntityChangeLogger entityChangeLogger,
+                               final ApiUtils apiUtils,
                                final CodeRegistryRepository codeRegistryRepository,
                                final OrganizationRepository organizationRepository) {
-
+        this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.codeRegistryRepository = codeRegistryRepository;
         this.organizationRepository = organizationRepository;
@@ -52,6 +54,7 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeRegistryDto);
         if (codeRegistry != null) {
             codeRegistryRepository.save(codeRegistry);
+            entityChangeLogger.logCodeRegistryChange(codeRegistry);
         }
         return codeRegistry;
     }
@@ -62,6 +65,7 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         codeRegistryDtos.forEach(codeRegistry -> codeRegistries.add(createOrUpdateCodeRegistry(codeRegistry)));
         if (!codeRegistries.isEmpty()) {
             codeRegistryRepository.save(codeRegistries);
+            codeRegistries.forEach(entityChangeLogger::logCodeRegistryChange);
         }
         return codeRegistries;
     }

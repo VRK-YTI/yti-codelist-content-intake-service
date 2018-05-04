@@ -20,7 +20,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonView;
 
+import fi.vm.yti.codelist.common.dto.Views;
 import io.swagger.annotations.ApiModel;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
@@ -43,6 +45,7 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
     private Boolean global;
 
     @Column(name = "global")
+    @JsonView(Views.Normal.class)
     public Boolean getGlobal() {
         return global;
     }
@@ -56,6 +59,7 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
     @MapKeyColumn(name = "language")
     @Column(name = "title")
     @OrderColumn
+    @JsonView(Views.Normal.class)
     public Map<String, String> getTitle() {
         if (title == null) {
             title = new HashMap<>();
@@ -92,6 +96,7 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
     @MapKeyColumn(name = "language")
     @Column(name = "description")
     @OrderColumn
+    @JsonView(Views.Normal.class)
     public Map<String, String> getDescription() {
         if (description == null) {
             description = new HashMap<>();
@@ -124,6 +129,7 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
     }
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "externalReferences")
+    @JsonView(Views.ExtendedExternalReference.class)
     public Set<CodeScheme> getCodeSchemes() {
         return this.codeSchemes;
     }
@@ -133,6 +139,7 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
     }
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "externalReferences")
+    @JsonView(Views.ExtendedExternalReference.class)
     public Set<Code> getCodes() {
         return this.codes;
     }
@@ -143,6 +150,7 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "propertytype_id", nullable = false, insertable = true, updatable = true)
+    @JsonView(Views.Normal.class)
     public PropertyType getPropertyType() {
         return propertyType;
     }
@@ -153,6 +161,7 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parentcodescheme_id", nullable = true, insertable = true, updatable = false)
+    @JsonView(Views.ExtendedExternalReference.class)
     public CodeScheme getParentCodeScheme() {
         return parentCodeScheme;
     }

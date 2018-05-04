@@ -14,17 +14,21 @@ import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
+import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_PROPERTYTYPES;
 
 @Component
 public class PropertyTypeDaoImpl implements PropertyTypeDao {
 
+    private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
     private final PropertyTypeRepository propertyTypeRepository;
 
-    public PropertyTypeDaoImpl(final ApiUtils apiUtils,
+    public PropertyTypeDaoImpl(final EntityChangeLogger entityChangeLogger,
+                               final ApiUtils apiUtils,
                                final PropertyTypeRepository propertyTypeRepository) {
+        this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.propertyTypeRepository = propertyTypeRepository;
     }
@@ -45,6 +49,7 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
     public PropertyType updatePropertyTypeFromDto(final PropertyTypeDTO propertyTypeDTO) {
         PropertyType propertyType = createOrUpdatePropertyType(propertyTypeDTO);
         propertyTypeRepository.save(propertyType);
+        entityChangeLogger.logPropertyTypeChange(propertyType);
         return propertyType;
     }
 
@@ -59,6 +64,7 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
         }
         if (!propertyTypes.isEmpty()) {
             propertyTypeRepository.save(propertyTypes);
+            propertyTypes.forEach(entityChangeLogger::logPropertyTypeChange);
         }
         return propertyTypes;
     }

@@ -23,7 +23,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonView;
 
+import fi.vm.yti.codelist.common.dto.Views;
 import io.swagger.annotations.ApiModel;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
@@ -70,6 +72,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     @Column(name = "version")
+    @JsonView(Views.Normal.class)
     public String getVersion() {
         return version;
     }
@@ -79,6 +82,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     @Column(name = "source")
+    @JsonView(Views.Normal.class)
     public String getSource() {
         return source;
     }
@@ -88,6 +92,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     @Column(name = "legalbase")
+    @JsonView(Views.Normal.class)
     public String getLegalBase() {
         return legalBase;
     }
@@ -97,6 +102,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     @Column(name = "governancepolicy")
+    @JsonView(Views.Normal.class)
     public String getGovernancePolicy() {
         return governancePolicy;
     }
@@ -107,6 +113,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "coderegistry_id", nullable = false, insertable = true, updatable = false)
+    @JsonView(Views.ExtendedCodeScheme.class)
     public CodeRegistry getCodeRegistry() {
         return codeRegistry;
     }
@@ -120,6 +127,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
+    @JsonView(Views.Normal.class)
     public Map<String, String> getPrefLabel() {
         return prefLabel;
     }
@@ -153,6 +161,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     @MapKeyColumn(name = "language")
     @Column(name = "definition")
     @OrderColumn
+    @JsonView(Views.Normal.class)
     public Map<String, String> getDefinition() {
         if (definition == null) {
             definition = new HashMap<>();
@@ -189,6 +198,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     @MapKeyColumn(name = "language")
     @Column(name = "description")
     @OrderColumn
+    @JsonView(Views.Normal.class)
     public Map<String, String> getDescription() {
         if (description == null) {
             description = new HashMap<>();
@@ -225,6 +235,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     @MapKeyColumn(name = "language")
     @Column(name = "changenote")
     @OrderColumn
+    @JsonView(Views.Normal.class)
     public Map<String, String> getChangeNote() {
         if (changeNote == null) {
             changeNote = new HashMap<>();
@@ -262,6 +273,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
             @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false)},
         inverseJoinColumns = {
             @JoinColumn(name = "externalreference_id", referencedColumnName = "id", nullable = false, updatable = false)})
+    @JsonView(Views.ExtendedCodeScheme.class)
     public Set<ExternalReference> getExternalReferences() {
         return this.externalReferences;
     }
@@ -285,6 +297,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
             @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false)},
         inverseJoinColumns = {
             @JoinColumn(name = "code_id", referencedColumnName = "id", nullable = false, updatable = false)})
+    @JsonView(Views.ExtendedCodeScheme.class)
     public Set<Code> getDataClassifications() {
         return dataClassifications;
     }
@@ -294,6 +307,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     @Column(name = "vocabularies_uri")
+    @JsonView(Views.Normal.class)
     public String getConceptUriInVocabularies() {
         return conceptUriInVocabularies;
     }

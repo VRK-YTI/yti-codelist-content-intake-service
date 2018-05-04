@@ -17,7 +17,7 @@ import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
-import fi.vm.yti.codelist.intake.changelog.ChangeLogger;
+import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
@@ -36,7 +36,7 @@ import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.*;
 @Component
 public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
-    private final ChangeLogger changeLogger;
+    private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
@@ -45,14 +45,14 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     private final ExternalReferenceDao externalReferenceDao;
 
     @Inject
-    public CodeSchemeDaoImpl(final ChangeLogger changeLogger,
+    public CodeSchemeDaoImpl(final EntityChangeLogger entityChangeLogger,
                              final ApiUtils apiUtils,
                              final CodeRegistryRepository codeRegistryRepository,
                              final CodeSchemeRepository codeSchemeRepository,
                              final CodeRepository codeRepository,
                              final AuthorizationManager authorizationManager,
                              final ExternalReferenceDao externalReferenceDao) {
-        this.changeLogger = changeLogger;
+        this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
@@ -62,18 +62,18 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     }
 
     public void delete(final CodeScheme codeScheme) {
-        changeLogger.logCodeSchemeChange(codeScheme);
+        entityChangeLogger.logCodeSchemeChange(codeScheme);
         codeSchemeRepository.delete(codeScheme);
     }
 
     public void save(final CodeScheme codeScheme) {
         codeSchemeRepository.save(codeScheme);
-        changeLogger.logCodeSchemeChange(codeScheme);
+        entityChangeLogger.logCodeSchemeChange(codeScheme);
     }
 
     public void save(final Set<CodeScheme> codeSchemes) {
         codeSchemeRepository.save(codeSchemes);
-        codeSchemes.forEach(codeScheme -> changeLogger.logCodeSchemeChange(codeScheme));
+        codeSchemes.forEach(codeScheme -> entityChangeLogger.logCodeSchemeChange(codeScheme));
     }
 
     public CodeScheme findById(final UUID id) {

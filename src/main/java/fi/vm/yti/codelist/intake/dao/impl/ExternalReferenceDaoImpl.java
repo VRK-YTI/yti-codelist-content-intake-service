@@ -14,11 +14,11 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
-import fi.vm.yti.codelist.intake.changelog.ChangeLogger;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
+import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
@@ -28,16 +28,16 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_50
 @Component
 public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
-    private final ChangeLogger changeLogger;
+    private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
     private final ExternalReferenceRepository externalReferenceRepository;
     private final PropertyTypeRepository propertyTypeRepository;
 
-    public ExternalReferenceDaoImpl(final ChangeLogger changeLogger,
+    public ExternalReferenceDaoImpl(final EntityChangeLogger entityChangeLogger,
                                     final ApiUtils apiUtils,
                                     final ExternalReferenceRepository externalReferenceRepository,
                                     final PropertyTypeRepository propertyTypeRepository) {
-        this.changeLogger = changeLogger;
+        this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.externalReferenceRepository = externalReferenceRepository;
         this.propertyTypeRepository = propertyTypeRepository;
@@ -45,26 +45,26 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
     @Transactional
     public void delete(final ExternalReference externalReference) {
-        changeLogger.logExternalReferenceChange(externalReference);
+        entityChangeLogger.logExternalReferenceChange(externalReference);
         externalReferenceRepository.delete(externalReference);
     }
 
     @Transactional
     public void delete(final Set<ExternalReference> externalReferences) {
-        externalReferences.forEach(externalReference -> changeLogger.logExternalReferenceChange(externalReference));
+        externalReferences.forEach(entityChangeLogger::logExternalReferenceChange);
         externalReferenceRepository.delete(externalReferences);
     }
 
     @Transactional
     public void save(final Set<ExternalReference> externalReferences) {
         externalReferenceRepository.save(externalReferences);
-        externalReferences.forEach(externalReference -> changeLogger.logExternalReferenceChange(externalReference));
+        externalReferences.forEach(entityChangeLogger::logExternalReferenceChange);
     }
 
     @Transactional
     public void save(final ExternalReference externalReference) {
         externalReferenceRepository.save(externalReference);
-        changeLogger.logExternalReferenceChange(externalReference);
+        entityChangeLogger.logExternalReferenceChange(externalReference);
     }
 
     @Transactional

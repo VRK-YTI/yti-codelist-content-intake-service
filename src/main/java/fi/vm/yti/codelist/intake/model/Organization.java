@@ -18,7 +18,9 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonView;
 
+import fi.vm.yti.codelist.common.dto.Views;
 import io.swagger.annotations.ApiModel;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
@@ -38,6 +40,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     private Set<CodeRegistry> codeRegistries;
 
     @Column(name = "url")
+    @JsonView(Views.Normal.class)
     public String getUrl() {
         return url;
     }
@@ -47,6 +50,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     }
 
     @Column(name = "removed")
+    @JsonView(Views.Normal.class)
     public Boolean getRemoved() {
         return removed;
     }
@@ -60,6 +64,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
+    @JsonView(Views.Normal.class)
     public Map<String, String> getPrefLabel() {
         return prefLabel;
     }
@@ -93,6 +98,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     @MapKeyColumn(name = "language")
     @Column(name = "description")
     @OrderColumn
+    @JsonView(Views.Normal.class)
     public Map<String, String> getDescription() {
         if (description == null) {
             description = new HashMap<>();
@@ -125,6 +131,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     }
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "organizations")
+    @JsonView(Views.ExtendedOrganization.class)
     public Set<CodeRegistry> getCodeRegistries() {
         return codeRegistries;
     }

@@ -38,7 +38,6 @@ import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.indexing.IndexingTools;
-import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.jpa.IndexStatusRepository;
 import fi.vm.yti.codelist.intake.model.IndexStatus;
 import fi.vm.yti.codelist.intake.service.CodeRegistryService;
@@ -75,7 +74,6 @@ public class IndexingImpl implements Indexing {
     private IndexingTools indexingTools;
     private boolean hasError;
     private boolean fullIndexInProgress;
-    private CommitRepository commitRepository;
     private DataSource dataSource;
 
     @Inject
@@ -87,7 +85,6 @@ public class IndexingImpl implements Indexing {
                         final CodeService codeService,
                         final ExternalReferenceService externalReferenceService,
                         final PropertyTypeService propertyTypeService,
-                        final CommitRepository commitRepository,
                         final DataSource dataSource) {
         this.indexingTools = indexingTools;
         this.client = client;
@@ -97,13 +94,12 @@ public class IndexingImpl implements Indexing {
         this.codeService = codeService;
         this.externalReferenceService = externalReferenceService;
         this.propertyTypeService = propertyTypeService;
-        this.commitRepository = commitRepository;
         this.dataSource = dataSource;
     }
 
     private boolean indexCodeRegistries(final String indexName) {
         final Set<CodeRegistryDTO> codeRegistries = codeRegistryService.findAll();
-        return indexData(codeRegistries, indexName, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
+        return indexData(codeRegistries, indexName, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.ExtendedCodeRegistry.class);
     }
 
     private boolean indexCodeSchemes(final String indexName) {
@@ -120,7 +116,7 @@ public class IndexingImpl implements Indexing {
 
     private boolean indexPropertyTypes(final String indexName) {
         final Set<PropertyTypeDTO> propertyTypes = propertyTypeService.findAll();
-        return indexData(propertyTypes, indexName, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
+        return indexData(propertyTypes, indexName, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.ExtendedPropertyType.class);
     }
 
     private boolean indexExternalReferences(final String indexName) {
@@ -164,7 +160,7 @@ public class IndexingImpl implements Indexing {
                     final AbstractIdentifyableCodeDTO identifyableCode = (AbstractIdentifyableCodeDTO) item;
                     bulkRequest.add(client.prepareIndex(elasticIndex, elasticType, identifyableCode.getId().toString()).setSource(mapper.writerWithView(jsonViewClass).writeValueAsString(item).replace("\\\\n", "\\n"), XContentType.JSON));
                     bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
-                } catch (JsonProcessingException e) {
+                } catch (final JsonProcessingException e) {
                     handleBulkErrorWithException(name, e);
                 }
             }
@@ -336,7 +332,8 @@ public class IndexingImpl implements Indexing {
         indexStatusRepository.save(indexStatuses);
     }
 
-    public boolean reIndex(final String indexName, final String type) {
+    public boolean reIndex(final String indexName,
+                           final String type) {
         final Set<IndexStatus> list = indexStatusRepository.getLatestRunningIndexStatusForIndexAlias(indexName);
         if (list.isEmpty()) {
             reIndexData(indexName, type);
@@ -347,7 +344,8 @@ public class IndexingImpl implements Indexing {
         }
     }
 
-    private void reIndexData(final String indexAlias, final String type) {
+    private void reIndexData(final String indexAlias,
+                             final String type) {
         final String indexName = createIndexName(indexAlias);
 
         final IndexStatus status = new IndexStatus();
