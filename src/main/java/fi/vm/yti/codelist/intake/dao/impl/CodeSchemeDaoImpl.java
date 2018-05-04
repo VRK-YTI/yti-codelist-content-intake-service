@@ -73,7 +73,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
     public void save(final Set<CodeScheme> codeSchemes) {
         codeSchemeRepository.save(codeSchemes);
-        codeSchemes.forEach(codeScheme -> entityChangeLogger.logCodeSchemeChange(codeScheme));
+        codeSchemes.forEach(entityChangeLogger::logCodeSchemeChange);
     }
 
     public CodeScheme findById(final UUID id) {

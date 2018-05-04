@@ -61,7 +61,7 @@ public class CodeDaoImpl implements CodeDao {
 
     public void save(final Set<Code> codes) {
         codeRepository.save(codes);
-        codes.forEach(code -> entityChangeLogger.logCodeChange(code));
+        codes.forEach(entityChangeLogger::logCodeChange);
     }
 
     public void delete(final Code code) {
@@ -70,7 +70,7 @@ public class CodeDaoImpl implements CodeDao {
     }
 
     public void delete(final Set<Code> codes) {
-        codes.forEach(code -> entityChangeLogger.logCodeChange(code));
+        codes.forEach(entityChangeLogger::logCodeChange);
         codeRepository.delete(codes);
     }
 
