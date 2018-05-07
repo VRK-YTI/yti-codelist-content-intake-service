@@ -3,6 +3,10 @@ package fi.vm.yti.codelist.intake.model;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
+import com.fasterxml.jackson.annotation.JsonView;
+
+import fi.vm.yti.codelist.common.dto.Views;
+
 @MappedSuperclass
 public class AbstractBaseCode extends AbstractIdentifyableCode {
 
@@ -10,6 +14,7 @@ public class AbstractBaseCode extends AbstractIdentifyableCode {
     private String url;
 
     @Column(name = "uri")
+    @JsonView(Views.Normal.class)
     public String getUri() {
         return uri;
     }
@@ -19,6 +24,7 @@ public class AbstractBaseCode extends AbstractIdentifyableCode {
     }
 
     @Column(name = "url")
+    @JsonView(Views.Normal.class)
     public String getUrl() {
         return url;
     }

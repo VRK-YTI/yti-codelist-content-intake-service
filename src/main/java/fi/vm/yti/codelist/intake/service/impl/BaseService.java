@@ -6,12 +6,16 @@ import java.util.Set;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.model.PropertyType;
@@ -42,6 +46,9 @@ abstract class BaseService {
         if (deep) {
             if (code.getExternalReferences() != null) {
                 codeDto.setExternalReferences(mapExternalReferenceDtos(code.getExternalReferences(), false));
+            }
+            if (code.getExtensions() != null) {
+                codeDto.setExtensions(mapExtensionDtos(code.getExtensions(), false));
             }
         }
         codeDto.setDescription(code.getDescription());
@@ -94,6 +101,9 @@ abstract class BaseService {
             if (codeScheme.getExternalReferences() != null) {
                 codeSchemeDto.setExternalReferences(mapExternalReferenceDtos(codeScheme.getExternalReferences(), false));
             }
+            if (codeScheme.getExtensionSchemes() != null) {
+                codeSchemeDto.setExtensionSchemes(mapExtensionSchemeDtos(codeScheme.getExtensionSchemes(), false));
+            }
         }
         return codeSchemeDto;
     }
@@ -139,7 +149,8 @@ abstract class BaseService {
         return mapExternalReferenceDto(externalReference, true);
     }
 
-    public ExternalReferenceDTO mapExternalReferenceDto(final ExternalReference externalReference, final boolean deep) {
+    public ExternalReferenceDTO mapExternalReferenceDto(final ExternalReference externalReference,
+                                                        final boolean deep) {
         final ExternalReferenceDTO externalReferenceDto = new ExternalReferenceDTO();
         externalReferenceDto.setId(externalReference.getId());
         externalReferenceDto.setDescription(externalReference.getDescription());
@@ -166,7 +177,8 @@ abstract class BaseService {
         return mapExternalReferenceDtos(externalReferences, true);
     }
 
-    public Set<ExternalReferenceDTO> mapExternalReferenceDtos(final Set<ExternalReference> externalReferences, final boolean deep) {
+    public Set<ExternalReferenceDTO> mapExternalReferenceDtos(final Set<ExternalReference> externalReferences,
+                                                              final boolean deep) {
         final Set<ExternalReferenceDTO> externalReferenceDtos = new HashSet<>();
         if (externalReferences != null) {
             for (final ExternalReference externalReference : externalReferences) {
@@ -197,6 +209,83 @@ abstract class BaseService {
             }
         }
         return propertyTypeDtos;
+    }
+
+    public ExtensionDTO mapDeepExtensionDto(final Extension extension) {
+        return mapExtensionDto(extension, true);
+    }
+
+    public ExtensionDTO mapExtensionDto(final Extension extension,
+                                        final boolean deep) {
+        final ExtensionDTO extensionDto = new ExtensionDTO();
+        extensionDto.setId(extension.getId());
+        extensionDto.setExtensionOrder(extension.getExtensionOrder());
+        extensionDto.setExtensionValue(extension.getExtensionValue());
+        if (deep) {
+            if (extension.getExtensionScheme() != null) {
+                extensionDto.setExtensionScheme(mapExtensionSchemeDto(extension.getExtensionScheme(), false));
+            }
+            if (extension.getCode() != null) {
+                extensionDto.setCode(mapCodeDto(extension.getCode(), false));
+            }
+            if (extension.getCodeScheme() != null) {
+                extensionDto.setCodeScheme(mapCodeSchemeDto(extension.getCodeScheme(), false));
+            }
+        }
+        return extensionDto;
+    }
+
+    public Set<ExtensionDTO> mapDeepExtensionDtos(final Set<Extension> extensions) {
+        return mapExtensionDtos(extensions, true);
+    }
+
+    public Set<ExtensionDTO> mapExtensionDtos(final Set<Extension> extensions,
+                                              final boolean deep) {
+        final Set<ExtensionDTO> extensionDtos = new HashSet<>();
+        if (extensions != null) {
+            for (final Extension extension : extensions) {
+                extensionDtos.add(mapExtensionDto(extension, deep));
+            }
+        }
+        return extensionDtos;
+    }
+
+    public ExtensionSchemeDTO mapDeepExtensionSchemeDto(final ExtensionScheme extensionScheme) {
+        return mapExtensionSchemeDto(extensionScheme, true);
+    }
+
+    public ExtensionSchemeDTO mapExtensionSchemeDto(final ExtensionScheme extensionScheme,
+                                                    final boolean deep) {
+        final ExtensionSchemeDTO extensionSchemeDto = new ExtensionSchemeDTO();
+        extensionSchemeDto.setId(extensionScheme.getId());
+        extensionSchemeDto.setPropertyType(mapPropertyTypeDto(extensionScheme.getPropertyType()));
+        extensionSchemeDto.setPrefLabel(extensionScheme.getPrefLabel());
+        extensionSchemeDto.setStatus(extensionScheme.getStatus());
+        extensionScheme.setCodeValue(extensionScheme.getCodeValue());
+        if (deep) {
+            if (extensionScheme.getCodeSchemes() != null) {
+                extensionSchemeDto.setCodeSchemes(mapCodeSchemeDtos(extensionScheme.getCodeSchemes(), false));
+            }
+            if (extensionScheme.getExtensions() != null) {
+                extensionSchemeDto.setExtensions(mapExtensionDtos(extensionScheme.getExtensions(), false));
+            }
+        }
+        return extensionSchemeDto;
+    }
+
+    public Set<ExtensionSchemeDTO> mapDeepExtensionSchemeDtos(final Set<ExtensionScheme> extensionSchemes) {
+        return mapExtensionSchemeDtos(extensionSchemes, true);
+    }
+
+    public Set<ExtensionSchemeDTO> mapExtensionSchemeDtos(final Set<ExtensionScheme> extensionSchemes,
+                                                          final boolean deep) {
+        final Set<ExtensionSchemeDTO> extensionSchemeDtos = new HashSet<>();
+        if (extensionSchemes != null) {
+            for (final ExtensionScheme extensionScheme : extensionSchemes) {
+                extensionSchemeDtos.add(mapExtensionSchemeDto(extensionScheme, deep));
+            }
+        }
+        return extensionSchemeDtos;
     }
 
     public OrganizationDTO mapOrganizationDto(final Organization organization,

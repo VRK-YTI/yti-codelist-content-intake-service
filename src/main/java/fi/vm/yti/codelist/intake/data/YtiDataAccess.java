@@ -249,7 +249,9 @@ public class YtiDataAccess {
         classifyCodeSchemeWithCodeValue(codeRegistry, YTI_DATACLASSIFICATION_CODESCHEME, SERVICE_CLASSIFICATION_P9);
     }
 
-    private void classifyCodeSchemeWithCodeValue(final CodeRegistry codeRegistry, final String codeSchemeCodeValue, final String dataClassificationCodeValue) {
+    private void classifyCodeSchemeWithCodeValue(final CodeRegistry codeRegistry,
+                                                 final String codeSchemeCodeValue,
+                                                 final String dataClassificationCodeValue) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
         final Code classification = getDataClassification(dataClassificationCodeValue);
         final Set<Code> classifications = new HashSet<>();

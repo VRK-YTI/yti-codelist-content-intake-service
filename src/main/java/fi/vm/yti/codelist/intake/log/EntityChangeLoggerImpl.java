@@ -11,6 +11,8 @@ import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Commit;
 import fi.vm.yti.codelist.intake.model.EditedEntity;
+import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
@@ -70,6 +72,22 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         editedEntity.setPropertyType(propertyType);
         editedEntityRepository.save(editedEntity);
     }
+
+    public void logExtensionSchemeChange(final ExtensionScheme extensionScheme) {
+        entityPayloadLogger.logExtensionScheme(extensionScheme);
+        final EditedEntity editedEntity = new EditedEntity(createCommit());
+        editedEntity.setExtensionScheme(extensionScheme);
+        editedEntityRepository.save(editedEntity);
+    }
+
+
+    public void logExtensionChange(final Extension extension) {
+        entityPayloadLogger.logExtension(extension);
+        final EditedEntity editedEntity = new EditedEntity(createCommit());
+        editedEntity.setExtension(extension);
+        editedEntityRepository.save(editedEntity);
+    }
+
 
     private Commit createCommit() {
         final String traceId = getTraceId();

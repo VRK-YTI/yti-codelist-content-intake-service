@@ -50,7 +50,8 @@ public class ApiUtils {
      * @param resourceId ID of the REST resource.
      * @return Fully concatenated resource URL that can be used in API responses as a link to the resource.
      */
-    public String createResourceUrl(final String apiPath, final String resourceId) {
+    public String createResourceUrl(final String apiPath,
+                                    final String resourceId) {
         final String port = publicApiServiceProperties.getPort();
         final StringBuilder builder = new StringBuilder();
         builder.append(publicApiServiceProperties.getScheme());
@@ -106,11 +107,13 @@ public class ApiUtils {
         return createCodeSchemeUrl(codeScheme.getCodeRegistry(), codeScheme);
     }
 
-    public String createCodeSchemeUri(final CodeRegistry codeRegistry, final CodeScheme codeScheme) {
+    public String createCodeSchemeUri(final CodeRegistry codeRegistry,
+                                      final CodeScheme codeScheme) {
         return createResourceUri(codeRegistry.getCodeValue() + "/" + codeScheme.getCodeValue());
     }
 
-    public String createCodeSchemeUrl(final CodeRegistry codeRegistry, final CodeScheme codeScheme) {
+    public String createCodeSchemeUrl(final CodeRegistry codeRegistry,
+                                      final CodeScheme codeScheme) {
         return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeScheme.getCodeValue());
     }
 
@@ -122,11 +125,15 @@ public class ApiUtils {
         return createCodeUrl(code.getCodeScheme().getCodeRegistry(), code.getCodeScheme(), code);
     }
 
-    public String createCodeUri(final CodeRegistry codeRegistry, final CodeScheme codeScheme, final Code code) {
+    public String createCodeUri(final CodeRegistry codeRegistry,
+                                final CodeScheme codeScheme,
+                                final Code code) {
         return createResourceUri(codeRegistry.getCodeValue() + "/" + codeScheme.getCodeValue() + "/" + code.getCodeValue());
     }
 
-    public String createCodeUrl(final CodeRegistry codeRegistry, final CodeScheme codeScheme, final Code code) {
+    public String createCodeUrl(final CodeRegistry codeRegistry,
+                                final CodeScheme codeScheme,
+                                final Code code) {
         return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, code.getCodeValue());
     }
 
@@ -150,7 +157,8 @@ public class ApiUtils {
         return groupManagementProperties.getPublicUrl();
     }
 
-    private void appendPortToUrlIfNotEmpty(final String port, final StringBuilder builder) {
+    private void appendPortToUrlIfNotEmpty(final String port,
+                                           final StringBuilder builder) {
         if (port != null && !port.isEmpty()) {
             builder.append(":");
             builder.append(port);

@@ -74,7 +74,8 @@ public abstract class AbstractBaseParser {
         return mapper;
     }
 
-    public Date parseStartDateFromString(final String dateString, final String rowIdentifier) {
+    public Date parseStartDateFromString(final String dateString,
+                                         final String rowIdentifier) {
         Date date = null;
         final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
         if (!dateString.isEmpty()) {
@@ -89,7 +90,8 @@ public abstract class AbstractBaseParser {
         return date;
     }
 
-    public Date parseEndDateFromString(final String dateString, final String rowIdentifier) {
+    public Date parseEndDateFromString(final String dateString,
+                                       final String rowIdentifier) {
         Date date = null;
         final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
         if (!dateString.isEmpty()) {
