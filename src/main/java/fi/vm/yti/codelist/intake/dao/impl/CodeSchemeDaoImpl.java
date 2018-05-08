@@ -188,10 +188,6 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         if (!Objects.equals(existingCodeScheme.getUri(), uri)) {
             existingCodeScheme.setUri(uri);
         }
-        final String url = apiUtils.createCodeSchemeUrl(codeRegistry, existingCodeScheme);
-        if (!Objects.equals(existingCodeScheme.getUrl(), url)) {
-            existingCodeScheme.setUrl(url);
-        }
         if (!Objects.equals(existingCodeScheme.getSource(), fromCodeScheme.getSource())) {
             existingCodeScheme.setSource(fromCodeScheme.getSource());
         }
@@ -278,7 +274,6 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeScheme.setStartDate(fromCodeScheme.getStartDate());
         codeScheme.setEndDate(fromCodeScheme.getEndDate());
         codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
-        codeScheme.setUrl(apiUtils.createCodeSchemeUrl(codeRegistry, codeScheme));
         codeScheme.setConceptUriInVocabularies(fromCodeScheme.getConceptUriInVocabularies());
         return codeScheme;
     }

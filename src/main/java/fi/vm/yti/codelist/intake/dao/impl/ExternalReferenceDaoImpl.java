@@ -149,9 +149,6 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         if (!Objects.equals(existingExternalReference.getUri(), uri)) {
             existingExternalReference.setUri(uri);
         }
-        if (!Objects.equals(existingExternalReference.getUrl(), fromExternalReference.getUrl())) {
-            existingExternalReference.setUrl(fromExternalReference.getUrl());
-        }
         if (!Objects.equals(existingExternalReference.getParentCodeScheme(), parentCodeScheme)) {
             existingExternalReference.setParentCodeScheme(parentCodeScheme);
             existingExternalReference.setGlobal(parentCodeScheme == null);
@@ -193,7 +190,6 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         externalReference.setGlobal(parentCodeScheme == null);
         externalReference.setPropertyType(propertyTypeRepository.findByLocalName(fromExternalReference.getPropertyType().getLocalName()));
         externalReference.setUri(uri);
-        externalReference.setUrl(fromExternalReference.getUrl());
         for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
             externalReference.setTitle(entry.getKey(), entry.getValue());
         }

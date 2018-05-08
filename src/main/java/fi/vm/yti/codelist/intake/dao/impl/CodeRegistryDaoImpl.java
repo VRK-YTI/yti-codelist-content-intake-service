@@ -88,9 +88,6 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         if (!Objects.equals(codeRegistry.getUri(), uri)) {
             codeRegistry.setUri(uri);
         }
-        if (!Objects.equals(codeRegistry.getUrl(), url)) {
-            codeRegistry.setUrl(url);
-        }
         codeRegistry.setOrganizations(resolveOrganizationsFromDtos(fromCodeRegistry.getOrganizations()));
         for (final Map.Entry<String, String> entry : fromCodeRegistry.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
@@ -134,7 +131,6 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
             codeRegistry.setDefinition(entry.getKey(), entry.getValue());
         }
         codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
-        codeRegistry.setUrl(apiUtils.createCodeRegistryUrl(codeRegistry));
         return codeRegistry;
     }
 }

@@ -32,7 +32,6 @@ abstract class BaseService {
         codeDto.setId(code.getId());
         codeDto.setCodeValue(code.getCodeValue());
         codeDto.setUri(code.getUri());
-        codeDto.setUrl(code.getUrl());
         codeDto.setBroaderCodeId(code.getBroaderCodeId());
         codeDto.setStartDate(code.getStartDate());
         codeDto.setEndDate(code.getEndDate());
@@ -81,7 +80,6 @@ abstract class BaseService {
         codeSchemeDto.setId(codeScheme.getId());
         codeSchemeDto.setCodeValue(codeScheme.getCodeValue());
         codeSchemeDto.setUri(codeScheme.getUri());
-        codeSchemeDto.setUrl(codeScheme.getUrl());
         codeSchemeDto.setChangeNote(codeScheme.getChangeNote());
         codeSchemeDto.setStartDate(codeScheme.getStartDate());
         codeSchemeDto.setEndDate(codeScheme.getEndDate());
@@ -128,7 +126,6 @@ abstract class BaseService {
         codeRegistryDto.setId(codeRegistry.getId());
         codeRegistryDto.setCodeValue(codeRegistry.getCodeValue());
         codeRegistryDto.setUri(codeRegistry.getUri());
-        codeRegistryDto.setUrl(codeRegistry.getUrl());
         codeRegistryDto.setPrefLabel(codeRegistry.getPrefLabel());
         codeRegistryDto.setDefinition(codeRegistry.getDefinition());
         codeRegistryDto.setOrganizations(mapOrganizationDtos(codeRegistry.getOrganizations(), false));
@@ -156,7 +153,6 @@ abstract class BaseService {
         externalReferenceDto.setDescription(externalReference.getDescription());
         externalReferenceDto.setGlobal(externalReference.getGlobal());
         externalReferenceDto.setTitle(externalReference.getTitle());
-        externalReferenceDto.setUrl(externalReference.getUrl());
         externalReferenceDto.setUri(externalReference.getUri());
         externalReferenceDto.setPropertyType(mapPropertyTypeDto(externalReference.getPropertyType()));
         if (externalReference.getParentCodeScheme() != null) {
@@ -196,7 +192,6 @@ abstract class BaseService {
         propertyTypeDto.setLocalName(propertyType.getLocalName());
         propertyTypeDto.setPrefLabel(propertyType.getPrefLabel());
         propertyTypeDto.setType(propertyType.getType());
-        propertyTypeDto.setUri(propertyType.getUri());
         propertyTypeDto.setPropertyUri(propertyType.getPropertyUri());
         return propertyTypeDto;
     }

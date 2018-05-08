@@ -101,7 +101,6 @@ public class AdminResource extends AbstractBaseResource {
             final Set<CodeRegistry> codeRegistries = codeRegistryRepository.findAll();
             for (final CodeRegistry codeRegistry : codeRegistries) {
                 codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
-                codeRegistry.setUrl(apiUtils.createCodeRegistryUrl(codeRegistry));
             }
             codeRegistryRepository.save(codeRegistries);
             indexing.reIndexEverything();
@@ -123,7 +122,6 @@ public class AdminResource extends AbstractBaseResource {
             final Set<CodeScheme> codeSchemes = codeSchemeRepository.findAll();
             for (final CodeScheme codeScheme : codeSchemes) {
                 codeScheme.setUri(apiUtils.createCodeSchemeUri(codeScheme));
-                codeScheme.setUrl(apiUtils.createCodeSchemeUrl(codeScheme));
             }
             codeSchemeRepository.save(codeSchemes);
             indexing.reIndexEverything();
@@ -145,7 +143,6 @@ public class AdminResource extends AbstractBaseResource {
             final Set<Code> codes = codeRepository.findAll();
             for (final Code code : codes) {
                 code.setUri(apiUtils.createCodeUri(code));
-                code.setUrl(apiUtils.createCodeUrl(code));
             }
             codeRepository.save(codes);
             indexing.reIndexEverything();

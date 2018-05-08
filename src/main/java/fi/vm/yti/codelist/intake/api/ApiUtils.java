@@ -4,6 +4,13 @@ import javax.inject.Inject;
 
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.FrontendProperties;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
@@ -76,7 +83,7 @@ public class ApiUtils {
      * @param resourcePath ID of the REST resource.
      * @return Fully concatenated resource URL that can be used in API responses as a link to the resource.
      */
-    public String createResourceUri(final String resourcePath) {
+    private String createResourceUri(final String resourcePath) {
         final String port = uriSuomiProperties.getPort();
         final StringBuilder builder = new StringBuilder();
         builder.append(uriSuomiProperties.getScheme());
@@ -103,7 +110,7 @@ public class ApiUtils {
         return createCodeSchemeUri(codeScheme.getCodeRegistry(), codeScheme);
     }
 
-    public String createCodeSchemeUrl(final CodeScheme codeScheme) {
+    public String createCodeSchemeUrl(final CodeSchemeDTO codeScheme) {
         return createCodeSchemeUrl(codeScheme.getCodeRegistry(), codeScheme);
     }
 
@@ -112,8 +119,8 @@ public class ApiUtils {
         return createResourceUri(codeRegistry.getCodeValue() + "/" + codeScheme.getCodeValue());
     }
 
-    public String createCodeSchemeUrl(final CodeRegistry codeRegistry,
-                                      final CodeScheme codeScheme) {
+    private String createCodeSchemeUrl(final CodeRegistryDTO codeRegistry,
+                                       final CodeSchemeDTO codeScheme) {
         return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES, codeScheme.getCodeValue());
     }
 
@@ -121,7 +128,7 @@ public class ApiUtils {
         return createCodeUri(code.getCodeScheme().getCodeRegistry(), code.getCodeScheme(), code);
     }
 
-    public String createCodeUrl(final Code code) {
+    public String createCodeUrl(final CodeDTO code) {
         return createCodeUrl(code.getCodeScheme().getCodeRegistry(), code.getCodeScheme(), code);
     }
 
@@ -131,10 +138,26 @@ public class ApiUtils {
         return createResourceUri(codeRegistry.getCodeValue() + "/" + codeScheme.getCodeValue() + "/" + code.getCodeValue());
     }
 
-    public String createCodeUrl(final CodeRegistry codeRegistry,
-                                final CodeScheme codeScheme,
-                                final Code code) {
+    private String createCodeUrl(final CodeRegistryDTO codeRegistry,
+                                 final CodeSchemeDTO codeScheme,
+                                 final CodeDTO code) {
         return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, code.getCodeValue());
+    }
+
+    public String createExternalReferenceUrl(final ExternalReferenceDTO externalReference) {
+        return createResourceUrl(API_PATH_EXTERNALREFERENCES, externalReference.getId().toString());
+    }
+
+    public String createPropertyTypeUrl(final PropertyTypeDTO propertyType) {
+        return createResourceUrl(API_PATH_PROPERTYTYPES, propertyType.getId().toString());
+    }
+
+    public String createExtensionSchemeUrl(final ExtensionSchemeDTO extensionScheme) {
+        return createResourceUrl(API_PATH_EXTENSIONSCHEMES, extensionScheme.getId().toString());
+    }
+
+    public String createExtensionUrl(final ExtensionDTO extension) {
+        return createResourceUrl(API_PATH_EXTENSIONS, extension.getId().toString());
     }
 
     public String getContentIntakeServiceHostname() {

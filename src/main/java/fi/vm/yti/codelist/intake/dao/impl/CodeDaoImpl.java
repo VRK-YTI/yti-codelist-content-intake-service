@@ -175,7 +175,6 @@ public class CodeDaoImpl implements CodeDao {
                             final Code existingCode,
                             final CodeDTO fromCode) {
         final String uri = apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, existingCode);
-        final String url = apiUtils.createCodeUrl(codeScheme.getCodeRegistry(), codeScheme, existingCode);
         if (!Objects.equals(existingCode.getStatus(), fromCode.getStatus())) {
             if (!authorizationManager.isSuperUser() && Status.valueOf(existingCode.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCode.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
@@ -187,9 +186,6 @@ public class CodeDaoImpl implements CodeDao {
         }
         if (!Objects.equals(existingCode.getUri(), uri)) {
             existingCode.setUri(uri);
-        }
-        if (!Objects.equals(existingCode.getUrl(), url)) {
-            existingCode.setUrl(url);
         }
         if (!Objects.equals(existingCode.getShortName(), fromCode.getShortName())) {
             existingCode.setShortName(fromCode.getShortName());
@@ -267,7 +263,6 @@ public class CodeDaoImpl implements CodeDao {
         code.setStartDate(fromCode.getStartDate());
         code.setEndDate(fromCode.getEndDate());
         code.setUri(apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, code));
-        code.setUrl(apiUtils.createCodeUrl(codeScheme.getCodeRegistry(), codeScheme, code));
         code.setConceptUriInVocabularies(fromCode.getConceptUriInVocabularies());
         return code;
     }
