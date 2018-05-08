@@ -122,9 +122,17 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                 case FORMAT_EXCEL:
                     try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
                         codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook), false);
-                        if (codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
+                        if (workbook.getSheet(EXCEL_SHEET_CODES) != null) {
                             final CodeScheme codeScheme = codeSchemes.iterator().next();
-                            codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), workbook);
+                            if (codeScheme != null) {
+                                codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), workbook);
+                            }
+                        } else {
+                            codeSchemes.forEach(codeScheme -> {
+                                if (codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES + "_" + codeScheme.getCodeValue()) != null) {
+                                    codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), workbook);
+                                }
+                            });
                         }
                     } catch (final InvalidFormatException | IOException | POIXMLException e) {
                         LOG.error("Error parsing Excel file!", e);
