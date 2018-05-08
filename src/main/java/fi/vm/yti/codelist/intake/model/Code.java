@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -16,6 +17,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -35,7 +37,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("code")
 @Table(name = "code")
 @XmlRootElement
-@XmlType(propOrder = {"id", "codeValue", "uri", "url", "status", "hierarchyLevel", "startDate", "endDate", "prefLabel", "description", "definition", "codeScheme", "shortName", "externalReferences", "broaderCodeId",  "order", "conceptUriInVocabularies"})
+@XmlType(propOrder = {"id", "codeValue", "uri", "url", "status", "hierarchyLevel", "startDate", "endDate", "prefLabel", "description", "definition", "codeScheme", "shortName", "externalReferences", "broaderCodeId",  "order", "extensions", "conceptUriInVocabularies"})
 @ApiModel(value = "Code", description = "Code model that represents data for one single generic registeritem.")
 public class Code extends AbstractHistoricalCode implements Serializable {
 
@@ -48,6 +50,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     private Map<String, String> description;
     private Map<String, String> definition;
     private Set<ExternalReference> externalReferences;
+    private Set<Extension> extensions;
     private UUID broaderCodeId;
     private Integer order;
     private String conceptUriInVocabularies;
@@ -234,5 +237,15 @@ public class Code extends AbstractHistoricalCode implements Serializable {
 
     public void setConceptUriInVocabularies(final String conceptUriInVocabularies) {
         this.conceptUriInVocabularies = conceptUriInVocabularies;
+    }
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "code", cascade = CascadeType.ALL)
+    @JsonView(Views.ExtendedCode.class)
+    public Set<Extension> getExtensions() {
+        return extensions;
+    }
+
+    public void setExtensions(final Set<Extension> extensions) {
+        this.extensions = extensions;
     }
 }

@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @Entity
 @XmlRootElement
-@XmlType(propOrder = {"id", "commit", "codeScheme", "code", "externalReference"})
+@XmlType(propOrder = {"id", "commit", "codeScheme", "code", "externalReference", "propertyType", "extensionScheme", "extension"})
 @Table(name = "editedentity")
 public class EditedEntity {
 
@@ -25,6 +25,8 @@ public class EditedEntity {
     private Code code;
     private ExternalReference externalReference;
     private PropertyType propertyType;
+    private ExtensionScheme extensionScheme;
+    private Extension extension;
 
     public EditedEntity() {
     }
@@ -102,5 +104,25 @@ public class EditedEntity {
 
     public void setPropertyType(final PropertyType propertyType) {
         this.propertyType = propertyType;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "extensionscheme_id", nullable = true, insertable = true, updatable = true)
+    public ExtensionScheme getExtensionScheme() {
+        return extensionScheme;
+    }
+
+    public void setExtensionScheme(final ExtensionScheme extensionScheme) {
+        this.extensionScheme = extensionScheme;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "extension_id", nullable = true, insertable = true, updatable = true)
+    public Extension getExtension() {
+        return extension;
+    }
+
+    public void setExtension(final Extension extension) {
+        this.extension = extension;
     }
 }

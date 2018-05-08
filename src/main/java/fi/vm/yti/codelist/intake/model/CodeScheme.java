@@ -36,7 +36,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeScheme")
 @Table(name = "codescheme")
 @XmlRootElement
-@XmlType(propOrder = {"id", "codeValue", "uri", "url", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "externalReferences", "conceptUriInVocabularies"})
+@XmlType(propOrder = {"id", "codeValue", "uri", "url", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "externalReferences", "extensionSchemes", "conceptUriInVocabularies"})
 @ApiModel(value = "CodeScheme", description = "CodeScheme model that represents data for one single codescheme.")
 public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
@@ -54,6 +54,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private Set<Code> codes;
     private Set<Code> dataClassifications;
     private Set<ExternalReference> externalReferences;
+    private Set<ExtensionScheme> extensionSchemes;
     private String conceptUriInVocabularies;
 
     public CodeScheme() {
@@ -314,5 +315,20 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     public void setConceptUriInVocabularies(final String conceptUriInVocabularies) {
         this.conceptUriInVocabularies = conceptUriInVocabularies;
+    }
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "extensionscheme_codescheme",
+        joinColumns = {
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false)},
+        inverseJoinColumns = {
+            @JoinColumn(name = "extensionscheme_id", referencedColumnName = "id", nullable = false, updatable = false)})
+    @JsonView(Views.ExtendedCodeScheme.class)
+    public Set<ExtensionScheme> getExtensionSchemes() {
+        return extensionSchemes;
+    }
+
+    public void setExtensionSchemes(final Set<ExtensionScheme> extensionSchemes) {
+        this.extensionSchemes = extensionSchemes;
     }
 }

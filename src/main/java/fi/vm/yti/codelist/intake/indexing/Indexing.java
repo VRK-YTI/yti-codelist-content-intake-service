@@ -5,6 +5,8 @@ import java.util.Set;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 
@@ -22,6 +24,8 @@ public interface Indexing {
 
     boolean deleteCodeScheme(final CodeSchemeDTO codeScheme);
 
+    boolean deleteCodeSchemes(final Set<CodeSchemeDTO> codeSchemes);
+
     boolean updateCodeSchemes(final Set<CodeSchemeDTO> codeSchemes);
 
     boolean updateCodeRegistry(final CodeRegistryDTO codeRegistry);
@@ -37,6 +41,14 @@ public interface Indexing {
     boolean updatePropertyType(final PropertyTypeDTO propertyType);
 
     boolean updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes);
+
+    boolean updateExtensionSchemes(final Set<ExtensionSchemeDTO> extensionSchemes);
+
+    boolean deleteExtensionSchemes(final Set<ExtensionSchemeDTO> extensions);
+
+    boolean updateExtensions(final Set<ExtensionDTO> extensionSchemes);
+
+    boolean deleteExtensions(final Set<ExtensionDTO> extensions);
 
     boolean reIndexEverything();
 

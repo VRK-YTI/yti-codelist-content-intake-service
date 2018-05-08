@@ -17,6 +17,8 @@ import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
@@ -30,6 +32,9 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     private static final String CODE = "Code";
     private static final String EXTERNALREFERENCE = "ExternalReference";
     private static final String PROPERTYTYPE = "PropertyType";
+    private static final String EXTENSIONSCHEME = "ExtensionScheme";
+    private static final String EXTENSION = "Extension";
+
     private final AuthorizationManager authorizationManager;
     private final Tracer tracer;
     private final ObjectMapper mapper;
@@ -96,6 +101,26 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
             LOG.error(String.format("Failed to write log for propertyType: %s", propertyType.getId()), e);
         }
         endPayloadLogging(PROPERTYTYPE, propertyType.getId());
+    }
+
+    public void logExtensionScheme(final ExtensionScheme extensionScheme) {
+        beginPayloadLogging(EXTENSIONSCHEME, extensionScheme.getId());
+        try {
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(extensionScheme));
+        } catch (final JsonProcessingException e) {
+            LOG.error(String.format("Failed to write log for extensionScheme: %s", extensionScheme.getId()), e);
+        }
+        endPayloadLogging(EXTENSIONSCHEME, extensionScheme.getId());
+    }
+
+    public void logExtension(final Extension extension) {
+        beginPayloadLogging(EXTENSION, extension.getId());
+        try {
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(extension));
+        } catch (final JsonProcessingException e) {
+            LOG.error(String.format("Failed to write log for extension: %s", extension.getId()), e);
+        }
+        endPayloadLogging(EXTENSION, extension.getId());
     }
 
     private void beginPayloadLogging(final String name,
