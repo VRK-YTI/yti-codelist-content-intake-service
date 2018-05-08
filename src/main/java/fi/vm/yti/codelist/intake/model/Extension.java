@@ -21,7 +21,7 @@ import io.swagger.annotations.ApiModel;
 @JsonFilter("extension")
 @Table(name = "extension")
 @XmlRootElement
-@XmlType(propOrder = {"id", "code", "codeScheme", "extensionValue", "extensionOrder", "extensionScheme", "extension"})
+@XmlType(propOrder = {"id", "code", "extensionValue", "extensionOrder", "extensionScheme", "extension"})
 @ApiModel(value = "Extension", description = "Extension model that represents data for one extension element.")
 public class Extension extends AbstractIdentifyableCode implements Serializable {
 
@@ -30,7 +30,6 @@ public class Extension extends AbstractIdentifyableCode implements Serializable 
     private String extensionValue;
     private Integer extensionOrder;
     private Code code;
-    private CodeScheme codeScheme;
     private ExtensionScheme extensionScheme;
     private Extension extension;
 
@@ -54,24 +53,15 @@ public class Extension extends AbstractIdentifyableCode implements Serializable 
         this.extensionOrder = extensionOrder;
     }
 
+    @ManyToOne(fetch = FetchType.EAGER)
     @JsonView(Views.ExtendedExtension.class)
+    @JoinColumn(name = "code_id", nullable = false, insertable = true, updatable = false)
     public Code getCode() {
         return code;
     }
 
     public void setCode(final Code code) {
         this.code = code;
-    }
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "codescheme_id", nullable = false, insertable = true, updatable = false)
-    @JsonView(Views.ExtendedExtension.class)
-    public CodeScheme getCodeScheme() {
-        return codeScheme;
-    }
-
-    public void setCodeScheme(final CodeScheme codeScheme) {
-        this.codeScheme = codeScheme;
     }
 
     @ManyToOne(fetch = FetchType.EAGER)

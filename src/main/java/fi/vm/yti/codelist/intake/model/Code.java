@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -36,7 +37,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("code")
 @Table(name = "code")
 @XmlRootElement
-@XmlType(propOrder = {"id", "codeValue", "uri", "url", "status", "hierarchyLevel", "startDate", "endDate", "prefLabel", "description", "definition", "codeScheme", "shortName", "externalReferences", "broaderCodeId",  "order", "extension", "conceptUriInVocabularies"})
+@XmlType(propOrder = {"id", "codeValue", "uri", "url", "status", "hierarchyLevel", "startDate", "endDate", "prefLabel", "description", "definition", "codeScheme", "shortName", "externalReferences", "broaderCodeId",  "order", "extensions", "conceptUriInVocabularies"})
 @ApiModel(value = "Code", description = "Code model that represents data for one single generic registeritem.")
 public class Code extends AbstractHistoricalCode implements Serializable {
 
@@ -238,7 +239,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
         this.conceptUriInVocabularies = conceptUriInVocabularies;
     }
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "code", cascade = CascadeType.ALL)
     @JsonView(Views.ExtendedCode.class)
     public Set<Extension> getExtensions() {
         return extensions;

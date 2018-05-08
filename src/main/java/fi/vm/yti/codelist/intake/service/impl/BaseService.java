@@ -228,9 +228,6 @@ abstract class BaseService {
             if (extension.getCode() != null) {
                 extensionDto.setCode(mapCodeDto(extension.getCode(), false));
             }
-            if (extension.getCodeScheme() != null) {
-                extensionDto.setCodeScheme(mapCodeSchemeDto(extension.getCodeScheme(), false));
-            }
         }
         return extensionDto;
     }
