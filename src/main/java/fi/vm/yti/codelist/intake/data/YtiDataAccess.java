@@ -42,6 +42,7 @@ import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSI
 public class YtiDataAccess {
 
     public static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
+    public static final String PROPERTYTYPE_IDENTIFIER = "v2";
     public static final String DEFAULT_EXTERNALREFERENCE_FILENAME = "externalreferences.csv";
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
     private static final String DEFAULT_CLASSIFICATIONREGISTRY_FILENAME = "classificationregistries.csv";
@@ -204,8 +205,8 @@ public class YtiDataAccess {
     private void loadDefaultPropertyTypes() {
         LOG.info("Loading default PropertyTypes...");
         final Stopwatch watch = Stopwatch.createStarted();
-        if (updateManager.shouldUpdateData(DATA_PROPERTYTYPES, DEFAULT_IDENTIFIER, DEFAULT_PROPERTYTYPE_FILENAME)) {
-            final UpdateStatus updateStatus = updateManager.createStatus(DATA_PROPERTYTYPES, DEFAULT_IDENTIFIER, SOURCE_INTERNAL, DEFAULT_PROPERTYTYPE_FILENAME, UpdateManager.UPDATE_RUNNING);
+        if (updateManager.shouldUpdateData(DATA_PROPERTYTYPES, PROPERTYTYPE_IDENTIFIER, DEFAULT_PROPERTYTYPE_FILENAME)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(DATA_PROPERTYTYPES, PROPERTYTYPE_IDENTIFIER, SOURCE_INTERNAL, DEFAULT_PROPERTYTYPE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME)) {
                 final Set<PropertyTypeDTO> propertyTypes = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(true, FORMAT_CSV, inputStream, null);
                 LOG.info("PropertyType data loaded and persisted " + propertyTypes.size() + " PropertyTypes in " + watch);
