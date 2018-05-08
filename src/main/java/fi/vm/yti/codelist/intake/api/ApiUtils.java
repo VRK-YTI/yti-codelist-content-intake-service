@@ -102,7 +102,7 @@ public class ApiUtils {
         return createResourceUri(codeRegistry.getCodeValue());
     }
 
-    public String createCodeRegistryUrl(final CodeRegistry codeRegistry) {
+    public String createCodeRegistryUrl(final CodeRegistryDTO codeRegistry) {
         return createResourceUrl(API_PATH_CODEREGISTRIES, codeRegistry.getCodeValue());
     }
 

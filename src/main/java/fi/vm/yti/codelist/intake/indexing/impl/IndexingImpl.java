@@ -116,6 +116,7 @@ public class IndexingImpl implements Indexing {
 
     private boolean indexCodeRegistries(final String indexName) {
         final Set<CodeRegistryDTO> codeRegistries = codeRegistryService.findAll();
+        setCodeRegistriesModifiedAndUrl(codeRegistries);
         return indexData(codeRegistries, indexName, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.ExtendedCodeRegistry.class);
     }
 
@@ -133,6 +134,7 @@ public class IndexingImpl implements Indexing {
 
     private boolean indexPropertyTypes(final String indexName) {
         final Set<PropertyTypeDTO> propertyTypes = propertyTypeService.findAll();
+        setPropertyTypesModifiedAndUrl(propertyTypes);
         return indexData(propertyTypes, indexName, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.ExtendedPropertyType.class);
     }
 
@@ -307,6 +309,7 @@ public class IndexingImpl implements Indexing {
 
     public boolean updateCodeRegistries(final Set<CodeRegistryDTO> codeRegistries) {
         if (!codeRegistries.isEmpty()) {
+            setCodeRegistriesModifiedAndUrl(codeRegistries);
             return indexData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
         }
         return true;
@@ -320,6 +323,7 @@ public class IndexingImpl implements Indexing {
 
     public boolean updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes) {
         if (!propertyTypes.isEmpty()) {
+            setPropertyTypesModifiedAndUrl(propertyTypes);
             return indexData(propertyTypes, ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
         }
         return true;
@@ -482,13 +486,13 @@ public class IndexingImpl implements Indexing {
         this.hasError = hasError;
     }
 
-    private void setCodesModifiedAndUrl(final Set<CodeDTO> codes) {
-        codes.forEach(this::setCodeModifiedAndUrl);
+    private void setCodeRegistriesModifiedAndUrl(final Set<CodeRegistryDTO> codeRegistries) {
+        codeRegistries.forEach(this::setCodeRegistryModifiedAndUrl);
     }
 
-    private void setCodeModifiedAndUrl(final CodeDTO code) {
-        code.setModified(getLastModificationDate("code", code.getId().toString()));
-        code.setUrl(apiUtils.createCodeUrl(code));
+    private void setCodeRegistryModifiedAndUrl(final CodeRegistryDTO codeRegistry) {
+        codeRegistry.setModified(getLastModificationDate("coderegistry", codeRegistry.getId().toString()));
+        codeRegistry.setUrl(apiUtils.createCodeRegistryUrl(codeRegistry));
     }
 
     private void setCodeSchemesModifiedAndUrl(final Set<CodeSchemeDTO> codeSchemes) {
@@ -498,6 +502,22 @@ public class IndexingImpl implements Indexing {
     private void setCodeSchemeModifiedAndUrl(final CodeSchemeDTO codeScheme) {
         codeScheme.setModified(getLastModificationDate("codescheme", codeScheme.getId().toString()));
         codeScheme.setUrl(apiUtils.createCodeSchemeUrl(codeScheme));
+    }
+
+    private void setCodesModifiedAndUrl(final Set<CodeDTO> codes) {
+        codes.forEach(this::setCodeModifiedAndUrl);
+    }
+
+    private void setCodeModifiedAndUrl(final CodeDTO code) {
+        code.setModified(getLastModificationDate("code", code.getId().toString()));
+        code.setUrl(apiUtils.createCodeUrl(code));
+    }
+
+    private void setPropertyTypesModifiedAndUrl(final Set<PropertyTypeDTO> propertyTypes) {
+        propertyTypes.forEach(propertyType -> {
+            propertyType.setModified(getLastModificationDate("propertytype", propertyType.getId().toString()));
+            propertyType.setUrl(apiUtils.createPropertyTypeUrl(propertyType));
+        });
     }
 
     private void setExternalReferencesModifiedAndUrl(final Set<ExternalReferenceDTO> externalReferences) {

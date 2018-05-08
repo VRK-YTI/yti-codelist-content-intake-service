@@ -84,7 +84,6 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
     private CodeRegistry updateCodeRegistry(final CodeRegistry codeRegistry,
                                             final CodeRegistryDTO fromCodeRegistry) {
         final String uri = apiUtils.createCodeRegistryUri(codeRegistry);
-        final String url = apiUtils.createCodeRegistryUrl(codeRegistry);
         if (!Objects.equals(codeRegistry.getUri(), uri)) {
             codeRegistry.setUri(uri);
         }
