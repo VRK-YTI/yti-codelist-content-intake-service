@@ -10,8 +10,8 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 public class YtiCodeListExceptionMapper extends BaseExceptionMapper implements ExceptionMapper<YtiCodeListException> {
 
     @Override
-    public Response toResponse(final YtiCodeListException ex) {
-        return getResponse(ex);
+    public Response toResponse(final YtiCodeListException e) {
+        return getResponse(e);
     }
 }
 
