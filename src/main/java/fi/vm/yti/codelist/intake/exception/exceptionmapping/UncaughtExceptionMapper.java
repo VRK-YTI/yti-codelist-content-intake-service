@@ -6,17 +6,17 @@ import javax.ws.rs.ext.Provider;
 
 import org.springframework.http.HttpStatus;
 
-import fi.vm.yti.codelist.intake.model.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
+import fi.vm.yti.codelist.intake.model.Meta;
 
 @Provider
 public class UncaughtExceptionMapper implements ExceptionMapper<Exception> {
 
     @Override
-    public Response toResponse(final Exception ex) {
-        ResponseWrapper wrapper = new ResponseWrapper();
-        Meta meta = new Meta();
+    public Response toResponse(final Exception e) {
+        final ResponseWrapper wrapper = new ResponseWrapper();
+        final Meta meta = new Meta();
         meta.setMessage(ErrorConstants.ERR_MSG_USER_500);
         meta.setCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
         wrapper.setMeta(meta);
