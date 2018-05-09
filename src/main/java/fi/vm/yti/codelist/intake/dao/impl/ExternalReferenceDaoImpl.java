@@ -145,10 +145,6 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     private ExternalReference updateExternalReference(final ExternalReference existingExternalReference,
                                                       final ExternalReferenceDTO fromExternalReference,
                                                       final CodeScheme parentCodeScheme) {
-        final String uri = apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, fromExternalReference.getId().toString());
-        if (!Objects.equals(existingExternalReference.getUri(), uri)) {
-            existingExternalReference.setUri(uri);
-        }
         if (!Objects.equals(existingExternalReference.getParentCodeScheme(), parentCodeScheme)) {
             existingExternalReference.setParentCodeScheme(parentCodeScheme);
             existingExternalReference.setGlobal(parentCodeScheme == null);
@@ -177,19 +173,15 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     private ExternalReference createExternalReference(final ExternalReferenceDTO fromExternalReference,
                                                       final CodeScheme parentCodeScheme) {
         final ExternalReference externalReference = new ExternalReference();
-        final String uri;
         if (fromExternalReference.getId() != null) {
-            uri = apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, fromExternalReference.getId().toString());
             externalReference.setId(fromExternalReference.getId());
         } else {
             final UUID uuid = UUID.randomUUID();
-            uri = apiUtils.createResourceUrl(API_PATH_EXTERNALREFERENCES, uuid.toString());
             externalReference.setId(uuid);
         }
         externalReference.setParentCodeScheme(parentCodeScheme);
         externalReference.setGlobal(parentCodeScheme == null);
         externalReference.setPropertyType(propertyTypeRepository.findByLocalName(fromExternalReference.getPropertyType().getLocalName()));
-        externalReference.setUri(uri);
         for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
             externalReference.setTitle(entry.getKey(), entry.getValue());
         }

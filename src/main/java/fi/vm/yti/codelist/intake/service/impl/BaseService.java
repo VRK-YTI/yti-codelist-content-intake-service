@@ -153,8 +153,7 @@ abstract class BaseService {
         externalReferenceDto.setDescription(externalReference.getDescription());
         externalReferenceDto.setGlobal(externalReference.getGlobal());
         externalReferenceDto.setTitle(externalReference.getTitle());
-        externalReferenceDto.setUri(externalReference.getUri());
-        externalReferenceDto.setReferenceUrl(externalReference.getReferenceUrl());
+        externalReferenceDto.setHref(externalReference.getHref());
         externalReferenceDto.setPropertyType(mapPropertyTypeDto(externalReference.getPropertyType()));
         if (externalReference.getParentCodeScheme() != null) {
             externalReferenceDto.setParentCodeScheme(mapCodeSchemeDto(externalReference.getParentCodeScheme(), false));

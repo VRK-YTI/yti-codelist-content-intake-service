@@ -27,13 +27,12 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("propertyType")
 @Table(name = "propertytype")
 @XmlRootElement
-@XmlType(propOrder = {"id", "uri", "context", "propertyUri", "localName", "type", "prefLabel", "definition"})
+@XmlType(propOrder = {"id", "context", "propertyUri", "localName", "type", "prefLabel", "definition"})
 @ApiModel(value = "PropertyType", description = "PropertyType model for data relation typing.")
 public class PropertyType extends AbstractIdentifyableCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private String uri;
     private String propertyUri;
     private String localName;
     private String context;
@@ -69,16 +68,6 @@ public class PropertyType extends AbstractIdentifyableCode implements Serializab
 
     public void setType(final String type) {
         this.type = type;
-    }
-
-    @Column(name = "uri")
-    @JsonView(Views.Normal.class)
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(final String uri) {
-        this.uri = uri;
     }
 
     @Column(name = "propertyuri")

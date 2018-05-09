@@ -30,9 +30,9 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("externalReference")
 @Table(name = "externalreference")
 @XmlRootElement
-@XmlType(propOrder = {"id", "uri", "referenceUrl", "global", "title", "description", "parentCodeScheme"})
+@XmlType(propOrder = {"id", "href", "global", "title", "description", "parentCodeScheme"})
 @ApiModel(value = "ExternalReference", description = "ExternalReference model that represents data for either CodeScheme or Code related external link.")
-public class ExternalReference extends AbstractBaseCode implements Serializable {
+public class ExternalReference extends AbstractIdentifyableCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -43,7 +43,7 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
     private PropertyType propertyType;
     private CodeScheme parentCodeScheme;
     private Boolean global;
-    private String referenceUrl;
+    private String href;
 
     @Column(name = "global")
     @JsonView(Views.Normal.class)
@@ -171,12 +171,12 @@ public class ExternalReference extends AbstractBaseCode implements Serializable 
         this.parentCodeScheme = codeScheme;
     }
 
-    @Column(name = "referenceurl")
-    public String getReferenceUrl() {
-        return referenceUrl;
+    @Column(name = "href")
+    public String getHref() {
+        return href;
     }
 
-    public void setReferenceUrl(final String referenceUrl) {
-        this.referenceUrl = referenceUrl;
+    public void setHref(final String href) {
+        this.href = href;
     }
 }

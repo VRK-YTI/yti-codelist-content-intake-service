@@ -87,15 +87,11 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
 
     private PropertyType updatePropertyType(final PropertyType existingPropertyType,
                                             final PropertyTypeDTO fromPropertyType) {
-        final String uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, fromPropertyType.getId().toString());
         if (!Objects.equals(existingPropertyType.getPropertyUri(), fromPropertyType.getPropertyUri())) {
             existingPropertyType.setPropertyUri(fromPropertyType.getPropertyUri());
         }
-        if (!Objects.equals(existingPropertyType.getUri(), uri)) {
-            existingPropertyType.setUri(uri);
-        }
         if (!Objects.equals(existingPropertyType.getContext(), fromPropertyType.getContext())) {
-            existingPropertyType.setUri(fromPropertyType.getContext());
+            existingPropertyType.setContext(fromPropertyType.getContext());
         }
         if (!Objects.equals(existingPropertyType.getLocalName(), fromPropertyType.getLocalName())) {
             existingPropertyType.setLocalName(fromPropertyType.getLocalName());
@@ -122,19 +118,15 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
 
     private PropertyType createPropertyType(final PropertyTypeDTO fromPropertyType) {
         final PropertyType propertyType = new PropertyType();
-        final String uri;
         if (fromPropertyType.getId() != null) {
             propertyType.setId(fromPropertyType.getId());
-            uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, fromPropertyType.getId().toString());
         } else {
             final UUID uuid = UUID.randomUUID();
-            uri = apiUtils.createResourceUrl(API_PATH_PROPERTYTYPES, uuid.toString());
             propertyType.setId(uuid);
         }
         propertyType.setContext(fromPropertyType.getContext());
         propertyType.setLocalName(fromPropertyType.getLocalName());
         propertyType.setType(fromPropertyType.getType());
-        propertyType.setUri(uri);
         propertyType.setPropertyUri(fromPropertyType.getPropertyUri());
         for (final Map.Entry<String, String> entry : fromPropertyType.getPrefLabel().entrySet()) {
             propertyType.setPrefLabel(entry.getKey(), entry.getValue());
