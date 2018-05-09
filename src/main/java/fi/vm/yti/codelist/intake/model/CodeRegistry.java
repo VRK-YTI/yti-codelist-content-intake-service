@@ -35,7 +35,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeRegistry")
 @Table(name = "coderegistry")
 @XmlRootElement
-@XmlType(propOrder = {"id", "codeValue", "uri", "url", "prefLabel", "definition", "codeSchemes", "organizations"})
+@XmlType(propOrder = {"id", "codeValue", "uri", "prefLabel", "definition", "codeSchemes", "organizations"})
 @ApiModel(value = "CodeRegistry", description = "CodeRegistry model that represents data for one single registry.")
 public class CodeRegistry extends AbstractCommonCode implements Serializable {
 
