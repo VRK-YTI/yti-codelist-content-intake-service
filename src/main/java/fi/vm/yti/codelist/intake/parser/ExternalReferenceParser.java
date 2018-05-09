@@ -100,7 +100,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                 propertyType.setLocalName(propertyTypeLocalName);
                 externalReference.setPropertyType(propertyType);
                 final String url = record.get(CONTENT_HEADER_URL);
-                externalReference.setUrl(url);
+                externalReference.setReferenceUrl(url);
                 externalReference.setTitle(parseLocalizedValueFromCsvRecord(titleHeaders, record));
                 externalReference.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
                 externalReferences.add(externalReference);
@@ -144,7 +144,7 @@ public class ExternalReferenceParser extends AbstractBaseParser {
                     parentCodeScheme.setId(parentCodeSchemeId);
                     externalReference.setParentCodeScheme(parentCodeScheme);
                     final String url = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_URL)));
-                    externalReference.setUrl(url);
+                    externalReference.setReferenceUrl(url);
                     final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE)));
                     final PropertyTypeDTO propertyType = new PropertyTypeDTO();
                     propertyType.setLocalName(propertyTypeLocalName);
