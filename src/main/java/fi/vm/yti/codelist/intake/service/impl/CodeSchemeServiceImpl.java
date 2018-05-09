@@ -125,12 +125,13 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                         if (codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
                             final CodeScheme codeScheme = codeSchemes.iterator().next();
                             if (codeScheme != null) {
-                                codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), workbook);
+                                codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), EXCEL_SHEET_CODES, workbook);
                             }
                         } else {
                             codeSchemes.forEach(codeScheme -> {
-                                if (workbook.getSheet(EXCEL_SHEET_CODES + "_" + codeScheme.getCodeValue()) != null) {
-                                    codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), workbook);
+                                final String sheetName = EXCEL_SHEET_CODES + "_" + codeScheme.getCodeValue();
+                                if (workbook.getSheet(sheetName) != null) {
+                                    codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), sheetName, workbook);
                                 }
                             });
                         }

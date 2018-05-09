@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
@@ -77,6 +78,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     @Transactional
     public Set<CodeDTO> parseAndPersistCodesFromExcelWorkbook(final String codeRegistryCodeValue,
                                                               final String codeSchemeCodeValue,
+                                                              final String sheetName,
                                                               final Workbook workbook) {
         Set<Code> codes;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
@@ -87,7 +89,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             final HashMap<String, String> broaderCodeMapping = new HashMap<>();
             if (codeScheme != null) {
-                final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelWorkbook(workbook, broaderCodeMapping);
+                final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelWorkbook(workbook, sheetName, broaderCodeMapping);
                 codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, false);
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
@@ -133,7 +135,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                         }
                         break;
                     case FORMAT_EXCEL:
-                        codes = codeDao.updateCodesFromDtos(codeScheme, codeParser.parseCodesFromExcelInputStream(inputStream, broaderCodeMapping), broaderCodeMapping, false);
+                        codes = codeDao.updateCodesFromDtos(codeScheme, codeParser.parseCodesFromExcelInputStream(inputStream, ApiConstants.EXCEL_SHEET_CODES, broaderCodeMapping), broaderCodeMapping, false);
                         break;
                     case FORMAT_CSV:
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeParser.parseCodesFromCsvInputStream(inputStream, broaderCodeMapping), broaderCodeMapping, false);

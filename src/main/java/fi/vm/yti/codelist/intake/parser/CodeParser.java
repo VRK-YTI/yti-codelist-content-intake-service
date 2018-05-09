@@ -112,9 +112,10 @@ public class CodeParser extends AbstractBaseParser {
     }
 
     public Set<CodeDTO> parseCodesFromExcelInputStream(final InputStream inputStream,
+                                                       final String sheetName,
                                                        final Map<String, String> broaderCodeMapping) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-            return parseCodesFromExcelWorkbook(workbook, broaderCodeMapping);
+            return parseCodesFromExcelWorkbook(workbook, sheetName, broaderCodeMapping);
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
@@ -123,12 +124,13 @@ public class CodeParser extends AbstractBaseParser {
 
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeDTO> parseCodesFromExcelWorkbook(final Workbook workbook,
+                                                    final String sheetName,
                                                     final Map<String, String> broaderCodeMapping) {
         maxOrderValue = 0;
         final Set<CodeDTO> codes = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
         final DataFormatter formatter = new DataFormatter();
-        Sheet sheet = workbook.getSheet(EXCEL_SHEET_CODES);
+        Sheet sheet = workbook.getSheet(sheetName);
         if (sheet == null) {
             sheet = workbook.getSheetAt(0);
         }
