@@ -19,7 +19,7 @@ public class UncaughtExceptionMapper implements ExceptionMapper<Exception> {
 
     @Override
     public Response toResponse(final Exception e) {
-        LOG.warn("Uncaught exception: " + e.getMessage());
+        LOG.error("Uncaught exception: " + e.getMessage());
         final ResponseWrapper wrapper = new ResponseWrapper();
         final Meta meta = new Meta();
         meta.setMessage(ErrorConstants.ERR_MSG_USER_500);
