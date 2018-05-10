@@ -6,9 +6,9 @@ import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Meta;
 
-public class BaseExceptionMapper {
+abstract class BaseExceptionMapper {
 
-    protected Response getResponse(final YtiCodeListException e) {
+    Response getResponse(final YtiCodeListException e) {
         final ResponseWrapper wrapper = new ResponseWrapper();
         final Meta meta = new Meta();
         meta.setMessage(e.getErrorModel().getMessage());
