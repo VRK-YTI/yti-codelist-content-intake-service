@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
@@ -22,23 +21,19 @@ import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_EXTERNALREFERENCES;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 
 @Component
 public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
     private final EntityChangeLogger entityChangeLogger;
-    private final ApiUtils apiUtils;
     private final ExternalReferenceRepository externalReferenceRepository;
     private final PropertyTypeRepository propertyTypeRepository;
 
     public ExternalReferenceDaoImpl(final EntityChangeLogger entityChangeLogger,
-                                    final ApiUtils apiUtils,
                                     final ExternalReferenceRepository externalReferenceRepository,
                                     final PropertyTypeRepository propertyTypeRepository) {
         this.entityChangeLogger = entityChangeLogger;
-        this.apiUtils = apiUtils;
         this.externalReferenceRepository = externalReferenceRepository;
         this.propertyTypeRepository = propertyTypeRepository;
     }
