@@ -241,8 +241,9 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         CodeRegistry registry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         CodeScheme scheme = codeSchemeDao.findByCodeRegistryAndCodeValue(registry, codeSchemeCodeValue);
         Code code = codeDao.findByCodeSchemeAndCodeValue(scheme, codeCodeValue);
-        if (code == null)
+        if (code == null) {
             return null;
+        }
         return mapDeepCodeDto(code);
     }
 }

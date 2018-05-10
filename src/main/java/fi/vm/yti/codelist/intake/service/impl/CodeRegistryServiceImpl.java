@@ -52,8 +52,9 @@ public class CodeRegistryServiceImpl extends BaseService implements CodeRegistry
     @Nullable
     public CodeRegistryDTO findByCodeValue(final String codeValue) {
         CodeRegistry registry = codeRegistryDao.findByCodeValue(codeValue);
-        if (registry == null)
+        if (registry == null) {
             return null;
+        }
         return mapCodeRegistryDto(registry);
     }
 

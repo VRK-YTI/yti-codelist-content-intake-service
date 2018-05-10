@@ -191,11 +191,11 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
             final Set<Code> codes = codeScheme.getCodes();
-            if (codes != null) {
+            if (codes != null && !codes.isEmpty()) {
                 codeDao.delete(codeScheme.getCodes());
             }
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
-            if (externalReferences != null) {
+            if (externalReferences != null && !externalReferences.isEmpty()) {
                 externalReferenceDao.delete(externalReferences);
             }
             codeSchemeDao.delete(codeScheme);
