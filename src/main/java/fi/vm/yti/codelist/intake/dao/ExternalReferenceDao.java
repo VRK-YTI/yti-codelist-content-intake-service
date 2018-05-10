@@ -9,9 +9,9 @@ import fi.vm.yti.codelist.intake.model.ExternalReference;
 
 public interface ExternalReferenceDao {
 
-    void delete (final ExternalReference externalReference);
+    void delete(final ExternalReference externalReference);
 
-    void delete (final Set<ExternalReference> externalReferences);
+    void delete(final Set<ExternalReference> externalReferences);
 
     ExternalReference updateExternalReferenceFromDto(final ExternalReferenceDTO externalReferenceDto,
                                                      final CodeScheme codeScheme);
