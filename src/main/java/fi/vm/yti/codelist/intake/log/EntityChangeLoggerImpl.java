@@ -80,14 +80,12 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         editedEntityRepository.save(editedEntity);
     }
 
-
     public void logExtensionChange(final Extension extension) {
         entityPayloadLogger.logExtension(extension);
         final EditedEntity editedEntity = new EditedEntity(createCommit());
         editedEntity.setExtension(extension);
         editedEntityRepository.save(editedEntity);
     }
-
 
     private Commit createCommit() {
         final String traceId = getTraceId();
