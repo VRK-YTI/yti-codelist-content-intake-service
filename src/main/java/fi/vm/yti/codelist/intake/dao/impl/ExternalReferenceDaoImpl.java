@@ -153,6 +153,9 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         if (!Objects.equals(existingExternalReference.getPropertyType(), propertyType)) {
             existingExternalReference.setPropertyType(propertyType);
         }
+        if (!Objects.equals(existingExternalReference.getHref(), fromExternalReference.getHref())) {
+            existingExternalReference.setHref(fromExternalReference.getHref());
+        }
         for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
             final String language = entry.getKey();
             final String value = entry.getValue();
@@ -180,6 +183,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
             externalReference.setId(uuid);
         }
         externalReference.setParentCodeScheme(parentCodeScheme);
+        externalReference.setHref(fromExternalReference.getHref());
         externalReference.setGlobal(parentCodeScheme == null);
         externalReference.setPropertyType(propertyTypeRepository.findByLocalName(fromExternalReference.getPropertyType().getLocalName()));
         for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
