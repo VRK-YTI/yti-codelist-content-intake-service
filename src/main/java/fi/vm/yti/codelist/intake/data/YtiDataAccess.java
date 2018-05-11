@@ -42,8 +42,8 @@ import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSI
 public class YtiDataAccess {
 
     public static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
-    public static final String PROPERTYTYPE_IDENTIFIER = "v3";
     public static final String DEFAULT_EXTERNALREFERENCE_FILENAME = "externalreferences.csv";
+    private static final String PROPERTYTYPE_IDENTIFIER = "v3";
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
     private static final String DEFAULT_CLASSIFICATIONREGISTRY_FILENAME = "classificationregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
