@@ -402,7 +402,7 @@
                                 <namingStrategy>alias</namingStrategy>
                                 <log>
                                     <enabled>true</enabled>
-                                    <color>green</color>
+                                    <color>yellow</color>
                                 </log>
                                 <ports>
                                     <port>testelasticsearch.transport.port:9300</port>
