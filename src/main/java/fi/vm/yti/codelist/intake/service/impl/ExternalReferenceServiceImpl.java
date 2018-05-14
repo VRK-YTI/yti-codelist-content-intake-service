@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -31,6 +33,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 public class ExternalReferenceServiceImpl extends BaseService implements ExternalReferenceService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceServiceImpl.class);
+
     private final AuthorizationManager authorizationManager;
     private final ExternalReferenceParserImpl externalReferenceParser;
     private final ExternalReferenceDao externalReferenceDao;
@@ -38,7 +41,10 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
     @Inject
     public ExternalReferenceServiceImpl(final AuthorizationManager authorizationManager,
                                         final ExternalReferenceParserImpl externalReferenceParser,
-                                        final ExternalReferenceDao externalReferenceDao) {
+                                        final ExternalReferenceDao externalReferenceDao,
+                                        final ApiUtils apiUtils,
+                                        final DataSource dataSource) {
+        super(apiUtils, dataSource);
         this.authorizationManager = authorizationManager;
         this.externalReferenceParser = externalReferenceParser;
         this.externalReferenceDao = externalReferenceDao;

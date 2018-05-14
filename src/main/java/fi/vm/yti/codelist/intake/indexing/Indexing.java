@@ -42,11 +42,19 @@ public interface Indexing {
 
     boolean updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes);
 
+    boolean updateExtensionScheme(final ExtensionSchemeDTO extensionScheme);
+
     boolean updateExtensionSchemes(final Set<ExtensionSchemeDTO> extensionSchemes);
+
+    boolean deleteExtensionScheme(final ExtensionSchemeDTO extension);
 
     boolean deleteExtensionSchemes(final Set<ExtensionSchemeDTO> extensions);
 
+    boolean updateExtension(final ExtensionDTO extensionScheme);
+
     boolean updateExtensions(final Set<ExtensionDTO> extensionSchemes);
+
+    boolean deleteExtension(final ExtensionDTO extension);
 
     boolean deleteExtensions(final Set<ExtensionDTO> extensions);
 

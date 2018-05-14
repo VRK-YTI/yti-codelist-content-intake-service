@@ -15,5 +15,8 @@ public interface PropertyTypeRepository extends CrudRepository<PropertyType, Str
 
     PropertyType findByLocalName(final String localName);
 
+    PropertyType findByContextAndLocalName(final String context,
+                                           final String localName);
+
     Set<PropertyType> findAll();
 }

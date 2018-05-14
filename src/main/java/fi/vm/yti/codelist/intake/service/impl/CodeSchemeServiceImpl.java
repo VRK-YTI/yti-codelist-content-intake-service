@@ -8,6 +8,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.apache.poi.POIXMLException;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
@@ -36,6 +39,8 @@ import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
+import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
+import fi.vm.yti.codelist.intake.service.ExtensionService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
@@ -50,6 +55,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     private final ExternalReferenceDao externalReferenceDao;
     private final CodeSchemeParserImpl codeSchemeParser;
     private final CodeService codeService;
+    private final ExtensionSchemeService extensionSchemeService;
+    private final ExtensionService extensionService;
     private final CodeDao codeDao;
 
     @Inject
@@ -59,13 +66,20 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                  final ExternalReferenceDao externalReferenceDao,
                                  final CodeSchemeParserImpl codeSchemeParser,
                                  final CodeService codeService,
-                                 final CodeDao codeDao) {
+                                 final ExtensionSchemeService extensionSchemeService,
+                                 final ExtensionService extensionService,
+                                 final CodeDao codeDao,
+                                 final ApiUtils apiUtils,
+                                 final DataSource dataSource) {
+        super(apiUtils, dataSource);
         this.codeRegistryDao = codeRegistryDao;
         this.authorizationManager = authorizationManager;
         this.externalReferenceDao = externalReferenceDao;
         this.codeSchemeParser = codeSchemeParser;
         this.codeService = codeService;
         this.codeSchemeDao = codeSchemeDao;
+        this.extensionSchemeService = extensionSchemeService;
+        this.extensionService = extensionService;
         this.codeDao = codeDao;
     }
 
@@ -125,13 +139,33 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                         if (codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
                             final CodeScheme codeScheme = codeSchemes.iterator().next();
                             if (codeScheme != null) {
-                                codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), EXCEL_SHEET_CODES, workbook);
+                                codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), workbook, EXCEL_SHEET_CODES);
+                                final String extensionSchemeSheetName = EXCEL_SHEET_EXTENSIONSCHEMES;
+                                if (workbook.getSheet(extensionSchemeSheetName) != null) {
+                                    final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromExcelWorkbook(codeScheme, workbook, extensionSchemeSheetName);
+                                    extensionSchemes.forEach(extensionScheme -> {
+                                        final String extensionSheetName = EXCEL_SHEET_EXTENSIONS + "_" + extensionScheme.getCodeValue();
+                                        if (workbook.getSheet(extensionSheetName) != null) {
+                                            extensionService.parseAndPersistExtensionsFromExcelWorkbook(codeScheme, extensionScheme, workbook, extensionSheetName);
+                                        }
+                                    });
+                                }
                             }
                         } else {
                             codeSchemes.forEach(codeScheme -> {
-                                final String sheetName = EXCEL_SHEET_CODES + "_" + codeScheme.getCodeValue();
-                                if (workbook.getSheet(sheetName) != null) {
-                                    codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), sheetName, workbook);
+                                final String codesSheetName = EXCEL_SHEET_CODES + "_" + codeScheme.getCodeValue();
+                                if (workbook.getSheet(codesSheetName) != null) {
+                                    codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), workbook, codesSheetName);
+                                }
+                                final String extensionSchemeSheetName = EXCEL_SHEET_EXTENSIONSCHEMES + "_" + codeScheme.getCodeValue();
+                                if (workbook.getSheet(extensionSchemeSheetName) != null) {
+                                    final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromExcelWorkbook(codeScheme, workbook, extensionSchemeSheetName);
+                                    extensionSchemes.forEach(extensionScheme -> {
+                                        final String extensionSheetName = EXCEL_SHEET_EXTENSIONS + "_" + extensionScheme.getCodeValue();
+                                        if (workbook.getSheet(extensionSheetName) != null) {
+                                            extensionService.parseAndPersistExtensionsFromExcelWorkbook(codeScheme, extensionScheme, workbook, extensionSheetName);
+                                        }
+                                    });
                                 }
                             });
                         }

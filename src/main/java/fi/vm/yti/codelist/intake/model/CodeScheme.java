@@ -36,7 +36,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeScheme")
 @Table(name = "codescheme")
 @XmlRootElement
-@XmlType(propOrder = {"id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "externalReferences", "extensionSchemes", "conceptUriInVocabularies"})
+@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "externalReferences", "extensionSchemes", "conceptUriInVocabularies" })
 @ApiModel(value = "CodeScheme", description = "CodeScheme model that represents data for one single codescheme.")
 public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
@@ -145,7 +145,8 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         return prefLabelValue;
     }
 
-    public void setPrefLabel(final String language, final String value) {
+    public void setPrefLabel(final String language,
+                             final String value) {
         if (this.prefLabel == null) {
             this.prefLabel = new HashMap<>();
         }
@@ -182,7 +183,8 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         return definitionValue;
     }
 
-    public void setDefinition(final String language, final String value) {
+    public void setDefinition(final String language,
+                              final String value) {
         if (this.definition == null) {
             this.definition = new HashMap<>();
         }
@@ -219,7 +221,8 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         return descriptionValue;
     }
 
-    public void setDescription(final String language, final String value) {
+    public void setDescription(final String language,
+                               final String value) {
         if (this.description == null) {
             this.description = new HashMap<>();
         }
@@ -256,7 +259,8 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         return changeNoteValue;
     }
 
-    public void setChangeNote(final String language, final String value) {
+    public void setChangeNote(final String language,
+                              final String value) {
         if (this.changeNote == null) {
             this.changeNote = new HashMap<>();
         }
@@ -271,9 +275,9 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "codescheme_externalreference",
         joinColumns = {
-            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false)},
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
         inverseJoinColumns = {
-            @JoinColumn(name = "externalreference_id", referencedColumnName = "id", nullable = false, updatable = false)})
+            @JoinColumn(name = "externalreference_id", referencedColumnName = "id", nullable = false, updatable = false) })
     @JsonView(Views.ExtendedCodeScheme.class)
     public Set<ExternalReference> getExternalReferences() {
         return this.externalReferences;
@@ -296,9 +300,9 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "service_codescheme_code",
         joinColumns = {
-            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false)},
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
         inverseJoinColumns = {
-            @JoinColumn(name = "code_id", referencedColumnName = "id", nullable = false, updatable = false)})
+            @JoinColumn(name = "code_id", referencedColumnName = "id", nullable = false, updatable = false) })
     @JsonView(Views.ExtendedCodeScheme.class)
     public Set<Code> getDataClassifications() {
         return dataClassifications;
@@ -318,12 +322,12 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         this.conceptUriInVocabularies = conceptUriInVocabularies;
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "extensionscheme_codescheme",
         joinColumns = {
-            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false)},
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
         inverseJoinColumns = {
-            @JoinColumn(name = "extensionscheme_id", referencedColumnName = "id", nullable = false, updatable = false)})
+            @JoinColumn(name = "extensionscheme_id", referencedColumnName = "id", nullable = false, updatable = false) })
     @JsonView(Views.ExtendedCodeScheme.class)
     public Set<ExtensionScheme> getExtensionSchemes() {
         return extensionSchemes;

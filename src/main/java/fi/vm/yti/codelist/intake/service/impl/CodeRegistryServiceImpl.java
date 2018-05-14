@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -37,7 +39,10 @@ public class CodeRegistryServiceImpl extends BaseService implements CodeRegistry
     @Inject
     public CodeRegistryServiceImpl(final AuthorizationManager authorizationManager,
                                    final CodeRegistryParserImpl codeRegistryParser,
-                                   final CodeRegistryDao codeRegistryDao) {
+                                   final CodeRegistryDao codeRegistryDao,
+                                   final ApiUtils apiUtils,
+                                   final DataSource dataSource) {
+        super(apiUtils, dataSource);
         this.authorizationManager = authorizationManager;
         this.codeRegistryParser = codeRegistryParser;
         this.codeRegistryDao = codeRegistryDao;

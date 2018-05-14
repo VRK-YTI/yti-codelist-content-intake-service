@@ -16,6 +16,8 @@ import fi.vm.yti.codelist.intake.resource.AuthenticatedUserResource;
 import fi.vm.yti.codelist.intake.resource.CodeRegistryResource;
 import fi.vm.yti.codelist.intake.resource.ConfigurationResource;
 import fi.vm.yti.codelist.intake.resource.DataClassificationResource;
+import fi.vm.yti.codelist.intake.resource.ExtensionResource;
+import fi.vm.yti.codelist.intake.resource.ExtensionSchemeResource;
 import fi.vm.yti.codelist.intake.resource.ExternalReferenceResource;
 import fi.vm.yti.codelist.intake.resource.ImpersonateUserResource;
 import fi.vm.yti.codelist.intake.resource.OrganizationResource;
@@ -52,9 +54,9 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.API_CONTEXT_PATH_
     ),
     host = "localhost:9602",
     basePath = API_CONTEXT_PATH_INTAKE + API_BASE_PATH,
-    consumes = {MediaType.APPLICATION_JSON, "application/csv", "application/xls", "application/xlsx"},
-    produces = {MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN},
-    schemes = {SwaggerDefinition.Scheme.HTTPS}
+    consumes = { MediaType.APPLICATION_JSON, "application/csv", "application/xls", "application/xlsx" },
+    produces = { MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN },
+    schemes = { SwaggerDefinition.Scheme.HTTPS }
 )
 @Api(value = "/api")
 @ApplicationPath("/api")
@@ -103,5 +105,7 @@ public class JerseyConfig extends ResourceConfig {
         register(ExternalReferenceResource.class);
         register(PropertyTypeResource.class);
         register(DataClassificationResource.class);
+        register(ExtensionSchemeResource.class);
+        register(ExtensionResource.class);
     }
 }

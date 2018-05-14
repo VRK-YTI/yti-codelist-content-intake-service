@@ -12,7 +12,7 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
@@ -32,7 +32,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("extensionScheme")
 @Table(name = "extensionscheme")
 @XmlRootElement
-@XmlType(propOrder = {"id", "codeValue", "status", "startDate", "endDate", "prefLabel", "propertyType", "codeSchemes", "extensions"})
+@XmlType(propOrder = { "id", "codeValue", "status", "startDate", "endDate", "prefLabel", "propertyType", "codeScheme", "extensions" })
 @ApiModel(value = "ExtensionScheme", description = "ExtensionScheme model that represents data for one extension scheme element.")
 public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatus implements Serializable {
 
@@ -40,7 +40,7 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
 
     private Map<String, String> prefLabel;
     private PropertyType propertyType;
-    private Set<CodeScheme> codeSchemes;
+    private CodeScheme codeScheme;
     private Set<Extension> extensions;
     private String codeValue;
 
@@ -89,17 +89,22 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
         setPrefLabel(this.prefLabel);
     }
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "extensionSchemes", cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "extensionscheme_codescheme",
+        joinColumns = {
+            @JoinColumn(name = "extensionscheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
+        inverseJoinColumns = {
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) })
     @JsonView(Views.ExtendedExtensionScheme.class)
-    public Set<CodeScheme> getCodeSchemes() {
-        return codeSchemes;
+    public CodeScheme getCodeScheme() {
+        return codeScheme;
     }
 
-    public void setCodeSchemes(final Set<CodeScheme> codeSchemes) {
-        this.codeSchemes = codeSchemes;
+    public void setCodeScheme(final CodeScheme codeScheme) {
+        this.codeScheme = codeScheme;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "propertytype_id", nullable = false, insertable = true, updatable = true)
     @JsonView(Views.Normal.class)
     public PropertyType getPropertyType() {
@@ -110,7 +115,7 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
         this.propertyType = propertyType;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "extensionScheme", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "extensionScheme", cascade = CascadeType.ALL)
     @JsonView(Views.ExtendedExtensionScheme.class)
     public Set<Extension> getExtensions() {
         return extensions;

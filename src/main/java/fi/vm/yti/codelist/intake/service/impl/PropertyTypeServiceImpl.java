@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
+import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -37,7 +39,10 @@ public class PropertyTypeServiceImpl extends BaseService implements PropertyType
     @Inject
     public PropertyTypeServiceImpl(final AuthorizationManager authorizationManager,
                                    final PropertyTypeDao propertyTypeRepository,
-                                   final PropertyTypeParserImpl propertyTypeParser) {
+                                   final PropertyTypeParserImpl propertyTypeParser,
+                                   final ApiUtils apiUtils,
+                                   final DataSource dataSource) {
+        super(apiUtils, dataSource);
         this.authorizationManager = authorizationManager;
         this.propertyTypeDao = propertyTypeRepository;
         this.propertyTypeParser = propertyTypeParser;

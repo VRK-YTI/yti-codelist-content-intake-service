@@ -17,7 +17,9 @@ import org.junit.runners.Suite;
     CodeSchemeBadClassificationT10.class,
     CodeSchemeCaseTestT11.class,
     CodeCaseTestT12.class,
-    CodeValueTestT13.class})
+    CodeValueTestT13.class,
+    CodeSchemeExtensionSchemeTestT14.class
+})
 public class IntakeTestSuiteIT {
 
 }

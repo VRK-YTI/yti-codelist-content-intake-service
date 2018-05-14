@@ -1,9 +1,5 @@
 package fi.vm.yti.codelist.intake.indexing.impl;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -11,7 +7,6 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -21,7 +16,6 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -31,14 +25,11 @@ import fi.vm.yti.codelist.common.dto.AbstractIdentifyableCodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
-import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.Views;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
-import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.indexing.IndexingTools;
 import fi.vm.yti.codelist.intake.jpa.IndexStatusRepository;
@@ -51,7 +42,6 @@ import fi.vm.yti.codelist.intake.service.ExtensionService;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 import static fi.vm.yti.codelist.intake.update.UpdateManager.UPDATE_FAILED;
 
 @Singleton
@@ -84,8 +74,6 @@ public class IndexingImpl implements Indexing {
     private IndexingTools indexingTools;
     private boolean hasError;
     private boolean fullIndexInProgress;
-    private DataSource dataSource;
-    private ApiUtils apiUtils;
 
     @Inject
     public IndexingImpl(final IndexingTools indexingTools,
@@ -97,9 +85,7 @@ public class IndexingImpl implements Indexing {
                         final ExternalReferenceService externalReferenceService,
                         final PropertyTypeService propertyTypeService,
                         final ExtensionSchemeService extensionSchemeService,
-                        final ExtensionService extensionService,
-                        final DataSource dataSource,
-                        final ApiUtils apiUtils) {
+                        final ExtensionService extensionService) {
         this.indexingTools = indexingTools;
         this.client = client;
         this.indexStatusRepository = indexStatusRepository;
@@ -110,49 +96,40 @@ public class IndexingImpl implements Indexing {
         this.propertyTypeService = propertyTypeService;
         this.extensionSchemeService = extensionSchemeService;
         this.extensionService = extensionService;
-        this.dataSource = dataSource;
-        this.apiUtils = apiUtils;
     }
 
     private boolean indexCodeRegistries(final String indexName) {
         final Set<CodeRegistryDTO> codeRegistries = codeRegistryService.findAll();
-        setCodeRegistriesModifiedAndUrl(codeRegistries);
         return indexData(codeRegistries, indexName, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.ExtendedCodeRegistry.class);
     }
 
     private boolean indexCodeSchemes(final String indexName) {
         final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.findAll();
-        setCodeSchemesModifiedAndUrl(codeSchemes);
         return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
     }
 
     private boolean indexCodes(final String indexName) {
         final Set<CodeDTO> codes = codeService.findAll();
-        setCodesModifiedAndUrl(codes);
         return indexData(codes, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
     }
 
     private boolean indexPropertyTypes(final String indexName) {
         final Set<PropertyTypeDTO> propertyTypes = propertyTypeService.findAll();
-        setPropertyTypesModifiedAndUrl(propertyTypes);
         return indexData(propertyTypes, indexName, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.ExtendedPropertyType.class);
     }
 
     private boolean indexExternalReferences(final String indexName) {
         final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findAll();
-        setExternalReferencesModifiedAndUrl(externalReferences);
         return indexData(externalReferences, indexName, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
     }
 
     private boolean indexExtensionSchemes(final String indexName) {
         final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findAll();
-        setExtensionSchemesModifiedAndUrl(extensionSchemes);
         return indexData(extensionSchemes, indexName, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES, Views.ExtendedExtensionScheme.class);
     }
 
     private boolean indexExtensions(final String indexName) {
         final Set<ExtensionDTO> extensions = extensionService.findAll();
-        setExtensionsModifiedAndUrl(extensions);
         return indexData(extensions, indexName, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
     }
 
@@ -259,11 +236,23 @@ public class IndexingImpl implements Indexing {
         return true;
     }
 
+    public boolean deleteExtensionScheme(final ExtensionSchemeDTO extensionScheme) {
+        final Set<ExtensionSchemeDTO> extensionSchemes = new HashSet<>();
+        extensionSchemes.add(extensionScheme);
+        return deleteExtensionSchemes(extensionSchemes);
+    }
+
     public boolean deleteExtensionSchemes(final Set<ExtensionSchemeDTO> extensionSchemes) {
         if (!extensionSchemes.isEmpty()) {
             return deleteData(extensionSchemes, ELASTIC_INDEX_EXTENSIONSCHEME, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES);
         }
         return true;
+    }
+
+    public boolean deleteExtension(final ExtensionDTO extension) {
+        final Set<ExtensionDTO> extensions = new HashSet<>();
+        extensions.add(extension);
+        return deleteExtensions(extensions);
     }
 
     public boolean deleteExtensions(final Set<ExtensionDTO> extensions) {
@@ -281,7 +270,6 @@ public class IndexingImpl implements Indexing {
 
     public boolean updateCodes(final Set<CodeDTO> codes) {
         if (!codes.isEmpty()) {
-            setCodesModifiedAndUrl(codes);
             return indexData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
         }
         return true;
@@ -295,7 +283,6 @@ public class IndexingImpl implements Indexing {
 
     public boolean updateCodeSchemes(final Set<CodeSchemeDTO> codeSchemes) {
         if (!codeSchemes.isEmpty()) {
-            setCodeSchemesModifiedAndUrl(codeSchemes);
             return indexData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
         }
         return true;
@@ -309,7 +296,6 @@ public class IndexingImpl implements Indexing {
 
     public boolean updateCodeRegistries(final Set<CodeRegistryDTO> codeRegistries) {
         if (!codeRegistries.isEmpty()) {
-            setCodeRegistriesModifiedAndUrl(codeRegistries);
             return indexData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
         }
         return true;
@@ -323,7 +309,6 @@ public class IndexingImpl implements Indexing {
 
     public boolean updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes) {
         if (!propertyTypes.isEmpty()) {
-            setPropertyTypesModifiedAndUrl(propertyTypes);
             return indexData(propertyTypes, ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
         }
         return true;
@@ -337,23 +322,32 @@ public class IndexingImpl implements Indexing {
 
     public boolean updateExternalReferences(final Set<ExternalReferenceDTO> externalReferences) {
         if (!externalReferences.isEmpty()) {
-            setExternalReferencesModifiedAndUrl(externalReferences);
             return indexData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
         }
         return true;
     }
 
+    public boolean updateExtensionScheme(final ExtensionSchemeDTO extensionScheme) {
+        final Set<ExtensionSchemeDTO> extensionSchemes = new HashSet<>();
+        extensionSchemes.add(extensionScheme);
+        return updateExtensionSchemes(extensionSchemes);
+    }
+
     public boolean updateExtensionSchemes(final Set<ExtensionSchemeDTO> extensionSchemes) {
         if (!extensionSchemes.isEmpty()) {
-            setExtensionSchemesModifiedAndUrl(extensionSchemes);
             return indexData(extensionSchemes, ELASTIC_INDEX_EXTENSIONSCHEME, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES, Views.ExtendedExtensionScheme.class);
         }
         return true;
     }
 
+    public boolean updateExtension(final ExtensionDTO extension) {
+        final Set<ExtensionDTO> extensions = new HashSet<>();
+        extensions.add(extension);
+        return updateExtensions(extensions);
+    }
+
     public boolean updateExtensions(final Set<ExtensionDTO> extensions) {
         if (!extensions.isEmpty()) {
-            setExtensionsModifiedAndUrl(extensions);
             return indexData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
         }
         return true;
@@ -484,76 +478,5 @@ public class IndexingImpl implements Indexing {
 
     public void setHasError(boolean hasError) {
         this.hasError = hasError;
-    }
-
-    private void setCodeRegistriesModifiedAndUrl(final Set<CodeRegistryDTO> codeRegistries) {
-        codeRegistries.forEach(this::setCodeRegistryModifiedAndUrl);
-    }
-
-    private void setCodeRegistryModifiedAndUrl(final CodeRegistryDTO codeRegistry) {
-        codeRegistry.setModified(getLastModificationDate("coderegistry", codeRegistry.getId().toString()));
-        codeRegistry.setUrl(apiUtils.createCodeRegistryUrl(codeRegistry));
-    }
-
-    private void setCodeSchemesModifiedAndUrl(final Set<CodeSchemeDTO> codeSchemes) {
-        codeSchemes.forEach(this::setCodeSchemeModifiedAndUrl);
-    }
-
-    private void setCodeSchemeModifiedAndUrl(final CodeSchemeDTO codeScheme) {
-        codeScheme.setModified(getLastModificationDate("codescheme", codeScheme.getId().toString()));
-        codeScheme.setUrl(apiUtils.createCodeSchemeUrl(codeScheme));
-    }
-
-    private void setCodesModifiedAndUrl(final Set<CodeDTO> codes) {
-        codes.forEach(this::setCodeModifiedAndUrl);
-    }
-
-    private void setCodeModifiedAndUrl(final CodeDTO code) {
-        code.setModified(getLastModificationDate("code", code.getId().toString()));
-        code.setUrl(apiUtils.createCodeUrl(code));
-    }
-
-    private void setPropertyTypesModifiedAndUrl(final Set<PropertyTypeDTO> propertyTypes) {
-        propertyTypes.forEach(propertyType -> {
-            propertyType.setModified(getLastModificationDate("propertytype", propertyType.getId().toString()));
-            propertyType.setUrl(apiUtils.createPropertyTypeUrl(propertyType));
-        });
-    }
-
-    private void setExternalReferencesModifiedAndUrl(final Set<ExternalReferenceDTO> externalReferences) {
-        externalReferences.forEach(externalReference -> {
-            externalReference.setModified(getLastModificationDate("externalreference", externalReference.getId().toString()));
-            externalReference.setUrl(apiUtils.createExternalReferenceUrl(externalReference));
-        });
-    }
-
-    private void setExtensionSchemesModifiedAndUrl(final Set<ExtensionSchemeDTO> extensionSchemes) {
-        extensionSchemes.forEach(extensionScheme -> {
-            extensionScheme.setModified(getLastModificationDate("extensionscheme", extensionScheme.getId().toString()));
-            extensionScheme.setUrl(apiUtils.createExtensionSchemeUrl(extensionScheme));
-        });
-    }
-
-    private void setExtensionsModifiedAndUrl(final Set<ExtensionDTO> extensions) {
-        extensions.forEach(extension -> {
-            extension.setModified(getLastModificationDate("extension", extension.getId().toString()));
-            extension.setUrl(apiUtils.createExtensionUrl(extension));
-        });
-    }
-
-    private Date getLastModificationDate(final String entityName,
-                                         final String entityId) {
-        Date modified = null;
-        try (final Connection connection = dataSource.getConnection();
-             final PreparedStatement ps = connection.prepareStatement(String.format("SELECT c.modified FROM commit as c WHERE c.id IN (SELECT e.commit_id FROM editedentity AS e WHERE e.%s_id = '%s') ORDER BY c.modified DESC LIMIT 1;", entityName, entityId));
-             final ResultSet results = ps.executeQuery()) {
-            if (results.next()) {
-                modified = results.getTimestamp(1);
-            }
-        } catch (final SQLException e) {
-            LOG.error("SQL query failed: ", e);
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
-        }
-        return modified;
     }
 }

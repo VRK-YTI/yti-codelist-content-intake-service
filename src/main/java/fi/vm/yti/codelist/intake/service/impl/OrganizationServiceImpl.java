@@ -5,7 +5,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ import com.google.common.base.Stopwatch;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
+import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.groupmanagement.GroupManagementOrganizationDTO;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import fi.vm.yti.codelist.intake.model.Organization;
@@ -31,7 +34,11 @@ public class OrganizationServiceImpl extends BaseService implements Organization
     private static final Logger LOG = LoggerFactory.getLogger(OrganizationServiceImpl.class);
     private OrganizationRepository organizationRepository;
 
-    public OrganizationServiceImpl(final OrganizationRepository organizationRepository) {
+    @Inject
+    public OrganizationServiceImpl(final OrganizationRepository organizationRepository,
+                                   final ApiUtils apiUtils,
+                                   final DataSource dataSource) {
+        super(apiUtils, dataSource);
         this.organizationRepository = organizationRepository;
     }
 

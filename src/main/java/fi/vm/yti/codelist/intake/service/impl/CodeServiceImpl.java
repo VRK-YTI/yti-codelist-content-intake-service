@@ -9,6 +9,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.apache.poi.ss.usermodel.Workbook;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
@@ -44,18 +46,25 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     private final CodeSchemeDao codeSchemeDao;
     private final CodeDao codeDao;
     private final CodeParserImpl codeParser;
+    private final ApiUtils apiUtils;
+    private final DataSource dataSource;
 
     @Inject
     public CodeServiceImpl(final AuthorizationManager authorizationManager,
                            final CodeRegistryDao codeRegistryDao,
                            final CodeSchemeDao codeSchemeDao,
                            final CodeParserImpl codeParser,
-                           final CodeDao codeDao) {
+                           final CodeDao codeDao,
+                           final ApiUtils apiUtils,
+                           final DataSource dataSource) {
+        super(apiUtils, dataSource);
         this.authorizationManager = authorizationManager;
         this.codeRegistryDao = codeRegistryDao;
         this.codeSchemeDao = codeSchemeDao;
         this.codeParser = codeParser;
         this.codeDao = codeDao;
+        this.apiUtils = apiUtils;
+        this.dataSource = dataSource;
     }
 
     @Transactional
@@ -78,8 +87,8 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     @Transactional
     public Set<CodeDTO> parseAndPersistCodesFromExcelWorkbook(final String codeRegistryCodeValue,
                                                               final String codeSchemeCodeValue,
-                                                              final String sheetName,
-                                                              final Workbook workbook) {
+                                                              final Workbook workbook,
+                                                              final String sheetName) {
         Set<Code> codes;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {

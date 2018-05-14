@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.model;
 
 import java.io.Serializable;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -21,7 +22,7 @@ import io.swagger.annotations.ApiModel;
 @JsonFilter("extension")
 @Table(name = "extension")
 @XmlRootElement
-@XmlType(propOrder = {"id", "code", "extensionValue", "extensionOrder", "extensionScheme", "extension"})
+@XmlType(propOrder = { "id", "code", "extensionValue", "extensionOrder", "extensionScheme", "extension" })
 @ApiModel(value = "Extension", description = "Extension model that represents data for one extension element.")
 public class Extension extends AbstractIdentifyableCode implements Serializable {
 
@@ -53,7 +54,7 @@ public class Extension extends AbstractIdentifyableCode implements Serializable 
         this.extensionOrder = extensionOrder;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonView(Views.ExtendedExtension.class)
     @JoinColumn(name = "code_id", nullable = false, insertable = true, updatable = false)
     public Code getCode() {
@@ -64,7 +65,7 @@ public class Extension extends AbstractIdentifyableCode implements Serializable 
         this.code = code;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "extensionscheme_id", nullable = false, insertable = true, updatable = false)
     @JsonView(Views.ExtendedExtension.class)
     public ExtensionScheme getExtensionScheme() {
@@ -75,7 +76,7 @@ public class Extension extends AbstractIdentifyableCode implements Serializable 
         this.extensionScheme = extensionScheme;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "extension_id", nullable = false, insertable = true, updatable = false)
     @JsonView(Views.ExtendedExtension.class)
     public Extension getExtension() {

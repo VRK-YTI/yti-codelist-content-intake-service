@@ -1,16 +1,32 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.inject.Inject;
+import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
+import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.indexing.impl.IndexingImpl;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -19,8 +35,20 @@ import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.model.PropertyType;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 
 abstract class BaseService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(IndexingImpl.class);
+
+    private final ApiUtils apiUtils;
+    private final DataSource dataSource;
+
+    public BaseService(final ApiUtils apiUtils,
+                       final DataSource dataSource) {
+        this.apiUtils = apiUtils;
+        this.dataSource = dataSource;
+    }
 
     public CodeDTO mapDeepCodeDto(final Code code) {
         return mapCodeDto(code, true);
@@ -52,6 +80,8 @@ abstract class BaseService {
         }
         codeDto.setDescription(code.getDescription());
         codeDto.setOrder(code.getOrder());
+        codeDto.setUrl(apiUtils.createCodeUrl(codeDto));
+        codeDto.setModified(getLastModificationDate("code", code.getId().toString()));
         return codeDto;
     }
 
@@ -103,6 +133,8 @@ abstract class BaseService {
                 codeSchemeDto.setExtensionSchemes(mapExtensionSchemeDtos(codeScheme.getExtensionSchemes(), false));
             }
         }
+        codeSchemeDto.setUrl(apiUtils.createCodeSchemeUrl(codeSchemeDto));
+        codeSchemeDto.setModified(getLastModificationDate("codescheme", codeScheme.getId().toString()));
         return codeSchemeDto;
     }
 
@@ -129,6 +161,8 @@ abstract class BaseService {
         codeRegistryDto.setPrefLabel(codeRegistry.getPrefLabel());
         codeRegistryDto.setDefinition(codeRegistry.getDefinition());
         codeRegistryDto.setOrganizations(mapOrganizationDtos(codeRegistry.getOrganizations(), false));
+        codeRegistryDto.setUrl(apiUtils.createCodeRegistryUrl(codeRegistryDto));
+        codeRegistryDto.setModified(getLastModificationDate("coderegistry", codeRegistry.getId().toString()));
         return codeRegistryDto;
     }
 
@@ -166,6 +200,8 @@ abstract class BaseService {
                 externalReferenceDto.setCodes(mapCodeDtos(externalReference.getCodes(), false));
             }
         }
+        externalReferenceDto.setUrl(apiUtils.createExternalReferenceUrl(externalReferenceDto));
+        externalReferenceDto.setModified(getLastModificationDate("externalreference", externalReference.getId().toString()));
         return externalReferenceDto;
     }
 
@@ -193,6 +229,8 @@ abstract class BaseService {
         propertyTypeDto.setPrefLabel(propertyType.getPrefLabel());
         propertyTypeDto.setType(propertyType.getType());
         propertyTypeDto.setPropertyUri(propertyType.getPropertyUri());
+        propertyTypeDto.setUrl(apiUtils.createPropertyTypeUrl(propertyTypeDto));
+        propertyTypeDto.setModified(getLastModificationDate("propertytype", propertyType.getId().toString()));
         return propertyTypeDto;
     }
 
@@ -224,6 +262,8 @@ abstract class BaseService {
                 extensionDto.setCode(mapCodeDto(extension.getCode(), false));
             }
         }
+        extensionDto.setUrl(apiUtils.createExtensionUrl(extensionDto));
+        extensionDto.setModified(getLastModificationDate("extension", extension.getId().toString()));
         return extensionDto;
     }
 
@@ -253,15 +293,19 @@ abstract class BaseService {
         extensionSchemeDto.setPropertyType(mapPropertyTypeDto(extensionScheme.getPropertyType()));
         extensionSchemeDto.setPrefLabel(extensionScheme.getPrefLabel());
         extensionSchemeDto.setStatus(extensionScheme.getStatus());
-        extensionScheme.setCodeValue(extensionScheme.getCodeValue());
+        extensionSchemeDto.setCodeValue(extensionScheme.getCodeValue());
+        extensionSchemeDto.setStartDate(extensionScheme.getStartDate());
+        extensionSchemeDto.setEndDate(extensionScheme.getEndDate());
         if (deep) {
-            if (extensionScheme.getCodeSchemes() != null) {
-                extensionSchemeDto.setCodeSchemes(mapCodeSchemeDtos(extensionScheme.getCodeSchemes(), false));
+            if (extensionScheme.getCodeScheme() != null) {
+                extensionSchemeDto.setCodeScheme(mapCodeSchemeDto(extensionScheme.getCodeScheme(), true));
             }
             if (extensionScheme.getExtensions() != null) {
-                extensionSchemeDto.setExtensions(mapExtensionDtos(extensionScheme.getExtensions(), false));
+                extensionSchemeDto.setExtensions(mapExtensionDtos(extensionScheme.getExtensions(), true));
             }
         }
+        extensionSchemeDto.setUrl(apiUtils.createExtensionSchemeUrl(extensionSchemeDto));
+        extensionSchemeDto.setModified(getLastModificationDate("extensionscheme", extensionScheme.getId().toString()));
         return extensionSchemeDto;
     }
 
@@ -306,4 +350,21 @@ abstract class BaseService {
         }
         return organizationDtos;
     }
+
+    private Date getLastModificationDate(final String entityName,
+                                         final String entityId) {
+        Date modified = null;
+        try (final Connection connection = dataSource.getConnection();
+             final PreparedStatement ps = connection.prepareStatement(String.format("SELECT c.modified FROM commit as c WHERE c.id IN (SELECT e.commit_id FROM editedentity AS e WHERE e.%s_id = '%s') ORDER BY c.modified DESC LIMIT 1;", entityName, entityId));
+             final ResultSet results = ps.executeQuery()) {
+            if (results.next()) {
+                modified = results.getTimestamp(1);
+            }
+        } catch (final SQLException e) {
+            LOG.error("SQL query failed: ", e);
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+        }
+        return modified;
+    }
+
 }

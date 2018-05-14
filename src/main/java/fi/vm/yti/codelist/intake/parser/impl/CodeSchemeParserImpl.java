@@ -192,13 +192,25 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 codeScheme.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
                 codeScheme.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
                 codeScheme.setChangeNote(parseLocalizedValueFromExcelRow(changeNoteHeaders, row, formatter));
-                codeScheme.setVersion(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_VERSION))));
+                if (headerMap.containsKey(CONTENT_HEADER_VERSION)) {
+                    codeScheme.setVersion(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_VERSION))));
+                }
                 codeScheme.setStatus(parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))));
-                codeScheme.setSource(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SOURCE))));
-                codeScheme.setLegalBase(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LEGALBASE))));
-                codeScheme.setGovernancePolicy(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_GOVERNANCEPOLICY))));
-                codeScheme.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
-                codeScheme.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
+                if (headerMap.containsKey(CONTENT_HEADER_SOURCE)) {
+                    codeScheme.setSource(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SOURCE))));
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_LEGALBASE)) {
+                    codeScheme.setLegalBase(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LEGALBASE))));
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_GOVERNANCEPOLICY)) {
+                    codeScheme.setGovernancePolicy(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_GOVERNANCEPOLICY))));
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
+                    codeScheme.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
+                    codeScheme.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
+                }
                 validateStartDateIsBeforeEndDate(codeScheme);
                 codeSchemes.add(codeScheme);
             }

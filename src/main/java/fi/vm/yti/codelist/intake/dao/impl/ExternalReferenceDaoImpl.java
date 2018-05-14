@@ -21,10 +21,13 @@ import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 
 @Component
 public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
+
+    private static final String CONTEXT_EXTERNALREFERENCE = "ExternalReference";
 
     private final EntityChangeLogger entityChangeLogger;
     private final ExternalReferenceRepository externalReferenceRepository;
@@ -144,7 +147,10 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
             existingExternalReference.setParentCodeScheme(parentCodeScheme);
             existingExternalReference.setGlobal(parentCodeScheme == null);
         }
-        final PropertyType propertyType = propertyTypeRepository.findByLocalName(fromExternalReference.getPropertyType().getLocalName());
+        final PropertyType propertyType = propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, fromExternalReference.getPropertyType().getLocalName());
+        if (propertyType == null) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
         if (!Objects.equals(existingExternalReference.getPropertyType(), propertyType)) {
             existingExternalReference.setPropertyType(propertyType);
         }
@@ -180,7 +186,11 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         externalReference.setParentCodeScheme(parentCodeScheme);
         externalReference.setHref(fromExternalReference.getHref());
         externalReference.setGlobal(parentCodeScheme == null);
-        externalReference.setPropertyType(propertyTypeRepository.findByLocalName(fromExternalReference.getPropertyType().getLocalName()));
+        final PropertyType propertyType = propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, fromExternalReference.getPropertyType().getLocalName());
+        if (propertyType == null) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
+        externalReference.setPropertyType(propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, fromExternalReference.getPropertyType().getLocalName()));
         for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
             externalReference.setTitle(entry.getKey(), entry.getValue());
         }
