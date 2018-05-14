@@ -19,7 +19,7 @@ import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.PropertyType;
-import fi.vm.yti.codelist.intake.parser.PropertyTypeParser;
+import fi.vm.yti.codelist.intake.parser.impl.PropertyTypeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
@@ -32,12 +32,12 @@ public class PropertyTypeServiceImpl extends BaseService implements PropertyType
     private static final Logger LOG = LoggerFactory.getLogger(PropertyTypeServiceImpl.class);
     private final AuthorizationManager authorizationManager;
     private final PropertyTypeDao propertyTypeDao;
-    private final PropertyTypeParser propertyTypeParser;
+    private final PropertyTypeParserImpl propertyTypeParser;
 
     @Inject
     public PropertyTypeServiceImpl(final AuthorizationManager authorizationManager,
                                    final PropertyTypeDao propertyTypeRepository,
-                                   final PropertyTypeParser propertyTypeParser) {
+                                   final PropertyTypeParserImpl propertyTypeParser) {
         this.authorizationManager = authorizationManager;
         this.propertyTypeDao = propertyTypeRepository;
         this.propertyTypeParser = propertyTypeParser;

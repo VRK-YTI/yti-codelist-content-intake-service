@@ -20,7 +20,7 @@ import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
-import fi.vm.yti.codelist.intake.parser.ExternalReferenceParser;
+import fi.vm.yti.codelist.intake.parser.impl.ExternalReferenceParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
@@ -32,12 +32,12 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
 
     private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceServiceImpl.class);
     private final AuthorizationManager authorizationManager;
-    private final ExternalReferenceParser externalReferenceParser;
+    private final ExternalReferenceParserImpl externalReferenceParser;
     private final ExternalReferenceDao externalReferenceDao;
 
     @Inject
     public ExternalReferenceServiceImpl(final AuthorizationManager authorizationManager,
-                                        final ExternalReferenceParser externalReferenceParser,
+                                        final ExternalReferenceParserImpl externalReferenceParser,
                                         final ExternalReferenceDao externalReferenceDao) {
         this.authorizationManager = authorizationManager;
         this.externalReferenceParser = externalReferenceParser;

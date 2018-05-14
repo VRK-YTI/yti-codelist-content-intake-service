@@ -11,25 +11,20 @@ import javax.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.PropertyType;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_PROPERTYTYPES;
 
 @Component
 public class PropertyTypeDaoImpl implements PropertyTypeDao {
 
     private final EntityChangeLogger entityChangeLogger;
-    private final ApiUtils apiUtils;
     private final PropertyTypeRepository propertyTypeRepository;
 
     public PropertyTypeDaoImpl(final EntityChangeLogger entityChangeLogger,
-                               final ApiUtils apiUtils,
                                final PropertyTypeRepository propertyTypeRepository) {
         this.entityChangeLogger = entityChangeLogger;
-        this.apiUtils = apiUtils;
         this.propertyTypeRepository = propertyTypeRepository;
     }
 

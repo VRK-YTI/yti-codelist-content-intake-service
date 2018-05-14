@@ -31,7 +31,7 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
-import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.*;
+import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.*;
 
 @Component
 public class CodeSchemeDaoImpl implements CodeSchemeDao {

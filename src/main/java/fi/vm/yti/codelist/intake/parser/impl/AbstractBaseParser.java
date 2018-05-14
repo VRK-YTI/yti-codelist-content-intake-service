@@ -1,4 +1,4 @@
-package fi.vm.yti.codelist.intake.parser;
+package fi.vm.yti.codelist.intake.parser.impl;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

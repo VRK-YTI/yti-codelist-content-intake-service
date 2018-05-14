@@ -35,8 +35,8 @@ import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import fi.vm.yti.codelist.intake.update.UpdateManager;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.JUPO_REGISTRY;
-import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
+import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.JUPO_REGISTRY;
+import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
 
 @Service
 public class YtiDataAccess {

@@ -32,7 +32,7 @@ import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
-import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
+import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
@@ -48,7 +48,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     private final CodeRegistryDao codeRegistryDao;
     private final CodeSchemeDao codeSchemeDao;
     private final ExternalReferenceDao externalReferenceDao;
-    private final CodeSchemeParser codeSchemeParser;
+    private final CodeSchemeParserImpl codeSchemeParser;
     private final CodeService codeService;
     private final CodeDao codeDao;
 
@@ -57,7 +57,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                  final CodeRegistryDao codeRegistryDao,
                                  final CodeSchemeDao codeSchemeDao,
                                  final ExternalReferenceDao externalReferenceDao,
-                                 final CodeSchemeParser codeSchemeParser,
+                                 final CodeSchemeParserImpl codeSchemeParser,
                                  final CodeService codeService,
                                  final CodeDao codeDao) {
         this.codeRegistryDao = codeRegistryDao;

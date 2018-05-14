@@ -20,7 +20,7 @@ import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.Organization;
-import static fi.vm.yti.codelist.intake.parser.AbstractBaseParser.validateCodeValue;
+import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateCodeValue;
 
 @Component
 public class CodeRegistryDaoImpl implements CodeRegistryDao {
@@ -52,10 +52,8 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
     @Transactional
     public CodeRegistry updateCodeRegistryFromDto(final CodeRegistryDTO codeRegistryDto) {
         final CodeRegistry codeRegistry = createOrUpdateCodeRegistry(codeRegistryDto);
-        if (codeRegistry != null) {
-            codeRegistryRepository.save(codeRegistry);
-            entityChangeLogger.logCodeRegistryChange(codeRegistry);
-        }
+        codeRegistryRepository.save(codeRegistry);
+        entityChangeLogger.logCodeRegistryChange(codeRegistry);
         return codeRegistry;
     }
 

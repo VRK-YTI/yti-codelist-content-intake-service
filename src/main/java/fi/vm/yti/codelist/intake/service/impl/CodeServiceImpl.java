@@ -28,7 +28,7 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.parser.CodeParser;
+import fi.vm.yti.codelist.intake.parser.impl.CodeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
@@ -43,13 +43,13 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     private final CodeRegistryDao codeRegistryDao;
     private final CodeSchemeDao codeSchemeDao;
     private final CodeDao codeDao;
-    private final CodeParser codeParser;
+    private final CodeParserImpl codeParser;
 
     @Inject
     public CodeServiceImpl(final AuthorizationManager authorizationManager,
                            final CodeRegistryDao codeRegistryDao,
                            final CodeSchemeDao codeSchemeDao,
-                           final CodeParser codeParser,
+                           final CodeParserImpl codeParser,
                            final CodeDao codeDao) {
         this.authorizationManager = authorizationManager;
         this.codeRegistryDao = codeRegistryDao;

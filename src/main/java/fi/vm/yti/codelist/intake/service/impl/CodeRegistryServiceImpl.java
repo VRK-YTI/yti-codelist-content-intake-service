@@ -19,7 +19,7 @@ import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
-import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
+import fi.vm.yti.codelist.intake.parser.impl.CodeRegistryParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeRegistryService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
@@ -31,12 +31,12 @@ public class CodeRegistryServiceImpl extends BaseService implements CodeRegistry
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryServiceImpl.class);
     private final AuthorizationManager authorizationManager;
-    private final CodeRegistryParser codeRegistryParser;
+    private final CodeRegistryParserImpl codeRegistryParser;
     private final CodeRegistryDao codeRegistryDao;
 
     @Inject
     public CodeRegistryServiceImpl(final AuthorizationManager authorizationManager,
-                                   final CodeRegistryParser codeRegistryParser,
+                                   final CodeRegistryParserImpl codeRegistryParser,
                                    final CodeRegistryDao codeRegistryDao) {
         this.authorizationManager = authorizationManager;
         this.codeRegistryParser = codeRegistryParser;
