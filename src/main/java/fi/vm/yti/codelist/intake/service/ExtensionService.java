@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.apache.poi.ss.usermodel.Workbook;
 
-import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.intake.model.CodeScheme;

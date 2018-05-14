@@ -28,7 +28,6 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_EXTENSION;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_EXTENSIONSCHEME;
 
 @Component
 @Path("/v1/extensions")
