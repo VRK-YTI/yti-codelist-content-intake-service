@@ -23,4 +23,7 @@ public interface ExtensionRepository extends CrudRepository<Extension, String> {
 
     Extension findByExtensionSchemeAndId(final ExtensionScheme extensionScheme,
                                          final UUID id);
+
+    Extension findByExtensionSchemeAndCodeCodeValue(final ExtensionScheme extensionScheme,
+                                                    final String codeCodeValue);
 }

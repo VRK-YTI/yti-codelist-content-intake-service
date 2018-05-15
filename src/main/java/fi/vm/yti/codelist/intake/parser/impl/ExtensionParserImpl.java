@@ -93,10 +93,14 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 final CodeDTO code = new CodeDTO();
                 code.setCodeValue(parseCodeFromCsvRecord(record));
                 extension.setCode(code);
-                final ExtensionDTO refExtension = new ExtensionDTO();
-                final UUID id = UUID.fromString(parseExtensionRelationFromCsvRecord(record));
-                refExtension.setId(id);
-                extension.setExtension(refExtension);
+                final String relationCodeValue = parseExtensionRelationFromCsvRecord(record);
+                if (relationCodeValue != null) {
+                    final ExtensionDTO refExtension = new ExtensionDTO();
+                    final CodeDTO refCode = new CodeDTO();
+                    refCode.setCodeValue(relationCodeValue);
+                    refExtension.setCode(refCode);
+                    extension.setExtension(refExtension);
+                }
                 extensionSchemes.add(extension);
             }
         } catch (final IllegalArgumentException e) {
@@ -151,10 +155,12 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                     extension.setCode(code);
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {
-                    final String relatedExtensionValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
-                    if (relatedExtensionValue != null) {
+                    final String relationCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
+                    if (relationCodeValue != null) {
                         final ExtensionDTO refExtension = new ExtensionDTO();
-                        refExtension.setExtensionValue(relatedExtensionValue);
+                        final CodeDTO refCode = new CodeDTO();
+                        refCode.setCodeValue(relationCodeValue);
+                        refExtension.setCode(refCode);
                         extension.setExtension(refExtension);
                     }
                 }

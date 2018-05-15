@@ -27,6 +27,8 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
+import fi.vm.yti.codelist.intake.dao.ExtensionDao;
+import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
@@ -34,6 +36,8 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
@@ -58,6 +62,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     private final ExtensionSchemeService extensionSchemeService;
     private final ExtensionService extensionService;
     private final CodeDao codeDao;
+    private final ExtensionSchemeDao extensionSchemeDao;
+    private final ExtensionDao extensionDao;
 
     @Inject
     public CodeSchemeServiceImpl(final AuthorizationManager authorizationManager,
@@ -70,7 +76,9 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                  final ExtensionService extensionService,
                                  final CodeDao codeDao,
                                  final ApiUtils apiUtils,
-                                 final DataSource dataSource) {
+                                 final DataSource dataSource,
+                                 final ExtensionSchemeDao extensionSchemeDao,
+                                 final ExtensionDao extensionDao) {
         super(apiUtils, dataSource);
         this.codeRegistryDao = codeRegistryDao;
         this.authorizationManager = authorizationManager;
@@ -81,6 +89,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         this.extensionSchemeService = extensionSchemeService;
         this.extensionService = extensionService;
         this.codeDao = codeDao;
+        this.extensionSchemeDao = extensionSchemeDao;
+        this.extensionDao = extensionDao;
     }
 
     @Transactional
@@ -229,6 +239,14 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                 externalReferences.forEach(externalReference -> externalReference.setParentCodeScheme(null));
                 externalReferenceDao.save(externalReferences);
                 externalReferenceDao.delete(externalReferences);
+            }
+            final Set<ExtensionScheme> extensionSchemes = extensionSchemeDao.findByCodeSchemeId(codeScheme.getId());
+            if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
+                extensionSchemes.forEach(extensionScheme -> {
+                    final Set<Extension> extensions = extensionDao.findByExtensionSchemeId(extensionScheme.getId());
+                    extensionDao.delete(extensions);
+                });
+                extensionSchemeDao.delete(extensionSchemes);
             }
             final Set<Code> codes = codeScheme.getCodes();
             if (codes != null && !codes.isEmpty()) {

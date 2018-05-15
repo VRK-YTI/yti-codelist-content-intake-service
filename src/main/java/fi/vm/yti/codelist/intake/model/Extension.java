@@ -77,7 +77,7 @@ public class Extension extends AbstractIdentifyableCode implements Serializable 
     }
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "extension_id", nullable = false, insertable = true, updatable = false)
+    @JoinColumn(name = "extension_id", nullable = true, insertable = true, updatable = true)
     @JsonView(Views.ExtendedExtension.class)
     public Extension getExtension() {
         return extension;

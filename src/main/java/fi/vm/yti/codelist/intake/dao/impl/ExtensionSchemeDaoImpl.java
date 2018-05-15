@@ -52,6 +52,11 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         extensionSchemeRepository.delete(extensionScheme);
     }
 
+    public void delete(final Set<ExtensionScheme> extensionSchemes) {
+        extensionSchemes.forEach(entityChangeLogger::logExtensionSchemeChange);
+        extensionSchemeRepository.delete(extensionSchemes);
+    }
+
     public void save(final ExtensionScheme extensionScheme) {
         extensionSchemeRepository.save(extensionScheme);
         entityChangeLogger.logExtensionSchemeChange(extensionScheme);
@@ -115,15 +120,10 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
     private ExtensionScheme createOrUpdateExtensionScheme(final CodeScheme codeScheme,
                                                           final ExtensionSchemeDTO fromExtensionScheme) {
         ExtensionScheme existingExtensionScheme = null;
-        if (fromExtensionScheme.getId() != null && codeScheme != null) {
+        if (fromExtensionScheme.getId() != null) {
             existingExtensionScheme = extensionSchemeRepository.findById(fromExtensionScheme.getId());
-        } else if (codeScheme != null && codeScheme.getExtensionSchemes() != null && !codeScheme.getExtensionSchemes().isEmpty()) {
-            for (final ExtensionScheme extensionScheme : codeScheme.getExtensionSchemes()) {
-                if (extensionScheme.getCodeValue().equalsIgnoreCase(fromExtensionScheme.getCodeValue())) {
-                    existingExtensionScheme = extensionScheme;
-                    break;
-                }
-            }
+        } else {
+            existingExtensionScheme = extensionSchemeRepository.findByCodeSchemeAndCodeValue(codeScheme, fromExtensionScheme.getCodeValue());
         }
         final ExtensionScheme extensionScheme;
         if (existingExtensionScheme != null) {

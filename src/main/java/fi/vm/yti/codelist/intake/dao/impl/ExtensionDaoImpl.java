@@ -80,7 +80,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
                                                   final ExtensionSchemeDTO extensionScheme,
                                                   final ExtensionDTO extensionDto) {
         final Extension extension = createOrUpdateExtension(codeScheme, extensionScheme, extensionDto);
+        extensionDto.setId(extension.getId());
         save(extension);
+        resolveExtensionRelation(extensionScheme, extensionDto);
         return extension;
     }
 
@@ -91,13 +93,40 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (extensionDtos != null) {
             for (final ExtensionDTO extensionDto : extensionDtos) {
                 final Extension extension = createOrUpdateExtension(codeScheme, extensionScheme, extensionDto);
+                extensionDto.setId(extension.getId());
                 extensions.add(extension);
             }
             if (!extensions.isEmpty()) {
                 save(extensions);
             }
+            resolveExtensionRelations(extensionScheme, extensionDtos);
         }
         return extensions;
+    }
+
+    private void resolveExtensionRelation(final ExtensionSchemeDTO extensionScheme,
+                                          final ExtensionDTO fromExtension) {
+        final ExtensionDTO relatedExtension = fromExtension.getExtension();
+        if (relatedExtension != null && relatedExtension.getId() != null && fromExtension.getId() != null && relatedExtension.getId().equals(fromExtension.getId())) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
+        if (relatedExtension != null && relatedExtension.getCode() != null) {
+            final Set<Extension> extensions = findByExtensionSchemeId(extensionScheme.getId());
+            extensions.forEach(extension -> {
+                if (extension.getCode() != null && relatedExtension.getCode() != null && extension.getCode().getCodeValue().equalsIgnoreCase(relatedExtension.getCode().getCodeValue())) {
+                    final Extension toExtension = findById(fromExtension.getId());
+                    if (toExtension != null) {
+                        toExtension.setExtension(extension);
+                        save(toExtension);
+                    }
+                }
+            });
+        }
+    }
+
+    private void resolveExtensionRelations(final ExtensionSchemeDTO extensionScheme,
+                                           final Set<ExtensionDTO> fromExtensions) {
+        fromExtensions.forEach(fromExtension -> resolveExtensionRelation(extensionScheme, fromExtension));
     }
 
     private Extension createOrUpdateExtension(final CodeScheme codeScheme,
@@ -108,6 +137,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (extensionScheme != null) {
             if (fromExtension.getId() != null) {
                 existingExtension = extensionRepository.findByExtensionSchemeAndId(extensionScheme, fromExtension.getId());
+            } else if (fromExtension.getCode() != null) {
+                existingExtension = extensionRepository.findByExtensionSchemeAndCodeCodeValue(extensionScheme, fromExtension.getCode().getCodeValue());
             } else {
                 existingExtension = null;
             }
@@ -143,15 +174,6 @@ public class ExtensionDaoImpl implements ExtensionDao {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        final Extension refExtension;
-        if (fromExtension.getExtension() != null) {
-            refExtension = findById(fromExtension.getExtension().getId());
-        } else {
-            refExtension = null;
-        }
-        if (!Objects.equals(existingExtension.getExtension(), refExtension)) {
-            existingExtension.setExtension(refExtension);
-        }
         return existingExtension;
     }
 
@@ -173,12 +195,6 @@ public class ExtensionDaoImpl implements ExtensionDao {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
             }
             extension.setCode(code);
-        }
-        if (fromExtension.getExtension() != null) {
-            final Extension refExtension = findById(fromExtension.getExtension().getId());
-            if (refExtension != null) {
-                extension.setExtension(refExtension);
-            }
         }
         extension.setExtensionScheme(extensionScheme);
         return extension;

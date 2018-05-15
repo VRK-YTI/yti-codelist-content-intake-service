@@ -117,7 +117,7 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
             final ExtensionSchemeDTO extensionScheme = extensionSchemeService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionSchemeCodeValue);
-            if (extensionScheme != null && codeScheme != null) {
+            if (extensionScheme != null) {
                 switch (format.toLowerCase()) {
                     case FORMAT_JSON:
                         if (jsonPayload != null && !jsonPayload.isEmpty()) {
