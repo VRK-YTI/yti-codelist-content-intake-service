@@ -88,13 +88,13 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 validateRequiredDataOnRecord(record);
                 final ExtensionDTO extension = new ExtensionDTO();
                 extension.setId(parseIdFromRecord(record));
-                extension.setExtensionOrder(parseExtensionOrderCsvRecord(record));
+                extension.setOrder(parseOrderFromCsvRecord(record));
                 extension.setExtensionValue(parseExtensionValueFromCsvRecord(record));
                 final CodeDTO code = new CodeDTO();
                 code.setCodeValue(parseCodeFromCsvRecord(record));
                 extension.setCode(code);
                 final ExtensionDTO refExtension = new ExtensionDTO();
-                final UUID id = UUID.fromString(parseExtensionIdFromCsvRecord(record));
+                final UUID id = UUID.fromString(parseExtensionRelationFromCsvRecord(record));
                 refExtension.setId(id);
                 extension.setExtension(refExtension);
                 extensionSchemes.add(extension);
@@ -142,7 +142,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     extension.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
-                extension.setExtensionOrder(Integer.parseInt(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONORDER)))));
+                extension.setOrder(Integer.parseInt(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER)))));
                 extension.setExtensionValue(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))));
                 final String codeCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
                 if (codeCodeValue != null && !codeCodeValue.isEmpty()) {
@@ -150,11 +150,11 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                     code.setCodeValue(codeCodeValue);
                     extension.setCode(code);
                 }
-                if (headerMap.containsKey(CONTENT_HEADER_EXTENSIONID)) {
-                    final UUID refExtensionId = parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONID))));
-                    if (refExtensionId != null) {
+                if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {
+                    final String relatedExtensionValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
+                    if (relatedExtensionValue != null) {
                         final ExtensionDTO refExtension = new ExtensionDTO();
-                        refExtension.setId(refExtensionId);
+                        refExtension.setExtensionValue(relatedExtensionValue);
                         extension.setExtension(refExtension);
                     }
                 }
@@ -179,9 +179,9 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE, String.valueOf(record.getRecordNumber() + 1)));
         }
-        if (record.get(CONTENT_HEADER_EXTENSIONORDER) == null || record.get(CONTENT_HEADER_EXTENSIONORDER).isEmpty()) {
+        if (record.get(CONTENT_HEADER_ORDER) == null || record.get(CONTENT_HEADER_ORDER).isEmpty()) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                CONTENT_HEADER_EXTENSIONORDER, String.valueOf(record.getRecordNumber() + 1)));
+                CONTENT_HEADER_ORDER, String.valueOf(record.getRecordNumber() + 1)));
         }
         if (record.get(CONTENT_HEADER_CODE) == null || record.get(CONTENT_HEADER_CODE).isEmpty()) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
@@ -194,9 +194,9 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 CONTENT_HEADER_EXTENSIONVALUE));
         }
-        if (!headerMap.containsKey(CONTENT_HEADER_EXTENSIONORDER)) {
+        if (!headerMap.containsKey(CONTENT_HEADER_ORDER)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                CONTENT_HEADER_EXTENSIONORDER));
+                CONTENT_HEADER_ORDER));
         }
         if (!headerMap.containsKey(CONTENT_HEADER_CODE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
@@ -204,8 +204,8 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         }
     }
 
-    private Integer parseExtensionOrderCsvRecord(final CSVRecord record) {
-        final String value = parseStringFromCsvRecord(record, CONTENT_HEADER_EXTENSIONORDER);
+    private Integer parseOrderFromCsvRecord(final CSVRecord record) {
+        final String value = parseStringFromCsvRecord(record, CONTENT_HEADER_ORDER);
         if (value != null) {
             return Integer.parseInt(value);
         } else {
@@ -221,7 +221,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         return parseStringFromCsvRecord(record, CONTENT_HEADER_EXTENSIONVALUE);
     }
 
-    private String parseExtensionIdFromCsvRecord(final CSVRecord record) {
-        return parseStringFromCsvRecord(record, CONTENT_HEADER_EXTENSIONID);
+    private String parseExtensionRelationFromCsvRecord(final CSVRecord record) {
+        return parseStringFromCsvRecord(record, CONTENT_HEADER_RELATION);
     }
 }

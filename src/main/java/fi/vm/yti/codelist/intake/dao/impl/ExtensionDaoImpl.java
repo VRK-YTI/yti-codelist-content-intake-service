@@ -129,8 +129,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (!Objects.equals(existingExtension.getExtensionValue(), fromExtension.getExtensionValue())) {
             existingExtension.setExtensionValue(fromExtension.getExtensionValue());
         }
-        if (!Objects.equals(existingExtension.getExtensionOrder(), fromExtension.getExtensionOrder())) {
-            existingExtension.setExtensionOrder(fromExtension.getExtensionOrder());
+        if (!Objects.equals(existingExtension.getOrder(), fromExtension.getOrder())) {
+            existingExtension.setOrder(fromExtension.getOrder());
         }
         if (fromExtension.getCode() != null) {
             final Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, fromExtension.getCode().getCodeValue());
@@ -166,7 +166,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             extension.setId(uuid);
         }
         extension.setExtensionValue(fromExtension.getExtensionValue());
-        extension.setExtensionOrder(fromExtension.getExtensionOrder());
+        extension.setOrder(fromExtension.getOrder());
         if (fromExtension.getCode() != null) {
             final Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, fromExtension.getCode().getCodeValue());
             if (code == null) {

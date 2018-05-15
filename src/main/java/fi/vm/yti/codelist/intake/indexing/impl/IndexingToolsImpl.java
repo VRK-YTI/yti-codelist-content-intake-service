@@ -179,7 +179,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "  \"extensions\": {\n" +
         "    \"type\": \"nested\",\n" +
         "    \"properties\": {\n" +
-        "      \"extensionOrder\": {\n" +
+        "      \"order\": {\n" +
         "        \"type\": \"integer\"\n" +
         "      }\n" +
         "    }\n" +
@@ -191,7 +191,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "  \"id\": {\n" +
         "    \"type\": \"text\"\n" +
         "  },\n" +
-        "  \"extensionOrder\": {\n" +
+        "  \"order\": {\n" +
         "    \"type\": \"integer\"\n" +
         "  }\n" +
         "}\n}";

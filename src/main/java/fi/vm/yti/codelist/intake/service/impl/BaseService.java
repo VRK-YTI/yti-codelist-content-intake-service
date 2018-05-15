@@ -251,7 +251,7 @@ abstract class BaseService {
                                         final boolean deep) {
         final ExtensionDTO extensionDto = new ExtensionDTO();
         extensionDto.setId(extension.getId());
-        extensionDto.setExtensionOrder(extension.getExtensionOrder());
+        extensionDto.setOrder(extension.getOrder());
         extensionDto.setExtensionValue(extension.getExtensionValue());
         if (deep) {
             if (extension.getExtensionScheme() != null) {
