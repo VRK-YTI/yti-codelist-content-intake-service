@@ -93,7 +93,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates CodeRegistries from JSON input.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "CodeRegistries added or modified successfully.")
     })
     public Response addOrUpdateCodeRegistriesFromJson(@ApiParam(value = "JSON playload for CodeRegistry data.", required = true) final String jsonPayload) {
         return parseAndPersistCodeRegistriesFromSource(FORMAT_JSON, null, jsonPayload);
@@ -104,7 +104,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates CodeRegistries from input data.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "CodeRegistries added or modified successfully.")
     })
     @ApiImplicitParams({
         @ApiImplicitParam(name = "file", value = "Input-file", dataType = "file", paramType = "formData")
@@ -115,12 +115,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/")
+    @Path("{codeRegistryCodeValue}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Modifies single existing CodeRegistry.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "CodeRegistry modified successfully.")
     })
     public Response updateCodeRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                        @ApiParam(value = "JSON playload for Code data.") final String jsonPayload) {
@@ -138,7 +138,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates CodeSchemes from JSON input.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "CodeSchemes added or modified successfully.")
     })
     public Response addOrUpdateCodeSchemesFromJson(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("json") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
@@ -152,7 +152,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates CodeSchemes from input data.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "CodeSchemes added or modified successfully.")
     })
     @ApiImplicitParams({
         @ApiImplicitParam(name = "file", value = "Input-file", dataType = "file", paramType = "formData")
@@ -169,7 +169,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates ExtensionSchemes from input data.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "ExtensionSchemes added or modified successfully.")
     })
     @ApiImplicitParams({
         @ApiImplicitParam(name = "file", value = "Input-file", dataType = "file", paramType = "formData")
@@ -187,7 +187,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates ExtensionSchemes from JSON input.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "ExtensionSchemes added or modified successfully.")
     })
     public Response addOrUpdateExtensionSchemesFromJson(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("json") final String format,
                                                         @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
@@ -202,7 +202,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates Extensions from input data.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "ExtensionScheme modified successfully.")
     })
     @ApiImplicitParams({
         @ApiImplicitParam(name = "file", value = "Input-file", dataType = "file", paramType = "formData")
@@ -216,12 +216,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/extensionschemes/{extensionSchemeCodeValue}")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/extensionschemes/{extensionSchemeCodeValue}/extensions/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates Extensions from JSON input.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "Extensions modified successfully.")
     })
     public Response addOrUpdateExtensionsFromJson(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("json") final String format,
                                                   @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
@@ -232,12 +232,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Modifies single existing CodeScheme.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "CodeScheme modified successfully.")
     })
     public Response updateCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
@@ -253,13 +253,13 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @DELETE
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single existing CodeScheme.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "CodeScheme deleted"),
-        @ApiResponse(code = 404, message = "CodeScheme not found")
+        @ApiResponse(code = 200, message = "CodeScheme deleted."),
+        @ApiResponse(code = 404, message = "CodeScheme not found.")
     })
     public Response deleteCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue) {
@@ -300,8 +300,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single existing ExtensionScheme.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "ExtensionScheme deleted"),
-        @ApiResponse(code = 404, message = "ExtensionScheme not found")
+        @ApiResponse(code = 200, message = "ExtensionScheme deleted."),
+        @ApiResponse(code = 404, message = "ExtensionScheme not found.")
     })
     public Response deleteExtensionScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                           @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
@@ -331,8 +331,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single existing Extension.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Extension deleted"),
-        @ApiResponse(code = 404, message = "Extension not found")
+        @ApiResponse(code = 200, message = "Extension deleted."),
+        @ApiResponse(code = 404, message = "Extension not found.")
     })
     public Response deleteExtension(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
@@ -358,7 +358,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates Codes from JSON input.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "Codes added or modified successfully.")
     })
     @JsonView({Views.ExtendedCode.class, Views.Normal.class})
     public Response addOrUpdateCodesFromJson(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
@@ -376,7 +376,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates Codes from input data.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "Codes added or modified successfully.")
     })
     @ApiImplicitParams({
         @ApiImplicitParam(name = "file", value = "Input-file", dataType = "file", paramType = "formData")
@@ -396,7 +396,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Modifies a single existing Code.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(code = 200, message = "Code modified successfully.")
     })
     public Response updateCode(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
@@ -417,8 +417,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Deletes a single existing Code.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Code deleted"),
-        @ApiResponse(code = 404, message = "Code not found")
+        @ApiResponse(code = 200, message = "Code deleted."),
+        @ApiResponse(code = 404, message = "Code not found.")
     })
     public Response deleteCode(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
@@ -441,7 +441,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
     @HEAD
     @Path("{codeRegistryCodeValue}")
-    @ApiOperation(value = "Check if a code registry with a given code value exists")
+    @ApiOperation(value = "Check if a CodeRegistry with a given codeValue exists.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Found"),
         @ApiResponse(code = 404, message = "Not found")
@@ -456,7 +456,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
     @HEAD
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}")
-    @ApiOperation(value = "Check if a code scheme with a given code value exists")
+    @ApiOperation(value = "Check if a CodeScheme with a given codeValue exists.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Found"),
         @ApiResponse(code = 404, message = "Not found")
@@ -472,7 +472,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
     @HEAD
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/{codeCodeValue}")
-    @ApiOperation(value = "Check if a code with a given code value exists")
+    @ApiOperation(value = "Check if a Code with the given codeValue exists.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Found"),
         @ApiResponse(code = 404, message = "Not found")
@@ -489,7 +489,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
     @HEAD
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/extensionSchemes/{extensionSchemeCodeValue}")
-    @ApiOperation(value = "Check if a code with a given code value exists")
+    @ApiOperation(value = "Check if an ExtensionScheme with the given codeValue exists.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Found"),
         @ApiResponse(code = 404, message = "Not found")
