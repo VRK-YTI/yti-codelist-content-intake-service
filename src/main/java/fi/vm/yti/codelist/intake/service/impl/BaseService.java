@@ -253,15 +253,13 @@ abstract class BaseService {
         extensionDto.setId(extension.getId());
         extensionDto.setOrder(extension.getOrder());
         extensionDto.setExtensionValue(extension.getExtensionValue());
+        extensionDto.setCode(mapCodeDto(extension.getCode(), false));
         if (deep) {
             if (extension.getExtension() != null) {
                 extensionDto.setExtension(mapExtensionDto(extension.getExtension(), false));
             }
             if (extension.getExtensionScheme() != null) {
                 extensionDto.setExtensionScheme(mapExtensionSchemeDto(extension.getExtensionScheme(), false));
-            }
-            if (extension.getCode() != null) {
-                extensionDto.setCode(mapCodeDto(extension.getCode(), false));
             }
         }
         extensionDto.setUrl(apiUtils.createExtensionUrl(extensionDto));
