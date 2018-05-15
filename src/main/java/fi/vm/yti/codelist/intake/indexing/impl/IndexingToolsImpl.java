@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import fi.vm.yti.codelist.intake.indexing.IndexingTools;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODE;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_CODESCHEME;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.ELASTIC_TYPE_EXTENSIONSCHEME;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 @Singleton
@@ -89,6 +90,9 @@ public class IndexingToolsImpl implements IndexingTools {
         "      }\n" +
         "    }\n" +
         "  },\n" +
+        "  \"extensionSchemes\": {\n" +
+        "    \"type\": \"nested\"\n" +
+        "  },\n" +
         "  \"externalReferences\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  }\n" +
@@ -132,8 +136,45 @@ public class IndexingToolsImpl implements IndexingTools {
         "      }\n" +
         "    }\n" +
         "  },\n" +
+        "  \"extensions\": {\n" +
+        "    \"type\": \"nested\"\n" +
+        "  },\n" +
         "  \"externalReferences\": {\n" +
         "    \"type\": \"nested\"\n" +
+        "  }\n" +
+        "}\n}";
+
+    private static final String EXTENSIONSCHEME_MAPPING = "{" +
+        "\"properties\": {\n" +
+        "  \"codeValue\": {\n" +
+        "    \"type\": \"text\"," +
+        "    \"analyzer\": \"analyzer_keyword\",\n" +
+        "    \"fields\": {\n" +
+        "      \"raw\": { \n" +
+        "        \"type\": \"keyword\"\n" +
+        "      }\n" +
+        "    }\n" +
+        "  },\n" +
+        "  \"id\": {\n" +
+        "    \"type\": \"text\"},\n" +
+        "  \"prefLabel\": {\n" +
+        "    \"type\": \"nested\"\n" +
+        "  },\n" +
+        "  \"codeScheme\": {\n" +
+        "    \"properties\": {\n" +
+        "      \"codeValue\": {\n" +
+        "        \"type\": \"text\",\n" +
+        "        \"analyzer\": \"analyzer_keyword\"\n" +
+        "      },\n" +
+        "      \"codeRegistry\": {\n" +
+        "        \"properties\": {\n" +
+        "          \"codeValue\": {\n" +
+        "            \"type\": \"text\",\n" +
+        "            \"analyzer\": \"analyzer_keyword\"\n" +
+        "          }\n" +
+        "        }\n" +
+        "      }\n" +
+        "    }\n" +
         "  }\n" +
         "}\n}";
 
@@ -233,6 +274,8 @@ public class IndexingToolsImpl implements IndexingTools {
                 builder.addMapping(type, CODESCHEME_MAPPING, XContentType.JSON);
             } else if (ELASTIC_TYPE_CODE.equals(type)) {
                 builder.addMapping(type, CODE_MAPPING, XContentType.JSON);
+            } else if (ELASTIC_TYPE_EXTENSIONSCHEME.equals(type)) {
+                builder.addMapping(type, EXTENSIONSCHEME_MAPPING, XContentType.JSON);
             } else {
                 builder.addMapping(type, NESTED_PREFLABEL_MAPPING_JSON, XContentType.JSON);
             }
