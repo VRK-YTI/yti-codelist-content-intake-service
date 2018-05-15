@@ -11,6 +11,7 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
@@ -129,7 +130,12 @@ public class ExternalReference extends AbstractIdentifyableCode implements Seria
         setDescription(description);
     }
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "externalReferences")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "codescheme_externalreference",
+        joinColumns = {
+            @JoinColumn(name = "externalreference_id", referencedColumnName = "id", nullable = false, updatable = false) },
+        inverseJoinColumns = {
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) })
     @JsonView(Views.ExtendedExternalReference.class)
     public Set<CodeScheme> getCodeSchemes() {
         return this.codeSchemes;
@@ -139,7 +145,12 @@ public class ExternalReference extends AbstractIdentifyableCode implements Seria
         this.codeSchemes = codeSchemes;
     }
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "externalReferences")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "code_externalreference",
+        joinColumns = {
+            @JoinColumn(name = "externalreference_id", referencedColumnName = "id", nullable = false, updatable = false)},
+        inverseJoinColumns = {
+            @JoinColumn(name = "code_id", referencedColumnName = "id", nullable = false, updatable = false)})
     @JsonView(Views.ExtendedExternalReference.class)
     public Set<Code> getCodes() {
         return this.codes;

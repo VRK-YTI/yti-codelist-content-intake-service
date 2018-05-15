@@ -11,6 +11,7 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OrderColumn;
@@ -130,7 +131,12 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
         setDescription(this.description);
     }
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "organizations")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "coderegistry_organization",
+        joinColumns = {
+            @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false)},
+        inverseJoinColumns = {
+            @JoinColumn(name = "coderegistry_id", referencedColumnName = "id", nullable = false, updatable = false)})
     @JsonView(Views.ExtendedOrganization.class)
     public Set<CodeRegistry> getCodeRegistries() {
         return codeRegistries;
