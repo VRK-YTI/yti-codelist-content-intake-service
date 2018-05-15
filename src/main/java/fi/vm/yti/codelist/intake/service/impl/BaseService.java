@@ -254,6 +254,9 @@ abstract class BaseService {
         extensionDto.setOrder(extension.getOrder());
         extensionDto.setExtensionValue(extension.getExtensionValue());
         if (deep) {
+            if (extension.getExtension() != null) {
+                extensionDto.setExtension(mapExtensionDto(extension.getExtension(), false));
+            }
             if (extension.getExtensionScheme() != null) {
                 extensionDto.setExtensionScheme(mapExtensionSchemeDto(extension.getExtensionScheme(), false));
             }
