@@ -73,7 +73,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
     }
 
     @POST
-    @Path("{externalReferenceId}/")
+    @Path("{externalReferenceId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses ExternalReference from input data.")

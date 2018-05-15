@@ -73,7 +73,7 @@ public class PropertyTypeResource extends AbstractBaseResource {
     }
 
     @POST
-    @Path("{PropertyTypeId}/")
+    @Path("{PropertyTypeId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses PropertyType from input data.")

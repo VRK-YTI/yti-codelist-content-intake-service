@@ -76,7 +76,7 @@ public class AdminResource extends AbstractBaseResource {
         this.organizationUpdater = organizationUpdater;
     }
 
-    @Path("/updateorganizations/")
+    @Path("/updateorganizations")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Fetches and updates organization information from groupmanagement service.")
     @ApiResponse(code = 200, message = "Upon successful request.")
@@ -91,7 +91,7 @@ public class AdminResource extends AbstractBaseResource {
     }
 
     @GET
-    @Path("/coderegistries/rewriteaddresses/")
+    @Path("/coderegistries/rewriteaddresses")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Rewrites all coderegistry resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
@@ -112,7 +112,7 @@ public class AdminResource extends AbstractBaseResource {
     }
 
     @GET
-    @Path("/codeschemes/rewriteaddresses/")
+    @Path("/codeschemes/rewriteaddresses")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Rewrites all codescheme resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
@@ -133,7 +133,7 @@ public class AdminResource extends AbstractBaseResource {
     }
 
     @GET
-    @Path("/codes/rewriteaddresses/")
+    @Path("/codes/rewriteaddresses")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Rewrites all code resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")

@@ -46,7 +46,7 @@ public class ExtensionSchemeResource extends AbstractBaseResource {
     }
 
     @POST
-    @Path("{extensionSchemeId}/")
+    @Path("{extensionSchemeId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates Extensions from JSON input.")
