@@ -277,6 +277,9 @@ public class IndexingToolsImpl implements IndexingTools {
             try {
                 builder.setSettings(Settings.builder().loadFromSource(jsonBuilder()
                     .startObject()
+                    .startObject("index")
+                    .field("max_result_window", MAX_RESULT_WINDOW_SIZE)
+                    .endObject()
                     .startObject("analysis")
                     .startObject("analyzer")
                     .startObject("analyzer_keyword")
