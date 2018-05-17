@@ -218,7 +218,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
         }
         if (!headerMap.containsKey(CONTENT_HEADER_PROPERTYTYPE)) {
             throw new MissingHeaderClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
+                ERR_MSG_USER_MISSING_HEADER_PROPERTYTYPE));
         }
     }
 
