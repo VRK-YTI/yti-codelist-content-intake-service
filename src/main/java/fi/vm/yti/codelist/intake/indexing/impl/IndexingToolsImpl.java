@@ -52,7 +52,8 @@ public class IndexingToolsImpl implements IndexingTools {
         "    }\n" +
         "  },\n" +
         "  \"id\": {\n" +
-        "    \"type\": \"text\"},\n" +
+        "    \"type\": \"keyword\"" +
+        "  },\n" +
         "  \"prefLabel\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  }\n" +
@@ -70,7 +71,8 @@ public class IndexingToolsImpl implements IndexingTools {
         "    }\n" +
         "  },\n" +
         "  \"id\": {\n" +
-        "    \"type\": \"text\"},\n" +
+        "    \"type\": \"keyword\"," +
+        "  },\n" +
         "  \"prefLabel\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  },\n" +
@@ -108,7 +110,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "    }\n" +
         "  },\n" +
         "  \"id\": {\n" +
-        "    \"type\": \"text\"\n" +
+        "    \"type\": \"keyword\"\n" +
         "  },\n" +
         "  \"order\": {\n" +
         "    \"type\": \"integer\"\n" +
@@ -158,7 +160,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "    }\n" +
         "  },\n" +
         "  \"id\": {\n" +
-        "    \"type\": \"text\"\n" +
+        "    \"type\": \"keyword\"\n" +
         "  },\n" +
         "  \"prefLabel\": {\n" +
         "    \"type\": \"nested\"\n" +
@@ -192,7 +194,7 @@ public class IndexingToolsImpl implements IndexingTools {
     private static final String EXTENSION_MAPPING = "{" +
         "\"properties\": {\n" +
         "  \"id\": {\n" +
-        "    \"type\": \"text\"\n" +
+        "    \"type\": \"keyword\"\n" +
         "  },\n" +
         "  \"order\": {\n" +
         "    \"type\": \"integer\"\n" +
