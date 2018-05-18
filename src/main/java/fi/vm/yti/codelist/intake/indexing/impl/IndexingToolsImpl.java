@@ -79,6 +79,9 @@ public class IndexingToolsImpl implements IndexingTools {
         "      \"fi\": {\n" +
         "        \"type\": \"keyword\"\n" +
         "      },\n" +
+        "      \"sv\": {\n" +
+        "        \"type\": \"keyword\"\n" +
+        "      },\n" +
         "      \"en\": {\n" +
         "        \"type\": \"keyword\"\n" +
         "      }\n" +
