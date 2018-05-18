@@ -71,10 +71,18 @@ public class IndexingToolsImpl implements IndexingTools {
         "    }\n" +
         "  },\n" +
         "  \"id\": {\n" +
-        "    \"type\": \"keyword\"," +
+        "    \"type\": \"keyword\"" +
         "  },\n" +
         "  \"prefLabel\": {\n" +
-        "    \"type\": \"nested\"\n" +
+        "    \"type\": \"nested\",\n" +
+        "    \"properties\": {\n" +
+        "      \"fi\": {\n" +
+        "        \"type\": \"keyword\"\n" +
+        "      },\n" +
+        "      \"en\": {\n" +
+        "        \"type\": \"keyword\"\n" +
+        "      }\n" +
+        "    }\n" +
         "  },\n" +
         "  \"dataClassifications\": {\n" +
         "    \"type\": \"nested\"\n" +
