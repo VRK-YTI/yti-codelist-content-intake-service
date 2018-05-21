@@ -65,7 +65,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
         this.broaderCodeId = broaderCodeId;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "codescheme_id", nullable = false, insertable = true, updatable = false)
     @JsonView(Views.ExtendedCode.class)
     public CodeScheme getCodeScheme() {
@@ -239,7 +239,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
         this.conceptUriInVocabularies = conceptUriInVocabularies;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "code", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "code")
     @JsonView(Views.ExtendedCode.class)
     public Set<Extension> getExtensions() {
         return extensions;

@@ -244,13 +244,17 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
                 extensionSchemes.forEach(extensionScheme -> {
                     final Set<Extension> extensions = extensionDao.findByExtensionSchemeId(extensionScheme.getId());
+                    extensions.forEach(extension -> extension.setExtension(null));
+                    extensionDao.save(extensions);
                     extensionDao.delete(extensions);
                 });
                 extensionSchemeDao.delete(extensionSchemes);
             }
             final Set<Code> codes = codeScheme.getCodes();
             if (codes != null && !codes.isEmpty()) {
-                codeDao.delete(codeScheme.getCodes());
+                codes.forEach(code -> code.setExtensions(null));
+                codeDao.save(codes);
+                codeDao.delete(codes);
             }
             codeSchemeDao.delete(codeScheme);
             return codeSchemeDto;

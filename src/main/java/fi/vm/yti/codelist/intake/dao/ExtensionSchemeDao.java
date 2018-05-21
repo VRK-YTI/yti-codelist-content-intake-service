@@ -13,6 +13,8 @@ public interface ExtensionSchemeDao {
 
     void delete(final Set<ExtensionScheme> extensionSchemes);
 
+    void save(final ExtensionScheme extensionScheme);
+
     void save(final Set<ExtensionScheme> extensionSchemes);
 
     Set<ExtensionScheme> findAll();

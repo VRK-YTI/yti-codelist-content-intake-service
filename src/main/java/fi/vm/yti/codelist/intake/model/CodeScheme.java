@@ -287,7 +287,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         this.externalReferences = externalReferences;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "codeScheme", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "codeScheme", cascade = CascadeType.DETACH)
     @JsonView(Views.ExtendedCodeScheme.class)
     public Set<Code> getCodes() {
         return codes;

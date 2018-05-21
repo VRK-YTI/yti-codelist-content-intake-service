@@ -89,7 +89,7 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
         setPrefLabel(this.prefLabel);
     }
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "extensionscheme_codescheme",
         joinColumns = {
             @JoinColumn(name = "extensionscheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
@@ -104,7 +104,7 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
         this.codeScheme = codeScheme;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinColumn(name = "propertytype_id", nullable = false, insertable = true, updatable = true)
     @JsonView(Views.Normal.class)
     public PropertyType getPropertyType() {
@@ -115,7 +115,7 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
         this.propertyType = propertyType;
     }
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "extensionScheme", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "extensionScheme", cascade = CascadeType.DETACH)
     @JsonView(Views.ExtendedExtensionScheme.class)
     public Set<Extension> getExtensions() {
         return extensions;
