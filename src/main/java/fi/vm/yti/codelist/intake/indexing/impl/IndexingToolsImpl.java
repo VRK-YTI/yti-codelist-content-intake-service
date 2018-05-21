@@ -38,13 +38,13 @@ public class IndexingToolsImpl implements IndexingTools {
 
     private static final Logger LOG = LoggerFactory.getLogger(IndexingToolsImpl.class);
     private static final String MAX_RESULT_WINDOW = "max_result_window";
-    private static final int MAX_RESULT_WINDOW_SIZE = 500000;
+    private static final int MAX_RESULT_WINDOW_SIZE = 50000;
 
     private static final String NESTED_PREFLABEL_MAPPING_JSON = "{" +
         "\"properties\": {\n" +
         "  \"codeValue\": {\n" +
         "    \"type\": \"text\"," +
-        "    \"analyzer\": \"analyzer_keyword\",\n" +
+        "    \"analyzer\": \"text_analyzer\",\n" +
         "    \"fields\": {\n" +
         "      \"raw\": { \n" +
         "        \"type\": \"keyword\"\n" +
@@ -66,10 +66,11 @@ public class IndexingToolsImpl implements IndexingTools {
         "      \"path_match\": \"prefLabel.*\",\n" +
         "      \"mapping\": {\n" +
         "        \"type\": \"text\",\n" +
-        "        \"analyzer\": \"analyzer_keyword\",\n" +
+        "        \"analyzer\": \"text_analyzer\",\n" +
         "        \"fields\": {\n" +
         "          \"keyword\": { \n" +
-        "            \"type\": \"keyword\"\n" +
+        "            \"type\": \"keyword\",\n" +
+        "            \"normalizer\": \"keyword_normalizer\"\n" +
         "          }\n" +
         "        }\n" +
         "      }\n" +
@@ -79,7 +80,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "\"properties\": {\n" +
         "  \"codeValue\": {\n" +
         "    \"type\": \"text\"," +
-        "    \"analyzer\": \"analyzer_keyword\",\n" +
+        "    \"analyzer\": \"text_analyzer\",\n" +
         "    \"fields\": {\n" +
         "      \"raw\": { \n" +
         "        \"type\": \"keyword\"\n" +
@@ -100,7 +101,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "    \"properties\": {\n" +
         "      \"codeValue\": {\n" +
         "        \"type\": \"text\",\n" +
-        "        \"analyzer\": \"analyzer_keyword\"\n" +
+        "        \"analyzer\": \"text_analyzer\"\n" +
         "      },\n" +
         "      \"organizations\": {\n" +
         "        \"type\": \"nested\"\n" +
@@ -119,7 +120,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "\"properties\": {\n" +
         "  \"codeValue\": {\n" +
         "    \"type\": \"text\"," +
-        "    \"analyzer\": \"analyzer_keyword\",\n" +
+        "    \"analyzer\": \"text_analyzer\",\n" +
         "    \"fields\": {\n" +
         "      \"raw\": { \n" +
         "        \"type\": \"keyword\"\n" +
@@ -139,13 +140,13 @@ public class IndexingToolsImpl implements IndexingTools {
         "    \"properties\": {\n" +
         "      \"codeValue\": {\n" +
         "        \"type\": \"text\",\n" +
-        "        \"analyzer\": \"analyzer_keyword\"\n" +
+        "        \"analyzer\": \"text_analyzer\"\n" +
         "      },\n" +
         "      \"codeRegistry\": {\n" +
         "        \"properties\": {\n" +
         "          \"codeValue\": {\n" +
         "            \"type\": \"text\",\n" +
-        "            \"analyzer\": \"analyzer_keyword\"\n" +
+        "            \"analyzer\": \"text_analyzer\"\n" +
         "          },\n" +
         "          \"organizations\": {\n" +
         "            \"type\": \"nested\"\n" +
@@ -166,7 +167,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "\"properties\": {\n" +
         "  \"codeValue\": {\n" +
         "    \"type\": \"text\"," +
-        "    \"analyzer\": \"analyzer_keyword\",\n" +
+        "    \"analyzer\": \"text_analyzer\",\n" +
         "    \"fields\": {\n" +
         "      \"raw\": { \n" +
         "        \"type\": \"keyword\"\n" +
@@ -183,13 +184,13 @@ public class IndexingToolsImpl implements IndexingTools {
         "    \"properties\": {\n" +
         "      \"codeValue\": {\n" +
         "        \"type\": \"text\",\n" +
-        "        \"analyzer\": \"analyzer_keyword\"\n" +
+        "        \"analyzer\": \"text_analyzer\"\n" +
         "      },\n" +
         "      \"codeRegistry\": {\n" +
         "        \"properties\": {\n" +
         "          \"codeValue\": {\n" +
         "            \"type\": \"text\",\n" +
-        "            \"analyzer\": \"analyzer_keyword\"\n" +
+        "            \"analyzer\": \"text_analyzer\"\n" +
         "          }\n" +
         "        }\n" +
         "      }\n" +
@@ -294,19 +295,24 @@ public class IndexingToolsImpl implements IndexingTools {
                 builder.setSettings(Settings.builder().loadFromSource(jsonBuilder()
                     .startObject()
                     .startObject("index")
-                    .field("max_result_window", MAX_RESULT_WINDOW_SIZE)
+                    .field(MAX_RESULT_WINDOW, MAX_RESULT_WINDOW_SIZE)
                     .endObject()
                     .startObject("analysis")
                     .startObject("analyzer")
-                    .startObject("analyzer_keyword")
+                    .startObject("text_analyzer")
                     .field("type", "custom")
                     .field("tokenizer", "keyword")
                     .field("filter", new String[]{"lowercase", "standard"})
                     .endObject()
                     .endObject()
+                    .startObject("normalizer")
+                    .startObject("keyword_normalizer")
+                    .field("type", "custom")
+                    .field("filter", new String[]{"lowercase"})
                     .endObject()
-                    .endObject().string(), XContentType.JSON)
-                    .put(MAX_RESULT_WINDOW, MAX_RESULT_WINDOW_SIZE));
+                    .endObject()
+                    .endObject()
+                    .endObject().string(), XContentType.JSON));
             } catch (final IOException e) {
                 LOG.error("Error parsing index request settings JSON!", e);
             }
