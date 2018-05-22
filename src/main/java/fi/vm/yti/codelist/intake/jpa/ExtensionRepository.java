@@ -17,6 +17,10 @@ public interface ExtensionRepository extends CrudRepository<Extension, String> {
 
     Set<Extension> findAll();
 
+    Set<Extension> findByCodeId(final UUID id);
+
+    Set<Extension> findByExtensionId(final UUID id);
+
     Set<Extension> findByExtensionSchemeId(final UUID id);
 
     Extension findById(final UUID id);

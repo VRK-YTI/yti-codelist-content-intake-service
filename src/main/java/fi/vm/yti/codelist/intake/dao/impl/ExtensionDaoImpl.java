@@ -72,6 +72,14 @@ public class ExtensionDaoImpl implements ExtensionDao {
         return extensionRepository.findById(id);
     }
 
+    public Set<Extension> findByCodeId(final UUID id) {
+        return extensionRepository.findByCodeId(id);
+    }
+
+    public Set<Extension> findByExtensionId(final UUID id) {
+        return extensionRepository.findByExtensionId(id);
+    }
+
     public Set<Extension> findByExtensionSchemeId(final UUID id) {
         return extensionRepository.findByExtensionSchemeId(id);
     }

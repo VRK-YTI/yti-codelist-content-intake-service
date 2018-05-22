@@ -360,7 +360,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Codes added or modified successfully.")
     })
-    @JsonView({Views.ExtendedCode.class, Views.Normal.class})
+    @JsonView({ Views.ExtendedCode.class, Views.Normal.class })
     public Response addOrUpdateCodesFromJson(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
                                              @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                              @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
@@ -381,7 +381,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @ApiImplicitParams({
         @ApiImplicitParam(name = "file", value = "Input-file", dataType = "file", paramType = "formData")
     })
-    @JsonView({Views.ExtendedCode.class, Views.Normal.class})
+    @JsonView({ Views.ExtendedCode.class, Views.Normal.class })
     public Response addOrUpdateCodesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("csv") final String format,
                                              @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                              @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
@@ -429,6 +429,10 @@ public class CodeRegistryResource extends AbstractBaseResource {
             final Set<CodeDTO> referencedCodes = codeService.removeBroaderCodeId(code.getId());
             if (referencedCodes != null && !referencedCodes.isEmpty()) {
                 indexing.updateCodes(referencedCodes);
+            }
+            final Set<ExtensionDTO> extensions = code.getExtensions();
+            if (extensions != null && !extensions.isEmpty()) {
+                indexing.deleteExtensions(extensions);
             }
             indexing.deleteCode(code);
             final Meta meta = new Meta();

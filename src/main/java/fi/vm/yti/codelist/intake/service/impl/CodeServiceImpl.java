@@ -25,11 +25,13 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
+import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.parser.impl.CodeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeService;
@@ -45,6 +47,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     private final CodeRegistryDao codeRegistryDao;
     private final CodeSchemeDao codeSchemeDao;
     private final CodeDao codeDao;
+    private final ExtensionDao extensionDao;
     private final CodeParserImpl codeParser;
     private final ApiUtils apiUtils;
     private final DataSource dataSource;
@@ -53,6 +56,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     public CodeServiceImpl(final AuthorizationManager authorizationManager,
                            final CodeRegistryDao codeRegistryDao,
                            final CodeSchemeDao codeSchemeDao,
+                           final ExtensionDao extensionDao,
                            final CodeParserImpl codeParser,
                            final CodeDao codeDao,
                            final ApiUtils apiUtils,
@@ -61,6 +65,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         this.authorizationManager = authorizationManager;
         this.codeRegistryDao = codeRegistryDao;
         this.codeSchemeDao = codeSchemeDao;
+        this.extensionDao = extensionDao;
         this.codeParser = codeParser;
         this.codeDao = codeDao;
         this.apiUtils = apiUtils;
@@ -234,7 +239,18 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         if (authorizationManager.isSuperUser()) {
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
             final Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
-            final CodeDTO codeDto = mapCodeDto(code, false);
+            final CodeDTO codeDto = mapCodeDto(code, true);
+            final Set<Extension> extensions = extensionDao.findByCodeId(code.getId());
+            extensions.forEach(extension -> {
+                final Set<Extension> relatedExtensions = extensionDao.findByExtensionId(extension.getId());
+                relatedExtensions.forEach(relatedExtension -> relatedExtension.setExtension(null));
+                extensionDao.save(relatedExtensions);
+                extension.setExtension(null);
+            });
+            extensionDao.save(extensions);
+            extensionDao.delete(extensions);
+            code.setExtensions(null);
+            codeDao.save(code);
             codeDao.delete(code);
             return codeDto;
         } else {

@@ -20,6 +20,10 @@ public interface ExtensionDao {
 
     Extension findById(final UUID id);
 
+    Set<Extension> findByCodeId(final UUID id);
+
+    Set<Extension> findByExtensionId(final UUID id);
+
     Set<Extension> findByExtensionSchemeId(final UUID id);
 
     Extension updateExtensionEntityFromDto(final CodeScheme codeScheme,

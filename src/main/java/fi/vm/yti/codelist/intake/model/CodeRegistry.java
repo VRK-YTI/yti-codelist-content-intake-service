@@ -120,7 +120,7 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
         setDefinition(definition);
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "coderegistry_organization",
         joinColumns = {
             @JoinColumn(name = "coderegistry_id", referencedColumnName = "id", nullable = false, updatable = false)},

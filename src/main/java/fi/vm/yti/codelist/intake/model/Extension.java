@@ -54,7 +54,7 @@ public class Extension extends AbstractIdentifyableCode implements Serializable 
         this.order = order;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JsonView(Views.ExtendedExtension.class)
     @JoinColumn(name = "code_id", nullable = false, insertable = true, updatable = false)
     public Code getCode() {
@@ -65,7 +65,7 @@ public class Extension extends AbstractIdentifyableCode implements Serializable 
         this.code = code;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "extensionscheme_id", nullable = false, insertable = true, updatable = false)
     @JsonView(Views.ExtendedExtension.class)
     public ExtensionScheme getExtensionScheme() {
@@ -76,7 +76,7 @@ public class Extension extends AbstractIdentifyableCode implements Serializable 
         this.extensionScheme = extensionScheme;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "extension_id", nullable = true, insertable = true, updatable = true)
     @JsonView(Views.ExtendedExtension.class)
     public Extension getExtension() {
