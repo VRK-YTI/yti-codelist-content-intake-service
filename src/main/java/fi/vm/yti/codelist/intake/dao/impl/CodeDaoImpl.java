@@ -78,6 +78,10 @@ public class CodeDaoImpl implements CodeDao {
         return codeRepository.findAll();
     }
 
+    public Code findByUri(final String uri) {
+        return codeRepository.findByUriIgnoreCase(uri);
+    }
+
     public Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
                                              final String codeValue) {
         return codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeValue);

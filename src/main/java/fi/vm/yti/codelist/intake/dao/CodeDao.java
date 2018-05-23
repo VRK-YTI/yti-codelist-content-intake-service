@@ -18,6 +18,8 @@ public interface CodeDao {
 
     void delete(final Set<Code> code);
 
+    Code findByUri(final String uri);
+
     Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme, final String codeValue);
 
     Code findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme, final String codeValue, final UUID broaderCodeId);

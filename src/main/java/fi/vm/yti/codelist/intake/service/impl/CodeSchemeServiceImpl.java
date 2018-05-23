@@ -2,6 +2,8 @@ package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -20,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
@@ -145,40 +148,25 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                     break;
                 case FORMAT_EXCEL:
                     try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook), false);
-                        if (codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
-                            final CodeScheme codeScheme = codeSchemes.iterator().next();
-                            if (codeScheme != null) {
-                                codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), workbook, EXCEL_SHEET_CODES);
-                                final String extensionSchemeSheetName = EXCEL_SHEET_EXTENSIONSCHEMES;
-                                if (workbook.getSheet(extensionSchemeSheetName) != null) {
-                                    final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromExcelWorkbook(codeScheme, workbook, extensionSchemeSheetName);
-                                    extensionSchemes.forEach(extensionScheme -> {
-                                        final String extensionSheetName = EXCEL_SHEET_EXTENSIONS + "_" + extensionScheme.getCodeValue();
-                                        if (workbook.getSheet(extensionSheetName) != null) {
-                                            extensionService.parseAndPersistExtensionsFromExcelWorkbook(codeScheme, extensionScheme, workbook, extensionSheetName);
-                                        }
-                                    });
+                        final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
+                        final Map<CodeSchemeDTO, String> extensionSchemesSheetNames = new HashMap<>();
+                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionSchemesSheetNames), false);
+                        codesSheetNames.forEach((codeSchemeDto, sheetName) -> {
+                            if (workbook.getSheet(sheetName) != null) {
+                                for (final CodeScheme codeScheme : codeSchemes) {
+                                    if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
+                                        codeService.parseAndPersistCodesFromExcelWorkbook(workbook, sheetName, codeScheme);
+                                    }
                                 }
                             }
-                        } else {
-                            codeSchemes.forEach(codeScheme -> {
-                                final String codesSheetName = EXCEL_SHEET_CODES + "_" + codeScheme.getCodeValue();
-                                if (workbook.getSheet(codesSheetName) != null) {
-                                    codeService.parseAndPersistCodesFromExcelWorkbook(codeRegistryCodeValue, codeScheme.getCodeValue(), workbook, codesSheetName);
+                        });
+                        extensionSchemesSheetNames.forEach((codeSchemeDto, sheetName) -> {
+                            for (final CodeScheme codeScheme : codeSchemes) {
+                                if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
+                                    parseExtensionSchemes(workbook, sheetName, codeScheme);
                                 }
-                                final String extensionSchemeSheetName = EXCEL_SHEET_EXTENSIONSCHEMES + "_" + codeScheme.getCodeValue();
-                                if (workbook.getSheet(extensionSchemeSheetName) != null) {
-                                    final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromExcelWorkbook(codeScheme, workbook, extensionSchemeSheetName);
-                                    extensionSchemes.forEach(extensionScheme -> {
-                                        final String extensionSheetName = EXCEL_SHEET_EXTENSIONS + "_" + extensionScheme.getCodeValue();
-                                        if (workbook.getSheet(extensionSheetName) != null) {
-                                            extensionService.parseAndPersistExtensionsFromExcelWorkbook(codeScheme, extensionScheme, workbook, extensionSheetName);
-                                        }
-                                    });
-                                }
-                            });
-                        }
+                            }
+                        });
                     } catch (final InvalidFormatException | IOException | POIXMLException e) {
                         LOG.error("Error parsing Excel file!", e);
                         throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
@@ -194,6 +182,32 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
         return mapCodeSchemeDtos(codeSchemes, true);
+    }
+
+    @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
+    private void parseExtensionSchemes(final Workbook workbook,
+                                       final String sheetName,
+                                       final CodeScheme codeScheme) {
+        if (workbook.getSheet(sheetName) != null) {
+            final Map<ExtensionSchemeDTO, String> extensionsSheetNames = new HashMap<>();
+            final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromExcelWorkbook(codeScheme, workbook, sheetName, extensionsSheetNames);
+            extensionsSheetNames.forEach((extensionSchemeDto, extensionSheetName) -> {
+                final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeDto.getId());
+                if (extensionScheme != null) {
+                    parseExtensions(workbook, extensionSheetName, extensionScheme);
+                }
+            });
+        }
+    }
+
+    private void parseExtensions(final Workbook workbook,
+                                 final String sheetName,
+                                 final ExtensionScheme extensionScheme) {
+        if (workbook.getSheet(sheetName) != null) {
+            extensionService.parseAndPersistExtensionsFromExcelWorkbook(extensionScheme, workbook, sheetName);
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
     }
 
     @Transactional
@@ -240,7 +254,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                 externalReferenceDao.save(externalReferences);
                 externalReferenceDao.delete(externalReferences);
             }
-            final Set<ExtensionScheme> extensionSchemes = extensionSchemeDao.findByCodeSchemeId(codeScheme.getId());
+            final Set<ExtensionScheme> extensionSchemes = extensionSchemeDao.findByParentCodeSchemeId(codeScheme.getId());
             if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
                 extensionSchemes.forEach(extensionScheme -> {
                     final Set<Extension> extensions = extensionDao.findByExtensionSchemeId(extensionScheme.getId());

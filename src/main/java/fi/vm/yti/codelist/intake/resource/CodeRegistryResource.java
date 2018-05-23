@@ -102,7 +102,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses and creates or updates CodeRegistries from input data.")
+    @ApiOperation(value = "Parses and creates or updates CodeRegistries from CSV or Excel input data.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "CodeRegistries added or modified successfully.")
     })
@@ -150,7 +150,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Path("{codeRegistryCodeValue}/codeschemes/")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses and creates or updates CodeSchemes from input data.")
+    @ApiOperation(value = "Parses and creates or updates CodeSchemes from CSV or Excel input data.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "CodeSchemes added or modified successfully.")
     })
@@ -167,7 +167,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/extensionschemes/")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses and creates or updates ExtensionSchemes from input data.")
+    @ApiOperation(value = "Parses and creates or updates ExtensionSchemes from CSV or Excel input data.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "ExtensionSchemes added or modified successfully.")
     })
@@ -178,7 +178,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                         @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                         @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                                         @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistExtensionSchemesFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, null);
+        return parseAndPersistExtensionSchemesFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, null, EXCEL_SHEET_EXTENSIONSCHEMES);
     }
 
     @POST
@@ -193,14 +193,14 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                         @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                         @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                                         @ApiParam(value = "JSON playload for ExtensionScheme data.", required = true) final String jsonPayload) {
-        return parseAndPersistExtensionSchemesFromSource(codeRegistryCodeValue, codeSchemeCodeValue, FORMAT_JSON, null, jsonPayload);
+        return parseAndPersistExtensionSchemesFromSource(codeRegistryCodeValue, codeSchemeCodeValue, FORMAT_JSON, null, jsonPayload, null);
     }
 
     @POST
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/extensionschemes/{extensionSchemeCodeValue}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses and creates or updates Extensions from input data.")
+    @ApiOperation(value = "Parses and creates or updates Extensions from CSV or Excel input data.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "ExtensionScheme modified successfully.")
     })
@@ -212,7 +212,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                   @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                                   @ApiParam(value = "ExtensionScheme codeValue", required = true) @PathParam("extensionSchemeCodeValue") final String extensionSchemeCodeValue,
                                                   @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistExtensionsFromSource(codeRegistryCodeValue, codeSchemeCodeValue, extensionSchemeCodeValue, format, inputStream, null);
+        return parseAndPersistExtensionsFromSource(codeRegistryCodeValue, codeSchemeCodeValue, extensionSchemeCodeValue, format, inputStream, null, EXCEL_SHEET_EXTENSIONS);
     }
 
     @POST
@@ -228,7 +228,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                   @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                                   @ApiParam(value = "ExtensionScheme codeValue", required = true) @PathParam("extensionSchemeCodeValue") final String extensionSchemeCodeValue,
                                                   @ApiParam(value = "JSON playload for ExtensionScheme data.", required = true) final String jsonPayload) {
-        return parseAndPersistExtensionsFromSource(codeRegistryCodeValue, codeSchemeCodeValue, extensionSchemeCodeValue, FORMAT_JSON, null, jsonPayload);
+        return parseAndPersistExtensionsFromSource(codeRegistryCodeValue, codeSchemeCodeValue, extensionSchemeCodeValue, FORMAT_JSON, null, jsonPayload, null);
     }
 
     @POST
@@ -374,7 +374,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/codes/")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses and creates or updates Codes from input data.")
+    @ApiOperation(value = "Parses and creates or updates Codes from CSV or Excel input data.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Codes added or modified successfully.")
     })
@@ -492,7 +492,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @HEAD
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/extensionSchemes/{extensionSchemeCodeValue}")
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/extensionschemes/{extensionSchemeCodeValue}")
     @ApiOperation(value = "Check if an ExtensionScheme with the given codeValue exists.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Found"),
@@ -558,8 +558,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                                final String codeSchemeCodeValue,
                                                                final String format,
                                                                final InputStream inputStream,
-                                                               final String jsonPayload) {
-        final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload);
+                                                               final String jsonPayload,
+                                                               final String sheetName) {
+        final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload, sheetName);
         indexing.updateExtensionSchemes(extensionSchemes);
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSIONSCHEME, "extension")));
@@ -575,11 +576,12 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                          final String extensionSchemeCodeValue,
                                                          final String format,
                                                          final InputStream inputStream,
-                                                         final String jsonPayload) {
-        final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, extensionSchemeCodeValue, format, inputStream, jsonPayload);
+                                                         final String jsonPayload,
+                                                         final String sheetName) {
+        final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, extensionSchemeCodeValue, format, inputStream, jsonPayload, sheetName);
         indexing.updateExtensions(extensions);
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSIONSCHEME, "null")));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSIONSCHEME, null)));
         final ResponseWrapper<ExtensionDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("Extension added or modified: " + extensions.size());
         meta.setCode(200);

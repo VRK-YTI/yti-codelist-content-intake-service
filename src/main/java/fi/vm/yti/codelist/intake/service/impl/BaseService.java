@@ -296,9 +296,10 @@ abstract class BaseService {
         extensionSchemeDto.setCodeValue(extensionScheme.getCodeValue());
         extensionSchemeDto.setStartDate(extensionScheme.getStartDate());
         extensionSchemeDto.setEndDate(extensionScheme.getEndDate());
+        extensionSchemeDto.setParentCodeScheme(mapCodeSchemeDto(extensionScheme.getParentCodeScheme(), false));
         if (deep) {
-            if (extensionScheme.getCodeScheme() != null) {
-                extensionSchemeDto.setCodeScheme(mapCodeSchemeDto(extensionScheme.getCodeScheme(), false));
+            if (extensionScheme.getCodeSchemes() != null) {
+                extensionSchemeDto.setCodeSchemes(mapCodeSchemeDtos(extensionScheme.getCodeSchemes(), false));
             }
             if (extensionScheme.getExtensions() != null) {
                 extensionSchemeDto.setExtensions(mapExtensionDtos(extensionScheme.getExtensions(), false));

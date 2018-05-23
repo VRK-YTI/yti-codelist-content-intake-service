@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,11 +25,13 @@ public interface ExtensionSchemeService {
                                                                           final String codeSchemeCodeValue,
                                                                           final String format,
                                                                           final InputStream inputStream,
-                                                                          final String jsonPayload);
+                                                                          final String jsonPayload,
+                                                                          final String sheetName);
 
     Set<ExtensionSchemeDTO> parseAndPersistExtensionSchemesFromExcelWorkbook(final CodeScheme codeScheme,
                                                                              final Workbook workbook,
-                                                                             final String sheetName);
+                                                                             final String sheetName,
+                                                                             final Map<ExtensionSchemeDTO, String> extensionsSchemeSheetNames);
 
     ExtensionSchemeDTO parseAndPersistExtensionSchemeFromJson(final UUID extensionSchemeId,
                                                               final String jsonPayload);

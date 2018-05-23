@@ -146,7 +146,9 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
     @Override
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<CodeSchemeDTO> parseCodeSchemesFromExcelWorkbook(final CodeRegistry codeRegistry,
-                                                                final Workbook workbook) {
+                                                                final Workbook workbook,
+                                                                final Map<CodeSchemeDTO, String> codesSheetNames,
+                                                                final Map<CodeSchemeDTO, String> extensionSchemesSheetNames) {
         final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
         final DataFormatter formatter = new DataFormatter();
@@ -210,6 +212,18 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
                     codeScheme.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_EXTENSIONSCHEMESSHEET)) {
+                    final String extensionSchemesSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONSCHEMESSHEET)));
+                    if (extensionSchemesSheetName != null && !extensionSchemesSheetName.isEmpty()) {
+                        extensionSchemesSheetNames.put(codeScheme, extensionSchemesSheetName);
+                    }
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_CODESSHEET)) {
+                    final String codesSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODESSHEET)));
+                    if (codesSheetName != null && !codesSheetName.isEmpty()) {
+                        codesSheetNames.put(codeScheme, codesSheetName);
+                    }
                 }
                 validateStartDateIsBeforeEndDate(codeScheme);
                 codeSchemes.add(codeScheme);

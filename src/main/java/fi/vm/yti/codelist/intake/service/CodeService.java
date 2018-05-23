@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
 
 public interface CodeService {
 
@@ -18,6 +19,10 @@ public interface CodeService {
                                                        final String codeSchemeCodeValue,
                                                        final Workbook workbook,
                                                        final String sheetName);
+
+    Set<CodeDTO> parseAndPersistCodesFromExcelWorkbook(final Workbook workbook,
+                                                       final String sheetName,
+                                                       final CodeScheme codeScheme);
 
     Set<CodeDTO> parseAndPersistCodesFromSourceData(final boolean internal,
                                                     final String codeRegistryCodeValue,

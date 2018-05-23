@@ -13,6 +13,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
@@ -32,7 +33,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("extensionScheme")
 @Table(name = "extensionscheme")
 @XmlRootElement
-@XmlType(propOrder = { "id", "codeValue", "status", "startDate", "endDate", "prefLabel", "propertyType", "codeScheme", "extensions" })
+@XmlType(propOrder = { "id", "codeValue", "status", "startDate", "endDate", "prefLabel", "propertyType", "parentCodeScheme", "codeSchemes", "extensions" })
 @ApiModel(value = "ExtensionScheme", description = "ExtensionScheme model that represents data for one extension scheme element.")
 public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatus implements Serializable {
 
@@ -40,7 +41,8 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
 
     private Map<String, String> prefLabel;
     private PropertyType propertyType;
-    private CodeScheme codeScheme;
+    private CodeScheme parentCodeScheme;
+    private Set<CodeScheme> codeSchemes;
     private Set<Extension> extensions;
     private String codeValue;
 
@@ -89,19 +91,19 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
         setPrefLabel(this.prefLabel);
     }
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinTable(name = "extensionscheme_codescheme",
         joinColumns = {
             @JoinColumn(name = "extensionscheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
         inverseJoinColumns = {
             @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) })
     @JsonView(Views.ExtendedExtensionScheme.class)
-    public CodeScheme getCodeScheme() {
-        return codeScheme;
+    public Set<CodeScheme> getCodeSchemes() {
+        return codeSchemes;
     }
 
-    public void setCodeScheme(final CodeScheme codeScheme) {
-        this.codeScheme = codeScheme;
+    public void setCodeSchemes(final Set<CodeScheme> codeSchemes) {
+        this.codeSchemes = codeSchemes;
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
@@ -123,5 +125,16 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
 
     public void setExtensions(final Set<Extension> extensions) {
         this.extensions = extensions;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @JoinColumn(name = "parentcodescheme_id", nullable = false, insertable = true, updatable = true)
+    @JsonView(Views.Normal.class)
+    public CodeScheme getParentCodeScheme() {
+        return parentCodeScheme;
+    }
+
+    public void setParentCodeScheme(final CodeScheme parentCodeScheme) {
+        this.parentCodeScheme = parentCodeScheme;
     }
 }

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -32,6 +34,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
@@ -101,6 +104,16 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 extensionScheme.setId(parseIdFromRecord(record));
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 extensionScheme.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
+                if (headerMap.containsKey(CONTENT_HEADER_CODESCHEMES)) {
+                    final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
+                    final List<String> uris = parseCodeSchemesFromRecord(record);
+                    uris.forEach(uri -> {
+                        final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
+                        codeScheme.setUri(uri);
+                        codeSchemes.add(codeScheme);
+                    });
+                    extensionScheme.setCodeSchemes(codeSchemes);
+                }
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
                     extensionScheme.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 }
@@ -127,9 +140,10 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
 
     @Override
     public Set<ExtensionSchemeDTO> parseExtensionSchemesFromExcelInputStream(final InputStream inputStream,
-                                                                             final String sheetName) {
+                                                                             final String sheetName,
+                                                                             final Map<ExtensionSchemeDTO, String> extensionsSheetNames) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-            return parseExtensionSchemesFromExcelWorkbook(workbook, sheetName);
+            return parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, extensionsSheetNames);
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
@@ -138,7 +152,8 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
 
     @Override
     public Set<ExtensionSchemeDTO> parseExtensionSchemesFromExcelWorkbook(final Workbook workbook,
-                                                                          final String sheetName) {
+                                                                          final String sheetName,
+                                                                          final Map<ExtensionSchemeDTO, String> extensionsSheetNames) {
         final Set<ExtensionSchemeDTO> extensionsSchemes = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
         final DataFormatter formatter = new DataFormatter();
@@ -171,6 +186,16 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     extensionScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
+                if (headerMap.containsKey(CONTENT_HEADER_CODESCHEMES)) {
+                    final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
+                    final List<String> uris = Arrays.asList(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODESCHEMES))).split(";"));
+                    uris.forEach(uri -> {
+                        final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
+                        codeScheme.setUri(uri);
+                        codeSchemes.add(codeScheme);
+                    });
+                    extensionScheme.setCodeSchemes(codeSchemes);
+                }
                 extensionScheme.setStatus(parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))));
                 extensionScheme.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
@@ -184,6 +209,12 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 final PropertyTypeDTO propertyType = new PropertyTypeDTO();
                 propertyType.setLocalName(propertyTypeLocalName);
                 extensionScheme.setPropertyType(propertyType);
+                if (headerMap.containsKey(CONTENT_HEADER_EXTENSIONSSHEET)) {
+                    final String extensionsSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONSSHEET)));
+                    if (extensionsSheetName != null && !extensionsSheetName.isEmpty()) {
+                        extensionsSheetNames.put(extensionScheme, extensionsSheetName);
+                    }
+                }
                 extensionsSchemes.add(extensionScheme);
             }
         }
@@ -226,5 +257,23 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
         if (!startDateIsBeforeEndDateSanityCheck(extensionScheme.getStartDate(), extensionScheme.getEndDate())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_END_BEFORE_START_DATE));
         }
+    }
+
+    private String parseParentCodeSchemeFromRecord(final CSVRecord record) {
+        final String parentCodeSchemeUri;
+        if (record.isMapped(CONTENT_HEADER_PARENTCODESCHEME)) {
+            parentCodeSchemeUri = parseStringFromCsvRecord(record, CONTENT_HEADER_PARENTCODESCHEME);
+        } else {
+            parentCodeSchemeUri = null;
+        }
+        return parentCodeSchemeUri;
+    }
+
+    private List<String> parseCodeSchemesFromRecord(final CSVRecord record) {
+        final List<String> codeSchemeUris = new ArrayList<>();
+        if (record.isMapped(CONTENT_HEADER_CODESCHEMES)) {
+            codeSchemeUris.addAll(Arrays.asList(parseStringFromCsvRecord(record, CONTENT_HEADER_CODESCHEMES).split(";")));
+        }
+        return codeSchemeUris;
     }
 }

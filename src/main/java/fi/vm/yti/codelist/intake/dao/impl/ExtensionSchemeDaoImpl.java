@@ -14,10 +14,11 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.model.Status;
+import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
+import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.ExtensionSchemeRepository;
-import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
@@ -34,17 +35,20 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
     private final AuthorizationManager authorizationManager;
     private final EntityChangeLogger entityChangeLogger;
     private final ExtensionSchemeRepository extensionSchemeRepository;
-    private final PropertyTypeRepository propertyTypeRepository;
+    private final PropertyTypeDao propertyTypeDao;
+    private final CodeSchemeDao codeSchemeDao;
 
     @Inject
     public ExtensionSchemeDaoImpl(final AuthorizationManager authorizationManager,
                                   final EntityChangeLogger entityChangeLogger,
                                   final ExtensionSchemeRepository extensionSchemeRepository,
-                                  final PropertyTypeRepository propertyTypeRepository) {
+                                  final PropertyTypeDao propertyTypeDao,
+                                  final CodeSchemeDao codeSchemeDao) {
         this.authorizationManager = authorizationManager;
         this.entityChangeLogger = entityChangeLogger;
         this.extensionSchemeRepository = extensionSchemeRepository;
-        this.propertyTypeRepository = propertyTypeRepository;
+        this.propertyTypeDao = propertyTypeDao;
+        this.codeSchemeDao = codeSchemeDao;
     }
 
     public void delete(final ExtensionScheme extensionScheme) {
@@ -75,22 +79,22 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         return extensionSchemeRepository.findById(id);
     }
 
-    public Set<ExtensionScheme> findByCodeScheme(final CodeScheme codeScheme) {
-        return extensionSchemeRepository.findByCodeScheme(codeScheme);
+    public Set<ExtensionScheme> findByParentCodeScheme(final CodeScheme codeScheme) {
+        return extensionSchemeRepository.findByParentCodeScheme(codeScheme);
     }
 
-    public Set<ExtensionScheme> findByCodeSchemeId(final UUID codeSchemeId) {
-        return extensionSchemeRepository.findByCodeSchemeId(codeSchemeId);
+    public Set<ExtensionScheme> findByParentCodeSchemeId(final UUID codeSchemeId) {
+        return extensionSchemeRepository.findByParentCodeSchemeId(codeSchemeId);
     }
 
-    public ExtensionScheme findByCodeSchemeIdAndCodeValue(final UUID codeSchemeId,
-                                                          final String codeValue) {
-        return extensionSchemeRepository.findByCodeSchemeIdAndCodeValue(codeSchemeId, codeValue);
+    public ExtensionScheme findByParentCodeSchemeIdAndCodeValue(final UUID codeSchemeId,
+                                                                final String codeValue) {
+        return extensionSchemeRepository.findByParentCodeSchemeIdAndCodeValue(codeSchemeId, codeValue);
     }
 
-    public ExtensionScheme findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
-                                                        final String codeValue) {
-        return extensionSchemeRepository.findByCodeSchemeAndCodeValue(codeScheme, codeValue);
+    public ExtensionScheme findByParentCodeSchemeAndCodeValue(final CodeScheme codeScheme,
+                                                              final String codeValue) {
+        return extensionSchemeRepository.findByParentCodeSchemeAndCodeValue(codeScheme, codeValue);
     }
 
     @Override
@@ -123,7 +127,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         if (fromExtensionScheme.getId() != null) {
             existingExtensionScheme = extensionSchemeRepository.findById(fromExtensionScheme.getId());
         } else {
-            existingExtensionScheme = extensionSchemeRepository.findByCodeSchemeAndCodeValue(codeScheme, fromExtensionScheme.getCodeValue());
+            existingExtensionScheme = extensionSchemeRepository.findByParentCodeSchemeAndCodeValue(codeScheme, fromExtensionScheme.getCodeValue());
         }
         final ExtensionScheme extensionScheme;
         if (existingExtensionScheme != null) {
@@ -143,16 +147,26 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
             }
             existingExtensionScheme.setStatus(fromExtensionScheme.getStatus());
         }
-        final PropertyType propertyType = propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTENSIONSCHEME, fromExtensionScheme.getPropertyType().getLocalName());
+        final PropertyType propertyType = propertyTypeDao.findByContextAndLocalName(CONTEXT_EXTENSIONSCHEME, fromExtensionScheme.getPropertyType().getLocalName());
         if (propertyType == null) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
         if (!Objects.equals(existingExtensionScheme.getPropertyType(), propertyType)) {
             existingExtensionScheme.setPropertyType(propertyType);
         }
-        if (!Objects.equals(existingExtensionScheme.getCodeScheme(), codeScheme)) {
-            existingExtensionScheme.setCodeScheme(codeScheme);
+        if (!Objects.equals(existingExtensionScheme.getParentCodeScheme(), codeScheme)) {
+            existingExtensionScheme.setParentCodeScheme(codeScheme);
         }
+        final Set<CodeScheme> codeSchemes = new HashSet<>();
+        if (fromExtensionScheme.getCodeSchemes() != null && !fromExtensionScheme.getCodeSchemes().isEmpty()) {
+            fromExtensionScheme.getCodeSchemes().forEach(codeSchemeDto -> {
+                final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
+                if (codeScheme != null) {
+                    codeSchemes.add(relatedCodeScheme);
+                }
+            });
+        }
+        existingExtensionScheme.setCodeSchemes(codeSchemes);
         for (final Map.Entry<String, String> entry : fromExtensionScheme.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
             final String value = entry.getValue();
@@ -183,7 +197,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         extensionScheme.setStartDate(fromExtensionScheme.getStartDate());
         extensionScheme.setEndDate(fromExtensionScheme.getEndDate());
         extensionScheme.setStatus(fromExtensionScheme.getStatus());
-        final PropertyType propertyType = propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTENSIONSCHEME, fromExtensionScheme.getPropertyType().getLocalName());
+        final PropertyType propertyType = propertyTypeDao.findByContextAndLocalName(CONTEXT_EXTENSIONSCHEME, fromExtensionScheme.getPropertyType().getLocalName());
         if (propertyType == null) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
@@ -191,8 +205,19 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         for (final Map.Entry<String, String> entry : fromExtensionScheme.getPrefLabel().entrySet()) {
             extensionScheme.setPrefLabel(entry.getKey(), entry.getValue());
         }
-//        save(extensionScheme);
-        extensionScheme.setCodeScheme(codeScheme);
+        final Set<CodeScheme> codeSchemes = new HashSet<>();
+        if (fromExtensionScheme.getCodeSchemes() != null && fromExtensionScheme.getCodeSchemes().isEmpty()) {
+            fromExtensionScheme.getCodeSchemes().forEach(codeSchemeDto -> {
+                final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
+                if (relatedCodeScheme != null) {
+                    codeSchemes.add(relatedCodeScheme);
+                } else {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                }
+            });
+            extensionScheme.setCodeSchemes(codeSchemes);
+        }
+        extensionScheme.setParentCodeScheme(codeScheme);
         return extensionScheme;
     }
 }

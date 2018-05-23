@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -90,16 +89,10 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 extension.setId(parseIdFromRecord(record));
                 extension.setOrder(parseOrderFromCsvRecord(record));
                 extension.setExtensionValue(parseExtensionValueFromCsvRecord(record));
-                final CodeDTO code = new CodeDTO();
-                code.setCodeValue(parseCodeFromCsvRecord(record));
-                extension.setCode(code);
+                extension.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record)));
                 final String relationCodeValue = parseExtensionRelationFromCsvRecord(record);
                 if (relationCodeValue != null) {
-                    final ExtensionDTO refExtension = new ExtensionDTO();
-                    final CodeDTO refCode = new CodeDTO();
-                    refCode.setCodeValue(relationCodeValue);
-                    refExtension.setCode(refCode);
-                    extension.setExtension(refExtension);
+                    extension.setExtension(createExtensionWithCodeValue(relationCodeValue));
                 }
                 extensionSchemes.add(extension);
             }
@@ -111,6 +104,14 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
             throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         return extensionSchemes;
+    }
+
+    private ExtensionDTO createExtensionWithCodeValue(final String codeValue) {
+        final ExtensionDTO refExtension = new ExtensionDTO();
+        final CodeDTO refCode = new CodeDTO();
+        refCode.setCodeValue(codeValue);
+        refExtension.setCode(refCode);
+        return refExtension;
     }
 
     public Set<ExtensionDTO> parseExtensionsFromExcelInputStream(final InputStream inputStream,
@@ -148,20 +149,12 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 }
                 extension.setOrder(Integer.parseInt(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER)))));
                 extension.setExtensionValue(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))));
-                final String codeCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
-                if (codeCodeValue != null && !codeCodeValue.isEmpty()) {
-                    final CodeDTO code = new CodeDTO();
-                    code.setCodeValue(codeCodeValue);
-                    extension.setCode(code);
-                }
+                final String codeIdentifier = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
+                extension.setCode(createCodeUsingIdentifier(codeIdentifier));
                 if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {
                     final String relationCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
                     if (relationCodeValue != null) {
-                        final ExtensionDTO refExtension = new ExtensionDTO();
-                        final CodeDTO refCode = new CodeDTO();
-                        refCode.setCodeValue(relationCodeValue);
-                        refExtension.setCode(refCode);
-                        extension.setExtension(refExtension);
+                        extension.setExtension(createExtensionWithCodeValue(relationCodeValue));
                     }
                 }
                 extensions.add(extension);
@@ -219,8 +212,20 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         }
     }
 
-    private String parseCodeFromCsvRecord(final CSVRecord record) {
+    private String parseCodeIdentifierFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_CODE);
+    }
+
+    private CodeDTO createCodeUsingIdentifier(final String identifier) {
+        final CodeDTO code = new CodeDTO();
+        if (identifier == null || identifier.isEmpty()) {
+            throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_CODE));
+        } else if (identifier.startsWith("http://uri.suomi.fi/codelist/")) {
+            code.setUri(identifier);
+        } else {
+            code.setCodeValue(identifier);
+        }
+        return code;
     }
 
     private String parseExtensionValueFromCsvRecord(final CSVRecord record) {

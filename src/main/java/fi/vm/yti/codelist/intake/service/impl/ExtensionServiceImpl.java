@@ -15,17 +15,17 @@ import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
-import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
+import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.parser.ExtensionParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
-import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
 import fi.vm.yti.codelist.intake.service.ExtensionService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -37,14 +37,14 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
     private final AuthorizationManager authorizationManager;
     private final ExtensionDao extensionDao;
     private final ExtensionParser extensionParser;
-    private final ExtensionSchemeService extensionSchemeService;
+    private final ExtensionSchemeDao extensionSchemeDao;
     private final CodeSchemeDao codeSchemeDao;
 
     @Inject
     public ExtensionServiceImpl(final AuthorizationManager authorizationManager,
                                 final ExtensionDao extensionDao,
                                 final ExtensionParser extensionParser,
-                                final ExtensionSchemeService extensionSchemeDao,
+                                final ExtensionSchemeDao extensionSchemeDao,
                                 final CodeSchemeDao codeSchemeDao,
                                 final ApiUtils apiUtils,
                                 final DataSource dataSource) {
@@ -52,7 +52,7 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
         this.authorizationManager = authorizationManager;
         this.extensionDao = extensionDao;
         this.extensionParser = extensionParser;
-        this.extensionSchemeService = extensionSchemeDao;
+        this.extensionSchemeDao = extensionSchemeDao;
         this.codeSchemeDao = codeSchemeDao;
     }
 
@@ -88,9 +88,8 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
         if (jsonPayload != null && !jsonPayload.isEmpty()) {
             final ExtensionDTO extensionDto = extensionParser.parseExtensionFromJson(jsonPayload);
             if (extensionDto.getExtensionScheme() != null) {
-                final ExtensionSchemeDTO extensionScheme = extensionSchemeService.findById(extensionDto.getExtensionScheme().getId());
-                final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(extensionScheme.getCodeScheme().getCodeRegistry().getCodeValue(), extensionScheme.getCodeScheme().getCodeValue());
-                extension = extensionDao.updateExtensionEntityFromDto(codeScheme, extensionScheme, extensionDto);
+                final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionDto.getExtensionScheme().getId());
+                extension = extensionDao.updateExtensionEntityFromDto(extensionScheme, extensionDto);
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
             }
@@ -109,28 +108,29 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
                                                                      final String extensionSchemeCodeValue,
                                                                      final String format,
                                                                      final InputStream inputStream,
-                                                                     final String jsonPayload) {
+                                                                     final String jsonPayload,
+                                                                     final String sheetName) {
         if (!authorizationManager.isSuperUser()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         Set<Extension> extensions;
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
-            final ExtensionSchemeDTO extensionScheme = extensionSchemeService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionSchemeCodeValue);
+            final ExtensionScheme extensionScheme = extensionSchemeDao.findByParentCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionSchemeCodeValue);
             if (extensionScheme != null) {
                 switch (format.toLowerCase()) {
                     case FORMAT_JSON:
                         if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                            extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionScheme, extensionParser.parseExtensionsFromJson(jsonPayload));
+                            extensions = extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionParser.parseExtensionsFromJson(jsonPayload));
                         } else {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                         }
                         break;
                     case FORMAT_EXCEL:
-                        extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionScheme, extensionParser.parseExtensionsFromExcelInputStream(inputStream, EXCEL_SHEET_EXTENSIONS));
+                        extensions = extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionParser.parseExtensionsFromExcelInputStream(inputStream, sheetName));
                         break;
                     case FORMAT_CSV:
-                        extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionScheme, extensionParser.parseExtensionsFromCsvInputStream(inputStream));
+                        extensions = extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionParser.parseExtensionsFromCsvInputStream(inputStream));
                         break;
                     default:
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
@@ -144,8 +144,7 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
         }
     }
 
-    public Set<ExtensionDTO> parseAndPersistExtensionsFromExcelWorkbook(final CodeScheme codeScheme,
-                                                                        final ExtensionSchemeDTO extensionScheme,
+    public Set<ExtensionDTO> parseAndPersistExtensionsFromExcelWorkbook(final ExtensionScheme extensionScheme,
                                                                         final Workbook workbook,
                                                                         final String sheetName) {
         if (!authorizationManager.isSuperUser()) {
@@ -153,7 +152,7 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
         }
         Set<Extension> extensions;
         final Set<ExtensionDTO> extensionDtos = extensionParser.parseExtensionsFromExcelWorkbook(workbook, sheetName);
-        extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionScheme, extensionDtos);
+        extensions = extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionDtos);
         return mapDeepExtensionDtos(extensions);
     }
 }

@@ -322,12 +322,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         this.conceptUriInVocabularies = conceptUriInVocabularies;
     }
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "extensionscheme_codescheme",
-        joinColumns = {
-            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
-        inverseJoinColumns = {
-            @JoinColumn(name = "extensionscheme_id", referencedColumnName = "id", nullable = false, updatable = false) })
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "parentCodeScheme", cascade = CascadeType.ALL)
     @JsonView(Views.ExtendedCodeScheme.class)
     public Set<ExtensionScheme> getExtensionSchemes() {
         return extensionSchemes;

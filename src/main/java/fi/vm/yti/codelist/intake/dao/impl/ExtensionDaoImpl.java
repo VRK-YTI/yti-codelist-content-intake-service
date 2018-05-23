@@ -10,9 +10,9 @@ import javax.inject.Inject;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
-import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
@@ -84,23 +84,21 @@ public class ExtensionDaoImpl implements ExtensionDao {
         return extensionRepository.findByExtensionSchemeId(id);
     }
 
-    public Extension updateExtensionEntityFromDto(final CodeScheme codeScheme,
-                                                  final ExtensionSchemeDTO extensionScheme,
+    public Extension updateExtensionEntityFromDto(final ExtensionScheme extensionScheme,
                                                   final ExtensionDTO extensionDto) {
-        final Extension extension = createOrUpdateExtension(codeScheme, extensionScheme, extensionDto);
+        final Extension extension = createOrUpdateExtension(extensionScheme, extensionDto);
         extensionDto.setId(extension.getId());
         save(extension);
         resolveExtensionRelation(extensionScheme, extensionDto);
         return extension;
     }
 
-    public Set<Extension> updateExtensionEntitiesFromDtos(final CodeScheme codeScheme,
-                                                          final ExtensionSchemeDTO extensionScheme,
+    public Set<Extension> updateExtensionEntitiesFromDtos(final ExtensionScheme extensionScheme,
                                                           final Set<ExtensionDTO> extensionDtos) {
         final Set<Extension> extensions = new HashSet<>();
         if (extensionDtos != null) {
             for (final ExtensionDTO extensionDto : extensionDtos) {
-                final Extension extension = createOrUpdateExtension(codeScheme, extensionScheme, extensionDto);
+                final Extension extension = createOrUpdateExtension(extensionScheme, extensionDto);
                 extensionDto.setId(extension.getId());
                 extensions.add(extension);
             }
@@ -112,7 +110,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         return extensions;
     }
 
-    private void resolveExtensionRelation(final ExtensionSchemeDTO extensionScheme,
+    private void resolveExtensionRelation(final ExtensionScheme extensionScheme,
                                           final ExtensionDTO fromExtension) {
         final ExtensionDTO relatedExtension = fromExtension.getExtension();
         if (relatedExtension != null && relatedExtension.getId() != null && fromExtension.getId() != null && relatedExtension.getId().equals(fromExtension.getId())) {
@@ -132,13 +130,12 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
     }
 
-    private void resolveExtensionRelations(final ExtensionSchemeDTO extensionScheme,
+    private void resolveExtensionRelations(final ExtensionScheme extensionScheme,
                                            final Set<ExtensionDTO> fromExtensions) {
         fromExtensions.forEach(fromExtension -> resolveExtensionRelation(extensionScheme, fromExtension));
     }
 
-    private Extension createOrUpdateExtension(final CodeScheme codeScheme,
-                                              final ExtensionSchemeDTO extensionSchemeDto,
+    private Extension createOrUpdateExtension(final ExtensionScheme extensionSchemeDto,
                                               final ExtensionDTO fromExtension) {
         final Extension existingExtension;
         final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeDto.getId());
@@ -152,9 +149,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
             }
             final Extension extension;
             if (existingExtension != null) {
-                extension = updateExtension(codeScheme, existingExtension, fromExtension);
+                extension = updateExtension(extensionScheme.getParentCodeScheme(), existingExtension, fromExtension);
             } else {
-                extension = createExtension(codeScheme, extensionScheme, fromExtension);
+                extension = createExtension(extensionScheme.getParentCodeScheme(), extensionScheme, fromExtension);
             }
             return extension;
         } else {
@@ -172,10 +169,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             existingExtension.setOrder(fromExtension.getOrder());
         }
         if (fromExtension.getCode() != null) {
-            final Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, fromExtension.getCode().getCodeValue());
-            if (code == null) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
-            }
+            final Code code = findCodeUsingCodeValueOrUri(codeScheme, fromExtension);
             if (!Objects.equals(existingExtension.getCode(), code)) {
                 existingExtension.setCode(code);
             }
@@ -198,13 +192,24 @@ public class ExtensionDaoImpl implements ExtensionDao {
         extension.setExtensionValue(fromExtension.getExtensionValue());
         extension.setOrder(fromExtension.getOrder());
         if (fromExtension.getCode() != null) {
-            final Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, fromExtension.getCode().getCodeValue());
-            if (code == null) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
-            }
+            final Code code = findCodeUsingCodeValueOrUri(codeScheme, fromExtension);
             extension.setCode(code);
         }
         extension.setExtensionScheme(extensionScheme);
         return extension;
+    }
+
+    private Code findCodeUsingCodeValueOrUri(final CodeScheme codeScheme,
+                                             final ExtensionDTO extension) {
+        final CodeDTO fromCode = extension.getCode();
+        final Code code;
+        if (fromCode != null && fromCode.getUri() != null && !fromCode.getUri().isEmpty()) {
+            code = codeDao.findByUri(fromCode.getUri());
+        } else if (codeScheme != null && fromCode.getCodeValue() != null && !fromCode.getCodeValue().isEmpty()) {
+            code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, extension.getCode().getCodeValue());
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
+        return code;
     }
 }

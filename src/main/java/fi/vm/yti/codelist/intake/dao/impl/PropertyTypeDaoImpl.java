@@ -32,6 +32,11 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
         return propertyTypeRepository.findById(id);
     }
 
+    public PropertyType findByContextAndLocalName(final String context,
+                                                  final String propertyTypeLocalName) {
+        return propertyTypeRepository.findByLocalName(propertyTypeLocalName);
+    }
+
     public PropertyType findByLocalName(final String propertyTypeLocalName) {
         return propertyTypeRepository.findByLocalName(propertyTypeLocalName);
     }

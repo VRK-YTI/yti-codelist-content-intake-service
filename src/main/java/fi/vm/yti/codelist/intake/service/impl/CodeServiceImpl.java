@@ -115,6 +115,24 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     }
 
     @Transactional
+    public Set<CodeDTO> parseAndPersistCodesFromExcelWorkbook(final Workbook workbook,
+                                                              final String sheetName,
+                                                              final CodeScheme codeScheme) {
+        Set<Code> codes;
+        if (codeScheme != null) {
+            if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations())) {
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+            }
+            final HashMap<String, String> broaderCodeMapping = new HashMap<>();
+            final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelWorkbook(workbook, sheetName, broaderCodeMapping);
+            codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, false);
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
+        return mapDeepCodeDtos(codes);
+    }
+
+    @Transactional
     public Set<CodeDTO> parseAndPersistCodesFromSourceData(final String codeRegistryCodeValue,
                                                            final String codeSchemeCodeValue,
                                                            final String format,

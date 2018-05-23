@@ -19,13 +19,13 @@ public interface ExtensionSchemeRepository extends CrudRepository<ExtensionSchem
 
     ExtensionScheme findById(final UUID id);
 
-    Set<ExtensionScheme> findByCodeScheme(final CodeScheme codeScheme);
+    Set<ExtensionScheme> findByParentCodeScheme(final CodeScheme codeScheme);
 
-    Set<ExtensionScheme> findByCodeSchemeId(final UUID codeSchemeId);
+    Set<ExtensionScheme> findByParentCodeSchemeId(final UUID codeSchemeId);
 
-    ExtensionScheme findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
-                                                 final String codeValue);
+    ExtensionScheme findByParentCodeSchemeAndCodeValue(final CodeScheme codeScheme,
+                                                       final String codeValue);
 
-    ExtensionScheme findByCodeSchemeIdAndCodeValue(final UUID codeSchemeId,
-                                                   final String codeValue);
+    ExtensionScheme findByParentCodeSchemeIdAndCodeValue(final UUID codeSchemeId,
+                                                         final String codeValue);
 }

@@ -21,13 +21,15 @@ public interface ExtensionSchemeDao {
 
     ExtensionScheme findById(final UUID id);
 
-    Set<ExtensionScheme> findByCodeSchemeId(final UUID codeSchemeId);
+    Set<ExtensionScheme> findByParentCodeScheme(final CodeScheme codeScheme);
 
-    ExtensionScheme findByCodeSchemeIdAndCodeValue(final UUID codeSchemeId,
-                                                   final String codeValue);
+    Set<ExtensionScheme> findByParentCodeSchemeId(final UUID codeSchemeId);
 
-    ExtensionScheme findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
-                                                 final String codeValue);
+    ExtensionScheme findByParentCodeSchemeIdAndCodeValue(final UUID codeSchemeId,
+                                                         final String codeValue);
+
+    ExtensionScheme findByParentCodeSchemeAndCodeValue(final CodeScheme codeScheme,
+                                                       final String codeValue);
 
     ExtensionScheme updateExtensionSchemeEntityFromDtos(final CodeScheme codeScheme,
                                                         final ExtensionSchemeDTO extensionSchemeDto);

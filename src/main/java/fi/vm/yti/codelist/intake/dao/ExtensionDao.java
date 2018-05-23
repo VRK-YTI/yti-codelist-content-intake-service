@@ -4,9 +4,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
-import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
-import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 
 public interface ExtensionDao {
 
@@ -26,11 +25,9 @@ public interface ExtensionDao {
 
     Set<Extension> findByExtensionSchemeId(final UUID id);
 
-    Extension updateExtensionEntityFromDto(final CodeScheme codeScheme,
-                                           final ExtensionSchemeDTO extensionScheme,
+    Extension updateExtensionEntityFromDto(final ExtensionScheme extensionScheme,
                                            final ExtensionDTO extensionDto);
 
-    Set<Extension> updateExtensionEntitiesFromDtos(final CodeScheme codeScheme,
-                                                   final ExtensionSchemeDTO extensionScheme,
+    Set<Extension> updateExtensionEntitiesFromDtos(final ExtensionScheme extensionScheme,
                                                    final Set<ExtensionDTO> extensionDtos);
 }

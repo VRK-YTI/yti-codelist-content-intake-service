@@ -7,8 +7,7 @@ import java.util.UUID;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
-import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
-import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 
 public interface ExtensionService {
 
@@ -27,10 +26,10 @@ public interface ExtensionService {
                                                               final String extensionSchemeCodeValue,
                                                               final String format,
                                                               final InputStream inputStream,
-                                                              final String jsonPayload);
+                                                              final String jsonPayload,
+                                                              final String sheetname);
 
-    Set<ExtensionDTO> parseAndPersistExtensionsFromExcelWorkbook(final CodeScheme codeSCheme,
-                                                                 final ExtensionSchemeDTO extensionScheme,
+    Set<ExtensionDTO> parseAndPersistExtensionsFromExcelWorkbook(final ExtensionScheme extensionScheme,
                                                                  final Workbook workbook,
                                                                  final String sheetName);
 }

@@ -17,6 +17,8 @@ public interface CodeSchemeDao {
 
     CodeScheme findById(final UUID id);
 
+    CodeScheme findByUri(final String uri);
+
     Set<CodeScheme> findAll();
 
     CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry, final String codeValue);

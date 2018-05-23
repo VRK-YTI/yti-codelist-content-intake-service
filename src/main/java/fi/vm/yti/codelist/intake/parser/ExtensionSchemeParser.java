@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.parser;
 
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.poi.ss.usermodel.Workbook;
@@ -16,8 +17,10 @@ public interface ExtensionSchemeParser {
     Set<ExtensionSchemeDTO> parseExtensionSchemesFromCsvInputStream(final InputStream inputStream);
 
     Set<ExtensionSchemeDTO> parseExtensionSchemesFromExcelInputStream(final InputStream inputStream,
-                                                                      final String sheetName);
+                                                                      final String sheetName,
+                                                                      final Map<ExtensionSchemeDTO, String> extensionsSheetNames);
 
     Set<ExtensionSchemeDTO> parseExtensionSchemesFromExcelWorkbook(final Workbook workbook,
-                                                                   final String sheetName);
+                                                                   final String sheetName,
+                                                                   final Map<ExtensionSchemeDTO, String> extensionsSheetNames);
 }

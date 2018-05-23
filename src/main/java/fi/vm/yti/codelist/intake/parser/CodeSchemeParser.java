@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.parser;
 
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.poi.ss.usermodel.Workbook;
@@ -18,5 +19,7 @@ public interface CodeSchemeParser {
                                                           final InputStream inputStream);
 
     Set<CodeSchemeDTO> parseCodeSchemesFromExcelWorkbook(final CodeRegistry codeRegistry,
-                                                         final Workbook workbook);
+                                                         final Workbook workbook,
+                                                         final Map<CodeSchemeDTO, String> codesSheetNames,
+                                                         final Map<CodeSchemeDTO, String> extensionSchemesSheetNames);
 }

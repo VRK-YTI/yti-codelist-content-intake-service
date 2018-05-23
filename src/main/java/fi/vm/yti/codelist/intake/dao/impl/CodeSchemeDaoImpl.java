@@ -80,6 +80,10 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         return codeSchemeRepository.findById(id);
     }
 
+    public CodeScheme findByUri(final String uri) {
+        return codeSchemeRepository.findByUri(uri);
+    }
+
     public CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry,
                                                      final String codeValue) {
         return codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, codeValue);

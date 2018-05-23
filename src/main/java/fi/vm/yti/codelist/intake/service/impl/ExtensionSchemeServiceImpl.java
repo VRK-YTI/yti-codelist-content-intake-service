@@ -1,6 +1,9 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -8,7 +11,10 @@ import javax.inject.Singleton;
 import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
+import org.apache.poi.POIXMLException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -20,11 +26,13 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
+import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
+import fi.vm.yti.codelist.intake.parser.ExtensionParser;
 import fi.vm.yti.codelist.intake.parser.ExtensionSchemeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
@@ -41,6 +49,7 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
     private final ExtensionDao extensionDao;
     private final CodeSchemeDao codeSchemeDao;
     private final ExtensionSchemeParser extensionSchemeParser;
+    private final ExtensionParser extensionParser;
     private final AuthorizationManager authorizationManager;
 
     public ExtensionSchemeServiceImpl(final ExtensionSchemeDao extensionSchemeDao,
@@ -49,13 +58,15 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                                       final ExtensionSchemeParser extensionSchemeParser,
                                       final AuthorizationManager authorizationManager,
                                       final ApiUtils apiUtils,
-                                      final DataSource dataSource) {
+                                      final DataSource dataSource,
+                                      final ExtensionParser extensionParser) {
         super(apiUtils, dataSource);
         this.extensionSchemeDao = extensionSchemeDao;
         this.extensionDao = extensionDao;
         this.codeSchemeDao = codeSchemeDao;
         this.extensionSchemeParser = extensionSchemeParser;
         this.authorizationManager = authorizationManager;
+        this.extensionParser = extensionParser;
     }
 
     @Transactional
@@ -70,19 +81,19 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
 
     @Transactional
     public Set<ExtensionSchemeDTO> findByCodeSchemeId(final UUID codeSchemeId) {
-        return mapDeepExtensionSchemeDtos(extensionSchemeDao.findByCodeSchemeId(codeSchemeId));
+        return mapDeepExtensionSchemeDtos(extensionSchemeDao.findByParentCodeSchemeId(codeSchemeId));
     }
 
     @Transactional
     public ExtensionSchemeDTO findByCodeSchemeIdAndCodeValue(final UUID codeSchemeId,
                                                              final String codeValue) {
-        return mapDeepExtensionSchemeDto(extensionSchemeDao.findByCodeSchemeIdAndCodeValue(codeSchemeId, codeValue));
+        return mapDeepExtensionSchemeDto(extensionSchemeDao.findByParentCodeSchemeIdAndCodeValue(codeSchemeId, codeValue));
     }
 
     @Transactional
     public ExtensionSchemeDTO findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
                                                            final String codeValue) {
-        return mapDeepExtensionSchemeDto(extensionSchemeDao.findByCodeSchemeAndCodeValue(codeScheme, codeValue));
+        return mapDeepExtensionSchemeDto(extensionSchemeDao.findByParentCodeSchemeAndCodeValue(codeScheme, codeValue));
     }
 
     @Transactional
@@ -90,7 +101,8 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                                                                                  final String codeSchemeCodeValue,
                                                                                  final String format,
                                                                                  final InputStream inputStream,
-                                                                                 final String jsonPayload) {
+                                                                                 final String jsonPayload,
+                                                                                 final String sheetName) {
         if (!authorizationManager.isSuperUser()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
@@ -106,7 +118,21 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                     }
                     break;
                 case FORMAT_EXCEL:
-                    extensionSchemes = extensionSchemeDao.updateExtensionSchemeEntitiesFromDtos(codeScheme, extensionSchemeParser.parseExtensionSchemesFromExcelInputStream(inputStream, EXCEL_SHEET_EXTENSIONSCHEMES));
+                    try {
+                        final Map<ExtensionSchemeDTO, String> extensionsSheetNames = new HashMap<>();
+                        final Workbook workbook = WorkbookFactory.create(inputStream);
+                        extensionSchemes = extensionSchemeDao.updateExtensionSchemeEntitiesFromDtos(codeScheme, extensionSchemeParser.parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, extensionsSheetNames));
+                        if (!extensionsSheetNames.isEmpty()) {
+                            extensionsSheetNames.forEach((extensionSchemeDto, extensionsSheetName) -> extensionSchemes.forEach(extensionScheme -> {
+                                if (extensionScheme.getCodeValue().equalsIgnoreCase(extensionSchemeDto.getCodeValue())) {
+                                    extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionParser.parseExtensionsFromExcelWorkbook(workbook, extensionsSheetName));
+                                }
+                            }));
+                        }
+                    } catch (final InvalidFormatException | IOException | POIXMLException e) {
+                        LOG.error("Error parsing Excel file!", e);
+                        throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
+                    }
                     break;
                 case FORMAT_CSV:
                     extensionSchemes = extensionSchemeDao.updateExtensionSchemeEntitiesFromDtos(codeScheme, extensionSchemeParser.parseExtensionSchemesFromCsvInputStream(inputStream));
@@ -123,13 +149,19 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
     @Transactional
     public Set<ExtensionSchemeDTO> parseAndPersistExtensionSchemesFromExcelWorkbook(final CodeScheme codeScheme,
                                                                                     final Workbook workbook,
-                                                                                    final String sheetName) {
+                                                                                    final String sheetName,
+                                                                                    final Map<ExtensionSchemeDTO, String> extensionSchemesSheetNames) {
         if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         Set<ExtensionScheme> extensionSchemes;
-        final Set<ExtensionSchemeDTO> extensionSchemeDtos = extensionSchemeParser.parseExtensionSchemesFromExcelWorkbook(workbook, sheetName);
+        final Set<ExtensionSchemeDTO> extensionSchemeDtos = extensionSchemeParser.parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, extensionSchemesSheetNames);
         extensionSchemes = extensionSchemeDao.updateExtensionSchemeEntitiesFromDtos(codeScheme, extensionSchemeDtos);
+        extensionSchemeDtos.forEach(extensionSchemeDto -> extensionSchemes.forEach(extensionScheme -> {
+            if (extensionScheme.getCodeValue().equalsIgnoreCase(extensionSchemeDto.getCodeValue())) {
+                extensionSchemeDto.setId(extensionScheme.getId());
+            }
+        }));
         return mapDeepExtensionSchemeDtos(extensionSchemes);
     }
 
