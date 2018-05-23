@@ -151,15 +151,19 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> extensionSchemesSheetNames = new HashMap<>();
                         codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionSchemesSheetNames), false);
-                        codesSheetNames.forEach((codeSchemeDto, sheetName) -> {
-                            if (workbook.getSheet(sheetName) != null) {
-                                for (final CodeScheme codeScheme : codeSchemes) {
-                                    if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
-                                        codeService.parseAndPersistCodesFromExcelWorkbook(workbook, sheetName, codeScheme);
+                        if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
+                            codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeSchemes.iterator().next());
+                        } else if (!codesSheetNames.isEmpty()) {
+                            codesSheetNames.forEach((codeSchemeDto, sheetName) -> {
+                                if (workbook.getSheet(sheetName) != null) {
+                                    for (final CodeScheme codeScheme : codeSchemes) {
+                                        if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
+                                            codeService.parseAndPersistCodesFromExcelWorkbook(workbook, sheetName, codeScheme);
+                                        }
                                     }
                                 }
-                            }
-                        });
+                            });
+                        }
                         extensionSchemesSheetNames.forEach((codeSchemeDto, sheetName) -> {
                             for (final CodeScheme codeScheme : codeSchemes) {
                                 if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
