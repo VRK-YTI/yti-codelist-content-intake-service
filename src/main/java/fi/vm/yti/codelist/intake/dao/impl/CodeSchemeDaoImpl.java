@@ -80,8 +80,9 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         return codeSchemeRepository.findById(id);
     }
 
+    @Transactional
     public CodeScheme findByUri(final String uri) {
-        return codeSchemeRepository.findByUri(uri);
+        return codeSchemeRepository.findByUriIgnoreCase(uri);
     }
 
     public CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry,

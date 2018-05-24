@@ -129,7 +129,7 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "parentcodescheme_id", nullable = false, insertable = true, updatable = true)
-    @JsonView(Views.Normal.class)
+    @JsonView(Views.ExtendedExtensionScheme.class)
     public CodeScheme getParentCodeScheme() {
         return parentCodeScheme;
     }

@@ -39,6 +39,15 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_50
 abstract class BaseService {
 
     private static final Logger LOG = LoggerFactory.getLogger(IndexingImpl.class);
+    private static final String SORT_ASC = "ASC";
+    private static final String SORT_DESC = "DESC";
+    private static final String ENTITY_CODEREGISTRY = "extension";
+    private static final String ENTITY_CODESCHEME = "codescheme";
+    private static final String ENTITY_CODE = "code";
+    private static final String ENTITY_EXTENSIONSCHEME = "extensionscheme";
+    private static final String ENTITY_EXTENSION = "extension";
+    private static final String ENTITY_EXTERNALREFERENCE = "externalreference";
+    private static final String ENTITY_PROPERTYTYPE = "propertytype";
 
     private final ApiUtils apiUtils;
     private final DataSource dataSource;
@@ -80,7 +89,8 @@ abstract class BaseService {
         codeDto.setDescription(code.getDescription());
         codeDto.setOrder(code.getOrder());
         codeDto.setUrl(apiUtils.createCodeUrl(codeDto));
-        codeDto.setModified(getLastModificationDate("code", code.getId().toString()));
+        codeDto.setCreated(getFirstModificationDate(ENTITY_CODE, code.getId().toString()));
+        codeDto.setModified(getLastModificationDate(ENTITY_CODE, code.getId().toString()));
         return codeDto;
     }
 
@@ -133,7 +143,8 @@ abstract class BaseService {
             }
         }
         codeSchemeDto.setUrl(apiUtils.createCodeSchemeUrl(codeSchemeDto));
-        codeSchemeDto.setModified(getLastModificationDate("codescheme", codeScheme.getId().toString()));
+        codeSchemeDto.setCreated(getFirstModificationDate(ENTITY_CODESCHEME, codeScheme.getId().toString()));
+        codeSchemeDto.setModified(getLastModificationDate(ENTITY_CODESCHEME, codeScheme.getId().toString()));
         return codeSchemeDto;
     }
 
@@ -161,7 +172,8 @@ abstract class BaseService {
         codeRegistryDto.setDefinition(codeRegistry.getDefinition());
         codeRegistryDto.setOrganizations(mapOrganizationDtos(codeRegistry.getOrganizations(), false));
         codeRegistryDto.setUrl(apiUtils.createCodeRegistryUrl(codeRegistryDto));
-        codeRegistryDto.setModified(getLastModificationDate("coderegistry", codeRegistry.getId().toString()));
+        codeRegistryDto.setCreated(getFirstModificationDate(ENTITY_CODEREGISTRY, codeRegistry.getId().toString()));
+        codeRegistryDto.setModified(getLastModificationDate(ENTITY_CODEREGISTRY, codeRegistry.getId().toString()));
         return codeRegistryDto;
     }
 
@@ -200,7 +212,8 @@ abstract class BaseService {
             }
         }
         externalReferenceDto.setUrl(apiUtils.createExternalReferenceUrl(externalReferenceDto));
-        externalReferenceDto.setModified(getLastModificationDate("externalreference", externalReference.getId().toString()));
+        externalReferenceDto.setCreated(getFirstModificationDate(ENTITY_EXTERNALREFERENCE, externalReference.getId().toString()));
+        externalReferenceDto.setModified(getLastModificationDate(ENTITY_EXTERNALREFERENCE, externalReference.getId().toString()));
         return externalReferenceDto;
     }
 
@@ -229,7 +242,8 @@ abstract class BaseService {
         propertyTypeDto.setType(propertyType.getType());
         propertyTypeDto.setPropertyUri(propertyType.getPropertyUri());
         propertyTypeDto.setUrl(apiUtils.createPropertyTypeUrl(propertyTypeDto));
-        propertyTypeDto.setModified(getLastModificationDate("propertytype", propertyType.getId().toString()));
+        propertyTypeDto.setCreated(getFirstModificationDate(ENTITY_PROPERTYTYPE, propertyType.getId().toString()));
+        propertyTypeDto.setModified(getLastModificationDate(ENTITY_PROPERTYTYPE, propertyType.getId().toString()));
         return propertyTypeDto;
     }
 
@@ -263,7 +277,8 @@ abstract class BaseService {
             }
         }
         extensionDto.setUrl(apiUtils.createExtensionUrl(extensionDto));
-        extensionDto.setModified(getLastModificationDate("extension", extension.getId().toString()));
+        extensionDto.setCreated(getFirstModificationDate(ENTITY_EXTENSION, extension.getId().toString()));
+        extensionDto.setModified(getLastModificationDate(ENTITY_EXTENSION, extension.getId().toString()));
         return extensionDto;
     }
 
@@ -296,8 +311,10 @@ abstract class BaseService {
         extensionSchemeDto.setCodeValue(extensionScheme.getCodeValue());
         extensionSchemeDto.setStartDate(extensionScheme.getStartDate());
         extensionSchemeDto.setEndDate(extensionScheme.getEndDate());
-        extensionSchemeDto.setParentCodeScheme(mapCodeSchemeDto(extensionScheme.getParentCodeScheme(), false));
         if (deep) {
+            if (extensionScheme.getParentCodeScheme() != null) {
+                extensionSchemeDto.setParentCodeScheme(mapCodeSchemeDto(extensionScheme.getParentCodeScheme(), false));
+            }
             if (extensionScheme.getCodeSchemes() != null) {
                 extensionSchemeDto.setCodeSchemes(mapCodeSchemeDtos(extensionScheme.getCodeSchemes(), false));
             }
@@ -306,7 +323,8 @@ abstract class BaseService {
             }
         }
         extensionSchemeDto.setUrl(apiUtils.createExtensionSchemeUrl(extensionSchemeDto));
-        extensionSchemeDto.setModified(getLastModificationDate("extensionscheme", extensionScheme.getId().toString()));
+        extensionSchemeDto.setCreated(getFirstModificationDate(ENTITY_EXTENSIONSCHEME, extensionScheme.getId().toString()));
+        extensionSchemeDto.setModified(getLastModificationDate(ENTITY_EXTENSIONSCHEME, extensionScheme.getId().toString()));
         return extensionSchemeDto;
     }
 
@@ -352,11 +370,22 @@ abstract class BaseService {
         return organizationDtos;
     }
 
+    private Date getFirstModificationDate(final String entityName,
+                                          final String entityId) {
+        return getModificationDate(entityName, entityId, SORT_ASC);
+    }
+
     private Date getLastModificationDate(final String entityName,
                                          final String entityId) {
+        return getModificationDate(entityName, entityId, SORT_DESC);
+    }
+
+    private Date getModificationDate(final String entityName,
+                                     final String entityId,
+                                     final String sort) {
         Date modified = null;
         try (final Connection connection = dataSource.getConnection();
-             final PreparedStatement ps = connection.prepareStatement(String.format("SELECT c.modified FROM commit as c WHERE c.id IN (SELECT e.commit_id FROM editedentity AS e WHERE e.%s_id = '%s') ORDER BY c.modified DESC LIMIT 1;", entityName, entityId));
+             final PreparedStatement ps = connection.prepareStatement(String.format("SELECT c.modified FROM commit as c WHERE c.id IN (SELECT e.commit_id FROM editedentity AS e WHERE e.%s_id = '%s') ORDER BY c.modified " + sort + " LIMIT 1;", entityName, entityId));
              final ResultSet results = ps.executeQuery()) {
             if (results.next()) {
                 modified = results.getTimestamp(1);
@@ -367,5 +396,4 @@ abstract class BaseService {
         }
         return modified;
     }
-
 }

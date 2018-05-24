@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.model.Status;
@@ -154,17 +155,16 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         if (!Objects.equals(existingExtensionScheme.getPropertyType(), propertyType)) {
             existingExtensionScheme.setPropertyType(propertyType);
         }
-        if (!Objects.equals(existingExtensionScheme.getParentCodeScheme(), codeScheme)) {
-            existingExtensionScheme.setParentCodeScheme(codeScheme);
-        }
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (fromExtensionScheme.getCodeSchemes() != null && !fromExtensionScheme.getCodeSchemes().isEmpty()) {
-            fromExtensionScheme.getCodeSchemes().forEach(codeSchemeDto -> {
+            for (final CodeSchemeDTO codeSchemeDto : fromExtensionScheme.getCodeSchemes()) {
                 final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
-                if (codeScheme != null) {
+                if (relatedCodeScheme != null) {
                     codeSchemes.add(relatedCodeScheme);
+                } else {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                 }
-            });
+            }
         }
         existingExtensionScheme.setCodeSchemes(codeSchemes);
         for (final Map.Entry<String, String> entry : fromExtensionScheme.getPrefLabel().entrySet()) {
@@ -180,7 +180,6 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         if (!Objects.equals(existingExtensionScheme.getEndDate(), fromExtensionScheme.getEndDate())) {
             existingExtensionScheme.setEndDate(fromExtensionScheme.getEndDate());
         }
-
         return existingExtensionScheme;
     }
 

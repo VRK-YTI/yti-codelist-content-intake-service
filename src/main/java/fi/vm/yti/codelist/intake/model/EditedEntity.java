@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @Entity
 @XmlRootElement
-@XmlType(propOrder = {"id", "commit", "codeScheme", "code", "externalReference", "propertyType", "extensionScheme", "extension"})
+@XmlType(propOrder = {"id", "commit", "codeRegistry", "codeScheme", "code", "externalReference", "propertyType", "extensionScheme", "extension"})
 @Table(name = "editedentity")
 public class EditedEntity {
 
