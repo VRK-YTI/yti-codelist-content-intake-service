@@ -36,7 +36,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeScheme")
 @Table(name = "codescheme")
 @XmlRootElement
-@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "externalReferences", "extensionSchemes", "conceptUriInVocabularies" })
+@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies" })
 @ApiModel(value = "CodeScheme", description = "CodeScheme model that represents data for one single codescheme.")
 public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
@@ -56,6 +56,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private Set<ExternalReference> externalReferences;
     private Set<ExtensionScheme> extensionSchemes;
     private String conceptUriInVocabularies;
+    private Code defaultCode;
 
     public CodeScheme() {
         prefLabel = new HashMap<>();
@@ -121,6 +122,17 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     public void setCodeRegistry(final CodeRegistry codeRegistry) {
         this.codeRegistry = codeRegistry;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "defaultcode_id", nullable = true, insertable = true, updatable = true)
+    @JsonView(Views.ExtendedCodeScheme.class)
+    public Code getDefaultCode() {
+        return defaultCode;
+    }
+
+    public void setDefaultCode(final Code defaultCode) {
+        this.defaultCode = defaultCode;
     }
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)

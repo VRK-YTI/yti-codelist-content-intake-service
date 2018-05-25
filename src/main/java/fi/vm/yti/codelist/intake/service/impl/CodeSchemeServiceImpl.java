@@ -150,7 +150,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                     try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> extensionSchemesSheetNames = new HashMap<>();
-                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionSchemesSheetNames), false);
+                        final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionSchemesSheetNames);
+                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeDtos, false);
                         if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
                             codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeSchemes.iterator().next());
                         } else if (!codesSheetNames.isEmpty()) {
@@ -159,6 +160,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                     for (final CodeScheme codeScheme : codeSchemes) {
                                         if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
                                             codeService.parseAndPersistCodesFromExcelWorkbook(workbook, sheetName, codeScheme);
+                                            resolveAndSetCodeSchemeDefaultCode(codeScheme, codeSchemeDto);
                                         }
                                     }
                                 }
@@ -280,4 +282,15 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
     }
+
+    private void resolveAndSetCodeSchemeDefaultCode(final CodeScheme codeScheme,
+                                                    final CodeSchemeDTO codeSchemeDto) {
+        if (codeSchemeDto.getDefaultCode() != null) {
+            final Code defaultCode = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeSchemeDto.getDefaultCode().getCodeValue());
+            if (defaultCode != null) {
+                codeScheme.setDefaultCode(defaultCode);
+            }
+        }
+    }
+
 }

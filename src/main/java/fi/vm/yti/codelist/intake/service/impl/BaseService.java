@@ -132,6 +132,9 @@ abstract class BaseService {
         codeSchemeDto.setLegalBase(codeScheme.getLegalBase());
         codeSchemeDto.setConceptUriInVocabularies(codeScheme.getConceptUriInVocabularies());
         if (deep) {
+            if (codeScheme.getDefaultCode() != null) {
+                codeSchemeDto.setDefaultCode(mapCodeDto(codeScheme.getDefaultCode(), false));
+            }
             if (codeScheme.getDataClassifications() != null) {
                 codeSchemeDto.setDataClassifications(mapCodeDtos(codeScheme.getDataClassifications(), false));
             }

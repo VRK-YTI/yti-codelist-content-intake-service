@@ -242,6 +242,12 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         if (!Objects.equals(existingCodeScheme.getConceptUriInVocabularies(), fromCodeScheme.getConceptUriInVocabularies())) {
             existingCodeScheme.setConceptUriInVocabularies(fromCodeScheme.getConceptUriInVocabularies());
         }
+        if (fromCodeScheme.getDefaultCode() != null && fromCodeScheme.getDefaultCode().getCodeValue() != null) {
+            final Code defaultCode = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(existingCodeScheme, fromCodeScheme.getDefaultCode().getCodeValue());
+            if (!Objects.equals(existingCodeScheme.getDefaultCode(), defaultCode)) {
+                existingCodeScheme.setDefaultCode(defaultCode);
+            }
+        }
         return existingCodeScheme;
     }
 

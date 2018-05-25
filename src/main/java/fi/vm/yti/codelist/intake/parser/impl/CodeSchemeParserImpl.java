@@ -124,6 +124,14 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 codeScheme.setLegalBase(parseLegalBaseFromCsvRecord(record));
                 codeScheme.setGovernancePolicy(parseGovernancePolicyFromCsvRecord(record));
                 codeScheme.setSource(parseSourceFromCsvRecord(record));
+                if (headerMap.containsKey(CONTENT_HEADER_DEFAULTCODE)) {
+                    final String defaultCodeCodeValue = parseDefaultCodeFromCsvRecord(record);
+                    if (defaultCodeCodeValue != null && !defaultCodeCodeValue.isEmpty()) {
+                        final CodeDTO defaultCode = new CodeDTO();
+                        defaultCode.setCodeValue(defaultCodeCodeValue);
+                        codeScheme.setDefaultCode(defaultCode);
+                    }
+                }
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
                     codeScheme.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 }
@@ -206,6 +214,14 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_GOVERNANCEPOLICY)) {
                     codeScheme.setGovernancePolicy(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_GOVERNANCEPOLICY))));
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_DEFAULTCODE)) {
+                    final String defaultCodeCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_DEFAULTCODE)));
+                    if (defaultCodeCodeValue != null && !defaultCodeCodeValue.isEmpty()) {
+                        final CodeDTO defaultCode = new CodeDTO();
+                        defaultCode.setCodeValue(defaultCodeCodeValue);
+                        codeScheme.setDefaultCode(defaultCode);
+                    }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
                     codeScheme.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
@@ -299,6 +315,10 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
 
     private String parseLegalBaseFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_LEGALBASE);
+    }
+
+    private String parseDefaultCodeFromCsvRecord(final CSVRecord record) {
+        return parseStringFromCsvRecord(record, CONTENT_HEADER_DEFAULTCODE);
     }
 
     private String parseGovernancePolicyFromCsvRecord(final CSVRecord record) {
