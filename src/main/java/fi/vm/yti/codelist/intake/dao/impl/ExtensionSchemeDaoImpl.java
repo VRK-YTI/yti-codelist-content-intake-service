@@ -132,7 +132,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         }
         final ExtensionScheme extensionScheme;
         if (existingExtensionScheme != null) {
-            extensionScheme = updateExtensionScheme(existingExtensionScheme, fromExtensionScheme, codeScheme);
+            extensionScheme = updateExtensionScheme(existingExtensionScheme, fromExtensionScheme);
         } else {
             extensionScheme = createExtensionScheme(fromExtensionScheme, codeScheme);
         }
@@ -140,8 +140,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
     }
 
     private ExtensionScheme updateExtensionScheme(final ExtensionScheme existingExtensionScheme,
-                                                  final ExtensionSchemeDTO fromExtensionScheme,
-                                                  final CodeScheme codeScheme) {
+                                                  final ExtensionSchemeDTO fromExtensionScheme) {
         if (!Objects.equals(existingExtensionScheme.getStatus(), fromExtensionScheme.getStatus())) {
             if (!authorizationManager.isSuperUser() && Status.valueOf(existingExtensionScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromExtensionScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
