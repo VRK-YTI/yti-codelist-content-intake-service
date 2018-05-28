@@ -173,12 +173,12 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                 validateRequiredSchemeHeaders(headerMap);
             } else {
-                validateRequiredDataOnRow(row, headerMap, formatter);
                 final ExtensionSchemeDTO extensionScheme = new ExtensionSchemeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
                 if (codeValue == null || codeValue.trim().isEmpty()) {
                     continue;
                 }
+                validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);

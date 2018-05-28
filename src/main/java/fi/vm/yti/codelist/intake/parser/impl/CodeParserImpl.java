@@ -154,12 +154,12 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
                 validateRequiredCodeHeaders(headerMap);
             } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
-                validateRequiredDataOnRow(row, headerMap, formatter);
                 final CodeDTO code = new CodeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
                 if (codeValue == null || codeValue.trim().isEmpty()) {
                     continue;
                 }
+                validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
