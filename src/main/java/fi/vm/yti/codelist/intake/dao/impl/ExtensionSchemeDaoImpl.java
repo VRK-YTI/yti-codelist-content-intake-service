@@ -157,11 +157,13 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (fromExtensionScheme.getCodeSchemes() != null && !fromExtensionScheme.getCodeSchemes().isEmpty()) {
             for (final CodeSchemeDTO codeSchemeDto : fromExtensionScheme.getCodeSchemes()) {
-                final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
-                if (relatedCodeScheme != null) {
-                    codeSchemes.add(relatedCodeScheme);
-                } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                if (codeSchemeDto.getUri() != null && !codeSchemeDto.getUri().isEmpty()) {
+                    final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
+                    if (relatedCodeScheme != null) {
+                        codeSchemes.add(relatedCodeScheme);
+                    } else {
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    }
                 }
             }
         }
