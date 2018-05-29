@@ -33,6 +33,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.BadClassificationException;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
@@ -184,7 +185,8 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
             } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
                 final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
-                if (codeValue == null || codeValue.trim().isEmpty()) {
+                final String status = parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))));
+                if (skipEmptyLine(codeValue, status)) {
                     continue;
                 }
                 validateRequiredDataOnRow(row, headerMap, formatter);
@@ -192,6 +194,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
                 codeScheme.setCodeValue(codeValue);
+                codeScheme.setStatus(status);
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     codeScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
@@ -205,7 +208,6 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 if (headerMap.containsKey(CONTENT_HEADER_VERSION)) {
                     codeScheme.setVersion(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_VERSION))));
                 }
-                codeScheme.setStatus(parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))));
                 if (headerMap.containsKey(CONTENT_HEADER_SOURCE)) {
                     codeScheme.setSource(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SOURCE))));
                 }

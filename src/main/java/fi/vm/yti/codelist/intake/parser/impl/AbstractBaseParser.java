@@ -245,4 +245,12 @@ public abstract class AbstractBaseParser {
     public String parseEndDateStringFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_ENDDATE);
     }
+
+    public boolean skipEmptyLine(final String codeValue,
+                              final String status) {
+        if ((codeValue == null || codeValue.trim().isEmpty()) && (status == null || status.trim().isEmpty())) {
+            return true;
+        }
+        return false;
+    }
 }
