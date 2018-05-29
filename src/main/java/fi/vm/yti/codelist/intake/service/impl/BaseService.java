@@ -388,7 +388,7 @@ abstract class BaseService {
                                      final String sort) {
         Date modified = null;
         try (final Connection connection = dataSource.getConnection();
-             final PreparedStatement ps = connection.prepareStatement(String.format("SELECT c.modified FROM commit as c WHERE c.id IN (SELECT e.commit_id FROM editedentity AS e WHERE e.%s_id = '%s') ORDER BY c.modified " + sort + " LIMIT 1;", entityName, entityId));
+             final PreparedStatement ps = connection.prepareStatement(String.format("SELECT c.modified FROM commit as c WHERE c.id IN (SELECT e.commit_id FROM editedentity AS e WHERE e.%s_id = '%s') ORDER BY c.modified %s LIMIT 1;", entityName, entityId, sort));
              final ResultSet results = ps.executeQuery()) {
             if (results.next()) {
                 modified = results.getTimestamp(1);
