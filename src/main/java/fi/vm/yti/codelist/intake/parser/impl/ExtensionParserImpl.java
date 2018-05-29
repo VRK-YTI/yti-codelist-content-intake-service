@@ -156,7 +156,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 extension.setExtensionValue(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))));
                 if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {
                     final String relationCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
-                    if (relationCodeValue != null) {
+                    if (relationCodeValue != null && !relationCodeValue.isEmpty()) {
                         extension.setExtension(createExtensionWithCodeValue(relationCodeValue));
                     }
                 }

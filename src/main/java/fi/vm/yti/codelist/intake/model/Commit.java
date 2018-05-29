@@ -1,15 +1,11 @@
 package fi.vm.yti.codelist.intake.model;
 
 import java.util.Date;
-import java.util.Set;
 import java.util.UUID;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -22,7 +18,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 @Entity
 @XmlRootElement
-@XmlType(propOrder = {"id", "traceId", "userId", "modified", "description"})
+@XmlType(propOrder = { "id", "traceId", "userId", "modified", "description" })
 @Table(name = "commit")
 public class Commit {
 
@@ -31,7 +27,6 @@ public class Commit {
     private UUID userId;
     private Date modified;
     private String description;
-    private Set<EditedEntity> editedEntities;
 
     public Commit() {
     }
@@ -98,14 +93,5 @@ public class Commit {
 
     public void setUserId(final UUID userId) {
         this.userId = userId;
-    }
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "commit", cascade = CascadeType.ALL)
-    public Set<EditedEntity> getEditedEntities() {
-        return editedEntities;
-    }
-
-    public void setEditedEntities(final Set<EditedEntity> editedEntities) {
-        this.editedEntities = editedEntities;
     }
 }

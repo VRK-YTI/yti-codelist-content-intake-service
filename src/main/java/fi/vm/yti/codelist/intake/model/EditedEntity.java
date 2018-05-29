@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @Entity
 @XmlRootElement
-@XmlType(propOrder = {"id", "commit", "codeRegistry", "codeScheme", "code", "externalReference", "propertyType", "extensionScheme", "extension"})
+@XmlType(propOrder = { "id", "commit", "codeRegistry", "codeScheme", "code", "externalReference", "propertyType", "extensionScheme", "extension" })
 @Table(name = "editedentity")
 public class EditedEntity {
 
@@ -47,7 +47,7 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "commit_id", nullable = false, insertable = true, updatable = false)
+    @JoinColumn(name = "commit_id", nullable = true, insertable = true, updatable = false)
     public Commit getCommit() {
         return commit;
     }
