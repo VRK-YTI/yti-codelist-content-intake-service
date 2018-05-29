@@ -185,7 +185,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
             } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
                 final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
-                final String status = parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))));
+                final String status = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)));
                 if (skipEmptyLine(codeValue, status)) {
                     continue;
                 }
@@ -194,7 +194,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
                 codeScheme.setCodeValue(codeValue);
-                codeScheme.setStatus(status);
+                codeScheme.setStatus(parseStatusValueFromString(status));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     codeScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }

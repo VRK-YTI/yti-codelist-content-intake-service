@@ -175,7 +175,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
             } else {
                 final ExtensionSchemeDTO extensionScheme = new ExtensionSchemeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
-                final String status = parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))));
+                final String status = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)));
                 if (skipEmptyLine(codeValue, status)) {
                     continue;
                 }
@@ -184,7 +184,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
                 extensionScheme.setCodeValue(codeValue);
-                extensionScheme.setStatus(status);
+                extensionScheme.setStatus(parseStatusValueFromString(status));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     extensionScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
