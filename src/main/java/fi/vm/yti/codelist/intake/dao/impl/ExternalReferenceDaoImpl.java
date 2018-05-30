@@ -113,6 +113,11 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         return externalReferenceRepository.findByParentCodeSchemeId(parentCodeSchemeId);
     }
 
+    @Override
+    public Set<ExternalReference> findByParentCodeSchemeIdAndGlobalIsNull(UUID parentCodeSchemeId) {
+        return externalReferenceRepository.findByParentCodeSchemeIdAndGlobalIsNull(parentCodeSchemeId);
+    }
+
     public ExternalReference createOrUpdateExternalReference(final boolean internal,
                                                              final ExternalReferenceDTO fromExternalReference,
                                                              final CodeScheme codeScheme) {
