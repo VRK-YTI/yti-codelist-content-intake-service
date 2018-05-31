@@ -30,7 +30,6 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
-import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
@@ -39,7 +38,6 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
@@ -59,20 +57,18 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     private final AuthorizationManager authorizationManager;
     private final CodeRegistryDao codeRegistryDao;
     private final CodeSchemeDao codeSchemeDao;
-    private final ExternalReferenceDao externalReferenceDao;
     private final CodeSchemeParserImpl codeSchemeParser;
     private final CodeService codeService;
     private final ExtensionSchemeService extensionSchemeService;
     private final ExtensionService extensionService;
     private final CodeDao codeDao;
     private final ExtensionSchemeDao extensionSchemeDao;
-    private final ExtensionDao extensionDao;
+    private final ExternalReferenceDao externalReferenceDao;
 
     @Inject
     public CodeSchemeServiceImpl(final AuthorizationManager authorizationManager,
                                  final CodeRegistryDao codeRegistryDao,
                                  final CodeSchemeDao codeSchemeDao,
-                                 final ExternalReferenceDao externalReferenceDao,
                                  final CodeSchemeParserImpl codeSchemeParser,
                                  final CodeService codeService,
                                  final ExtensionSchemeService extensionSchemeService,
@@ -81,11 +77,10 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                  final ApiUtils apiUtils,
                                  final DataSource dataSource,
                                  final ExtensionSchemeDao extensionSchemeDao,
-                                 final ExtensionDao extensionDao) {
+                                 final ExternalReferenceDao externalReferenceDao) {
         super(apiUtils, dataSource);
         this.codeRegistryDao = codeRegistryDao;
         this.authorizationManager = authorizationManager;
-        this.externalReferenceDao = externalReferenceDao;
         this.codeSchemeParser = codeSchemeParser;
         this.codeService = codeService;
         this.codeSchemeDao = codeSchemeDao;
@@ -93,7 +88,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         this.extensionService = extensionService;
         this.codeDao = codeDao;
         this.extensionSchemeDao = extensionSchemeDao;
-        this.extensionDao = extensionDao;
+        this.externalReferenceDao = externalReferenceDao;
     }
 
     @Transactional
@@ -150,7 +145,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                     try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> extensionSchemesSheetNames = new HashMap<>();
-                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionSchemesSheetNames), false);
+                        final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionSchemesSheetNames);
+                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeDtos, false);
                         if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
                             codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeSchemes.iterator().next());
                         } else if (!codesSheetNames.isEmpty()) {
@@ -159,18 +155,21 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                     for (final CodeScheme codeScheme : codeSchemes) {
                                         if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
                                             codeService.parseAndPersistCodesFromExcelWorkbook(workbook, sheetName, codeScheme);
+                                            resolveAndSetCodeSchemeDefaultCode(codeScheme, codeSchemeDto);
                                         }
                                     }
                                 }
                             });
                         }
-                        extensionSchemesSheetNames.forEach((codeSchemeDto, sheetName) -> {
-                            for (final CodeScheme codeScheme : codeSchemes) {
-                                if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
-                                    parseExtensionSchemes(workbook, sheetName, codeScheme);
+                        if (codeSchemes != null && !codeSchemes.isEmpty()) {
+                            extensionSchemesSheetNames.forEach((codeSchemeDto, sheetName) -> {
+                                for (final CodeScheme codeScheme : codeSchemes) {
+                                    if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
+                                        parseExtensionSchemes(workbook, sheetName, codeScheme);
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
                     } catch (final InvalidFormatException | IOException | POIXMLException e) {
                         LOG.error("Error parsing Excel file!", e);
                         throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
@@ -253,31 +252,29 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
-            if (externalReferences != null && !externalReferences.isEmpty()) {
-                externalReferences.forEach(externalReference -> externalReference.setParentCodeScheme(null));
-                externalReferenceDao.save(externalReferences);
-                externalReferenceDao.delete(externalReferences);
-            }
-            final Set<ExtensionScheme> extensionSchemes = extensionSchemeDao.findByParentCodeSchemeId(codeScheme.getId());
-            if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
-                extensionSchemes.forEach(extensionScheme -> {
-                    final Set<Extension> extensions = extensionDao.findByExtensionSchemeId(extensionScheme.getId());
-                    extensions.forEach(extension -> extension.setExtension(null));
-                    extensionDao.save(extensions);
-                    extensionDao.delete(extensions);
-                });
-                extensionSchemeDao.delete(extensionSchemes);
-            }
-            final Set<Code> codes = codeScheme.getCodes();
-            if (codes != null && !codes.isEmpty()) {
-                codes.forEach(code -> code.setExtensions(null));
-                codeDao.save(codes);
-                codeDao.delete(codes);
-            }
             codeSchemeDao.delete(codeScheme);
+            externalReferenceDao.delete(externalReferences);
             return codeSchemeDto;
         } else {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
+    }
+
+    private void resolveAndSetCodeSchemeDefaultCode(final CodeScheme codeScheme,
+                                                    final CodeSchemeDTO codeSchemeDto) {
+        if (codeSchemeDto.getDefaultCode() != null) {
+            final Code defaultCode = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeSchemeDto.getDefaultCode().getCodeValue());
+            if (defaultCode != null) {
+                codeScheme.setDefaultCode(defaultCode);
+            }
+        }
+    }
+
+    @Transactional
+    public CodeSchemeDTO updateCodeSchemeFromDto (String codeRegistryCodeValue, CodeSchemeDTO codeSchemeDTO) {
+        CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
+        CodeScheme codeScheme = codeSchemeDao.updateCodeSchemeFromDto(codeRegistry, codeSchemeDTO);
+        codeSchemeDTO.setId(codeScheme.getId());
+        return codeSchemeDTO;
     }
 }

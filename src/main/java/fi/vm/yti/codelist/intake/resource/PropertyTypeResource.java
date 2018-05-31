@@ -69,7 +69,7 @@ public class PropertyTypeResource extends AbstractBaseResource {
     })
     public Response addOrUpdatePropertyTypesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
                                                      @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistPropertyTypesFromSource(FORMAT_JSON, inputStream, null);
+        return parseAndPersistPropertyTypesFromSource(format, inputStream, null);
     }
 
     @POST

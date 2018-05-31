@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -19,11 +20,19 @@ public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String>
 
     CodeScheme findByCodeRegistryAndCodeValueIgnoreCase(final CodeRegistry codeRegistry, final String codeValue);
 
-    CodeScheme findByUri(final String uri);
+    CodeScheme findByUriIgnoreCase(final String uri);
 
     CodeScheme findById(final UUID id);
 
     Set<CodeScheme> findByCodeRegistry(final CodeRegistry codeRegistry);
 
     Set<CodeScheme> findAll();
+
+    @Query("select cs from CodeScheme cs " +
+            "left join fetch cs.codes cod left join fetch cod.externalReferences er left join fetch cod.extensions ext " +
+            "left join fetch cs.dataClassifications clas left join fetch clas.externalReferences clasExtRef left join fetch clas.extensions clasExt " +
+            "left join fetch cs.codeRegistry cr left join fetch cr.organizations org " +
+            "where cs.id = ?1")
+    CodeScheme findCodeSchemeAndEagerFetchTheChildren(final UUID id);
+
 }

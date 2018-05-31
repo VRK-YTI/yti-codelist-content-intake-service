@@ -66,6 +66,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeSchemeRepository.delete(codeScheme);
     }
 
+    @Transactional
     public void save(final CodeScheme codeScheme) {
         codeSchemeRepository.save(codeScheme);
         entityChangeLogger.logCodeSchemeChange(codeScheme);
@@ -80,8 +81,9 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         return codeSchemeRepository.findById(id);
     }
 
+    @Transactional
     public CodeScheme findByUri(final String uri) {
-        return codeSchemeRepository.findByUri(uri);
+        return codeSchemeRepository.findByUriIgnoreCase(uri);
     }
 
     public CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry,
@@ -240,6 +242,12 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         }
         if (!Objects.equals(existingCodeScheme.getConceptUriInVocabularies(), fromCodeScheme.getConceptUriInVocabularies())) {
             existingCodeScheme.setConceptUriInVocabularies(fromCodeScheme.getConceptUriInVocabularies());
+        }
+        if (fromCodeScheme.getDefaultCode() != null && fromCodeScheme.getDefaultCode().getCodeValue() != null) {
+            final Code defaultCode = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(existingCodeScheme, fromCodeScheme.getDefaultCode().getCodeValue());
+            if (!Objects.equals(existingCodeScheme.getDefaultCode(), defaultCode)) {
+                existingCodeScheme.setDefaultCode(defaultCode);
+            }
         }
         return existingCodeScheme;
     }

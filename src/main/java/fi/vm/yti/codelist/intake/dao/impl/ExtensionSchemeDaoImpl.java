@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.model.Status;
@@ -131,7 +132,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         }
         final ExtensionScheme extensionScheme;
         if (existingExtensionScheme != null) {
-            extensionScheme = updateExtensionScheme(existingExtensionScheme, fromExtensionScheme, codeScheme);
+            extensionScheme = updateExtensionScheme(existingExtensionScheme, fromExtensionScheme);
         } else {
             extensionScheme = createExtensionScheme(fromExtensionScheme, codeScheme);
         }
@@ -139,8 +140,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
     }
 
     private ExtensionScheme updateExtensionScheme(final ExtensionScheme existingExtensionScheme,
-                                                  final ExtensionSchemeDTO fromExtensionScheme,
-                                                  final CodeScheme codeScheme) {
+                                                  final ExtensionSchemeDTO fromExtensionScheme) {
         if (!Objects.equals(existingExtensionScheme.getStatus(), fromExtensionScheme.getStatus())) {
             if (!authorizationManager.isSuperUser() && Status.valueOf(existingExtensionScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromExtensionScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
@@ -154,17 +154,18 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         if (!Objects.equals(existingExtensionScheme.getPropertyType(), propertyType)) {
             existingExtensionScheme.setPropertyType(propertyType);
         }
-        if (!Objects.equals(existingExtensionScheme.getParentCodeScheme(), codeScheme)) {
-            existingExtensionScheme.setParentCodeScheme(codeScheme);
-        }
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (fromExtensionScheme.getCodeSchemes() != null && !fromExtensionScheme.getCodeSchemes().isEmpty()) {
-            fromExtensionScheme.getCodeSchemes().forEach(codeSchemeDto -> {
-                final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
-                if (codeScheme != null) {
-                    codeSchemes.add(relatedCodeScheme);
+            for (final CodeSchemeDTO codeSchemeDto : fromExtensionScheme.getCodeSchemes()) {
+                if (codeSchemeDto.getUri() != null && !codeSchemeDto.getUri().isEmpty()) {
+                    final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
+                    if (relatedCodeScheme != null) {
+                        codeSchemes.add(relatedCodeScheme);
+                    } else {
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    }
                 }
-            });
+            }
         }
         existingExtensionScheme.setCodeSchemes(codeSchemes);
         for (final Map.Entry<String, String> entry : fromExtensionScheme.getPrefLabel().entrySet()) {
@@ -180,7 +181,6 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         if (!Objects.equals(existingExtensionScheme.getEndDate(), fromExtensionScheme.getEndDate())) {
             existingExtensionScheme.setEndDate(fromExtensionScheme.getEndDate());
         }
-
         return existingExtensionScheme;
     }
 

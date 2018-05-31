@@ -173,16 +173,18 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                 validateRequiredSchemeHeaders(headerMap);
             } else {
-                validateRequiredDataOnRow(row, headerMap, formatter);
                 final ExtensionSchemeDTO extensionScheme = new ExtensionSchemeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
-                if (codeValue == null || codeValue.trim().isEmpty()) {
+                final String status = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)));
+                if (skipEmptyLine(codeValue, status)) {
                     continue;
                 }
+                validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
                 extensionScheme.setCodeValue(codeValue);
+                extensionScheme.setStatus(parseStatusValueFromString(status));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     extensionScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
@@ -196,7 +198,6 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                     });
                     extensionScheme.setCodeSchemes(codeSchemes);
                 }
-                extensionScheme.setStatus(parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))));
                 extensionScheme.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
                     extensionScheme.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));

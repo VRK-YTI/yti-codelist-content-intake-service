@@ -24,6 +24,7 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_EXTENSION_CODE_NOT_FOUND;
 
 @Component
 public class ExtensionDaoImpl implements ExtensionDao {
@@ -142,8 +143,10 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (extensionScheme != null) {
             if (fromExtension.getId() != null) {
                 existingExtension = extensionRepository.findByExtensionSchemeAndId(extensionScheme, fromExtension.getId());
-            } else if (fromExtension.getCode() != null) {
-                existingExtension = extensionRepository.findByExtensionSchemeAndCodeCodeValue(extensionScheme, fromExtension.getCode().getCodeValue());
+            } else if (fromExtension.getCode() != null && fromExtension.getCode().getCodeValue() != null) {
+                existingExtension = extensionRepository.findByExtensionSchemeAndCodeCodeValueIgnoreCase(extensionScheme, fromExtension.getCode().getCodeValue());
+            } else if (fromExtension.getCode() != null && fromExtension.getCode().getUri() != null) {
+                existingExtension = extensionRepository.findByExtensionSchemeAndCodeUriIgnoreCase(extensionScheme, fromExtension.getCode().getUri());
             } else {
                 existingExtension = null;
             }
@@ -205,10 +208,13 @@ public class ExtensionDaoImpl implements ExtensionDao {
         final Code code;
         if (fromCode != null && fromCode.getUri() != null && !fromCode.getUri().isEmpty()) {
             code = codeDao.findByUri(fromCode.getUri());
-        } else if (codeScheme != null && fromCode.getCodeValue() != null && !fromCode.getCodeValue().isEmpty()) {
+        } else if (fromCode != null && codeScheme != null && fromCode.getCodeValue() != null && !fromCode.getCodeValue().isEmpty()) {
             code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, extension.getCode().getCodeValue());
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODE_NOT_FOUND));
+        }
+        if (code == null) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODE_NOT_FOUND));
         }
         return code;
     }

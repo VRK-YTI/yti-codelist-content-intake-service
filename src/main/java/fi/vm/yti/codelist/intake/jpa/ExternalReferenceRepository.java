@@ -14,6 +14,8 @@ public interface ExternalReferenceRepository extends CrudRepository<ExternalRefe
 
     Set<ExternalReference> findByParentCodeSchemeId(final UUID codeSchemeId);
 
+    Set<ExternalReference> findByParentCodeSchemeIdAndGlobalIsNull(final UUID codeSchemeId);
+
     ExternalReference findById(final UUID id);
 
     ExternalReference findByIdAndParentCodeScheme(final UUID id, final CodeScheme codeScheme);

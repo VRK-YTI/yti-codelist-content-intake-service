@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.resource;
 
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -17,6 +18,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
+import fi.vm.yti.codelist.intake.service.*;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -38,12 +41,6 @@ import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.model.Meta;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
-import fi.vm.yti.codelist.intake.service.CodeRegistryService;
-import fi.vm.yti.codelist.intake.service.CodeSchemeService;
-import fi.vm.yti.codelist.intake.service.CodeService;
-import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
-import fi.vm.yti.codelist.intake.service.ExtensionService;
-import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -68,6 +65,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
     private final ExtensionService extensionService;
     private final Indexing indexing;
     private final AuthorizationManager authorizationManager;
+    private final CloningService cloningService;
+    private final CodeSchemeParser codeSchemeParser;
 
     @Inject
     public CodeRegistryResource(final AuthorizationManager authorizationManager,
@@ -77,7 +76,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                 final ExternalReferenceService externalReferenceService,
                                 final ExtensionSchemeService extensionSchemeService,
                                 final ExtensionService extensionService,
-                                final Indexing indexing) {
+                                final Indexing indexing,
+                                final CloningService cloningService,
+                                final CodeSchemeParser codeSchemeParser) {
         this.authorizationManager = authorizationManager;
         this.codeService = codeService;
         this.codeSchemeService = codeSchemeService;
@@ -86,6 +87,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
         this.extensionSchemeService = extensionSchemeService;
         this.extensionService = extensionService;
         this.indexing = indexing;
+        this.cloningService = cloningService;
+        this.codeSchemeParser = codeSchemeParser;
     }
 
     @POST
@@ -161,6 +164,19 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                    @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, format, inputStream, null);
+    }
+
+    @POST
+    @Path("{codeRegistryCodeValue}/clone/codescheme/{originalCodeSchemeUuid}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    public Response cloneCodeSchemeFromJson(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                            @PathParam("originalCodeSchemeUuid") final String originalCodeSchemeUuid,
+                                            @ApiParam(value = "JSON playload for CodeScheme data.", required = true) final String jsonPayload) {
+
+        CodeSchemeDTO codeSchemeWithUserChangesFromUi = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
+        codeSchemeWithUserChangesFromUi = cloningService.topLevelClone(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue, originalCodeSchemeUuid);
+        return indexCodeschemeAndCodesAfterCloning(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue);
     }
 
     @POST
@@ -527,11 +543,35 @@ public class CodeRegistryResource extends AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
+    private Response indexCodeschemeAndCodesAfterCloning(CodeSchemeDTO codeSchemeDTO, String codeRegistryCodeValue) {
+        HashSet<CodeSchemeDTO> codeSchemeDTOs = new HashSet<>();
+        codeSchemeDTOs.add(codeSchemeDTO);
+        indexing.updateCodeSchemes(codeSchemeDTOs);
+        indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
+        indexing.updateCodes(codeService.findByCodeSchemeId(codeSchemeDTO.getId()));
+        indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeSchemeDTO.getId()));
+        final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeSchemeDTO.getId());
+        if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
+            indexing.updateExtensionSchemes(extensionSchemes);
+            for (final ExtensionSchemeDTO extensionScheme : extensionSchemes) {
+                indexing.updateExtensions(extensionService.findByExtensionSchemeId(extensionScheme.getId()));
+            }
+        }
+        final Meta meta = new Meta();
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry,code,extensionScheme,extension")));
+        final ResponseWrapper<CodeSchemeDTO> responseWrapper = new ResponseWrapper<>(meta);
+        meta.setMessage("A CodeScheme was cloned.");
+        meta.setCode(200);
+        responseWrapper.setResults(codeSchemeDTOs);
+        return Response.ok(responseWrapper).build();
+    }
+
     private Response parseAndPersistCodeSchemesFromSource(final String codeRegistryCodeValue,
                                                           final String format,
                                                           final InputStream inputStream,
                                                           final String jsonPayload) {
         final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload);
+
         indexing.updateCodeSchemes(codeSchemes);
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
         for (final CodeSchemeDTO codeScheme : codeSchemes) {

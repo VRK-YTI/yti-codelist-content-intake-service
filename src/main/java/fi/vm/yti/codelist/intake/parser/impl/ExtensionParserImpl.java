@@ -142,18 +142,21 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 headerMap = resolveHeaderMap(row);
                 validateRequiredSchemeHeaders(headerMap);
             } else {
-                validateRequiredDataOnRow(row, headerMap, formatter);
                 final ExtensionDTO extension = new ExtensionDTO();
+                final String codeIdentifier = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
+                if (codeIdentifier == null || codeIdentifier.isEmpty()) {
+                    continue;
+                }
+                validateRequiredDataOnRow(row, headerMap, formatter);
+                extension.setCode(createCodeUsingIdentifier(codeIdentifier));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     extension.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
                 extension.setOrder(Integer.parseInt(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER)))));
                 extension.setExtensionValue(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))));
-                final String codeIdentifier = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
-                extension.setCode(createCodeUsingIdentifier(codeIdentifier));
                 if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {
                     final String relationCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
-                    if (relationCodeValue != null) {
+                    if (relationCodeValue != null && !relationCodeValue.isEmpty()) {
                         extension.setExtension(createExtensionWithCodeValue(relationCodeValue));
                     }
                 }

@@ -177,16 +177,18 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
                 validateRequiredCodeHeaders(headerMap);
             } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
-                validateRequiredDataOnRow(row, headerMap, formatter);
                 final CodeDTO code = new CodeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
-                if (codeValue == null || codeValue.trim().isEmpty()) {
+                final String status = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)));
+                if (skipEmptyLine(codeValue, status)) {
                     continue;
                 }
+                validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
                 code.setCodeValue(codeValue);
+                code.setStatus(parseStatusValueFromString(status));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     code.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
@@ -204,7 +206,6 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                         broaderCodeMapping.put(codeValue.toLowerCase(), null);
                     }
                 }
-                code.setStatus(parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))));
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
                     code.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum() + 1)));
                 }

@@ -69,7 +69,7 @@ public class ExternalReferenceResource extends AbstractBaseResource {
     })
     public Response addOrUpdateExternalReferencesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
                                                           @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistExistingReferencesFromSource(FORMAT_JSON, inputStream, null);
+        return parseAndPersistExistingReferencesFromSource(format, inputStream, null);
     }
 
     @POST

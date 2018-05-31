@@ -31,4 +31,5 @@ public interface ExternalReferenceDao {
 
     Set<ExternalReference> findByParentCodeSchemeId(final UUID parentCodeSchemeId);
 
+    Set<ExternalReference> findByParentCodeSchemeIdAndGlobalIsNull(final UUID parentCodeSchemeId);
 }

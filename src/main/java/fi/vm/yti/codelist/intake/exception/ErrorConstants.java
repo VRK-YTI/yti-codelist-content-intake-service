@@ -38,6 +38,8 @@ public class ErrorConstants {
     public static final String ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE = "ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE";
     public static final String ERR_MSG_USER_ROW_MISSING_CODE = "ERR_MSG_USER_ROW_MISSING_CODE";
     public static final String ERR_MSG_CODE_ORDER_NOT_SEQUENTIAL = "ERR_MSG_CODE_ORDER_NOT_SEQUENTIAL";
+    public static final String ERR_MSG_USER_EXTENSION_CODE_NOT_FOUND = "ERR_MSG_USER_EXTENSION_CODE_NOT_FOUND";
+
 
     private ErrorConstants() {
     }

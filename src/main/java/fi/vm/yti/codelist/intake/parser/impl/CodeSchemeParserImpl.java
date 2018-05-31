@@ -33,6 +33,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.BadClassificationException;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
@@ -124,6 +125,14 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 codeScheme.setLegalBase(parseLegalBaseFromCsvRecord(record));
                 codeScheme.setGovernancePolicy(parseGovernancePolicyFromCsvRecord(record));
                 codeScheme.setSource(parseSourceFromCsvRecord(record));
+                if (headerMap.containsKey(CONTENT_HEADER_DEFAULTCODE)) {
+                    final String defaultCodeCodeValue = parseDefaultCodeFromCsvRecord(record);
+                    if (defaultCodeCodeValue != null && !defaultCodeCodeValue.isEmpty()) {
+                        final CodeDTO defaultCode = new CodeDTO();
+                        defaultCode.setCodeValue(defaultCodeCodeValue);
+                        codeScheme.setDefaultCode(defaultCode);
+                    }
+                }
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
                     codeScheme.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 }
@@ -174,16 +183,18 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 changeNoteHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_CHANGENOTE_PREFIX);
                 validateRequiredSchemeHeaders(headerMap);
             } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
-                validateRequiredDataOnRow(row, headerMap, formatter);
                 final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
-                if (codeValue == null || codeValue.trim().isEmpty()) {
+                final String status = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)));
+                if (skipEmptyLine(codeValue, status)) {
                     continue;
                 }
+                validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue);
                 codeScheme.setCodeValue(codeValue);
+                codeScheme.setStatus(parseStatusValueFromString(status));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     codeScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
@@ -197,7 +208,6 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 if (headerMap.containsKey(CONTENT_HEADER_VERSION)) {
                     codeScheme.setVersion(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_VERSION))));
                 }
-                codeScheme.setStatus(parseStatusValueFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)))));
                 if (headerMap.containsKey(CONTENT_HEADER_SOURCE)) {
                     codeScheme.setSource(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SOURCE))));
                 }
@@ -206,6 +216,14 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_GOVERNANCEPOLICY)) {
                     codeScheme.setGovernancePolicy(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_GOVERNANCEPOLICY))));
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_DEFAULTCODE)) {
+                    final String defaultCodeCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_DEFAULTCODE)));
+                    if (defaultCodeCodeValue != null && !defaultCodeCodeValue.isEmpty()) {
+                        final CodeDTO defaultCode = new CodeDTO();
+                        defaultCode.setCodeValue(defaultCodeCodeValue);
+                        codeScheme.setDefaultCode(defaultCode);
+                    }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
                     codeScheme.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
@@ -299,6 +317,10 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
 
     private String parseLegalBaseFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_LEGALBASE);
+    }
+
+    private String parseDefaultCodeFromCsvRecord(final CSVRecord record) {
+        return parseStringFromCsvRecord(record, CONTENT_HEADER_DEFAULTCODE);
     }
 
     private String parseGovernancePolicyFromCsvRecord(final CSVRecord record) {

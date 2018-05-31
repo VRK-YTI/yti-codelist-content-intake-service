@@ -32,4 +32,7 @@ public interface CodeSchemeService {
 
     CodeSchemeDTO deleteCodeScheme(final String codeRegistryCodeValue,
                                    final String codeSchemeCodeValue);
+
+    CodeSchemeDTO updateCodeSchemeFromDto (String codeRegistryCodeValue, CodeSchemeDTO codeSchemeDTO);
+
 }

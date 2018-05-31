@@ -107,7 +107,7 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinColumn(name = "propertytype_id", nullable = false, insertable = true, updatable = true)
+    @JoinColumn(name = "propertytype_id", nullable = false, insertable = true, updatable = false)
     @JsonView(Views.Normal.class)
     public PropertyType getPropertyType() {
         return propertyType;
@@ -117,7 +117,7 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
         this.propertyType = propertyType;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "extensionScheme", cascade = CascadeType.DETACH)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "extensionScheme", cascade = CascadeType.ALL)
     @JsonView(Views.ExtendedExtensionScheme.class)
     public Set<Extension> getExtensions() {
         return extensions;
@@ -127,9 +127,9 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
         this.extensions = extensions;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinColumn(name = "parentcodescheme_id", nullable = false, insertable = true, updatable = true)
-    @JsonView(Views.Normal.class)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "parentcodescheme_id", nullable = false, insertable = true, updatable = false)
+    @JsonView(Views.ExtendedExtensionScheme.class)
     public CodeScheme getParentCodeScheme() {
         return parentCodeScheme;
     }
