@@ -309,7 +309,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         this.codes = codes;
     }
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "service_codescheme_code",
         joinColumns = {
             @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
