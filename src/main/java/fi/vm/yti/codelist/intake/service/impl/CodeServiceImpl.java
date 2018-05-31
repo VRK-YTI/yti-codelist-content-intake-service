@@ -1,10 +1,7 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -25,7 +22,6 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
-import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
@@ -47,8 +43,6 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     private final CodeSchemeDao codeSchemeDao;
     private final CodeDao codeDao;
     private final CodeParserImpl codeParser;
-    private final ApiUtils apiUtils;
-    private final DataSource dataSource;
 
     @Inject
     public CodeServiceImpl(final AuthorizationManager authorizationManager,
@@ -64,8 +58,6 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         this.codeSchemeDao = codeSchemeDao;
         this.codeParser = codeParser;
         this.codeDao = codeDao;
-        this.apiUtils = apiUtils;
-        this.dataSource = dataSource;
     }
 
     @Transactional
@@ -273,5 +265,13 @@ public class CodeServiceImpl extends BaseService implements CodeService {
             return null;
         }
         return mapDeepCodeDto(code);
+    }
+
+    @Transactional
+    public Set<Code> updateCodesFromDtos(final CodeScheme codeScheme,
+                                         final Set<CodeDTO> codeDtos,
+                                         final Map<String, String> broaderCodeMapping,
+                                         final boolean updateExternalReferences) {
+        return codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, updateExternalReferences);
     }
 }

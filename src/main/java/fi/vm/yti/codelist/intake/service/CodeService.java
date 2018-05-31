@@ -1,9 +1,11 @@
 package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import fi.vm.yti.codelist.intake.model.Code;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
@@ -51,4 +53,9 @@ public interface CodeService {
     CodeDTO findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                                           final String codeSchemeCodeValue,
                                                                           final String codeCodeValue);
+
+    public Set<Code> updateCodesFromDtos(final CodeScheme codeScheme,
+                                         final Set<CodeDTO> codeDtos,
+                                         final Map<String, String> broaderCodeMapping,
+                                         final boolean updateExternalReferences);
 }

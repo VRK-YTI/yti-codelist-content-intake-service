@@ -66,6 +66,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeSchemeRepository.delete(codeScheme);
     }
 
+    @Transactional
     public void save(final CodeScheme codeScheme) {
         codeSchemeRepository.save(codeScheme);
         entityChangeLogger.logCodeSchemeChange(codeScheme);

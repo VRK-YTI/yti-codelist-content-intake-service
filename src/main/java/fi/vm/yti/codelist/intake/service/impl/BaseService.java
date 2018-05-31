@@ -36,7 +36,7 @@ import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 
-abstract class BaseService {
+public abstract class BaseService {
 
     private static final Logger LOG = LoggerFactory.getLogger(IndexingImpl.class);
     private static final String SORT_ASC = "ASC";
@@ -49,7 +49,7 @@ abstract class BaseService {
     private static final String ENTITY_EXTERNALREFERENCE = "externalreference";
     private static final String ENTITY_PROPERTYTYPE = "propertytype";
 
-    private final ApiUtils apiUtils;
+    protected final ApiUtils apiUtils;
     private final DataSource dataSource;
 
     public BaseService(final ApiUtils apiUtils,
