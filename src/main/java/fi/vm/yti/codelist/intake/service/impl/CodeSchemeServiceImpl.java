@@ -252,8 +252,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
-            codeSchemeDao.delete(codeScheme);
             externalReferenceDao.delete(externalReferences);
+            codeSchemeDao.delete(codeScheme);
             return codeSchemeDto;
         } else {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
