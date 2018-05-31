@@ -1,14 +1,20 @@
 package fi.vm.yti.codelist.intake.parser.impl;
 
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import fi.vm.yti.codelist.common.dto.CodeDTO;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -190,6 +196,36 @@ public abstract class AbstractBaseParser {
         if (values.contains(codeValue)) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_DUPLICATE_CODE_VALUE));
         }
+    }
+
+    public void checkOrderValidity(Set<CodeDTO> codes) {
+        System.out.println("bbefore sort: ");
+
+        List<CodeDTO> codesSorted = codes.stream().collect(Collectors.toList());
+        for (final CodeDTO code : codesSorted) {
+            System.out.println(code.getOrder());
+        }
+
+        //Collections.sort(codesSorted, (o1, o2) -> o1.getOrder().compareTo(o2.getOrder()));
+        Collections.sort(codesSorted, Comparator.comparing(CodeDTO::getOrder));
+
+        System.out.println("after sort: ");
+        for (final CodeDTO code : codesSorted) {
+            System.out.println(code.getOrder());
+        }
+
+        //Check that order is sequential and has no gaps and no duplicate order values
+        CodeDTO[] codesArray = codesSorted.toArray(new CodeDTO[codesSorted.size()]);
+        for (int i = 0; i < codesArray.length-1; i++) {
+            if ((codesArray[i].getOrder() + 1) != codesArray[i + 1].getOrder()) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_NOT_SEQUENTIAL));
+            }
+        }
+
+        if (codesArray.length > 0 && codes.size() != codesArray[codesArray.length-1].getOrder()) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_NOT_SEQUENTIAL));
+        }
+
     }
 
     public String parseStringFromCsvRecord(final CSVRecord record,

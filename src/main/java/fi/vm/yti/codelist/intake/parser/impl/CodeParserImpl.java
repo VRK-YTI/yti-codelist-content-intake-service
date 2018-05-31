@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -69,6 +71,26 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
             validateRequiredCodeHeaders(headerMap);
 
             final List<CSVRecord> records = csvParser.getRecords();
+
+            /*System.out.println("Before csv sort");
+            for (final CSVRecord record : records) {
+                System.out.println(record.get(CONTENT_HEADER_ORDER));
+            }*/
+
+            Collections.sort(records, new Comparator<CSVRecord>() {
+                    public int compare(CSVRecord o1, CSVRecord o2) {
+                        if (o1.isMapped(CONTENT_HEADER_ORDER)) {
+                            return o1.get(CONTENT_HEADER_ORDER).compareTo(o2.get(CONTENT_HEADER_ORDER));
+                        }
+                        else return 0;
+                }
+            });
+
+            /*System.out.println("after csv sort");
+            for (final CSVRecord record : records) {
+                System.out.println(record.get(CONTENT_HEADER_ORDER));
+            }*/
+
             for (final CSVRecord record : records) {
                 validateRequiredDataOnRecord(record);
                 final CodeDTO code = new CodeDTO();
@@ -103,6 +125,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
 
                 codes.add(code);
             }
+            checkOrderValidity(codes);
         } catch (final IllegalArgumentException e) {
             LOG.error("Duplicate header value found in CSV!", e);
             throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
@@ -222,6 +245,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 validateStartDateIsBeforeEndDate(code);
                 codeValues.add(code.getCodeValue());
             }
+            checkOrderValidity(codes);
         } catch (final IOException e) {
             LOG.error("Codes parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);

@@ -37,6 +37,7 @@ public class ErrorConstants {
     public static final String ERR_MSG_CANT_REACH_TERMINOLOGY_API = "ERR_MSG_CANT_REACH_TERMINOLOGY_API";
     public static final String ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE = "ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE";
     public static final String ERR_MSG_USER_ROW_MISSING_CODE = "ERR_MSG_USER_ROW_MISSING_CODE";
+    public static final String ERR_MSG_CODE_ORDER_NOT_SEQUENTIAL = "ERR_MSG_CODE_ORDER_NOT_SEQUENTIAL";
 
     private ErrorConstants() {
     }
