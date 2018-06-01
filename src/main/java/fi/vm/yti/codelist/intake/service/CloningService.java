@@ -15,5 +15,5 @@ public interface CloningService {
 
     CodeScheme cloneCodeScheme(CodeScheme codeScheme);
 
-    CodeSchemeDTO topLevelClone(CodeSchemeDTO codeSchemeDTO, String codeRegistryCodeValue, String originalCodeSchemeUuid);
+    CodeSchemeDTO cloneCodeSchemeWithAllThePlumbing(CodeSchemeDTO codeSchemeDTO, String codeRegistryCodeValue, String originalCodeSchemeUuid);
 }
