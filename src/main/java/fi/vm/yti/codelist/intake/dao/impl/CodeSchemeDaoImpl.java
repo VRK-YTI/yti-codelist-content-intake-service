@@ -248,6 +248,8 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             if (!Objects.equals(existingCodeScheme.getDefaultCode(), defaultCode)) {
                 existingCodeScheme.setDefaultCode(defaultCode);
             }
+        } else {
+            existingCodeScheme.setDefaultCode(null);
         }
         return existingCodeScheme;
     }
