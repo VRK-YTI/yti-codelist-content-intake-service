@@ -245,6 +245,10 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         if (authorizationManager.isSuperUser()) {
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
             final Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
+            if (codeScheme.getDefaultCode() != null && code != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
+                codeScheme.setDefaultCode(null);
+                codeSchemeDao.save(codeScheme);
+            }
             final CodeDTO codeDto = mapCodeDto(code, true);
             codeDao.delete(code);
             return codeDto;

@@ -440,8 +440,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue) {
         checkForSuperUser();
+        final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         final CodeDTO code = codeService.deleteCode(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
-        if (code != null) {
+        if (code != null && codeScheme != null) {
             final Set<CodeDTO> referencedCodes = codeService.removeBroaderCodeId(code.getId());
             if (referencedCodes != null && !referencedCodes.isEmpty()) {
                 indexing.updateCodes(referencedCodes);
@@ -451,6 +452,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 indexing.deleteExtensions(extensions);
             }
             indexing.deleteCode(code);
+            indexing.updateCodeScheme(codeScheme);
+            final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeScheme.getId());
+            indexing.updateExtensionSchemes(extensionSchemes);
             final Meta meta = new Meta();
             final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
             return Response.ok(responseWrapper).build();
@@ -571,7 +575,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                           final InputStream inputStream,
                                                           final String jsonPayload) {
         final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload);
-
         indexing.updateCodeSchemes(codeSchemes);
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
         for (final CodeSchemeDTO codeScheme : codeSchemes) {
