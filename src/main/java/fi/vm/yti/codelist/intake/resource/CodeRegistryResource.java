@@ -175,7 +175,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                             @ApiParam(value = "JSON playload for CodeScheme data.", required = true) final String jsonPayload) {
 
         CodeSchemeDTO codeSchemeWithUserChangesFromUi = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
-        codeSchemeWithUserChangesFromUi = cloningService.topLevelClone(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue, originalCodeSchemeUuid);
+        codeSchemeWithUserChangesFromUi = cloningService.cloneCodeSchemeWithAllThePlumbing(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue, originalCodeSchemeUuid);
         return indexCodeschemeAndCodesAfterCloning(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue);
     }
 

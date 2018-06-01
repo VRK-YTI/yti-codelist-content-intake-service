@@ -49,9 +49,11 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     }
 
     @Transactional
-    public CodeSchemeDTO topLevelClone(CodeSchemeDTO codeSchemeWithUserChangesFromUi, String codeRegistryCodeValue, String originalCodeSchemeUuid) {
+    public CodeSchemeDTO cloneCodeSchemeWithAllThePlumbing(CodeSchemeDTO codeSchemeWithUserChangesFromUi, String codeRegistryCodeValue, String originalCodeSchemeUuid) {
 
         CodeScheme originalCodeScheme = findCodeSchemeAndEagerFetchTheChildren(UUID.fromString(originalCodeSchemeUuid));
+
+        codeSchemeWithUserChangesFromUi.setStatus(Status.DRAFT.toString());
 
         codeSchemeWithUserChangesFromUi = codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
 
