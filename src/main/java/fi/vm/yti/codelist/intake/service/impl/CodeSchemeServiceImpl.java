@@ -148,7 +148,9 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionSchemesSheetNames);
                         codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeDtos, false);
                         if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
-                            codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeSchemes.iterator().next());
+                            final CodeScheme codeScheme = codeSchemes.iterator().next();
+                            codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeScheme);
+                            resolveAndSetCodeSchemeDefaultCode(codeScheme, codeSchemeDtos.iterator().next());
                         } else if (!codesSheetNames.isEmpty()) {
                             codesSheetNames.forEach((codeSchemeDto, sheetName) -> {
                                 if (workbook.getSheet(sheetName) != null) {
