@@ -9,11 +9,10 @@ import java.util.UUID;
 public interface CloningService {
 
     CodeScheme findById(final UUID id);
+
     CodeScheme findCodeSchemeAndEagerFetchTheChildren(final UUID id);
 
     Code cloneCode(Code code, CodeScheme newCodeScheme);
-
-    CodeScheme cloneCodeScheme(CodeScheme codeScheme);
 
     CodeSchemeDTO cloneCodeSchemeWithAllThePlumbing(CodeSchemeDTO codeSchemeDTO, String codeRegistryCodeValue, String originalCodeSchemeUuid);
 }

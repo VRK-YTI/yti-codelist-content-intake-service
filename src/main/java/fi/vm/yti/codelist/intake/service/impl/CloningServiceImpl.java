@@ -138,30 +138,4 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         copy.setUri(apiUtils.createCodeUri(copy));
         return copy;
     }
-
-    @Transactional
-    public CodeScheme cloneCodeScheme(CodeScheme c) {
-        CodeScheme copy = new CodeScheme();
-
-        copy.setCodeRegistry(c.getCodeRegistry());
-        copy.setExternalReferences(c.getExternalReferences());
-        for (ExternalReference extRef : copy.getExternalReferences()) {
-            extRef.setId(null);
-        }
-        copy.setExtensionSchemes(c.getExtensionSchemes());
-        for (ExtensionScheme extScheme: copy.getExtensionSchemes()) {
-            extScheme.setId(null);
-        }
-        copy.setStatus(Status.DRAFT.toString());
-        copy.setUri(apiUtils.createCodeSchemeUri(copy));
-
-        Set<Code> originalCodes = c.getCodes();
-        Set<Code> copiedCodes = new HashSet<>();
-        for (Code code : originalCodes) {
-            copiedCodes.add(this.cloneCode(code, copy));
-        }
-        copy.setCodes(copiedCodes);
-
-        return copy;
-    }
 }
