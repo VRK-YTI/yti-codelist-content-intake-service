@@ -1,11 +1,14 @@
 package fi.vm.yti.codelist.intake.jpa;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import fi.vm.yti.codelist.intake.model.Code;
@@ -22,6 +25,9 @@ public interface CodeRepository extends CrudRepository<Code, String> {
     Code findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme, final String codeValue, final UUID broaderCodeId);
 
     Code findById(final UUID id);
+
+    @Query(value = "SELECT c.order FROM Code as c WHERE c.codeScheme = :codeScheme ORDER BY c.order DESC")
+    List<Integer> getInMaxOrder(@Param("codeScheme") final CodeScheme codeScheme);
 
     Set<Code> findByCodeScheme(final CodeScheme codeScheme);
 
