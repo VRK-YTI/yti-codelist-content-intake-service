@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.dao.impl;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -198,7 +199,11 @@ public class CodeDaoImpl implements CodeDao {
             existingCode.setHierarchyLevel(fromCode.getHierarchyLevel());
         }
         if (!Objects.equals(existingCode.getOrder(), fromCode.getOrder())) {
-            existingCode.setOrder(fromCode.getOrder());
+            if (fromCode.getOrder() != null) {
+                existingCode.setOrder(fromCode.getOrder());
+            } else {
+                existingCode.setOrder(getNextOrderInSequence(codeScheme));
+            }
         }
         if (!Objects.equals(existingCode.getBroaderCodeId(), fromCode.getBroaderCodeId())) {
             existingCode.setBroaderCodeId(fromCode.getBroaderCodeId());
@@ -236,6 +241,20 @@ public class CodeDaoImpl implements CodeDao {
         return existingCode;
     }
 
+    private Integer getNextOrderInSequence(final CodeScheme codeScheme) {
+        final List<Integer> codes = codeRepository.getInMaxOrder(codeScheme);
+        if (codes.isEmpty()) {
+            return 1;
+        } else {
+            final Integer maxOrder = codes.iterator().next();
+            if (maxOrder != null) {
+                return maxOrder + 1;
+            } else {
+                return 1;
+            }
+        }
+    }
+
     private Code createCode(final CodeScheme codeScheme,
                             final CodeDTO fromCode) {
         final Code code = new Code();
@@ -253,7 +272,11 @@ public class CodeDaoImpl implements CodeDao {
         code.setShortName(fromCode.getShortName());
         code.setHierarchyLevel(fromCode.getHierarchyLevel());
         code.setBroaderCodeId(fromCode.getBroaderCodeId());
-        code.setOrder(fromCode.getOrder());
+        if (fromCode.getOrder() != null) {
+            code.setOrder(fromCode.getOrder());
+        } else {
+            code.setOrder(getNextOrderInSequence(codeScheme));
+        }
 
         for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             code.setPrefLabel(entry.getKey(), entry.getValue());
