@@ -66,7 +66,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "      \"path_match\": \"prefLabel.*\",\n" +
         "      \"mapping\": {\n" +
         "        \"type\": \"text\",\n" +
-        "        \"analyzer\": \"text_analyzer\",\n" +
+        "        \"analyzer\": \"preflabel_analyzer\",\n" +
         "        \"fields\": {\n" +
         "          \"keyword\": { \n" +
         "            \"type\": \"keyword\",\n" +
@@ -302,6 +302,11 @@ public class IndexingToolsImpl implements IndexingTools {
                     .startObject("text_analyzer")
                     .field("type", "custom")
                     .field("tokenizer", "keyword")
+                    .field("filter", new String[]{"lowercase", "standard"})
+                    .endObject()
+                    .startObject("preflabel_analyzer")
+                    .field("type", "custom")
+                    .field("tokenizer", "ngram")
                     .field("filter", new String[]{"lowercase", "standard"})
                     .endObject()
                     .endObject()
