@@ -18,10 +18,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
-import fi.vm.yti.codelist.intake.service.*;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -30,17 +27,23 @@ import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
-import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
-import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.model.Meta;
+import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
+import fi.vm.yti.codelist.intake.service.CloningService;
+import fi.vm.yti.codelist.intake.service.CodeRegistryService;
+import fi.vm.yti.codelist.intake.service.CodeSchemeService;
+import fi.vm.yti.codelist.intake.service.CodeService;
+import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
+import fi.vm.yti.codelist.intake.service.ExtensionService;
+import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -49,7 +52,6 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_401;
 
 @Component
 @Path("/v1/coderegistries")
@@ -280,7 +282,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
     public Response deleteCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue) {
 
-        checkForSuperUser();
         final CodeSchemeDTO existingCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (existingCodeScheme != null) {
             final UUID codeSchemeId = existingCodeScheme.getId();
@@ -323,7 +324,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                           @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                           @ApiParam(value = "ExtensionScheme codeValue", required = true) @PathParam("extensionSchemeCodeValue") final String extensionSchemeCodeValue) {
 
-        checkForSuperUser();
         final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
             final ExtensionSchemeDTO existingExtensionScheme = extensionSchemeService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionSchemeCodeValue);
@@ -355,7 +355,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                     @ApiParam(value = "ExtensionScheme codeValue", required = true) @PathParam("extensionSchemeCodeValue") final String extensionSchemeCodeValue,
                                     @ApiParam(value = "Extension UUID", required = true) @PathParam("extensionId") final UUID extensionId) {
 
-        checkForSuperUser();
         final ExtensionDTO existingExtension = extensionService.findById(extensionId);
         if (existingExtension != null) {
             final ExtensionDTO extensionScheme = extensionService.deleteExtension(existingExtension.getId());
@@ -439,7 +438,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
     public Response deleteCode(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue) {
-        checkForSuperUser();
         final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         final CodeDTO code = codeService.deleteCode(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
         if (code != null && codeScheme != null) {
@@ -650,11 +648,5 @@ public class CodeRegistryResource extends AbstractBaseResource {
         meta.setCode(200);
         responseWrapper.setResults(codes);
         return Response.ok(responseWrapper).build();
-    }
-
-    private void checkForSuperUser() {
-        if (!this.authorizationManager.isSuperUser()) {
-            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
-        }
     }
 }

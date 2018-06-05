@@ -196,8 +196,8 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
     }
 
     public ExtensionSchemeDTO deleteExtensionScheme(final UUID extensionSchemeId) {
-        if (authorizationManager.isSuperUser()) {
-            final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeId);
+        final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeId);
+        if (authorizationManager.canExtensionSchemeBeDeleted(extensionScheme)) {
             final ExtensionSchemeDTO extensionSchemeDto = mapExtensionSchemeDto(extensionScheme, false);
             final Set<Extension> extensions = extensionDao.findByExtensionSchemeId(extensionScheme.getId());
             if (extensions != null && !extensions.isEmpty()) {

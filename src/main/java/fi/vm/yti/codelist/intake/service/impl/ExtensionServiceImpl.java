@@ -59,6 +59,9 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
     @Transactional
     public ExtensionDTO deleteExtension(final UUID id) {
         final Extension extension = extensionDao.findById(id);
+        if (!authorizationManager.canExtensionBeDeleted(extension)) {
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+        }
         final ExtensionDTO extensionDto = mapExtensionDto(extension, false);
         extensionDao.delete(extension);
         return extensionDto;

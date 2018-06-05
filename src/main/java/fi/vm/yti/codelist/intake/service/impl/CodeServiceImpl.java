@@ -246,9 +246,9 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     public CodeDTO deleteCode(final String codeRegistryCodeValue,
                               final String codeSchemeCodeValue,
                               final String codeCodeValue) {
-        if (authorizationManager.isSuperUser()) {
-            final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-            final Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
+        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        final Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
+        if (authorizationManager.canCodeBeDeleted(code)) {
             if (codeScheme.getDefaultCode() != null && code != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
                 codeScheme.setDefaultCode(null);
                 codeSchemeDao.save(codeScheme);

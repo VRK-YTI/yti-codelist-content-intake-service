@@ -250,8 +250,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     @Transactional
     public CodeSchemeDTO deleteCodeScheme(final String codeRegistryCodeValue,
                                           final String codeSchemeCodeValue) {
-        if (authorizationManager.isSuperUser()) {
-            final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if (authorizationManager.canCodeSchemeBeDeleted(codeScheme)) {
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
             if (!externalReferences.isEmpty()) {
