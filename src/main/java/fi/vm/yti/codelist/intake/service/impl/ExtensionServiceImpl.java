@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.apache.poi.ss.usermodel.Workbook;
@@ -21,6 +20,7 @@ import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
@@ -47,8 +47,8 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
                                 final ExtensionSchemeDao extensionSchemeDao,
                                 final CodeSchemeDao codeSchemeDao,
                                 final ApiUtils apiUtils,
-                                final DataSource dataSource) {
-        super(apiUtils, dataSource);
+                                final CommitRepository commitRepository) {
+        super(apiUtils, commitRepository);
         this.authorizationManager = authorizationManager;
         this.extensionDao = extensionDao;
         this.extensionParser = extensionParser;

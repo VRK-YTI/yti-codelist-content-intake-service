@@ -1,10 +1,10 @@
 package fi.vm.yti.codelist.intake.log;
 
+import javax.inject.Inject;
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
     final EditedEntityRepository editedEntityRepository;
     final EntityPayloadLogger entityPayloadLogger;
 
-    @Autowired
+    @Inject
     public EntityChangeLoggerImpl(final DataSource dataSource,
                                   final AuthorizationManager authorizationManager,
                                   final Tracer tracer,

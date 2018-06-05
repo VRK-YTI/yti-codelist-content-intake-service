@@ -6,7 +6,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -20,6 +19,7 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.parser.impl.CodeRegistryParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
@@ -41,8 +41,8 @@ public class CodeRegistryServiceImpl extends BaseService implements CodeRegistry
                                    final CodeRegistryParserImpl codeRegistryParser,
                                    final CodeRegistryDao codeRegistryDao,
                                    final ApiUtils apiUtils,
-                                   final DataSource dataSource) {
-        super(apiUtils, dataSource);
+                                   final CommitRepository commitRepository) {
+        super(apiUtils, commitRepository);
         this.authorizationManager = authorizationManager;
         this.codeRegistryParser = codeRegistryParser;
         this.codeRegistryDao = codeRegistryDao;

@@ -1,12 +1,15 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.apache.poi.ss.usermodel.Workbook;
@@ -24,6 +27,7 @@ import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -51,8 +55,8 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                            final CodeParserImpl codeParser,
                            final CodeDao codeDao,
                            final ApiUtils apiUtils,
-                           final DataSource dataSource) {
-        super(apiUtils, dataSource);
+                           final CommitRepository commitRepository) {
+        super(apiUtils, commitRepository);
         this.authorizationManager = authorizationManager;
         this.codeRegistryDao = codeRegistryDao;
         this.codeSchemeDao = codeSchemeDao;
