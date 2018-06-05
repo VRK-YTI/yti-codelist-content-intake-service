@@ -72,25 +72,6 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
 
             final List<CSVRecord> records = csvParser.getRecords();
 
-            /*System.out.println("Before csv sort");
-            for (final CSVRecord record : records) {
-                System.out.println(record.get(CONTENT_HEADER_ORDER));
-            }*/
-
-            Collections.sort(records, new Comparator<CSVRecord>() {
-                    public int compare(CSVRecord o1, CSVRecord o2) {
-                        if (o1.isMapped(CONTENT_HEADER_ORDER)) {
-                            return o1.get(CONTENT_HEADER_ORDER).compareTo(o2.get(CONTENT_HEADER_ORDER));
-                        }
-                        else return 0;
-                }
-            });
-
-            /*System.out.println("after csv sort");
-            for (final CSVRecord record : records) {
-                System.out.println(record.get(CONTENT_HEADER_ORDER));
-            }*/
-
             for (final CSVRecord record : records) {
                 validateRequiredDataOnRecord(record);
                 final CodeDTO code = new CodeDTO();
@@ -176,6 +157,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
                 descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
                 validateRequiredCodeHeaders(headerMap);
+
             } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
                 final CodeDTO code = new CodeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
@@ -215,7 +197,9 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 validateStartDateIsBeforeEndDate(code);
                 codes.add(code);
             }
+
         }
+        checkOrderValidity(codes);
         return codes;
     }
 
@@ -296,7 +280,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         Integer order;
         if (record.isMapped(CONTENT_HEADER_ORDER)) {
             order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER));
-            if (order != null && maxOrderValue > order) {
+            if (order != null) {
                 maxOrderValue = order;
             } else {
                 order = ++maxOrderValue;
@@ -313,7 +297,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         Integer order;
         if (headerMap.containsKey(CONTENT_HEADER_ORDER)) {
             order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER))));
-            if (order != null && order > maxOrderValue) {
+            if (order != null) {
                 maxOrderValue = order;
             } else {
                 order = ++maxOrderValue;

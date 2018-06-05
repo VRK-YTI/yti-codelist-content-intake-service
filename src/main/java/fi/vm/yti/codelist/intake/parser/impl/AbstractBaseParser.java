@@ -199,20 +199,10 @@ public abstract class AbstractBaseParser {
     }
 
     public void checkOrderValidity(Set<CodeDTO> codes) {
-        System.out.println("bbefore sort: ");
 
         List<CodeDTO> codesSorted = codes.stream().collect(Collectors.toList());
-        for (final CodeDTO code : codesSorted) {
-            System.out.println(code.getOrder());
-        }
 
-        //Collections.sort(codesSorted, (o1, o2) -> o1.getOrder().compareTo(o2.getOrder()));
         Collections.sort(codesSorted, Comparator.comparing(CodeDTO::getOrder));
-
-        System.out.println("after sort: ");
-        for (final CodeDTO code : codesSorted) {
-            System.out.println(code.getOrder());
-        }
 
         //Check that order is sequential and has no gaps and no duplicate order values
         CodeDTO[] codesArray = codesSorted.toArray(new CodeDTO[codesSorted.size()]);
