@@ -211,21 +211,11 @@ public abstract class AbstractBaseParser {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_NOT_SEQUENTIAL));
             }
         }
-        System.out.print();
-        System.out.println();
 
-        System.out.print();
-        System.out.println();
 
-        System.out.print();
-        System.out.println();
-
-        System.out.print();
-        System.out.println();
-
-        if (codesArray.length > 0 && codes.size() != codesArray[codesArray.length-1].getOrder()) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_NOT_SEQUENTIAL));
-        }
+        //if (codesArray.length > 0 && codes.size() != codesArray[codesArray.length-1].getOrder()) {
+        //    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_NOT_SEQUENTIAL));
+        //}
 
     }
 
