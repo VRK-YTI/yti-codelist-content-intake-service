@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -69,6 +71,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
             validateRequiredCodeHeaders(headerMap);
 
             final List<CSVRecord> records = csvParser.getRecords();
+
             for (final CSVRecord record : records) {
                 validateRequiredDataOnRecord(record);
                 final CodeDTO code = new CodeDTO();
@@ -103,6 +106,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
 
                 codes.add(code);
             }
+            checkOrderValidity(codes);
         } catch (final IllegalArgumentException e) {
             LOG.error("Duplicate header value found in CSV!", e);
             throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
@@ -153,6 +157,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
                 descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
                 validateRequiredCodeHeaders(headerMap);
+
             } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
                 final CodeDTO code = new CodeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
@@ -192,7 +197,9 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 validateStartDateIsBeforeEndDate(code);
                 codes.add(code);
             }
+
         }
+        checkOrderValidity(codes);
         return codes;
     }
 
@@ -223,6 +230,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 validateStartDateIsBeforeEndDate(code);
                 codeValues.add(code.getCodeValue());
             }
+            checkOrderValidity(codes);
         } catch (final IOException e) {
             LOG.error("Codes parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
@@ -272,7 +280,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         Integer order;
         if (record.isMapped(CONTENT_HEADER_ORDER)) {
             order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER));
-            if (order != null && maxOrderValue > order) {
+            if (order != null) {
                 maxOrderValue = order;
             } else {
                 order = ++maxOrderValue;
@@ -289,7 +297,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         Integer order;
         if (headerMap.containsKey(CONTENT_HEADER_ORDER)) {
             order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER))));
-            if (order != null && order > maxOrderValue) {
+            if (order != null) {
                 maxOrderValue = order;
             } else {
                 order = ++maxOrderValue;
