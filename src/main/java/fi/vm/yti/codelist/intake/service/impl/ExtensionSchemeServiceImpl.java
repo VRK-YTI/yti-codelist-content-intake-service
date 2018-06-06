@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.apache.poi.POIXMLException;
@@ -29,6 +28,7 @@ import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
@@ -58,9 +58,9 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                                       final ExtensionSchemeParser extensionSchemeParser,
                                       final AuthorizationManager authorizationManager,
                                       final ApiUtils apiUtils,
-                                      final DataSource dataSource,
-                                      final ExtensionParser extensionParser) {
-        super(apiUtils, dataSource);
+                                      final ExtensionParser extensionParser,
+                                      final CommitRepository commitRepository) {
+        super(apiUtils, commitRepository);
         this.extensionSchemeDao = extensionSchemeDao;
         this.extensionDao = extensionDao;
         this.codeSchemeDao = codeSchemeDao;
@@ -196,8 +196,8 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
     }
 
     public ExtensionSchemeDTO deleteExtensionScheme(final UUID extensionSchemeId) {
-        if (authorizationManager.isSuperUser()) {
-            final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeId);
+        final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeId);
+        if (authorizationManager.canExtensionSchemeBeDeleted(extensionScheme)) {
             final ExtensionSchemeDTO extensionSchemeDto = mapExtensionSchemeDto(extensionScheme, false);
             final Set<Extension> extensions = extensionDao.findByExtensionSchemeId(extensionScheme.getId());
             if (extensions != null && !extensions.isEmpty()) {

@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -20,6 +19,7 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.parser.impl.ExternalReferenceParserImpl;
@@ -43,8 +43,8 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
                                         final ExternalReferenceParserImpl externalReferenceParser,
                                         final ExternalReferenceDao externalReferenceDao,
                                         final ApiUtils apiUtils,
-                                        final DataSource dataSource) {
-        super(apiUtils, dataSource);
+                                        final CommitRepository commitRepository) {
+        super(apiUtils, commitRepository);
         this.authorizationManager = authorizationManager;
         this.externalReferenceParser = externalReferenceParser;
         this.externalReferenceDao = externalReferenceDao;

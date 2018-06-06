@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -20,6 +19,7 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.parser.impl.PropertyTypeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
@@ -41,8 +41,8 @@ public class PropertyTypeServiceImpl extends BaseService implements PropertyType
                                    final PropertyTypeDao propertyTypeRepository,
                                    final PropertyTypeParserImpl propertyTypeParser,
                                    final ApiUtils apiUtils,
-                                   final DataSource dataSource) {
-        super(apiUtils, dataSource);
+                                   final CommitRepository commitRepository) {
+        super(apiUtils, commitRepository);
         this.authorizationManager = authorizationManager;
         this.propertyTypeDao = propertyTypeRepository;
         this.propertyTypeParser = propertyTypeParser;

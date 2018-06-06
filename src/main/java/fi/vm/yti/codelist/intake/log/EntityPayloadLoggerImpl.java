@@ -2,9 +2,10 @@ package fi.vm.yti.codelist.intake.log;
 
 import java.util.UUID;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     private final Tracer tracer;
     private final ObjectMapper mapper;
 
-    @Autowired
+    @Inject
     public EntityPayloadLoggerImpl(final AuthorizationManager authorizationManager,
                                    final Tracer tracer) {
         this.authorizationManager = authorizationManager;

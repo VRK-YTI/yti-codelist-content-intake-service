@@ -10,7 +10,6 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.apache.poi.POIXMLException;
@@ -35,6 +34,7 @@ import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -75,10 +75,10 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                  final ExtensionService extensionService,
                                  final CodeDao codeDao,
                                  final ApiUtils apiUtils,
-                                 final DataSource dataSource,
                                  final ExtensionSchemeDao extensionSchemeDao,
-                                 final ExternalReferenceDao externalReferenceDao) {
-        super(apiUtils, dataSource);
+                                 final ExternalReferenceDao externalReferenceDao,
+                                 final CommitRepository commitRepository) {
+        super(apiUtils, commitRepository);
         this.codeRegistryDao = codeRegistryDao;
         this.authorizationManager = authorizationManager;
         this.codeSchemeParser = codeSchemeParser;
@@ -250,8 +250,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     @Transactional
     public CodeSchemeDTO deleteCodeScheme(final String codeRegistryCodeValue,
                                           final String codeSchemeCodeValue) {
-        if (authorizationManager.isSuperUser()) {
-            final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if (authorizationManager.canCodeSchemeBeDeleted(codeScheme)) {
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
             if (!externalReferences.isEmpty()) {
@@ -277,7 +277,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     }
 
     @Transactional
-    public CodeSchemeDTO updateCodeSchemeFromDto (String codeRegistryCodeValue, CodeSchemeDTO codeSchemeDTO) {
+    public CodeSchemeDTO updateCodeSchemeFromDto(String codeRegistryCodeValue,
+                                                 CodeSchemeDTO codeSchemeDTO) {
         CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         CodeScheme codeScheme = codeSchemeDao.updateCodeSchemeFromDto(codeRegistry, codeSchemeDTO);
         codeSchemeDTO.setId(codeScheme.getId());

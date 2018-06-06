@@ -7,7 +7,6 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -23,6 +22,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.groupmanagement.GroupManagementOrganizationDTO;
+import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.service.OrganizationService;
@@ -37,8 +37,8 @@ public class OrganizationServiceImpl extends BaseService implements Organization
     @Inject
     public OrganizationServiceImpl(final OrganizationRepository organizationRepository,
                                    final ApiUtils apiUtils,
-                                   final DataSource dataSource) {
-        super(apiUtils, dataSource);
+                                   final CommitRepository commitRepository) {
+        super(apiUtils, commitRepository);
         this.organizationRepository = organizationRepository;
     }
 
