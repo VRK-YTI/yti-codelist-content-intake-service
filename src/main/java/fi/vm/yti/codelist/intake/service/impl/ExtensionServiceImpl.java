@@ -84,14 +84,14 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
 
     @Transactional
     public ExtensionDTO parseAndPersistExtensionFromJson(final String jsonPayload) {
-        if (!authorizationManager.isSuperUser()) {
-            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
-        }
         Extension extension = null;
         if (jsonPayload != null && !jsonPayload.isEmpty()) {
             final ExtensionDTO extensionDto = extensionParser.parseExtensionFromJson(jsonPayload);
             if (extensionDto.getExtensionScheme() != null) {
                 final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionDto.getExtensionScheme().getId());
+                if (!authorizationManager.canBeModifiedByUserInOrganization(extensionScheme.getParentCodeScheme().getCodeRegistry().getOrganizations())) {
+                    throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+                }
                 extension = extensionDao.updateExtensionEntityFromDto(extensionScheme, extensionDto);
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
@@ -113,11 +113,11 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
                                                                      final InputStream inputStream,
                                                                      final String jsonPayload,
                                                                      final String sheetName) {
-        if (!authorizationManager.isSuperUser()) {
+        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         Set<Extension> extensions;
-        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
             final ExtensionScheme extensionScheme = extensionSchemeDao.findByParentCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionSchemeCodeValue);
             if (extensionScheme != null) {
@@ -150,7 +150,7 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
     public Set<ExtensionDTO> parseAndPersistExtensionsFromExcelWorkbook(final ExtensionScheme extensionScheme,
                                                                         final Workbook workbook,
                                                                         final String sheetName) {
-        if (!authorizationManager.isSuperUser()) {
+        if (!authorizationManager.canBeModifiedByUserInOrganization(extensionScheme.getParentCodeScheme().getCodeRegistry().getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         Set<Extension> extensions;

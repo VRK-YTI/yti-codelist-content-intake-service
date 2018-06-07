@@ -142,7 +142,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
     private ExtensionScheme updateExtensionScheme(final ExtensionScheme existingExtensionScheme,
                                                   final ExtensionSchemeDTO fromExtensionScheme) {
         if (!Objects.equals(existingExtensionScheme.getStatus(), fromExtensionScheme.getStatus())) {
-            if (!authorizationManager.isSuperUser() && Status.valueOf(existingExtensionScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromExtensionScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
+            if (!authorizationManager.canBeModifiedByUserInOrganization(existingExtensionScheme.getParentCodeScheme().getCodeRegistry().getOrganizations()) && Status.valueOf(existingExtensionScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromExtensionScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
             }
             existingExtensionScheme.setStatus(fromExtensionScheme.getStatus());

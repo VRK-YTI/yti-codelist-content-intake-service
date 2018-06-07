@@ -103,11 +103,11 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                                                                                  final InputStream inputStream,
                                                                                  final String jsonPayload,
                                                                                  final String sheetName) {
-        if (!authorizationManager.isSuperUser()) {
+        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         Set<ExtensionScheme> extensionSchemes;
-        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
             switch (format.toLowerCase()) {
                 case FORMAT_JSON:
@@ -167,9 +167,6 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
 
     public ExtensionSchemeDTO parseAndPersistExtensionSchemeFromJson(final UUID extensionSchemeId,
                                                                      final String jsonPayload) {
-        if (!authorizationManager.isSuperUser()) {
-            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
-        }
         final ExtensionScheme existingExtensionScheme = extensionSchemeDao.findById(extensionSchemeId);
         final ExtensionScheme extensionScheme;
         if (existingExtensionScheme != null) {
@@ -178,6 +175,10 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                     final ExtensionSchemeDTO extensionSchemeDTO = extensionSchemeParser.parseExtensionSchemeFromJson(jsonPayload);
                     if (extensionSchemeDTO.getId() != extensionSchemeId) {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
+                    }
+                    final CodeScheme codeScheme = codeSchemeDao.findById(extensionSchemeDTO.getId());
+                    if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations())) {
+                        throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                     }
                     extensionScheme = extensionSchemeDao.updateExtensionSchemeEntityFromDtos(null, extensionSchemeDTO);
                 } else {
