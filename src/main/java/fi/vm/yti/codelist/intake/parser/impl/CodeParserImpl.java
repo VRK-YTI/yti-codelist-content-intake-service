@@ -354,12 +354,6 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         // This try-catch block prevents an ugly and large vomit of non-UTF-8 characters from polluting the log.
         // The problem emanates from Apache's CVSRecord itself so hacking around it for now like this.
         // This problem happens for example when the user specifies CSV but gives Excel with certain kind of data.
-        try {
-            record.get(CONTENT_HEADER_ID);
-        } catch (final IllegalArgumentException e) {
-            LOG.error("ID header not found on CSV file!", e);
-            throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
-        }
         if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).isEmpty()) {
             LOG.error("CODEVALUE header not found or value empty in CSV file!");
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
