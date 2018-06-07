@@ -7,12 +7,10 @@ import fi.vm.yti.codelist.intake.dao.*;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.*;
-import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.*;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
@@ -22,43 +20,28 @@ import java.util.UUID;
 @Service
 public class CloningServiceImpl extends BaseService implements CloningService {
 
-    AuthorizationManager authorizationManager;
-    CodeSchemeRepository codeSchemeRepository;
-    CodeSchemeService  codeSchemeService;
-    CodeService codeService;
-    CodeSchemeDao codeSchemeDao;
-    CodeDao codeDao;
-    ExternalReferenceDao externalReferenceDao;
-    ExtensionSchemeService extensionSchemeService;
-    ExtensionSchemeDao extensionSchemeDao;
-    ExtensionService extensionService;
-    ExtensionDao extensionDao;
+    private final CodeSchemeRepository codeSchemeRepository;
+    private final CodeSchemeService  codeSchemeService;
+    private final CodeSchemeDao codeSchemeDao;
+    private final CodeDao codeDao;
+    private final ExternalReferenceDao externalReferenceDao;
+    private final ExtensionSchemeDao extensionSchemeDao;
 
-    public CloningServiceImpl(final AuthorizationManager authorizationManager,
-                              final CodeSchemeRepository codeSchemeRepository,
+    public CloningServiceImpl(final CodeSchemeRepository codeSchemeRepository,
                               final CodeSchemeService codeSchemeService,
-                              final CodeService codeService,
                               final CodeSchemeDao codeSchemeDao,
                               final CodeDao codeDao,
                               final ExternalReferenceDao externalReferenceDao,
-                              final ExtensionSchemeService extensionSchemeService,
                               final ExtensionSchemeDao extensionSchemeDao,
-                              final ExtensionService extensionService,
-                              final ExtensionDao extensionDao,
                               final ApiUtils apiUtils,
                               final CommitRepository commitRepository) {
         super(apiUtils, commitRepository);
-        this.authorizationManager = authorizationManager;
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeSchemeService = codeSchemeService;
-        this.codeService = codeService;
         this.codeSchemeDao = codeSchemeDao;
         this.codeDao = codeDao;
         this.externalReferenceDao = externalReferenceDao;
-        this.extensionDao = extensionDao;
         this.extensionSchemeDao = extensionSchemeDao;
-        this.extensionSchemeService = extensionSchemeService;
-        this.extensionService = extensionService;
     }
 
     @Transactional
@@ -72,13 +55,8 @@ public class CloningServiceImpl extends BaseService implements CloningService {
 
         CodeScheme newCodeScheme = codeSchemeDao.findById(codeSchemeWithUserChangesFromUi.getId());
 
-        Set<Code> codesFromExtensionSchemes = getCodesWhichAreActuallyExtensionsInExtensionSchemes(originalCodeScheme);
-        //TODO final cleanup for this class!
-        Set<Code> codesWhichDirectlyBelongToTheCodeSchemeToBeCloned = getCodesWhichDirectlyBelongToTheCodeSchemeToBeCloned(originalCodeScheme, codesFromExtensionSchemes);
-
         handleCodes(codeSchemeWithUserChangesFromUi,
                 originalCodeScheme.getCodes(),
-                //codesWhichDirectlyBelongToTheCodeSchemeToBeCloned,
                 newCodeScheme);
 
         handleExtensionSchemes(codeSchemeWithUserChangesFromUi,
@@ -123,45 +101,17 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         copy.setCodeSchemes(original.getCodeSchemes());
         Set<Extension> newExtensions = new HashSet<>();
         for (Extension orig : original.getExtensions()) {
-            Extension e = new Extension();
-            e.setCode(orig.getCode());
-            e.setId(UUID.randomUUID());
-            e.setExtensionScheme(copy);
-            e.setExtension(orig.getExtension());
-            e.setOrder(orig.getOrder());
-            e.setExtensionValue(orig.getExtensionValue());
-            newExtensions.add(e);
+            Extension newExtension = new Extension();
+            newExtension.setCode(orig.getCode());
+            newExtension.setId(UUID.randomUUID());
+            newExtension.setExtensionScheme(copy);
+            newExtension.setExtension(orig.getExtension());
+            newExtension.setOrder(orig.getOrder());
+            newExtension.setExtensionValue(orig.getExtensionValue());
+            newExtensions.add(newExtension);
         }
         copy.setExtensions(newExtensions);
         return copy;
-    }
-
-    private Set<Code> getCodesWhichDirectlyBelongToTheCodeSchemeToBeCloned(CodeScheme originalCodeScheme, Set<Code> codesFromExtensionSchemes) {
-        Set<Code> result = new HashSet<>();
-        result.addAll(originalCodeScheme.getCodes());
-        Set<Code> codesMarkedForRemoval = new HashSet<>();
-        int nrOfRemovedCodes = 0;
-        for (Code code: result) {
-            for (Code codeExt: codesFromExtensionSchemes) {
-                if (code.getId().compareTo(codeExt.getId()) == 0) {
-                    codesMarkedForRemoval.add(code);
-                    nrOfRemovedCodes++;
-                }
-            }
-        }
-        result.removeAll(codesMarkedForRemoval);
-        return result;
-    }
-
-    private Set<Code> getCodesWhichAreActuallyExtensionsInExtensionSchemes(CodeScheme originalCodeScheme) {
-        Set<Code> result = new HashSet<>();
-        Set<ExtensionScheme> extensionSchemes = originalCodeScheme.getExtensionSchemes();
-        for (ExtensionScheme extSch : extensionSchemes) {
-            for (Extension ext : extSch.getExtensions()) {
-                result.add(ext.getCode());
-            }
-        }
-        return result;
     }
 
     @Transactional
@@ -182,9 +132,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         Set<Code> originalCodes = originalCodesThatAreNotExtensions;
         Set<CodeDTO> clonedCodeDTOs = new HashSet<>();
         for (Code code : originalCodes) {
-            Code cc = cloneCode(code, newCodeScheme);
-            codeDao.save(cc);
-            CodeDTO clonedCodeDTO = mapCodeDto(cc, true);
+            Code clonedCode = cloneCode(code, newCodeScheme);
+            codeDao.save(clonedCode);
+            CodeDTO clonedCodeDTO = mapCodeDto(clonedCode, true);
             clonedCodeDTOs.add(clonedCodeDTO);
         }
         codeSchemeWithUserChangesFromUi.setCodes(clonedCodeDTOs);
@@ -200,42 +150,42 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         return codeSchemeRepository.findCodeSchemeAndEagerFetchTheChildren(id);
     }
 
-    @Transactional ExternalReference cloneExternalReference(ExternalReference e, CodeScheme newCodeScheme) {
+    @Transactional ExternalReference cloneExternalReference(ExternalReference original, CodeScheme newCodeScheme) {
         ExternalReference copy = new ExternalReference();
         copy.setParentCodeScheme(newCodeScheme);
         copy.setId(UUID.randomUUID());
-        copy.setDescription(e.getDescription());
-        copy.setGlobal(e.getGlobal());
-        copy.setHref(e.getHref());
-        copy.setPropertyType(e.getPropertyType());
-        copy.setTitle(e.getTitle());
-        copy.setCodes(e.getCodes());
-        copy.setCodeSchemes(e.getCodeSchemes());
+        copy.setDescription(original.getDescription());
+        copy.setGlobal(original.getGlobal());
+        copy.setHref(original.getHref());
+        copy.setPropertyType(original.getPropertyType());
+        copy.setTitle(original.getTitle());
+        copy.setCodes(original.getCodes());
+        copy.setCodeSchemes(original.getCodeSchemes());
         return copy;
     }
 
     @Transactional
-    public Code cloneCode(Code code, CodeScheme newCodeScheme) {
+    public Code cloneCode(Code original, CodeScheme newCodeScheme) {
         Code copy = new Code();
         copy.setId(UUID.randomUUID());
         copy.setCodeScheme(newCodeScheme);
-        copy.setCodeValue(code.getCodeValue());
-        copy.setConceptUriInVocabularies(code.getConceptUriInVocabularies());
-        copy.setBroaderCodeId(code.getBroaderCodeId());
-        copy.setHierarchyLevel(code.getHierarchyLevel());
-        copy.setDefinition(code.getDefinition());
-        copy.setDescription(code.getDescription());
-        copy.setOrder(code.getOrder());
-        copy.setPrefLabel(code.getPrefLabel());
-        copy.setShortName(code.getShortName());
-        copy.setExternalReferences(code.getExternalReferences());
+        copy.setCodeValue(original.getCodeValue());
+        copy.setConceptUriInVocabularies(original.getConceptUriInVocabularies());
+        copy.setBroaderCodeId(original.getBroaderCodeId());
+        copy.setHierarchyLevel(original.getHierarchyLevel());
+        copy.setDefinition(original.getDefinition());
+        copy.setDescription(original.getDescription());
+        copy.setOrder(original.getOrder());
+        copy.setPrefLabel(original.getPrefLabel());
+        copy.setShortName(original.getShortName());
+        copy.setExternalReferences(original.getExternalReferences());
         for (ExternalReference extRef : copy.getExternalReferences()) {
             extRef.setId(null);
         }
-        copy.setExtensions(code.getExtensions());
+        copy.setExtensions(original.getExtensions());
         copy.setStatus(Status.DRAFT.toString());
-        copy.setEndDate(code.getEndDate());
-        copy.setStartDate(code.getStartDate());
+        copy.setEndDate(original.getEndDate());
+        copy.setStartDate(original.getStartDate());
         copy.setUri(apiUtils.createCodeUri(copy));
         return copy;
     }

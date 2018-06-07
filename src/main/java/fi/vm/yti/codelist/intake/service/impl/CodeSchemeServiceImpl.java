@@ -277,11 +277,10 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     }
 
     @Transactional
-    public CodeSchemeDTO updateCodeSchemeFromDto(String codeRegistryCodeValue,
-                                                 CodeSchemeDTO codeSchemeDTO) {
-        CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
-        CodeScheme codeScheme = codeSchemeDao.updateCodeSchemeFromDto(codeRegistry, codeSchemeDTO);
-        codeSchemeDTO.setId(codeScheme.getId());
-        return codeSchemeDTO;
+    public CodeSchemeDTO updateCodeSchemeFromDto(final String codeRegistryCodeValue,
+                                                 final CodeSchemeDTO codeSchemeDto) {
+        final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
+        final CodeScheme codeScheme = codeSchemeDao.updateCodeSchemeFromDto(codeRegistry, codeSchemeDto);
+        return mapCodeSchemeDto(codeScheme, true);
     }
 }
