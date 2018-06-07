@@ -23,8 +23,7 @@ import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_EXTENSION_CODE_NOT_FOUND;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
 public class ExtensionDaoImpl implements ExtensionDao {
@@ -152,7 +151,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             }
             final Extension extension;
             if (existingExtension != null) {
-                extension = updateExtension(extensionScheme.getParentCodeScheme(), existingExtension, fromExtension);
+                extension = updateExtension(extensionScheme.getParentCodeScheme(), extensionScheme, existingExtension, fromExtension);
             } else {
                 extension = createExtension(extensionScheme.getParentCodeScheme(), extensionScheme, fromExtension);
             }
@@ -163,6 +162,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
     }
 
     private Extension updateExtension(final CodeScheme codeScheme,
+                                      final ExtensionScheme extensionScheme,
                                       final Extension existingExtension,
                                       final ExtensionDTO fromExtension) {
         if (!Objects.equals(existingExtension.getExtensionValue(), fromExtension.getExtensionValue())) {
@@ -172,7 +172,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             existingExtension.setOrder(fromExtension.getOrder());
         }
         if (fromExtension.getCode() != null) {
-            final Code code = findCodeUsingCodeValueOrUri(codeScheme, fromExtension);
+            final Code code = findCodeUsingCodeValueOrUri(codeScheme, extensionScheme, fromExtension);
             if (!Objects.equals(existingExtension.getCode(), code)) {
                 existingExtension.setCode(code);
             }
@@ -195,7 +195,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         extension.setExtensionValue(fromExtension.getExtensionValue());
         extension.setOrder(fromExtension.getOrder());
         if (fromExtension.getCode() != null) {
-            final Code code = findCodeUsingCodeValueOrUri(codeScheme, fromExtension);
+            final Code code = findCodeUsingCodeValueOrUri(codeScheme, extensionScheme, fromExtension);
             extension.setCode(code);
         }
         extension.setExtensionScheme(extensionScheme);
@@ -203,11 +203,13 @@ public class ExtensionDaoImpl implements ExtensionDao {
     }
 
     private Code findCodeUsingCodeValueOrUri(final CodeScheme codeScheme,
+                                             final ExtensionScheme extensionScheme,
                                              final ExtensionDTO extension) {
         final CodeDTO fromCode = extension.getCode();
         final Code code;
         if (fromCode != null && fromCode.getUri() != null && !fromCode.getUri().isEmpty()) {
             code = codeDao.findByUri(fromCode.getUri());
+            checkThatCodeIsInAllowedCodeScheme(code.getCodeScheme(), codeScheme, extensionScheme);
         } else if (fromCode != null && codeScheme != null && fromCode.getCodeValue() != null && !fromCode.getCodeValue().isEmpty()) {
             code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, extension.getCode().getCodeValue());
         } else {
@@ -217,5 +219,16 @@ public class ExtensionDaoImpl implements ExtensionDao {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODE_NOT_FOUND));
         }
         return code;
+    }
+
+    private void checkThatCodeIsInAllowedCodeScheme(final CodeScheme codeSchemeForCode,
+                                                    final CodeScheme parentCodeScheme,
+                                                    final ExtensionScheme extensionScheme) {
+        final Set<CodeScheme> codeSchemes = extensionScheme.getCodeSchemes();
+        if (codeSchemeForCode == parentCodeScheme || (codeSchemes != null && codeSchemes.contains(codeSchemeForCode))) {
+            return;
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODE_NOT_ALLOWED));
+        }
     }
 }
