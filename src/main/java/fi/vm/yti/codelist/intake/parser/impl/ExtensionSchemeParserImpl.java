@@ -260,16 +260,6 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
         }
     }
 
-    private String parseParentCodeSchemeFromRecord(final CSVRecord record) {
-        final String parentCodeSchemeUri;
-        if (record.isMapped(CONTENT_HEADER_PARENTCODESCHEME)) {
-            parentCodeSchemeUri = parseStringFromCsvRecord(record, CONTENT_HEADER_PARENTCODESCHEME);
-        } else {
-            parentCodeSchemeUri = null;
-        }
-        return parentCodeSchemeUri;
-    }
-
     private List<String> parseCodeSchemesFromRecord(final CSVRecord record) {
         final List<String> codeSchemeUris = new ArrayList<>();
         if (record.isMapped(CONTENT_HEADER_CODESCHEMES)) {
