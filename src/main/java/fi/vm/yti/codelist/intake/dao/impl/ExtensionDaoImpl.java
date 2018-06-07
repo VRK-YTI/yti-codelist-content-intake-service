@@ -28,6 +28,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Component
 public class ExtensionDaoImpl implements ExtensionDao {
 
+    private static final int MAX_LEVEL = 10;
     private final EntityChangeLogger entityChangeLogger;
     private final ExtensionRepository extensionRepository;
     private final CodeDao codeDao;
@@ -118,15 +119,28 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
         if (relatedExtension != null && relatedExtension.getCode() != null) {
             final Set<Extension> extensions = findByExtensionSchemeId(extensionScheme.getId());
-            extensions.forEach(extension -> {
-                if (extension.getCode() != null && relatedExtension.getCode() != null && extension.getCode().getCodeValue().equalsIgnoreCase(relatedExtension.getCode().getCodeValue())) {
+            final Set<Extension> toExtensions = new HashSet<>();
+            for (final Extension extension : extensions) {
+                if (extension.getCode() != null && relatedExtension.getCode() != null && (extension.getCode().getCodeValue().equalsIgnoreCase(relatedExtension.getCode().getCodeValue()) || extension.getCode().getUri().equalsIgnoreCase(relatedExtension.getCode().getCodeValue()))) {
                     final Extension toExtension = findById(fromExtension.getId());
                     if (toExtension != null) {
                         toExtension.setExtension(extension);
-                        save(toExtension);
+                        toExtensions.add(toExtension);
                     }
                 }
-            });
+            }
+            toExtensions.forEach(extension -> checkExtensionHierarchyLevels(extension, 1));
+            save(toExtensions);
+        }
+    }
+
+    private void checkExtensionHierarchyLevels(final Extension extension,
+                                               final int level) {
+        if (level > MAX_LEVEL) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_HIERARCHY_MAXLEVEL_REACHED));
+        }
+        if (extension.getExtension() != null) {
+            checkExtensionHierarchyLevels(extension.getExtension(), level + 1);
         }
     }
 
