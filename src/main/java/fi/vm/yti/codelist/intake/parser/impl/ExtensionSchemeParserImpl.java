@@ -192,9 +192,11 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                     final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
                     final List<String> uris = Arrays.asList(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODESCHEMES))).split(";"));
                     uris.forEach(uri -> {
-                        final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
-                        codeScheme.setUri(uri);
-                        codeSchemes.add(codeScheme);
+                        if (!uri.isEmpty()) {
+                            final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
+                            codeScheme.setUri(uri);
+                            codeSchemes.add(codeScheme);
+                        }
                     });
                     extensionScheme.setCodeSchemes(codeSchemes);
                 }

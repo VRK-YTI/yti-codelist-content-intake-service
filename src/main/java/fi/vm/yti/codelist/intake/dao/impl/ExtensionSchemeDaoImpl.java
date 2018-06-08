@@ -25,8 +25,7 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_STATUS_CHANGE_NOT_ALLOWED;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
 public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
@@ -149,7 +148,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         }
         final PropertyType propertyType = propertyTypeDao.findByContextAndLocalName(CONTEXT_EXTENSIONSCHEME, fromExtensionScheme.getPropertyType().getLocalName());
         if (propertyType == null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_PROPERTYTYPE_NOT_FOUND));
         }
         if (!Objects.equals(existingExtensionScheme.getPropertyType(), propertyType)) {
             existingExtensionScheme.setPropertyType(propertyType);
@@ -162,7 +161,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
                     if (relatedCodeScheme != null) {
                         codeSchemes.add(relatedCodeScheme);
                     } else {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_CODESCHEME_NOT_FOUND));
                     }
                 }
             }
@@ -199,20 +198,20 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         extensionScheme.setStatus(fromExtensionScheme.getStatus());
         final PropertyType propertyType = propertyTypeDao.findByContextAndLocalName(CONTEXT_EXTENSIONSCHEME, fromExtensionScheme.getPropertyType().getLocalName());
         if (propertyType == null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_PROPERTYTYPE_NOT_FOUND));
         }
         extensionScheme.setPropertyType(propertyType);
         for (final Map.Entry<String, String> entry : fromExtensionScheme.getPrefLabel().entrySet()) {
             extensionScheme.setPrefLabel(entry.getKey(), entry.getValue());
         }
         final Set<CodeScheme> codeSchemes = new HashSet<>();
-        if (fromExtensionScheme.getCodeSchemes() != null && fromExtensionScheme.getCodeSchemes().isEmpty()) {
+        if (fromExtensionScheme.getCodeSchemes() != null && !fromExtensionScheme.getCodeSchemes().isEmpty()) {
             fromExtensionScheme.getCodeSchemes().forEach(codeSchemeDto -> {
                 final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
                 if (relatedCodeScheme != null) {
                     codeSchemes.add(relatedCodeScheme);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_CODESCHEME_NOT_FOUND));
                 }
             });
             extensionScheme.setCodeSchemes(codeSchemes);
