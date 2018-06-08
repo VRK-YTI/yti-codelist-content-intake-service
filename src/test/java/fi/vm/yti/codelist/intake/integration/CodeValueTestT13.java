@@ -26,7 +26,7 @@ public class CodeValueTestT13 extends AbstractIntegrationTestBase {
     @Test
     @Transactional
     public void postCodesWithDuplicateValuesToCodeSchemeTest() {
-        final ResponseEntity<String> response = uploadCodesToCodeSchemeFromExcel(TEST_CODEREGISTRY_CODEVALUE, CASE_TEST_CODESCHEME, CASE_TEST_CODE_FILENAME);
+        final ResponseEntity<String> response = uploadCodesToCodeSchemeFromCsv(TEST_CODEREGISTRY_CODEVALUE, CASE_TEST_CODESCHEME, CASE_TEST_CODE_FILENAME);
         assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
     }
 }

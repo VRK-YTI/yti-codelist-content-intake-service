@@ -68,7 +68,8 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         return codeRegistries;
     }
 
-    private CodeRegistry createOrUpdateCodeRegistry(final CodeRegistryDTO fromCodeRegistry) {
+    @Transactional
+    public CodeRegistry createOrUpdateCodeRegistry(final CodeRegistryDTO fromCodeRegistry) {
         final CodeRegistry codeRegistry;
         final CodeRegistry existingCodeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(fromCodeRegistry.getCodeValue());
         if (existingCodeRegistry != null) {

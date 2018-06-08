@@ -79,7 +79,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 final String codeValue = parseCodeValueFromRecord(record);
                 validateCodeCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
-                codeValues.add(codeValue);
+                codeValues.add(codeValue.toLowerCase());
                 code.setCodeValue(codeValue);
                 code.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 code.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
@@ -168,7 +168,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
-                codeValues.add(codeValue);
+                codeValues.add(codeValue.toLowerCase());
                 code.setCodeValue(codeValue);
                 code.setStatus(parseStatusValueFromString(status));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
@@ -228,7 +228,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
             for (final CodeDTO code : codes) {
                 checkForDuplicateCodeValueInImportData(codeValues, code.getCodeValue());
                 validateStartDateIsBeforeEndDate(code);
-                codeValues.add(code.getCodeValue());
+                codeValues.add(code.getCodeValue().toLowerCase());
             }
             checkOrderValidity(codes);
         } catch (final IOException e) {

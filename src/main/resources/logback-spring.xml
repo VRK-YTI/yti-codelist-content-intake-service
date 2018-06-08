@@ -69,8 +69,12 @@
         </appender>
 
         <logger name="org.apache" level="WARN"/>
-        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.springframework" level="WARN"/>
         <logger name="fi.vm" level="DEBUG"/>
+        <logger name="org.hibernate.type" level="WARN" />
+        <logger name="org.hibernate" level="WARN" />
+        <logger name="fi.vm.yti.codelist.intake.filter" level="INFO"/>
+        <logger name="fi.vm.yti.codelist.intake.log" level="INFO"/>
 
         <root level="debug">
             <appender-ref ref="CONSOLE"/>

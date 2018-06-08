@@ -60,10 +60,10 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
             final PropertyType propertyType = createOrUpdatePropertyType(propertyTypeDto);
             if (propertyType != null) {
                 propertyTypes.add(propertyType);
+                propertyTypeRepository.save(propertyType);
             }
         }
         if (!propertyTypes.isEmpty()) {
-            propertyTypeRepository.save(propertyTypes);
             propertyTypes.forEach(entityChangeLogger::logPropertyTypeChange);
         }
         return propertyTypes;

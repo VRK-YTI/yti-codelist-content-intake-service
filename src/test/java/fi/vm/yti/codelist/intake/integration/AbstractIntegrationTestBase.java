@@ -34,19 +34,19 @@ abstract public class AbstractIntegrationTestBase {
     public ResponseEntity<String> uploadCodesToCodeSchemeFromCsv(final String codeRegistryCodeValue,
                                                                  final String codeSchemeCodeValue,
                                                                  final String codesFilename) {
-        return uploadCodesToCodeSchemeFromExcel(codeRegistryCodeValue, codeSchemeCodeValue, codesFilename, FORMAT_CSV);
+        return uploadCodesToCodeScheme(codeRegistryCodeValue, codeSchemeCodeValue, codesFilename, FORMAT_CSV);
     }
 
     public ResponseEntity<String> uploadCodesToCodeSchemeFromExcel(final String codeRegistryCodeValue,
                                                                    final String codeSchemeCodeValue,
                                                                    final String codesFilename) {
-        return uploadCodesToCodeSchemeFromExcel(codeRegistryCodeValue, codeSchemeCodeValue, codesFilename, FORMAT_EXCEL);
+        return uploadCodesToCodeScheme(codeRegistryCodeValue, codeSchemeCodeValue, codesFilename, FORMAT_EXCEL);
     }
 
-    private ResponseEntity<String> uploadCodesToCodeSchemeFromExcel(final String codeRegistryCodeValue,
-                                                                    final String codeSchemeCodeValue,
-                                                                    final String codesFilename,
-                                                                    final String format) {
+    private ResponseEntity<String> uploadCodesToCodeScheme(final String codeRegistryCodeValue,
+                                                           final String codeSchemeCodeValue,
+                                                           final String codesFilename,
+                                                           final String format) {
         final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + "?format=" + format;
         final String filePath = "/" + CODES_FOLDER_NAME + "/" + codesFilename;
         return uploadFile(apiUrl, filePath);
@@ -54,17 +54,17 @@ abstract public class AbstractIntegrationTestBase {
 
     public ResponseEntity<String> uploadCodeSchemesToCodeRegistryFromCsv(final String codeRegistryCodeValue,
                                                                          final String codeSchemesFilename) {
-        return uploadCodeSchemesToCodeRegistryFromExcel(codeRegistryCodeValue, codeSchemesFilename, FORMAT_CSV);
+        return uploadCodeSchemesToCodeRegistry(codeRegistryCodeValue, codeSchemesFilename, FORMAT_CSV);
     }
 
     public ResponseEntity<String> uploadCodeSchemesToCodeRegistryFromExcel(final String codeRegistryCodeValue,
                                                                            final String codeSchemesFilename) {
-        return uploadCodeSchemesToCodeRegistryFromExcel(codeRegistryCodeValue, codeSchemesFilename, FORMAT_EXCEL);
+        return uploadCodeSchemesToCodeRegistry(codeRegistryCodeValue, codeSchemesFilename, FORMAT_EXCEL);
     }
 
-    private ResponseEntity<String> uploadCodeSchemesToCodeRegistryFromExcel(final String codeRegistryCodeValue,
-                                                                            final String codeSchemesFilename,
-                                                                            final String format) {
+    private ResponseEntity<String> uploadCodeSchemesToCodeRegistry(final String codeRegistryCodeValue,
+                                                                   final String codeSchemesFilename,
+                                                                   final String format) {
         final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + "?format=" + format;
         final String filePath = "/" + CODESCHEMES_FOLDER_NAME + "/" + codeSchemesFilename;
         return uploadFile(apiUrl, filePath);
@@ -85,7 +85,8 @@ abstract public class AbstractIntegrationTestBase {
         return uploadFile(apiUrl, filePath);
     }
 
-    private ResponseEntity<String> uploadFile(final String apiUrl, final String registryFilePath) {
+    private ResponseEntity<String> uploadFile(final String apiUrl,
+                                              final String registryFilePath) {
         final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
         parameters.add(PARAMETER_FILE, new ClassPathResource(registryFilePath));
         final HttpHeaders headers = new HttpHeaders();

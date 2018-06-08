@@ -88,12 +88,12 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
     public CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry,
                                                      final String codeValue) {
-        return codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, codeValue);
+        return codeSchemeRepository.findByCodeRegistryCodeValueIgnoreCaseAndCodeValueIgnoreCase(codeRegistry.getCodeValue(), codeValue);
     }
 
     public CodeScheme findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                               final String codeSchemeCodeValue) {
-        return codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValueIgnoreCase(codeRegistryCodeValue, codeSchemeCodeValue);
+        return codeSchemeRepository.findByCodeRegistryCodeValueIgnoreCaseAndCodeValueIgnoreCase(codeRegistryCodeValue, codeSchemeCodeValue);
     }
 
     public Set<CodeScheme> findAll() {
@@ -125,10 +125,10 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                     updateExternalReferences(codeScheme, codeSchemeDto);
                 }
                 codeSchemes.add(codeScheme);
+                save(codeScheme);
             }
         }
         if (!codeSchemes.isEmpty()) {
-            save(codeSchemes);
             codeRegistryRepository.save(codeRegistry);
         }
         return codeSchemes;
@@ -140,8 +140,9 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeScheme.setExternalReferences(externalReferences);
     }
 
-    private CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
-                                                final CodeSchemeDTO fromCodeScheme) {
+    @Transactional
+    public CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
+                                               final CodeSchemeDTO fromCodeScheme) {
         validateCodeSchemeForCodeRegistry(fromCodeScheme);
         final CodeScheme existingCodeScheme;
         if (fromCodeScheme.getId() != null) {
@@ -150,7 +151,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                 checkForExistingCodeSchemeInRegistry(codeRegistry, fromCodeScheme);
             }
         } else {
-            existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, fromCodeScheme.getCodeValue());
+            existingCodeScheme = codeSchemeRepository.findByCodeRegistryCodeValueIgnoreCaseAndCodeValueIgnoreCase(codeRegistry.getCodeValue(), fromCodeScheme.getCodeValue());
         }
         final CodeScheme codeScheme;
         if (existingCodeScheme != null) {
@@ -163,7 +164,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
     private void checkForExistingCodeSchemeInRegistry(final CodeRegistry codeRegistry,
                                                       final CodeSchemeDTO codeScheme) {
-        final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, codeScheme.getCodeValue());
+        final CodeScheme existingCodeScheme = codeSchemeRepository.findByCodeRegistryCodeValueIgnoreCaseAndCodeValueIgnoreCase(codeRegistry.getCodeValue(), codeScheme.getCodeValue());
         if (existingCodeScheme != null) {
             throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME, existingCodeScheme.getCodeValue()));
@@ -244,7 +245,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             existingCodeScheme.setConceptUriInVocabularies(fromCodeScheme.getConceptUriInVocabularies());
         }
         if (fromCodeScheme.getDefaultCode() != null && fromCodeScheme.getDefaultCode().getCodeValue() != null) {
-            final Code defaultCode = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(existingCodeScheme, fromCodeScheme.getDefaultCode().getCodeValue());
+            final Code defaultCode = codeRepository.findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(existingCodeScheme.getCodeValue(), fromCodeScheme.getDefaultCode().getCodeValue());
             if (!Objects.equals(existingCodeScheme.getDefaultCode(), defaultCode)) {
                 existingCodeScheme.setDefaultCode(defaultCode);
             }
@@ -296,11 +297,11 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         final Set<Code> codes;
         if (codeDtos != null && !codeDtos.isEmpty()) {
             codes = new HashSet<>();
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueAndCodeValueIgnoreCase(JUPO_REGISTRY, YTI_DATACLASSIFICATION_CODESCHEME);
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueIgnoreCaseAndCodeValueIgnoreCase(JUPO_REGISTRY, YTI_DATACLASSIFICATION_CODESCHEME);
             codeDtos.forEach(codeDto -> {
-                final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
+                final Code code = codeRepository.findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(codeScheme.getCodeValue(), codeDto.getCodeValue());
                 if (code != null && code.getHierarchyLevel() == 1) {
-                    codes.add(codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue()));
+                    codes.add(code);
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_CLASSIFICATION));
                 }

@@ -44,6 +44,7 @@ import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -82,7 +83,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         for (final CodeSchemeDTO codeScheme : codeSchemes) {
             final String codeValue = codeScheme.getCodeValue();
             checkForDuplicateCodeValueInImportData(codeValues, codeValue);
-            codeValues.add(codeValue);
+            codeValues.add(codeValue.toLowerCase());
             validateStartDateIsBeforeEndDate(codeScheme);
         }
         return codeSchemes;
@@ -110,7 +111,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 final String codeValue = parseCodeValueFromRecord(record);
                 validateCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
-                codeValues.add(codeValue);
+                codeValues.add(codeValue.toLowerCase());
                 codeScheme.setCodeValue(codeValue);
                 codeScheme.setId(parseIdFromRecord(record));
                 codeScheme.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
@@ -192,7 +193,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
-                codeValues.add(codeValue);
+                codeValues.add(codeValue.toLowerCase());
                 codeScheme.setCodeValue(codeValue);
                 codeScheme.setStatus(parseStatusValueFromString(status));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
@@ -257,9 +258,11 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         }
         final List<String> codes = Arrays.asList(dataClassificationCodes.split(";"));
         codes.forEach(code -> {
-            final CodeDTO classification = new CodeDTO();
-            classification.setCodeValue(code);
-            classifications.add(classification);
+            if (!code.isEmpty()) {
+                final CodeDTO classification = new CodeDTO();
+                classification.setCodeValue(code);
+                classifications.add(classification);
+            }
         });
         return classifications;
     }

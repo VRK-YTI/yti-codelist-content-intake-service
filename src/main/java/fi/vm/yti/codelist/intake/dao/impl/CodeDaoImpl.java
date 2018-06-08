@@ -85,13 +85,13 @@ public class CodeDaoImpl implements CodeDao {
 
     public Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
                                              final String codeValue) {
-        return codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeValue);
+        return codeRepository.findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(codeScheme.getCodeValue(), codeValue);
     }
 
     public Code findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme,
                                                              final String codeValue,
                                                              final UUID broaderCodeId) {
-        return codeRepository.findByCodeSchemeAndCodeValueAndBroaderCodeId(codeScheme, codeValue, broaderCodeId);
+        return codeRepository.findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCaseAndBroaderCodeId(codeScheme.getCodeValue(), codeValue, broaderCodeId);
     }
 
     public Code findById(UUID id) {
@@ -137,6 +137,7 @@ public class CodeDaoImpl implements CodeDao {
                 }
                 if (code != null) {
                     codes.add(code);
+                    save(code);
                 }
             }
             setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes);
@@ -155,8 +156,9 @@ public class CodeDaoImpl implements CodeDao {
         code.setExternalReferences(externalReferences);
     }
 
-    private Code createOrUpdateCode(final CodeScheme codeScheme,
-                                    final CodeDTO codeDto) {
+    @Transactional
+    public Code createOrUpdateCode(final CodeScheme codeScheme,
+                                   final CodeDTO codeDto) {
         validateCodeForCodeScheme(codeDto);
         final Code existingCode;
         if (codeDto.getId() != null) {
@@ -165,7 +167,7 @@ public class CodeDaoImpl implements CodeDao {
                 checkForExistingCodeInCodeScheme(codeScheme, codeDto);
             }
         } else {
-            existingCode = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
+            existingCode = codeRepository.findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(codeScheme.getCodeValue(), codeDto.getCodeValue());
         }
         final Code code;
         if (existingCode != null) {
@@ -305,7 +307,7 @@ public class CodeDaoImpl implements CodeDao {
 
     private void checkForExistingCodeInCodeScheme(final CodeScheme codeScheme,
                                                   final CodeDTO fromCode) {
-        final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, fromCode.getCodeValue());
+        final Code code = codeRepository.findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(codeScheme.getCodeValue(), fromCode.getCodeValue());
         if (code != null) {
             throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ALREADY_EXISTING_CODE, code.getCodeValue()));

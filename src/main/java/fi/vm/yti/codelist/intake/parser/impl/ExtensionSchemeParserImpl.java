@@ -99,7 +99,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 extensionScheme.setId(parseIdFromRecord(record));
                 final String codeValue = parseCodeValueFromRecord(record);
                 validateCodeValue(codeValue);
-                codeValues.add(codeValue);
+                codeValues.add(codeValue.toLowerCase());
                 extensionScheme.setCodeValue(codeValue);
                 extensionScheme.setId(parseIdFromRecord(record));
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
@@ -182,7 +182,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
-                codeValues.add(codeValue);
+                codeValues.add(codeValue.toLowerCase());
                 extensionScheme.setCodeValue(codeValue);
                 extensionScheme.setStatus(parseStatusValueFromString(status));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {

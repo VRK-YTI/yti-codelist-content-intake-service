@@ -76,7 +76,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
         }
         for (final CodeRegistryDTO fromCodeRegistry : fromCodeRegistries) {
             checkForDuplicateCodeValueInImportData(codeValues, fromCodeRegistry.getCodeValue());
-            codeValues.add(fromCodeRegistry.getCodeValue());
+            codeValues.add(fromCodeRegistry.getCodeValue().toLowerCase());
         }
         return fromCodeRegistries;
     }
@@ -97,7 +97,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
                 final String codeValue = parseCodeValueFromRecord(record);
                 validateCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
-                codeValues.add(codeValue);
+                codeValues.add(codeValue.toLowerCase());
                 fromCodeRegistry.setCodeValue(codeValue);
                 fromCodeRegistry.setOrganizations(resolveOrganizations(record.get(CONTENT_HEADER_ORGANIZATION)));
                 fromCodeRegistry.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
@@ -146,7 +146,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
                     }
                     validateCodeValue(codeValue);
                     checkForDuplicateCodeValueInImportData(codeValues, codeValue);
-                    codeValues.add(codeValue);
+                    codeValues.add(codeValue.toLowerCase());
                     fromCodeRegistry.setCodeValue(codeValue);
                     fromCodeRegistry.setOrganizations(resolveOrganizations(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORGANIZATION)))));
                     fromCodeRegistry.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));

@@ -20,9 +20,9 @@ public interface CodeRepository extends CrudRepository<Code, String> {
 
     Code findByUriIgnoreCase(final String uri);
 
-    Code findByCodeSchemeAndCodeValueIgnoreCase(final CodeScheme codeScheme, final String codeValue);
+    Code findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(final String codeSchemeCodeValue, final String codeValue);
 
-    Code findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme, final String codeValue, final UUID broaderCodeId);
+    Code findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCaseAndBroaderCodeId(final String codeSchemeCodeValue, final String codeValue, final UUID broaderCodeId);
 
     Code findById(final UUID id);
 

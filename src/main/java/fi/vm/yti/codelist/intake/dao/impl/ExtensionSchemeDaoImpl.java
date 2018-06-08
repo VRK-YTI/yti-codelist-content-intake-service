@@ -113,9 +113,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
             for (final ExtensionSchemeDTO extensionSchemeDto : extensionSchemeDtos) {
                 final ExtensionScheme extensionScheme = createOrUpdateExtensionScheme(codeScheme, extensionSchemeDto);
                 extensionSchemes.add(extensionScheme);
-            }
-            if (!extensionSchemes.isEmpty()) {
-                save(extensionSchemes);
+                save(extensionScheme);
             }
         }
         return extensionSchemes;

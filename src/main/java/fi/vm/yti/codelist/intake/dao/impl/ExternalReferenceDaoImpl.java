@@ -89,10 +89,8 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
                 final ExternalReference externalReference = createOrUpdateExternalReference(internal, externalReferenceDto, codeScheme);
                 if (externalReference != null) {
                     externalReferences.add(externalReference);
+                    save(externalReference);
                 }
-            }
-            if (!externalReferences.isEmpty()) {
-                save(externalReferences);
             }
         }
         return externalReferences;
