@@ -1,6 +1,5 @@
 package fi.vm.yti.codelist.intake.parser.impl;
 
-import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -14,7 +13,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import fi.vm.yti.codelist.common.dto.CodeDTO;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -30,6 +28,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
@@ -206,12 +205,11 @@ public abstract class AbstractBaseParser {
 
         //Check that order is sequential and has no gaps and no duplicate order values
         CodeDTO[] codesArray = codesSorted.toArray(new CodeDTO[codesSorted.size()]);
-        for (int i = 0; i < codesArray.length-1; i++) {
+        for (int i = 0; i < codesArray.length - 1; i++) {
             if ((codesArray[i].getOrder() + 1) != codesArray[i + 1].getOrder()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_NOT_SEQUENTIAL));
             }
         }
-
 
         //if (codesArray.length > 0 && codes.size() != codesArray[codesArray.length-1].getOrder()) {
         //    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_NOT_SEQUENTIAL));
@@ -274,7 +272,7 @@ public abstract class AbstractBaseParser {
     }
 
     public boolean skipEmptyLine(final String codeValue,
-                              final String status) {
+                                 final String status) {
         if ((codeValue == null || codeValue.trim().isEmpty()) && (status == null || status.trim().isEmpty())) {
             return true;
         }
