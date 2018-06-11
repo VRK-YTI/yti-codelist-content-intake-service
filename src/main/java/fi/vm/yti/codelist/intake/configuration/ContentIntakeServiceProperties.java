@@ -23,18 +23,18 @@ public class ContentIntakeServiceProperties {
     @NotNull
     private String contextPath;
 
-    private boolean dev;
+    private String env;
 
     private boolean initializeContent;
 
     private boolean initializeTestContent;
 
-    public boolean getDev() {
-        return dev;
+    public String getEnv() {
+        return env;
     }
 
-    public void setDev(final boolean dev) {
-        this.dev = dev;
+    public void setEnv(final String env) {
+        this.env = env;
     }
 
     public String getHost() {

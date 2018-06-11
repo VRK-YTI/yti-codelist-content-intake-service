@@ -46,8 +46,8 @@ public class ApiUtils {
         this.frontendProperties = frontendProperties;
     }
 
-    public boolean isDev() {
-        return contentIntakeServiceProperties.getDev();
+    public String getEnv() {
+        return contentIntakeServiceProperties.getEnv();
     }
 
     /**

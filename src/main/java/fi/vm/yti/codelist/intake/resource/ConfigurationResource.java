@@ -41,7 +41,7 @@ public class ConfigurationResource extends AbstractBaseResource {
         final ObjectNode groupManagementConfig = mapper.createObjectNode();
         groupManagementConfig.put("url", groupManagementPublicUrl);
         configJson.set("groupManagementConfig", groupManagementConfig);
-        configJson.put("dev", apiUtils.isDev());
+        configJson.put("env", apiUtils.getEnv());
         configJson.put("defaultStatus", apiUtils.getDefaultStatus());
         configJson.put("codeSchemeSortMode", apiUtils.getCodeSchemeSortMode());
         return Response.ok(configJson).build();
