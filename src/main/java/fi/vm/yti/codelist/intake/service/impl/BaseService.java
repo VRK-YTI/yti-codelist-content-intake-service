@@ -388,65 +388,67 @@ public abstract class BaseService {
 
     private Date getFirstModificationDate(final String entityName,
                                           final UUID entityId) {
-        final Date modified;
-        switch (entityName) {
-            case ENTITY_CODEREGISTRY:
-                modified = commitRepository.findCreatedByCodeRegistryId(entityId);
-                break;
-            case ENTITY_CODESCHEME:
-                modified = commitRepository.findCreatedByCodeSchemeId(entityId);
-                break;
-            case ENTITY_CODE:
-                modified = commitRepository.findCreatedByCodeId(entityId);
-                break;
-            case ENTITY_EXTENSIONSCHEME:
-                modified = commitRepository.findCreatedByExtensionSchemeId(entityId);
-                break;
-            case ENTITY_EXTENSION:
-                modified = commitRepository.findCreatedByExtensionId(entityId);
-                break;
-            case ENTITY_EXTERNALREFERENCE:
-                modified = commitRepository.findCreatedByExternalReferenceId(entityId);
-                break;
-            case ENTITY_PROPERTYTYPE:
-                modified = commitRepository.findCreatedByPropertyTypeId(entityId);
-                break;
-            default:
-                modified = null;
-                break;
-        }
-        return modified;
+//        final Date modified;
+//        switch (entityName) {
+//            case ENTITY_CODEREGISTRY:
+//                modified = commitRepository.findCreatedByCodeRegistryId(entityId);
+//                break;
+//            case ENTITY_CODESCHEME:
+//                modified = commitRepository.findCreatedByCodeSchemeId(entityId);
+//                break;
+//            case ENTITY_CODE:
+//                modified = commitRepository.findCreatedByCodeId(entityId);
+//                break;
+//            case ENTITY_EXTENSIONSCHEME:
+//                modified = commitRepository.findCreatedByExtensionSchemeId(entityId);
+//                break;
+//            case ENTITY_EXTENSION:
+//                modified = commitRepository.findCreatedByExtensionId(entityId);
+//                break;
+//            case ENTITY_EXTERNALREFERENCE:
+//                modified = commitRepository.findCreatedByExternalReferenceId(entityId);
+//                break;
+//            case ENTITY_PROPERTYTYPE:
+//                modified = commitRepository.findCreatedByPropertyTypeId(entityId);
+//                break;
+//            default:
+//                modified = null;
+//                break;
+//        }
+//        return modified;
+        return null;
     }
 
     private Date getLastModificationDate(final String entityName,
                                          final UUID entityId) {
-        final Date modified;
-        switch (entityName) {
-            case ENTITY_CODEREGISTRY:
-                modified = commitRepository.findLatestModifiedByCodeRegistryId(entityId);
-                break;
-            case ENTITY_CODESCHEME:
-                modified = commitRepository.findLatestModifiedByCodeSchemeId(entityId);
-                break;
-            case ENTITY_CODE:
-                modified = commitRepository.findLatestModifiedByCodeId(entityId);
-                break;
-            case ENTITY_EXTENSIONSCHEME:
-                modified = commitRepository.findLatestModifiedByExtensionSchemeId(entityId);
-                break;
-            case ENTITY_EXTENSION:
-                modified = commitRepository.findLatestModifiedByExtensionId(entityId);
-                break;
-            case ENTITY_EXTERNALREFERENCE:
-                modified = commitRepository.findLatestModifiedByExternalReferenceId(entityId);
-                break;
-            case ENTITY_PROPERTYTYPE:
-                modified = commitRepository.findLatestModifiedByPropertyTypeId(entityId);
-                break;
-            default:
-                modified = null;
-                break;
-        }
-        return modified;
+//        final Date modified;
+//        switch (entityName) {
+//            case ENTITY_CODEREGISTRY:
+//                modified = commitRepository.findLatestModifiedByCodeRegistryId(entityId);
+//                break;
+//            case ENTITY_CODESCHEME:
+//                modified = commitRepository.findLatestModifiedByCodeSchemeId(entityId);
+//                break;
+//            case ENTITY_CODE:
+//                modified = commitRepository.findLatestModifiedByCodeId(entityId);
+//                break;
+//            case ENTITY_EXTENSIONSCHEME:
+//                modified = commitRepository.findLatestModifiedByExtensionSchemeId(entityId);
+//                break;
+//            case ENTITY_EXTENSION:
+//                modified = commitRepository.findLatestModifiedByExtensionId(entityId);
+//                break;
+//            case ENTITY_EXTERNALREFERENCE:
+//                modified = commitRepository.findLatestModifiedByExternalReferenceId(entityId);
+//                break;
+//            case ENTITY_PROPERTYTYPE:
+//                modified = commitRepository.findLatestModifiedByPropertyTypeId(entityId);
+//                break;
+//            default:
+//                modified = null;
+//                break;
+//        }
+//        return modified;
+        return null;
     }
 }
