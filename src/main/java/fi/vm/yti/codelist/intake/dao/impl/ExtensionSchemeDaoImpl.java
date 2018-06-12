@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -178,6 +179,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         if (!Objects.equals(existingExtensionScheme.getEndDate(), fromExtensionScheme.getEndDate())) {
             existingExtensionScheme.setEndDate(fromExtensionScheme.getEndDate());
         }
+        existingExtensionScheme.setModified(new Date(System.currentTimeMillis()));
         return existingExtensionScheme;
     }
 
@@ -215,6 +217,9 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
             extensionScheme.setCodeSchemes(codeSchemes);
         }
         extensionScheme.setParentCodeScheme(codeScheme);
+        final Date timeStamp = new Date(System.currentTimeMillis());
+        extensionScheme.setCreated(timeStamp);
+        extensionScheme.setModified(timeStamp);
         return extensionScheme;
     }
 }

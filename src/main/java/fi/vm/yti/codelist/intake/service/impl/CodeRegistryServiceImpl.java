@@ -19,7 +19,6 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.parser.impl.CodeRegistryParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
@@ -40,9 +39,8 @@ public class CodeRegistryServiceImpl extends BaseService implements CodeRegistry
     public CodeRegistryServiceImpl(final AuthorizationManager authorizationManager,
                                    final CodeRegistryParserImpl codeRegistryParser,
                                    final CodeRegistryDao codeRegistryDao,
-                                   final ApiUtils apiUtils,
-                                   final CommitRepository commitRepository) {
-        super(apiUtils, commitRepository);
+                                   final ApiUtils apiUtils) {
+        super(apiUtils);
         this.authorizationManager = authorizationManager;
         this.codeRegistryParser = codeRegistryParser;
         this.codeRegistryDao = codeRegistryDao;

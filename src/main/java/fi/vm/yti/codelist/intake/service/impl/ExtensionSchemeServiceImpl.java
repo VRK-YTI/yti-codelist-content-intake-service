@@ -28,7 +28,6 @@ import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
@@ -58,9 +57,8 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                                       final ExtensionSchemeParser extensionSchemeParser,
                                       final AuthorizationManager authorizationManager,
                                       final ApiUtils apiUtils,
-                                      final ExtensionParser extensionParser,
-                                      final CommitRepository commitRepository) {
-        super(apiUtils, commitRepository);
+                                      final ExtensionParser extensionParser) {
+        super(apiUtils);
         this.extensionSchemeDao = extensionSchemeDao;
         this.extensionDao = extensionDao;
         this.codeSchemeDao = codeSchemeDao;

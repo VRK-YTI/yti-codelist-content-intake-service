@@ -28,7 +28,6 @@ import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -55,9 +54,8 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                            final CodeSchemeDao codeSchemeDao,
                            final CodeParserImpl codeParser,
                            final CodeDao codeDao,
-                           final ApiUtils apiUtils,
-                           final CommitRepository commitRepository) {
-        super(apiUtils, commitRepository);
+                           final ApiUtils apiUtils) {
+        super(apiUtils);
         this.authorizationManager = authorizationManager;
         this.codeRegistryDao = codeRegistryDao;
         this.codeSchemeDao = codeSchemeDao;

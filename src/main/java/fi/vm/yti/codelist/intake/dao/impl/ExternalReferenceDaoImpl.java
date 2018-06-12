@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -174,6 +175,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
                 existingExternalReference.setDescription(language, value);
             }
         }
+        existingExternalReference.setModified(new Date(System.currentTimeMillis()));
         return existingExternalReference;
     }
 
@@ -200,6 +202,9 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         for (final Map.Entry<String, String> entry : fromExternalReference.getDescription().entrySet()) {
             externalReference.setDescription(entry.getKey(), entry.getValue());
         }
+        final Date timeStamp = new Date(System.currentTimeMillis());
+        externalReference.setCreated(timeStamp);
+        externalReference.setModified(timeStamp);
         return externalReference;
     }
 }

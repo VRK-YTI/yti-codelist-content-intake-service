@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -101,18 +102,8 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
                 codeRegistry.setDefinition(language, value);
             }
         }
+        codeRegistry.setModified(new Date(System.currentTimeMillis()));
         return codeRegistry;
-    }
-
-    private Set<Organization> resolveOrganizationsFromDtos(final Set<OrganizationDTO> organizationDtos) {
-        final Set<Organization> organizations = new HashSet<>();
-        organizationDtos.forEach(organizationDto -> {
-            final Organization organization = organizationRepository.findById(organizationDto.getId());
-            if (organization != null) {
-                organizations.add(organization);
-            }
-        });
-        return organizations;
     }
 
     private CodeRegistry createCodeRegistry(final CodeRegistryDTO fromCodeRegistry) {
@@ -129,6 +120,20 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
             codeRegistry.setDefinition(entry.getKey(), entry.getValue());
         }
         codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
+        final Date timeStamp = new Date(System.currentTimeMillis());
+        codeRegistry.setCreated(timeStamp);
+        codeRegistry.setModified(timeStamp);
         return codeRegistry;
+    }
+
+    private Set<Organization> resolveOrganizationsFromDtos(final Set<OrganizationDTO> organizationDtos) {
+        final Set<Organization> organizations = new HashSet<>();
+        organizationDtos.forEach(organizationDto -> {
+            final Organization organization = organizationRepository.findById(organizationDto.getId());
+            if (organization != null) {
+                organizations.add(organization);
+            }
+        });
+        return organizations;
     }
 }

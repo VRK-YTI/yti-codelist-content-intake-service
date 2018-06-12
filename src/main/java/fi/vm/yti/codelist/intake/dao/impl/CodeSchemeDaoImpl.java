@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -252,6 +253,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         } else {
             existingCodeScheme.setDefaultCode(null);
         }
+        existingCodeScheme.setModified(new Date(System.currentTimeMillis()));
         return existingCodeScheme;
     }
 
@@ -290,6 +292,9 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeScheme.setEndDate(fromCodeScheme.getEndDate());
         codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
         codeScheme.setConceptUriInVocabularies(fromCodeScheme.getConceptUriInVocabularies());
+        final Date timeStamp = new Date(System.currentTimeMillis());
+        codeScheme.setCreated(timeStamp);
+        codeScheme.setModified(timeStamp);
         return codeScheme;
     }
 

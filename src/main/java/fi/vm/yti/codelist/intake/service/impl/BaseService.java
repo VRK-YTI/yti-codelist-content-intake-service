@@ -1,9 +1,7 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.transaction.Transactional;
 
@@ -16,7 +14,6 @@ import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
-import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -28,21 +25,10 @@ import fi.vm.yti.codelist.intake.model.PropertyType;
 
 public abstract class BaseService {
 
-    private static final String ENTITY_CODEREGISTRY = "coderegistry";
-    private static final String ENTITY_CODESCHEME = "codescheme";
-    private static final String ENTITY_CODE = "code";
-    private static final String ENTITY_EXTENSIONSCHEME = "extensionscheme";
-    private static final String ENTITY_EXTENSION = "extension";
-    private static final String ENTITY_EXTERNALREFERENCE = "externalreference";
-    private static final String ENTITY_PROPERTYTYPE = "propertytype";
-
     protected final ApiUtils apiUtils;
-    private final CommitRepository commitRepository;
 
-    public BaseService(final ApiUtils apiUtils,
-                       final CommitRepository commitRepository) {
+    public BaseService(final ApiUtils apiUtils) {
         this.apiUtils = apiUtils;
-        this.commitRepository = commitRepository;
     }
 
     @Transactional
@@ -78,8 +64,8 @@ public abstract class BaseService {
         codeDto.setDescription(code.getDescription());
         codeDto.setOrder(code.getOrder());
         codeDto.setUrl(apiUtils.createCodeUrl(codeDto));
-        codeDto.setCreated(getFirstModificationDate(ENTITY_CODE, code.getId()));
-        codeDto.setModified(getLastModificationDate(ENTITY_CODE, code.getId()));
+        codeDto.setCreated(code.getCreated());
+        codeDto.setModified(code.getModified());
         return codeDto;
     }
 
@@ -139,8 +125,8 @@ public abstract class BaseService {
             }
         }
         codeSchemeDto.setUrl(apiUtils.createCodeSchemeUrl(codeSchemeDto));
-        codeSchemeDto.setCreated(getFirstModificationDate(ENTITY_CODESCHEME, codeScheme.getId()));
-        codeSchemeDto.setModified(getLastModificationDate(ENTITY_CODESCHEME, codeScheme.getId()));
+        codeSchemeDto.setCreated(codeScheme.getCreated());
+        codeSchemeDto.setModified(codeScheme.getModified());
         return codeSchemeDto;
     }
 
@@ -171,8 +157,8 @@ public abstract class BaseService {
         codeRegistryDto.setDefinition(codeRegistry.getDefinition());
         codeRegistryDto.setOrganizations(mapOrganizationDtos(codeRegistry.getOrganizations(), false));
         codeRegistryDto.setUrl(apiUtils.createCodeRegistryUrl(codeRegistryDto));
-        codeRegistryDto.setCreated(getFirstModificationDate(ENTITY_CODEREGISTRY, codeRegistry.getId()));
-        codeRegistryDto.setModified(getLastModificationDate(ENTITY_CODEREGISTRY, codeRegistry.getId()));
+        codeRegistryDto.setCreated(codeRegistry.getCreated());
+        codeRegistryDto.setModified(codeRegistry.getModified());
         return codeRegistryDto;
     }
 
@@ -214,8 +200,8 @@ public abstract class BaseService {
             }
         }
         externalReferenceDto.setUrl(apiUtils.createExternalReferenceUrl(externalReferenceDto));
-        externalReferenceDto.setCreated(getFirstModificationDate(ENTITY_EXTERNALREFERENCE, externalReference.getId()));
-        externalReferenceDto.setModified(getLastModificationDate(ENTITY_EXTERNALREFERENCE, externalReference.getId()));
+        externalReferenceDto.setCreated(externalReference.getCreated());
+        externalReferenceDto.setModified(externalReference.getModified());
         return externalReferenceDto;
     }
 
@@ -247,8 +233,8 @@ public abstract class BaseService {
         propertyTypeDto.setType(propertyType.getType());
         propertyTypeDto.setPropertyUri(propertyType.getPropertyUri());
         propertyTypeDto.setUrl(apiUtils.createPropertyTypeUrl(propertyTypeDto));
-        propertyTypeDto.setCreated(getFirstModificationDate(ENTITY_PROPERTYTYPE, propertyType.getId()));
-        propertyTypeDto.setModified(getLastModificationDate(ENTITY_PROPERTYTYPE, propertyType.getId()));
+        propertyTypeDto.setCreated(propertyType.getCreated());
+        propertyTypeDto.setModified(propertyType.getModified());
         return propertyTypeDto;
     }
 
@@ -285,8 +271,8 @@ public abstract class BaseService {
             }
         }
         extensionDto.setUrl(apiUtils.createExtensionUrl(extensionDto));
-        extensionDto.setCreated(getFirstModificationDate(ENTITY_EXTENSION, extension.getId()));
-        extensionDto.setModified(getLastModificationDate(ENTITY_EXTENSION, extension.getId()));
+        extensionDto.setCreated(extension.getCreated());
+        extensionDto.setModified(extension.getModified());
         return extensionDto;
     }
 
@@ -335,8 +321,8 @@ public abstract class BaseService {
             }
         }
         extensionSchemeDto.setUrl(apiUtils.createExtensionSchemeUrl(extensionSchemeDto));
-        extensionSchemeDto.setCreated(getFirstModificationDate(ENTITY_EXTENSIONSCHEME, extensionScheme.getId()));
-        extensionSchemeDto.setModified(getLastModificationDate(ENTITY_EXTENSIONSCHEME, extensionScheme.getId()));
+        extensionSchemeDto.setCreated(extensionScheme.getCreated());
+        extensionSchemeDto.setModified(extensionScheme.getModified());
         return extensionSchemeDto;
     }
 
@@ -384,71 +370,5 @@ public abstract class BaseService {
             }
         }
         return organizationDtos;
-    }
-
-    private Date getFirstModificationDate(final String entityName,
-                                          final UUID entityId) {
-//        final Date modified;
-//        switch (entityName) {
-//            case ENTITY_CODEREGISTRY:
-//                modified = commitRepository.findCreatedByCodeRegistryId(entityId);
-//                break;
-//            case ENTITY_CODESCHEME:
-//                modified = commitRepository.findCreatedByCodeSchemeId(entityId);
-//                break;
-//            case ENTITY_CODE:
-//                modified = commitRepository.findCreatedByCodeId(entityId);
-//                break;
-//            case ENTITY_EXTENSIONSCHEME:
-//                modified = commitRepository.findCreatedByExtensionSchemeId(entityId);
-//                break;
-//            case ENTITY_EXTENSION:
-//                modified = commitRepository.findCreatedByExtensionId(entityId);
-//                break;
-//            case ENTITY_EXTERNALREFERENCE:
-//                modified = commitRepository.findCreatedByExternalReferenceId(entityId);
-//                break;
-//            case ENTITY_PROPERTYTYPE:
-//                modified = commitRepository.findCreatedByPropertyTypeId(entityId);
-//                break;
-//            default:
-//                modified = null;
-//                break;
-//        }
-//        return modified;
-        return null;
-    }
-
-    private Date getLastModificationDate(final String entityName,
-                                         final UUID entityId) {
-//        final Date modified;
-//        switch (entityName) {
-//            case ENTITY_CODEREGISTRY:
-//                modified = commitRepository.findLatestModifiedByCodeRegistryId(entityId);
-//                break;
-//            case ENTITY_CODESCHEME:
-//                modified = commitRepository.findLatestModifiedByCodeSchemeId(entityId);
-//                break;
-//            case ENTITY_CODE:
-//                modified = commitRepository.findLatestModifiedByCodeId(entityId);
-//                break;
-//            case ENTITY_EXTENSIONSCHEME:
-//                modified = commitRepository.findLatestModifiedByExtensionSchemeId(entityId);
-//                break;
-//            case ENTITY_EXTENSION:
-//                modified = commitRepository.findLatestModifiedByExtensionId(entityId);
-//                break;
-//            case ENTITY_EXTERNALREFERENCE:
-//                modified = commitRepository.findLatestModifiedByExternalReferenceId(entityId);
-//                break;
-//            case ENTITY_PROPERTYTYPE:
-//                modified = commitRepository.findLatestModifiedByPropertyTypeId(entityId);
-//                break;
-//            default:
-//                modified = null;
-//                break;
-//        }
-//        return modified;
-        return null;
     }
 }

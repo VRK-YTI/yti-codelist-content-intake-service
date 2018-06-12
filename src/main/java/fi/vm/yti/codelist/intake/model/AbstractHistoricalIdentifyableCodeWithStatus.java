@@ -14,7 +14,7 @@ import fi.vm.yti.codelist.common.dto.Views;
 import io.swagger.annotations.ApiModelProperty;
 
 @MappedSuperclass
-public class AbstractHistoricalIdentifyableCodeWithStatus extends AbstractIdentifyableCode {
+public abstract class AbstractHistoricalIdentifyableCodeWithStatus extends AbstractIdentifyableTimestampedCode {
 
     private Date startDate;
     private Date endDate;

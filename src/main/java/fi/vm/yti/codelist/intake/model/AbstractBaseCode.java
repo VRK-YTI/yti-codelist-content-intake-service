@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import fi.vm.yti.codelist.common.dto.Views;
 
 @MappedSuperclass
-public class AbstractBaseCode extends AbstractIdentifyableCode {
+public abstract class AbstractBaseCode extends AbstractIdentifyableTimestampedCode {
 
     private String uri;
 

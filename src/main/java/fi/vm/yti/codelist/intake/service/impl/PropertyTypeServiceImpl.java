@@ -19,7 +19,6 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.parser.impl.PropertyTypeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
@@ -40,9 +39,8 @@ public class PropertyTypeServiceImpl extends BaseService implements PropertyType
     public PropertyTypeServiceImpl(final AuthorizationManager authorizationManager,
                                    final PropertyTypeDao propertyTypeRepository,
                                    final PropertyTypeParserImpl propertyTypeParser,
-                                   final ApiUtils apiUtils,
-                                   final CommitRepository commitRepository) {
-        super(apiUtils, commitRepository);
+                                   final ApiUtils apiUtils) {
+        super(apiUtils);
         this.authorizationManager = authorizationManager;
         this.propertyTypeDao = propertyTypeRepository;
         this.propertyTypeParser = propertyTypeParser;

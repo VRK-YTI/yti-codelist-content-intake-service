@@ -33,7 +33,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @XmlRootElement
 @XmlType(propOrder = {"id", "href", "global", "title", "description", "parentCodeScheme"})
 @ApiModel(value = "ExternalReference", description = "ExternalReference model that represents data for either CodeScheme or Code related external link.")
-public class ExternalReference extends AbstractIdentifyableCode implements Serializable {
+public class ExternalReference extends AbstractIdentifyableTimestampedCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

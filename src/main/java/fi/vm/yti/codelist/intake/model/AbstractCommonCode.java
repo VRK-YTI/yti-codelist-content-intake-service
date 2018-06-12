@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import fi.vm.yti.codelist.common.dto.Views;
 
 @MappedSuperclass
-abstract class AbstractCommonCode extends AbstractBaseCode {
+public abstract class AbstractCommonCode extends AbstractBaseCode {
 
     private String codeValue;
 

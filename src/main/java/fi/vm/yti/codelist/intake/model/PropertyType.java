@@ -29,7 +29,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @XmlRootElement
 @XmlType(propOrder = {"id", "context", "propertyUri", "localName", "type", "prefLabel", "definition"})
 @ApiModel(value = "PropertyType", description = "PropertyType model for data relation typing.")
-public class PropertyType extends AbstractIdentifyableCode implements Serializable {
+public class PropertyType extends AbstractIdentifyableTimestampedCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

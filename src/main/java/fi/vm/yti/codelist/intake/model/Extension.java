@@ -24,7 +24,7 @@ import io.swagger.annotations.ApiModel;
 @XmlRootElement
 @XmlType(propOrder = { "id", "code", "extensionValue", "order", "extensionScheme", "extension" })
 @ApiModel(value = "Extension", description = "Extension model that represents data for one extension element.")
-public class Extension extends AbstractIdentifyableCode implements Serializable {
+public class Extension extends AbstractIdentifyableTimestampedCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

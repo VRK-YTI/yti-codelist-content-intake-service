@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -193,6 +194,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
+        existingExtension.setModified(new Date(System.currentTimeMillis()));
         return existingExtension;
     }
 
@@ -213,6 +215,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
             extension.setCode(code);
         }
         extension.setExtensionScheme(extensionScheme);
+        final Date timeStamp = new Date(System.currentTimeMillis());
+        extension.setCreated(timeStamp);
+        extension.setModified(timeStamp);
         return extension;
     }
 

@@ -22,7 +22,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.groupmanagement.GroupManagementOrganizationDTO;
-import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.service.OrganizationService;
@@ -36,9 +35,8 @@ public class OrganizationServiceImpl extends BaseService implements Organization
 
     @Inject
     public OrganizationServiceImpl(final OrganizationRepository organizationRepository,
-                                   final ApiUtils apiUtils,
-                                   final CommitRepository commitRepository) {
-        super(apiUtils, commitRepository);
+                                   final ApiUtils apiUtils) {
+        super(apiUtils);
         this.organizationRepository = organizationRepository;
     }
 

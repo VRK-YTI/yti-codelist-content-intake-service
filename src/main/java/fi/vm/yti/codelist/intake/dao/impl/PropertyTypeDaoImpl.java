@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -113,6 +114,7 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
                 existingPropertyType.setDefinition(language, value);
             }
         }
+        existingPropertyType.setModified(new Date(System.currentTimeMillis()));
         return existingPropertyType;
     }
 
@@ -134,6 +136,9 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
         for (final Map.Entry<String, String> entry : fromPropertyType.getDefinition().entrySet()) {
             propertyType.setDefinition(entry.getKey(), entry.getValue());
         }
+        final Date timeStamp = new Date(System.currentTimeMillis());
+        propertyType.setCreated(timeStamp);
+        propertyType.setModified(timeStamp);
         return propertyType;
     }
 }

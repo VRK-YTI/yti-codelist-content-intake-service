@@ -34,7 +34,6 @@ import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -76,9 +75,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                  final CodeDao codeDao,
                                  final ApiUtils apiUtils,
                                  final ExtensionSchemeDao extensionSchemeDao,
-                                 final ExternalReferenceDao externalReferenceDao,
-                                 final CommitRepository commitRepository) {
-        super(apiUtils, commitRepository);
+                                 final ExternalReferenceDao externalReferenceDao) {
+        super(apiUtils);
         this.codeRegistryDao = codeRegistryDao;
         this.authorizationManager = authorizationManager;
         this.codeSchemeParser = codeSchemeParser;

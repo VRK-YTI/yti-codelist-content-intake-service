@@ -1,27 +1,39 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
-import fi.vm.yti.codelist.common.dto.*;
-import fi.vm.yti.codelist.common.model.Status;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
-import fi.vm.yti.codelist.intake.dao.*;
-import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
-import fi.vm.yti.codelist.intake.jpa.CommitRepository;
-import fi.vm.yti.codelist.intake.model.*;
-import fi.vm.yti.codelist.intake.service.*;
-import org.springframework.stereotype.Service;
-
-import javax.inject.Singleton;
-import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.inject.Singleton;
+import javax.transaction.Transactional;
+
+import org.springframework.stereotype.Service;
+
+import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.model.Status;
+import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.dao.CodeDao;
+import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
+import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
+import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
+import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
+import fi.vm.yti.codelist.intake.model.Code;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.ExtensionScheme;
+import fi.vm.yti.codelist.intake.model.ExternalReference;
+import fi.vm.yti.codelist.intake.service.CloningService;
+import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 
 @Singleton
 @Service
 public class CloningServiceImpl extends BaseService implements CloningService {
 
     private final CodeSchemeRepository codeSchemeRepository;
-    private final CodeSchemeService  codeSchemeService;
+    private final CodeSchemeService codeSchemeService;
     private final CodeSchemeDao codeSchemeDao;
     private final CodeDao codeDao;
     private final ExternalReferenceDao externalReferenceDao;
@@ -33,9 +45,8 @@ public class CloningServiceImpl extends BaseService implements CloningService {
                               final CodeDao codeDao,
                               final ExternalReferenceDao externalReferenceDao,
                               final ExtensionSchemeDao extensionSchemeDao,
-                              final ApiUtils apiUtils,
-                              final CommitRepository commitRepository) {
-        super(apiUtils, commitRepository);
+                              final ApiUtils apiUtils) {
+        super(apiUtils);
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeSchemeService = codeSchemeService;
         this.codeSchemeDao = codeSchemeDao;
@@ -45,7 +56,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     }
 
     @Transactional
-    public CodeSchemeDTO cloneCodeSchemeWithAllThePlumbing(CodeSchemeDTO codeSchemeWithUserChangesFromUi, String codeRegistryCodeValue, String originalCodeSchemeUuid) {
+    public CodeSchemeDTO cloneCodeSchemeWithAllThePlumbing(CodeSchemeDTO codeSchemeWithUserChangesFromUi,
+                                                           String codeRegistryCodeValue,
+                                                           String originalCodeSchemeUuid) {
 
         CodeScheme originalCodeScheme = findCodeSchemeAndEagerFetchTheChildren(UUID.fromString(originalCodeSchemeUuid));
 
@@ -56,22 +69,24 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         CodeScheme newCodeScheme = codeSchemeDao.findById(codeSchemeWithUserChangesFromUi.getId());
 
         handleCodes(codeSchemeWithUserChangesFromUi,
-                originalCodeScheme.getCodes(),
-                newCodeScheme);
+            originalCodeScheme.getCodes(),
+            newCodeScheme);
 
         handleExtensionSchemes(codeSchemeWithUserChangesFromUi,
-                newCodeScheme,
-                originalCodeScheme);
+            newCodeScheme,
+            originalCodeScheme);
 
         handleExternalReferences(codeSchemeWithUserChangesFromUi,
-                originalCodeScheme,
-                newCodeScheme);
+            originalCodeScheme,
+            newCodeScheme);
 
         return codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
     }
 
     @Transactional
-    protected void handleExtensionSchemes(CodeSchemeDTO codeSchemeWithUserChangesFromUi, CodeScheme newCodeScheme, CodeScheme originalCodeScheme) {
+    protected void handleExtensionSchemes(CodeSchemeDTO codeSchemeWithUserChangesFromUi,
+                                          CodeScheme newCodeScheme,
+                                          CodeScheme originalCodeScheme) {
         Set<ExtensionScheme> originalExtensionSchemes = originalCodeScheme.getExtensionSchemes();
         Set<ExtensionScheme> clonedExtensionSchemes = new HashSet<>();
         for (ExtensionScheme origExtSch : originalExtensionSchemes) {
@@ -79,7 +94,7 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         }
         extensionSchemeDao.save(clonedExtensionSchemes);
         Set<ExtensionSchemeDTO> extensionSchemeDTOS = new HashSet<>();
-        for (ExtensionScheme e: clonedExtensionSchemes) {
+        for (ExtensionScheme e : clonedExtensionSchemes) {
             ExtensionSchemeDTO dto = mapExtensionSchemeDto(e, true);
             extensionSchemeDTOS.add(dto);
         }
@@ -88,7 +103,8 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     }
 
     @Transactional
-    protected ExtensionScheme cloneExtensionScheme(ExtensionScheme original, CodeScheme newCodeScheme) {
+    protected ExtensionScheme cloneExtensionScheme(ExtensionScheme original,
+                                                   CodeScheme newCodeScheme) {
         ExtensionScheme copy = new ExtensionScheme();
         copy.setId(UUID.randomUUID());
         copy.setEndDate(original.getEndDate());
@@ -115,7 +131,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     }
 
     @Transactional
-    protected void handleExternalReferences(final CodeSchemeDTO codeSchemeWithUserChangesFromUi, final CodeScheme originalCodeScheme, final CodeScheme newCodeScheme) {
+    protected void handleExternalReferences(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
+                                            final CodeScheme originalCodeScheme,
+                                            final CodeScheme newCodeScheme) {
         Set<ExternalReference> originalExternalReferences = originalCodeScheme.getExternalReferences();
         Set<ExternalReference> newExternalReferences = new HashSet<>();
         for (ExternalReference originalExternalReference : originalExternalReferences) {
@@ -128,7 +146,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     }
 
     @Transactional
-    protected void handleCodes(final CodeSchemeDTO codeSchemeWithUserChangesFromUi, final Set<Code> originalCodesThatAreNotExtensions, final CodeScheme newCodeScheme) {
+    protected void handleCodes(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
+                               final Set<Code> originalCodesThatAreNotExtensions,
+                               final CodeScheme newCodeScheme) {
         Set<Code> originalCodes = originalCodesThatAreNotExtensions;
         Set<CodeDTO> clonedCodeDTOs = new HashSet<>();
         for (Code code : originalCodes) {
@@ -150,7 +170,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         return codeSchemeRepository.findCodeSchemeAndEagerFetchTheChildren(id);
     }
 
-    @Transactional ExternalReference cloneExternalReference(ExternalReference original, CodeScheme newCodeScheme) {
+    @Transactional
+    ExternalReference cloneExternalReference(ExternalReference original,
+                                             CodeScheme newCodeScheme) {
         ExternalReference copy = new ExternalReference();
         copy.setParentCodeScheme(newCodeScheme);
         copy.setId(UUID.randomUUID());
@@ -165,7 +187,8 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     }
 
     @Transactional
-    public Code cloneCode(Code original, CodeScheme newCodeScheme) {
+    public Code cloneCode(Code original,
+                          CodeScheme newCodeScheme) {
         Code copy = new Code();
         copy.setId(UUID.randomUUID());
         copy.setCodeScheme(newCodeScheme);

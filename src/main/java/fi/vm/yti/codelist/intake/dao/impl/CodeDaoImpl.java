@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -249,6 +250,7 @@ public class CodeDaoImpl implements CodeDao {
         if (!Objects.equals(existingCode.getConceptUriInVocabularies(), fromCode.getConceptUriInVocabularies())) {
             existingCode.setConceptUriInVocabularies(fromCode.getConceptUriInVocabularies());
         }
+        existingCode.setModified(new Date(System.currentTimeMillis()));
         return existingCode;
     }
 
@@ -302,6 +304,9 @@ public class CodeDaoImpl implements CodeDao {
         code.setEndDate(fromCode.getEndDate());
         code.setUri(apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, code));
         code.setConceptUriInVocabularies(fromCode.getConceptUriInVocabularies());
+        final Date timeStamp = new Date(System.currentTimeMillis());
+        code.setCreated(timeStamp);
+        code.setModified(timeStamp);
         return code;
     }
 
