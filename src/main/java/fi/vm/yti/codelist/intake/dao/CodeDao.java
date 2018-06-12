@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.data.domain.PageRequest;
+
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -20,9 +22,12 @@ public interface CodeDao {
 
     Code findByUri(final String uri);
 
-    Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme, final String codeValue);
+    Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
+                                      final String codeValue);
 
-    Code findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme, final String codeValue, final UUID broaderCodeId);
+    Code findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme,
+                                                      final String codeValue,
+                                                      final UUID broaderCodeId);
 
     Code findById(final UUID id);
 
@@ -34,7 +39,15 @@ public interface CodeDao {
 
     Set<Code> findAll();
 
-    Code updateCodeFromDto(final CodeScheme codeScheme, final CodeDTO codeDto);
+    int getCodeCount();
 
-    Set<Code> updateCodesFromDtos(final CodeScheme codeScheme, final Set<CodeDTO> codes, final Map<String, String> broaderCodeMapping, final boolean updateExternalReferences);
+    Set<Code> findAll(final PageRequest pageRequest);
+
+    Code updateCodeFromDto(final CodeScheme codeScheme,
+                           final CodeDTO codeDto);
+
+    Set<Code> updateCodesFromDtos(final CodeScheme codeScheme,
+                                  final Set<CodeDTO> codes,
+                                  final Map<String, String> broaderCodeMapping,
+                                  final boolean updateExternalReferences);
 }

@@ -15,6 +15,7 @@ import javax.transaction.Transactional;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -62,6 +63,17 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         this.codeSchemeDao = codeSchemeDao;
         this.codeParser = codeParser;
         this.codeDao = codeDao;
+    }
+
+    @Transactional
+    public Set<CodeDTO> findAll(final PageRequest pageRequest) {
+        final Set<Code> codes = codeDao.findAll(pageRequest);
+        return mapDeepCodeDtos(codes);
+    }
+
+    @Transactional
+    public int getCodeCount() {
+        return codeDao.getCodeCount();
     }
 
     @Transactional

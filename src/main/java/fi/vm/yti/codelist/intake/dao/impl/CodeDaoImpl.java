@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -55,6 +56,10 @@ public class CodeDaoImpl implements CodeDao {
         this.externalReferenceDao = externalReferenceDao;
     }
 
+    public int getCodeCount() {
+        return codeRepository.getCodeCount();
+    }
+
     public void save(final Code code) {
         codeRepository.save(code);
         entityChangeLogger.logCodeChange(code);
@@ -73,6 +78,10 @@ public class CodeDaoImpl implements CodeDao {
     public void delete(final Set<Code> codes) {
         codes.forEach(entityChangeLogger::logCodeChange);
         codeRepository.delete(codes);
+    }
+
+    public Set<Code> findAll(final PageRequest pageRequest) {
+        return new HashSet<>(codeRepository.findAll(pageRequest).getContent());
     }
 
     public Set<Code> findAll() {

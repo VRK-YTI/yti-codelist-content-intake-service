@@ -5,15 +5,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import fi.vm.yti.codelist.intake.model.Code;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.data.domain.PageRequest;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 
 public interface CodeService {
 
+    int getCodeCount();
+
     Set<CodeDTO> findAll();
+
+    Set<CodeDTO> findAll(final PageRequest pageRequest);
 
     Set<CodeDTO> findByCodeSchemeId(final UUID codeSchemeId);
 

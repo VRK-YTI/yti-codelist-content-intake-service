@@ -6,8 +6,10 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -16,13 +18,16 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 
 @Repository
 @Transactional
-public interface CodeRepository extends CrudRepository<Code, String> {
+public interface CodeRepository extends PagingAndSortingRepository<Code, String> {
 
     Code findByUriIgnoreCase(final String uri);
 
-    Code findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(final String codeSchemeCodeValue, final String codeValue);
+    Code findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(final String codeSchemeCodeValue,
+                                                                   final String codeValue);
 
-    Code findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCaseAndBroaderCodeId(final String codeSchemeCodeValue, final String codeValue, final UUID broaderCodeId);
+    Code findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCaseAndBroaderCodeId(final String codeSchemeCodeValue,
+                                                                                   final String codeValue,
+                                                                                   final UUID broaderCodeId);
 
     Code findById(final UUID id);
 
@@ -38,4 +43,9 @@ public interface CodeRepository extends CrudRepository<Code, String> {
     Set<Code> findByBroaderCodeId(final UUID broaderCodeId);
 
     Set<Code> findAll();
+
+    Page<Code> findAll(final Pageable pageable);
+
+    @Query("SELECT COUNT(c) FROM Code as c")
+    int getCodeCount();
 }

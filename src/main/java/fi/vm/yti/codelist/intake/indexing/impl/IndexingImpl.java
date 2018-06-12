@@ -16,6 +16,8 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -61,6 +63,7 @@ public class IndexingImpl implements Indexing {
     private static final String NAME_EXTENSIONSCHEMES = "ExtensionSchemes";
     private static final String NAME_EXTENSIONS = "Extensions";
     private static final String BULK = "ElasticSearch bulk: ";
+    private static int MAX_PAGE_COUNT = 2000;
 
     private final IndexStatusRepository indexStatusRepository;
     private final CodeSchemeService codeSchemeService;
@@ -109,8 +112,19 @@ public class IndexingImpl implements Indexing {
     }
 
     private boolean indexCodes(final String indexName) {
-        final Set<CodeDTO> codes = codeService.findAll();
-        return indexData(codes, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
+        final int codeCount = codeService.getCodeCount();
+        int page = 1;
+        boolean success = true;
+        while (page * MAX_PAGE_COUNT <= codeCount) {
+            final PageRequest pageRequest = new PageRequest(page, MAX_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "codeValue")));
+            final Set<CodeDTO> codes = codeService.findAll(pageRequest);
+            final boolean partIndexSuccess = indexData(codes, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
+            if (!partIndexSuccess && success) {
+                success = false;
+            }
+            page++;
+        }
+        return success;
     }
 
     private boolean indexPropertyTypes(final String indexName) {
