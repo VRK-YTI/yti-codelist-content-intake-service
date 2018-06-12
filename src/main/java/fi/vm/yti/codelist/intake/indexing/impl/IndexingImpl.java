@@ -112,7 +112,8 @@ public class IndexingImpl implements Indexing {
         return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
     }
 
-    private boolean indexCodes(final String indexName) {
+    @Transactional
+    public boolean indexCodes(final String indexName) {
         final Stopwatch watch = Stopwatch.createStarted();
         final int codeCount = codeService.getCodeCount();
         LOG.info("ElasticSearch indexing: Starting to index " + codeCount + " codes.");
