@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Stopwatch;
 
 import fi.vm.yti.codelist.common.dto.AbstractIdentifyableCodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
@@ -112,7 +113,9 @@ public class IndexingImpl implements Indexing {
     }
 
     private boolean indexCodes(final String indexName) {
+        final Stopwatch watch = Stopwatch.createStarted();
         final int codeCount = codeService.getCodeCount();
+        LOG.info("ElasticSearch indexing: Starting to index " + codeCount + " codes.");
         int page = 1;
         boolean success = true;
         while (page * MAX_PAGE_COUNT <= codeCount) {
@@ -123,6 +126,9 @@ public class IndexingImpl implements Indexing {
                 success = false;
             }
             page++;
+        }
+        if (success) {
+            LOG.info("ElasticSearch indexing: Successfully indexed " + codeCount + " codes in " + watch);
         }
         return success;
     }

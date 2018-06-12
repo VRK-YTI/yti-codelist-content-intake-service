@@ -1,12 +1,17 @@
 package fi.vm.yti.codelist.intake.api;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import javax.inject.Inject;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
@@ -16,10 +21,12 @@ import fi.vm.yti.codelist.intake.configuration.FrontendProperties;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
 
 /**
  * Generic utils for serving APIs.
@@ -135,13 +142,13 @@ public class ApiUtils {
     public String createCodeUri(final CodeRegistry codeRegistry,
                                 final CodeScheme codeScheme,
                                 final Code code) {
-        return createResourceUri(codeRegistry.getCodeValue() + "/" + codeScheme.getCodeValue() + "/" + code.getCodeValue());
+        return createResourceUri(codeRegistry.getCodeValue() + "/" + codeScheme.getCodeValue() + "/" + urlEncodeString(code.getCodeValue()));
     }
 
     private String createCodeUrl(final CodeRegistryDTO codeRegistry,
                                  final CodeSchemeDTO codeScheme,
                                  final CodeDTO code) {
-        return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, code.getCodeValue());
+        return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, urlEncodeString(code.getCodeValue()));
     }
 
     public String createExternalReferenceUrl(final ExternalReferenceDTO externalReference) {
@@ -185,6 +192,14 @@ public class ApiUtils {
         if (port != null && !port.isEmpty()) {
             builder.append(":");
             builder.append(port);
+        }
+    }
+
+    private String urlEncodeString(final String value) {
+        try {
+            return URLEncoder.encode(value, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
     }
 }
