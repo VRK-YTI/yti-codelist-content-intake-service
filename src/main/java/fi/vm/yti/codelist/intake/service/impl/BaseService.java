@@ -78,8 +78,8 @@ public abstract class BaseService {
         codeDto.setDescription(code.getDescription());
         codeDto.setOrder(code.getOrder());
         codeDto.setUrl(apiUtils.createCodeUrl(codeDto));
-        codeDto.setCreated(getFirstModificationDate(ENTITY_CODE, code.getId()));
-        codeDto.setModified(getLastModificationDate(ENTITY_CODE, code.getId()));
+//        codeDto.setCreated(getFirstModificationDate(ENTITY_CODE, code.getId()));
+//        codeDto.setModified(getLastModificationDate(ENTITY_CODE, code.getId()));
         return codeDto;
     }
 
