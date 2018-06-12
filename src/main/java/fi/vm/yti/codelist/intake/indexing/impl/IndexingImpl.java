@@ -123,7 +123,7 @@ public class IndexingImpl implements Indexing {
             final PageRequest pageRequest = new PageRequest(page, MAX_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "codeValue")));
             final Set<CodeDTO> codes = codeService.findAll(pageRequest);
             final boolean partIndexSuccess = indexData(codes, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
-            if (!partIndexSuccess && success) {
+            if (!partIndexSuccess) {
                 success = false;
             }
             page++;
