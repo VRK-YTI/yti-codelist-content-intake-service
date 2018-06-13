@@ -1,6 +1,11 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
@@ -56,16 +61,16 @@ public class CloningServiceImpl extends BaseService implements CloningService {
 
     @Transactional
     public CodeSchemeDTO cloneCodeSchemeWithAllThePlumbing(CodeSchemeDTO codeSchemeWithUserChangesFromUi,
-                                                           String codeRegistryCodeValue,
-                                                           String originalCodeSchemeUuid) {
+                                                           final String codeRegistryCodeValue,
+                                                           final String originalCodeSchemeUuid) {
 
-        CodeScheme originalCodeScheme = findCodeSchemeAndEagerFetchTheChildren(UUID.fromString(originalCodeSchemeUuid));
+        final CodeScheme originalCodeScheme = findCodeSchemeAndEagerFetchTheChildren(UUID.fromString(originalCodeSchemeUuid));
 
         codeSchemeWithUserChangesFromUi.setStatus(Status.DRAFT.toString());
 
         codeSchemeWithUserChangesFromUi = codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
 
-        CodeScheme newCodeScheme = codeSchemeDao.findById(codeSchemeWithUserChangesFromUi.getId());
+        final CodeScheme newCodeScheme = codeSchemeDao.findById(codeSchemeWithUserChangesFromUi.getId());
 
         handleCodes(codeSchemeWithUserChangesFromUi,
             originalCodeScheme.getCodes(),
@@ -83,28 +88,27 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     }
 
     @Transactional
-    protected void handleExtensionSchemes(CodeSchemeDTO codeSchemeWithUserChangesFromUi,
-                                          CodeScheme newCodeScheme,
-                                          CodeScheme originalCodeScheme) {
-        Set<ExtensionScheme> originalExtensionSchemes = originalCodeScheme.getExtensionSchemes();
-        Set<ExtensionScheme> clonedExtensionSchemes = new HashSet<>();
+    protected void handleExtensionSchemes(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
+                                          final CodeScheme newCodeScheme,
+                                          final CodeScheme originalCodeScheme) {
+        final Set<ExtensionScheme> originalExtensionSchemes = originalCodeScheme.getExtensionSchemes();
+        final Set<ExtensionScheme> clonedExtensionSchemes = new HashSet<>();
         for (ExtensionScheme origExtSch : originalExtensionSchemes) {
             clonedExtensionSchemes.add(cloneExtensionScheme(origExtSch, newCodeScheme));
         }
         extensionSchemeDao.save(clonedExtensionSchemes);
-        Set<ExtensionSchemeDTO> extensionSchemeDTOS = new HashSet<>();
+        final Set<ExtensionSchemeDTO> extensionSchemeDTOS = new HashSet<>();
         for (ExtensionScheme e : clonedExtensionSchemes) {
             ExtensionSchemeDTO dto = mapExtensionSchemeDto(e, true);
             extensionSchemeDTOS.add(dto);
         }
-
         codeSchemeWithUserChangesFromUi.setExtensionSchemes(extensionSchemeDTOS);
     }
 
     @Transactional
-    protected ExtensionScheme cloneExtensionScheme(ExtensionScheme original,
-                                                   CodeScheme newCodeScheme) {
-        ExtensionScheme copy = new ExtensionScheme();
+    protected ExtensionScheme cloneExtensionScheme(final ExtensionScheme original,
+                                                   final CodeScheme newCodeScheme) {
+        final ExtensionScheme copy = new ExtensionScheme();
         copy.setId(UUID.randomUUID());
         copy.setEndDate(original.getEndDate());
         copy.setStartDate(original.getStartDate());
@@ -114,9 +118,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         copy.setPropertyType(original.getPropertyType());
         copy.setPrefLabel(original.getPrefLabel());
         copy.setCodeSchemes(original.getCodeSchemes());
-        Set<Extension> newExtensions = new HashSet<>();
+        final Set<Extension> newExtensions = new HashSet<>();
         for (Extension orig : original.getExtensions()) {
-            Extension newExtension = new Extension();
+            final Extension newExtension = new Extension();
             newExtension.setCode(orig.getCode());
             newExtension.setId(UUID.randomUUID());
             newExtension.setExtensionScheme(copy);
@@ -125,6 +129,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
             newExtension.setExtensionValue(orig.getExtensionValue());
             newExtensions.add(newExtension);
         }
+        final Date timeStamp = new Date(System.currentTimeMillis());
+        copy.setCreated(timeStamp);
+        copy.setModified(timeStamp);
         copy.setExtensions(newExtensions);
         return copy;
     }
@@ -133,14 +140,14 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     protected void handleExternalReferences(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
                                             final CodeScheme originalCodeScheme,
                                             final CodeScheme newCodeScheme) {
-        Set<ExternalReference> originalExternalReferences = originalCodeScheme.getExternalReferences();
-        Set<ExternalReference> newExternalReferences = new HashSet<>();
-        for (ExternalReference originalExternalReference : originalExternalReferences) {
+        final Set<ExternalReference> originalExternalReferences = originalCodeScheme.getExternalReferences();
+        final Set<ExternalReference> newExternalReferences = new HashSet<>();
+        for (final ExternalReference originalExternalReference : originalExternalReferences) {
             ExternalReference newExternalReference = cloneExternalReference(originalExternalReference, newCodeScheme);
             newExternalReferences.add(newExternalReference);
         }
         externalReferenceDao.save(newExternalReferences);
-        Set<ExternalReferenceDTO> extRefDtos = mapExternalReferenceDtos(newExternalReferences, true);
+        final Set<ExternalReferenceDTO> extRefDtos = mapExternalReferenceDtos(newExternalReferences, true);
         codeSchemeWithUserChangesFromUi.setExternalReferences(extRefDtos);
     }
 
@@ -148,21 +155,21 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     protected void handleCodes(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
                                final Set<Code> originalCodesParam,
                                final CodeScheme newCodeScheme) {
-        Set<Code> originalCodes = originalCodesParam;
-        Set<Code> clonedCodes = new HashSet<>();
+        final Set<Code> originalCodes = originalCodesParam;
+        final Set<Code> clonedCodes = new HashSet<>();
 
-        Map<UUID, Code> originalCodesMap = originalCodes.stream().collect(Collectors.toMap(Code::getId,
-                code -> code));
+        final Map<UUID, Code> originalCodesMap = originalCodes.stream().collect(Collectors.toMap(Code::getId,
+            code -> code));
 
-        Map<String, Code> clonedCodesByCodeValueMap = new HashMap<>();
+        final Map<String, Code> clonedCodesByCodeValueMap = new HashMap<>();
 
         //needed to match kid to parent in hiearchical codeschemes (mapping is based on codeValue)
-        Map<String, String> childToParentPointerMap = new HashMap<>();
+        final Map<String, String> childToParentPointerMap = new HashMap<>();
 
-        Set<CodeDTO> clonedCodeDTOs = new HashSet<>();
+        final Set<CodeDTO> clonedCodeDTOs = new HashSet<>();
 
-        for (Code code : originalCodes) {
-            Code clonedCode = cloneCode(code, newCodeScheme);
+        for (final Code code : originalCodes) {
+            final Code clonedCode = cloneCode(code, newCodeScheme);
             if (clonedCode.getBroaderCodeId() != null) {
                 childToParentPointerMap.put(clonedCode.getCodeValue(), originalCodesMap.get(clonedCode.getBroaderCodeId()).getCodeValue());
             }
@@ -170,14 +177,14 @@ public class CloningServiceImpl extends BaseService implements CloningService {
             clonedCodes.add(clonedCode);
         }
 
-        for (Code clonedCode : clonedCodes) {
+        for (final Code clonedCode : clonedCodes) {
             if (childToParentPointerMap.keySet().contains(clonedCode.getCodeValue())) {
                 String parentCodeValue = childToParentPointerMap.get(clonedCode.getCodeValue());
                 Code parentCode = clonedCodesByCodeValueMap.get(parentCodeValue);
                 clonedCode.setBroaderCodeId(parentCode.getId());
             }
             codeDao.save(clonedCode);
-            CodeDTO clonedCodeDTO = mapCodeDto(clonedCode, true);
+            final CodeDTO clonedCodeDTO = mapCodeDto(clonedCode, true);
             clonedCodeDTOs.add(clonedCodeDTO);
         }
 
@@ -195,9 +202,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     }
 
     @Transactional
-    ExternalReference cloneExternalReference(ExternalReference original,
-                                             CodeScheme newCodeScheme) {
-        ExternalReference copy = new ExternalReference();
+    ExternalReference cloneExternalReference(final ExternalReference original,
+                                             final CodeScheme newCodeScheme) {
+        final ExternalReference copy = new ExternalReference();
         copy.setParentCodeScheme(newCodeScheme);
         copy.setId(UUID.randomUUID());
         copy.setDescription(original.getDescription());
@@ -207,13 +214,16 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         copy.setTitle(original.getTitle());
         copy.setCodes(original.getCodes());
         copy.setCodeSchemes(original.getCodeSchemes());
+        final Date timeStamp = new Date(System.currentTimeMillis());
+        copy.setCreated(timeStamp);
+        copy.setModified(timeStamp);
         return copy;
     }
 
     @Transactional
-    public Code cloneCode(Code original,
-                          CodeScheme newCodeScheme) {
-        Code copy = new Code();
+    public Code cloneCode(final Code original,
+                          final CodeScheme newCodeScheme) {
+        final Code copy = new Code();
         copy.setId(UUID.randomUUID());
         copy.setCodeScheme(newCodeScheme);
         copy.setCodeValue(original.getCodeValue());
@@ -226,7 +236,7 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         copy.setPrefLabel(original.getPrefLabel());
         copy.setShortName(original.getShortName());
         copy.setExternalReferences(original.getExternalReferences());
-        for (ExternalReference extRef : copy.getExternalReferences()) {
+        for (final ExternalReference extRef : copy.getExternalReferences()) {
             extRef.setId(null);
         }
         copy.setExtensions(original.getExtensions());
@@ -234,6 +244,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         copy.setEndDate(original.getEndDate());
         copy.setStartDate(original.getStartDate());
         copy.setUri(apiUtils.createCodeUri(copy));
+        final Date timeStamp = new Date(System.currentTimeMillis());
+        copy.setCreated(timeStamp);
+        copy.setModified(timeStamp);
         return copy;
     }
 }
