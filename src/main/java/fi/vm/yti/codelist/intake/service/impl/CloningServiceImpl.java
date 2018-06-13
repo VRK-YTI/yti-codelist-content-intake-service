@@ -1,8 +1,7 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
@@ -147,16 +146,41 @@ public class CloningServiceImpl extends BaseService implements CloningService {
 
     @Transactional
     protected void handleCodes(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
-                               final Set<Code> originalCodesThatAreNotExtensions,
+                               final Set<Code> originalCodesParam,
                                final CodeScheme newCodeScheme) {
-        Set<Code> originalCodes = originalCodesThatAreNotExtensions;
+        Set<Code> originalCodes = originalCodesParam;
+        Set<Code> clonedCodes = new HashSet<>();
+
+        Map<UUID, Code> originalCodesMap = originalCodes.stream().collect(Collectors.toMap(Code::getId,
+                code -> code));
+
+        Map<String, Code> clonedCodesByCodeValueMap = new HashMap<>();
+
+        //needed to match kid to parent in hiearchical codeschemes (mapping is based on codeValue)
+        Map<String, String> childToParentPointerMap = new HashMap<>();
+
         Set<CodeDTO> clonedCodeDTOs = new HashSet<>();
+
         for (Code code : originalCodes) {
             Code clonedCode = cloneCode(code, newCodeScheme);
+            if (clonedCode.getBroaderCodeId() != null) {
+                childToParentPointerMap.put(clonedCode.getCodeValue(), originalCodesMap.get(clonedCode.getBroaderCodeId()).getCodeValue());
+            }
+            clonedCodesByCodeValueMap.put(clonedCode.getCodeValue(), clonedCode);
+            clonedCodes.add(clonedCode);
+        }
+
+        for (Code clonedCode : clonedCodes) {
+            if (childToParentPointerMap.keySet().contains(clonedCode.getCodeValue())) {
+                String parentCodeValue = childToParentPointerMap.get(clonedCode.getCodeValue());
+                Code parentCode = clonedCodesByCodeValueMap.get(parentCodeValue);
+                clonedCode.setBroaderCodeId(parentCode.getId());
+            }
             codeDao.save(clonedCode);
             CodeDTO clonedCodeDTO = mapCodeDto(clonedCode, true);
             clonedCodeDTOs.add(clonedCodeDTO);
         }
+
         codeSchemeWithUserChangesFromUi.setCodes(clonedCodeDTOs);
     }
 
