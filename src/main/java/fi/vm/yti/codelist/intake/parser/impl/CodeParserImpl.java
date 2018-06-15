@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,13 +52,11 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeParserImpl.class);
-    private int maxOrderValue = 0;
 
     @Override
     public Set<CodeDTO> parseCodesFromCsvInputStream(final InputStream inputStream,
                                                      final Map<String, String> broaderCodeMapping) {
-        maxOrderValue = 0;
-        final Set<CodeDTO> codes = new HashSet<>();
+        final Set<CodeDTO> codes = new LinkedHashSet<>();
         final Set<String> codeValues = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -104,7 +103,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
 
                 codes.add(code);
             }
-            checkOrderValidity(codes);
+            checkOrdersForDuplicateValues(codes);
         } catch (final IllegalArgumentException e) {
             LOG.error("Duplicate header value found in CSV!", e);
             throw new CsvParsingException(ERR_MSG_USER_DUPLICATE_HEADER_VALUE);
@@ -132,8 +131,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
     public Set<CodeDTO> parseCodesFromExcelWorkbook(final Workbook workbook,
                                                     final String sheetName,
                                                     final Map<String, String> broaderCodeMapping) {
-        maxOrderValue = 0;
-        final Set<CodeDTO> codes = new HashSet<>();
+        final Set<CodeDTO> codes = new LinkedHashSet<>();
         final Set<String> codeValues = new HashSet<>();
         final DataFormatter formatter = new DataFormatter();
         Sheet sheet = workbook.getSheet(sheetName);
@@ -197,7 +195,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
             }
 
         }
-        checkOrderValidity(codes);
+        checkOrdersForDuplicateValues(codes);
         return codes;
     }
 
@@ -228,7 +226,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 validateStartDateIsBeforeEndDate(code);
                 codeValues.add(code.getCodeValue().toLowerCase());
             }
-            checkOrderValidity(codes);
+            checkOrdersForDuplicateValues(codes);
         } catch (final IOException e) {
             LOG.error("Codes parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
@@ -275,16 +273,11 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
     }
 
     private Integer resolveOrderFromCsvRecord(final CSVRecord record) {
-        Integer order;
+        final Integer order;
         if (record.isMapped(CONTENT_HEADER_ORDER)) {
             order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER));
-            if (order != null) {
-                maxOrderValue = order;
-            } else {
-                order = ++maxOrderValue;
-            }
         } else {
-            order = ++maxOrderValue;
+            order = null;
         }
         return order;
     }
@@ -292,16 +285,11 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
     private Integer resolveOrderFromExcelRow(final Map<String, Integer> headerMap,
                                              final Row row,
                                              final DataFormatter formatter) {
-        Integer order;
+        final Integer order;
         if (headerMap.containsKey(CONTENT_HEADER_ORDER)) {
             order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER))));
-            if (order != null) {
-                maxOrderValue = order;
-            } else {
-                order = ++maxOrderValue;
-            }
         } else {
-            order = ++maxOrderValue;
+            order = null;
         }
         return order;
     }

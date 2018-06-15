@@ -188,6 +188,14 @@ public class CodeDaoImpl implements CodeDao {
         return code;
     }
 
+    private void checkOrderIsNotInUse(final CodeScheme codeScheme,
+                                      final Integer order) {
+        final Code code = codeRepository.findByCodeSchemeAndOrder(codeScheme, order);
+        if (code != null) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_ALREADY_IN_USE));
+        }
+    }
+
     private Code updateCode(final CodeScheme codeScheme,
                             final Code existingCode,
                             final CodeDTO fromCode) {
@@ -212,8 +220,9 @@ public class CodeDaoImpl implements CodeDao {
         }
         if (!Objects.equals(existingCode.getOrder(), fromCode.getOrder())) {
             if (fromCode.getOrder() != null) {
+                checkOrderIsNotInUse(codeScheme, fromCode.getOrder());
                 existingCode.setOrder(fromCode.getOrder());
-            } else {
+            } else if (fromCode.getOrder() == null && existingCode.getOrder() == null) {
                 existingCode.setOrder(getNextOrderInSequence(codeScheme));
             }
         }
@@ -286,6 +295,7 @@ public class CodeDaoImpl implements CodeDao {
         code.setHierarchyLevel(fromCode.getHierarchyLevel());
         code.setBroaderCodeId(fromCode.getBroaderCodeId());
         if (fromCode.getOrder() != null) {
+            checkOrderIsNotInUse(codeScheme, fromCode.getOrder());
             code.setOrder(fromCode.getOrder());
         } else {
             code.setOrder(getNextOrderInSequence(codeScheme));
