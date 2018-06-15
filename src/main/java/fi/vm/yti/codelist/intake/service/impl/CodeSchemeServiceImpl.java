@@ -103,7 +103,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     @Nullable
     public CodeSchemeDTO findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                                  final String codeSchemeCodeValue) {
-        CodeScheme scheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        final CodeScheme scheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (scheme == null) {
             return null;
         }

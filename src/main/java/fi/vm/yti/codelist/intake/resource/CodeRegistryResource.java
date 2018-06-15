@@ -545,7 +545,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
-    private Response indexCodeschemeAndCodesAfterCloning(CodeSchemeDTO codeSchemeDTO, String codeRegistryCodeValue) {
+    private Response indexCodeschemeAndCodesAfterCloning(CodeSchemeDTO codeSchemeDTO,
+                                                         String codeRegistryCodeValue) {
         HashSet<CodeSchemeDTO> codeSchemeDTOs = new HashSet<>();
         codeSchemeDTOs.add(codeSchemeDTO);
         indexing.updateCodeSchemes(codeSchemeDTOs);
