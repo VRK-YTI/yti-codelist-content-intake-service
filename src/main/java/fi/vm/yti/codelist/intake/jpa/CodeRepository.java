@@ -25,12 +25,12 @@ public interface CodeRepository extends PagingAndSortingRepository<Code, String>
     Code findByCodeSchemeAndOrder(final CodeScheme codeScheme,
                                   final Integer order);
 
-    Code findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(final String codeSchemeCodeValue,
-                                                                   final String codeValue);
+    Code findByCodeSchemeAndCodeValueIgnoreCase(final CodeScheme codeScheme,
+                                                final String codeValue);
 
-    Code findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCaseAndBroaderCodeId(final String codeSchemeCodeValue,
-                                                                                   final String codeValue,
-                                                                                   final UUID broaderCodeId);
+    Code findByCodeSchemeAndCodeValueIgnoreCaseAndBroaderCodeId(final CodeScheme codeScheme,
+                                                                final String codeValue,
+                                                                final UUID broaderCodeId);
 
     Code findById(final UUID id);
 

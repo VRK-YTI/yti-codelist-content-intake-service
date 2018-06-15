@@ -95,13 +95,13 @@ public class CodeDaoImpl implements CodeDao {
 
     public Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
                                              final String codeValue) {
-        return codeRepository.findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(codeScheme.getCodeValue(), codeValue);
+        return codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeValue);
     }
 
     public Code findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme,
                                                              final String codeValue,
                                                              final UUID broaderCodeId) {
-        return codeRepository.findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCaseAndBroaderCodeId(codeScheme.getCodeValue(), codeValue, broaderCodeId);
+        return codeRepository.findByCodeSchemeAndCodeValueIgnoreCaseAndBroaderCodeId(codeScheme, codeValue, broaderCodeId);
     }
 
     public Code findById(UUID id) {
@@ -177,7 +177,7 @@ public class CodeDaoImpl implements CodeDao {
                 checkForExistingCodeInCodeScheme(codeScheme, codeDto);
             }
         } else {
-            existingCode = codeRepository.findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(codeScheme.getCodeValue(), codeDto.getCodeValue());
+            existingCode = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
         }
         final Code code;
         if (existingCode != null) {
@@ -331,7 +331,7 @@ public class CodeDaoImpl implements CodeDao {
 
     private void checkForExistingCodeInCodeScheme(final CodeScheme codeScheme,
                                                   final CodeDTO fromCode) {
-        final Code code = codeRepository.findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(codeScheme.getCodeValue(), fromCode.getCodeValue());
+        final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, fromCode.getCodeValue());
         if (code != null) {
             throw new ExistingCodeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ALREADY_EXISTING_CODE, code.getCodeValue()));

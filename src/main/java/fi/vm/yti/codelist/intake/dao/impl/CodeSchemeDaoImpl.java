@@ -246,7 +246,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             existingCodeScheme.setConceptUriInVocabularies(fromCodeScheme.getConceptUriInVocabularies());
         }
         if (fromCodeScheme.getDefaultCode() != null && fromCodeScheme.getDefaultCode().getCodeValue() != null) {
-            final Code defaultCode = codeRepository.findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(existingCodeScheme.getCodeValue(), fromCodeScheme.getDefaultCode().getCodeValue());
+            final Code defaultCode = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(existingCodeScheme, fromCodeScheme.getDefaultCode().getCodeValue());
             if (!Objects.equals(existingCodeScheme.getDefaultCode(), defaultCode)) {
                 existingCodeScheme.setDefaultCode(defaultCode);
             }
@@ -304,7 +304,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             codes = new HashSet<>();
             final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryCodeValueIgnoreCaseAndCodeValueIgnoreCase(JUPO_REGISTRY, YTI_DATACLASSIFICATION_CODESCHEME);
             codeDtos.forEach(codeDto -> {
-                final Code code = codeRepository.findByCodeSchemeCodeValueIgnoreCaseAndCodeValueIgnoreCase(codeScheme.getCodeValue(), codeDto.getCodeValue());
+                final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
                 if (code != null && code.getHierarchyLevel() == 1) {
                     codes.add(code);
                 } else {
