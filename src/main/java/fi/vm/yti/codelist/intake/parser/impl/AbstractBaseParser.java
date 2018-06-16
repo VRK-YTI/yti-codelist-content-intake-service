@@ -262,6 +262,10 @@ public abstract class AbstractBaseParser {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_ENDDATE);
     }
 
+    public String parseConceptUriFromCsvRecord(final CSVRecord record) {
+        return parseStringFromCsvRecord(record, CONTENT_HEADER_CONCEPTURI);
+    }
+
     public boolean skipEmptyLine(final String codeValue,
                                  final String status) {
         if ((codeValue == null || codeValue.trim().isEmpty()) && (status == null || status.trim().isEmpty())) {

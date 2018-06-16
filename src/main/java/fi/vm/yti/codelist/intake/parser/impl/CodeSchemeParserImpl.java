@@ -123,6 +123,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 codeScheme.setVersion(parseVersionFromCsvRecord(record));
                 codeScheme.setLegalBase(parseLegalBaseFromCsvRecord(record));
                 codeScheme.setGovernancePolicy(parseGovernancePolicyFromCsvRecord(record));
+                codeScheme.setConceptUriInVocabularies(parseConceptUriFromCsvRecord(record));
                 codeScheme.setSource(parseSourceFromCsvRecord(record));
                 if (headerMap.containsKey(CONTENT_HEADER_DEFAULTCODE)) {
                     final String defaultCodeCodeValue = parseDefaultCodeFromCsvRecord(record);
@@ -215,6 +216,9 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_GOVERNANCEPOLICY)) {
                     codeScheme.setGovernancePolicy(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_GOVERNANCEPOLICY))));
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_CONCEPTURI)) {
+                    codeScheme.setConceptUriInVocabularies(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CONCEPTURI))));
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_DEFAULTCODE)) {
                     final String defaultCodeCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_DEFAULTCODE)));

@@ -82,6 +82,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 code.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                 code.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
                 code.setShortName(parseShortNameFromCsvRecord(record));
+                code.setConceptUriInVocabularies(parseConceptUriFromCsvRecord(record));
                 code.setOrder(resolveOrderFromCsvRecord(record));
                 if (record.isMapped(CONTENT_HEADER_BROADER)) {
                     final String broaderCodeCodeValue = record.get(CONTENT_HEADER_BROADER);
@@ -174,6 +175,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 code.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
                 code.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
                 code.setShortName(parseShortNameFromExcelRow(headerMap, row, formatter));
+                code.setConceptUriInVocabularies(parseConceptUriFromExcelRow(headerMap, row, formatter));
                 code.setHierarchyLevel(resolveHierarchyLevelFromExcelRow(headerMap, row, formatter));
                 code.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
                 if (headerMap.containsKey(CONTENT_HEADER_BROADER)) {
@@ -372,5 +374,17 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
             shortName = null;
         }
         return shortName;
+    }
+
+    private String parseConceptUriFromExcelRow(final Map<String, Integer> genericHeaders,
+                                              final Row row,
+                                              final DataFormatter formatter) {
+        final String conceptUri;
+        if (genericHeaders.get(CONTENT_HEADER_CONCEPTURI) != null) {
+            conceptUri = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CONCEPTURI)));
+        } else {
+            conceptUri = null;
+        }
+        return conceptUri;
     }
 }
