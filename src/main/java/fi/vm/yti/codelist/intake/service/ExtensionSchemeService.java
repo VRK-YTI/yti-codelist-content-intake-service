@@ -33,6 +33,11 @@ public interface ExtensionSchemeService {
                                                                              final String sheetName,
                                                                              final Map<ExtensionSchemeDTO, String> extensionsSchemeSheetNames);
 
+    ExtensionSchemeDTO parseAndPersistExtensionSchemeFromJson(final String codeRegistryCodeValue,
+                                                              final String codeSchemeCodeValue,
+                                                              final String extensionSchemeCodeValue,
+                                                              final String jsonPayload);
+
     ExtensionSchemeDTO parseAndPersistExtensionSchemeFromJson(final UUID extensionSchemeId,
                                                               final String jsonPayload);
 

@@ -74,6 +74,10 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
 
     @Transactional
     public ExtensionSchemeDTO findById(final UUID id) {
+        final ExtensionScheme extensionScheme = extensionSchemeDao.findById(id);
+        if (extensionScheme == null) {
+            return null;
+        }
         return mapDeepExtensionSchemeDto(extensionSchemeDao.findById(id));
     }
 
@@ -85,13 +89,21 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
     @Transactional
     public ExtensionSchemeDTO findByCodeSchemeIdAndCodeValue(final UUID codeSchemeId,
                                                              final String codeValue) {
-        return mapDeepExtensionSchemeDto(extensionSchemeDao.findByParentCodeSchemeIdAndCodeValue(codeSchemeId, codeValue));
+        final ExtensionScheme extensionScheme = extensionSchemeDao.findByParentCodeSchemeIdAndCodeValue(codeSchemeId, codeValue);
+        if (extensionScheme == null) {
+            return null;
+        }
+        return mapDeepExtensionSchemeDto(extensionScheme);
     }
 
     @Transactional
     public ExtensionSchemeDTO findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
                                                            final String codeValue) {
-        return mapDeepExtensionSchemeDto(extensionSchemeDao.findByParentCodeSchemeAndCodeValue(codeScheme, codeValue));
+        final ExtensionScheme extensionScheme = extensionSchemeDao.findByParentCodeSchemeAndCodeValue(codeScheme, codeValue);
+        if (extensionScheme == null) {
+            return null;
+        }
+        return mapDeepExtensionSchemeDto(extensionScheme);
     }
 
     @Transactional
@@ -163,6 +175,42 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
         return mapDeepExtensionSchemeDtos(extensionSchemes);
     }
 
+    @Transactional
+    public ExtensionSchemeDTO parseAndPersistExtensionSchemeFromJson(final String codeRegistryCodeValue,
+                                                                     final String codeSchemeCodeValue,
+                                                                     final String extensionSchemeCodeValue,
+                                                                     final String jsonPayload) {
+        final CodeScheme parentCodeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if (parentCodeScheme != null) {
+            final ExtensionScheme existingExtensionScheme = extensionSchemeDao.findByParentCodeSchemeIdAndCodeValue(parentCodeScheme.getId(), extensionSchemeCodeValue);
+            final ExtensionScheme extensionScheme;
+            if (existingExtensionScheme != null) {
+                try {
+                    if (jsonPayload != null && !jsonPayload.isEmpty()) {
+                        final ExtensionSchemeDTO extensionSchemeDTO = extensionSchemeParser.parseExtensionSchemeFromJson(jsonPayload);
+                        if (!authorizationManager.canBeModifiedByUserInOrganization(parentCodeScheme.getCodeRegistry().getOrganizations())) {
+                            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+                        }
+                        extensionScheme = extensionSchemeDao.updateExtensionSchemeEntityFromDtos(null, extensionSchemeDTO);
+                    } else {
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    }
+                } catch (final YtiCodeListException e) {
+                    throw e;
+                } catch (final Exception e) {
+                    LOG.error("Caught exception in parseAndPersistExtensionSchemeFromJson.", e);
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                }
+            } else {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            }
+            return mapDeepExtensionSchemeDto(extensionScheme);
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
+    }
+
+    @Transactional
     public ExtensionSchemeDTO parseAndPersistExtensionSchemeFromJson(final UUID extensionSchemeId,
                                                                      final String jsonPayload) {
         final ExtensionScheme existingExtensionScheme = extensionSchemeDao.findById(extensionSchemeId);

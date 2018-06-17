@@ -90,12 +90,12 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
 
     public ExtensionScheme findByParentCodeSchemeIdAndCodeValue(final UUID codeSchemeId,
                                                                 final String codeValue) {
-        return extensionSchemeRepository.findByParentCodeSchemeIdAndCodeValue(codeSchemeId, codeValue);
+        return extensionSchemeRepository.findByParentCodeSchemeIdAndCodeValueIgnoreCase(codeSchemeId, codeValue);
     }
 
     public ExtensionScheme findByParentCodeSchemeAndCodeValue(final CodeScheme codeScheme,
                                                               final String codeValue) {
-        return extensionSchemeRepository.findByParentCodeSchemeAndCodeValue(codeScheme, codeValue);
+        return extensionSchemeRepository.findByParentCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeValue);
     }
 
     @Override
@@ -126,7 +126,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         if (fromExtensionScheme.getId() != null) {
             existingExtensionScheme = extensionSchemeRepository.findById(fromExtensionScheme.getId());
         } else {
-            existingExtensionScheme = extensionSchemeRepository.findByParentCodeSchemeAndCodeValue(codeScheme, fromExtensionScheme.getCodeValue());
+            existingExtensionScheme = extensionSchemeRepository.findByParentCodeSchemeAndCodeValueIgnoreCase(codeScheme, fromExtensionScheme.getCodeValue());
         }
         final ExtensionScheme extensionScheme;
         if (existingExtensionScheme != null) {

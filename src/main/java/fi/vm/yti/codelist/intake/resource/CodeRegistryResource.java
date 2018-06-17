@@ -19,6 +19,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -27,12 +28,14 @@ import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.model.Meta;
 import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
@@ -52,6 +55,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
 
 @Component
 @Path("/v1/coderegistries")
@@ -169,6 +173,27 @@ public class CodeRegistryResource extends AbstractBaseResource {
     }
 
     @POST
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Modifies single existing CodeScheme.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "CodeScheme modified successfully.")
+    })
+    public Response updateCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                                     @ApiParam(value = "JSON playload for CodeScheme data.") final String jsonPayload) {
+
+        final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
+        indexing.updateCodeScheme(codeScheme);
+        indexing.updateExternalReferences(codeScheme.getExternalReferences());
+        indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
+        final Meta meta = new Meta();
+        final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
+        return Response.ok(responseWrapper).build();
+    }
+
+    @POST
     @Path("{codeRegistryCodeValue}/clone/codescheme/{originalCodeSchemeUuid}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
@@ -216,6 +241,27 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
     @POST
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/extensionschemes/{extensionSchemeCodeValue}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Modifies single existing ExtensionScheme.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "ExtensionScheme modified successfully.")
+    })
+    public Response updateExtensionScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                          @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                                          @ApiParam(value = "ExtensionScheme codeValue", required = true) @PathParam("extensionSchemeCodeValue") final String extensionSchemeCodeValue,
+                                          @ApiParam(value = "JSON playload for ExtensionScheme data.") final String jsonPayload) {
+
+        final ExtensionSchemeDTO extensionScheme = extensionSchemeService.parseAndPersistExtensionSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, extensionSchemeCodeValue, jsonPayload);
+        indexing.updateExtensionScheme(extensionScheme);
+        indexing.updateExtensions(extensionScheme.getExtensions());
+        final Meta meta = new Meta();
+        final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
+        return Response.ok(responseWrapper).build();
+    }
+
+    @POST
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}/extensionschemes/{extensionSchemeCodeValue}/extensions/")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates Extensions from CSV or Excel input data.")
@@ -247,27 +293,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                   @ApiParam(value = "ExtensionScheme codeValue", required = true) @PathParam("extensionSchemeCodeValue") final String extensionSchemeCodeValue,
                                                   @ApiParam(value = "JSON playload for ExtensionScheme data.", required = true) final String jsonPayload) {
         return parseAndPersistExtensionsFromSource(codeRegistryCodeValue, codeSchemeCodeValue, extensionSchemeCodeValue, FORMAT_JSON, null, jsonPayload, null);
-    }
-
-    @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Modifies single existing CodeScheme.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "CodeScheme modified successfully.")
-    })
-    public Response updateCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                     @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                                     @ApiParam(value = "JSON playload for Code data.") final String jsonPayload) {
-
-        final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
-        indexing.updateCodeScheme(codeScheme);
-        indexing.updateExternalReferences(codeScheme.getExternalReferences());
-        indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
-        final Meta meta = new Meta();
-        final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-        return Response.ok(responseWrapper).build();
     }
 
     @DELETE
@@ -516,9 +541,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
         @ApiResponse(code = 200, message = "Found"),
         @ApiResponse(code = 404, message = "Not found")
     })
-    public Response checkForExistingCodeSchemeCodeValue(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                                        @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                                                        @ApiParam(value = "ExtensionScheme codeValue.", required = true) @PathParam("extensionSchemeCodeValue") final String extensionSchemeCodeValue) {
+    public Response checkForExistingExtensionScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                                    @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                                                    @ApiParam(value = "ExtensionScheme codeValue.", required = true) @PathParam("extensionSchemeCodeValue") final String extensionSchemeCodeValue) {
         final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
             final ExtensionSchemeDTO extensionSchemeDTO = this.extensionSchemeService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionSchemeCodeValue);
@@ -604,8 +629,16 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                                final String sheetName) {
         final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload, sheetName);
         indexing.updateExtensionSchemes(extensionSchemes);
+        if (!extensionSchemes.isEmpty()) {
+            final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
+            extensionSchemes.forEach(extensionScheme -> {
+                final CodeSchemeDTO codeScheme = codeSchemeService.findById(extensionScheme.getParentCodeScheme().getId());
+                codeSchemes.add(codeScheme);
+            });
+            indexing.updateCodeSchemes(codeSchemes);
+        }
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSIONSCHEME, "extension")));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSIONSCHEME, "extension,codeScheme,code,codeRegistry")));
         final ResponseWrapper<ExtensionSchemeDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("ExtensionSchemes added or modified: " + extensionSchemes.size());
         meta.setCode(200);
@@ -620,15 +653,24 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                          final InputStream inputStream,
                                                          final String jsonPayload,
                                                          final String sheetName) {
-        final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, extensionSchemeCodeValue, format, inputStream, jsonPayload, sheetName);
-        indexing.updateExtensions(extensions);
-        final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSIONSCHEME, null)));
-        final ResponseWrapper<ExtensionDTO> responseWrapper = new ResponseWrapper<>(meta);
-        meta.setMessage("Extension added or modified: " + extensions.size());
-        meta.setCode(200);
-        responseWrapper.setResults(extensions);
-        return Response.ok(responseWrapper).build();
+        final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if (codeScheme != null) {
+            final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, extensionSchemeCodeValue, format, inputStream, jsonPayload, sheetName);
+            indexing.updateExtensions(extensions);
+            final ExtensionSchemeDTO extensionScheme = extensionSchemeService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionSchemeCodeValue);
+            if (extensionScheme != null) {
+                indexing.updateExtensionScheme(extensionScheme);
+            }
+            final Meta meta = new Meta();
+            ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSIONSCHEME, null)));
+            final ResponseWrapper<ExtensionDTO> responseWrapper = new ResponseWrapper<>(meta);
+            meta.setMessage("Extension added or modified: " + extensions.size());
+            meta.setCode(200);
+            responseWrapper.setResults(extensions);
+            return Response.ok(responseWrapper).build();
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
     }
 
     private Response parseAndPersistCodesFromSource(final String codeRegistryCodeValue,

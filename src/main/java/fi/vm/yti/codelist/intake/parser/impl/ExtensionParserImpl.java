@@ -65,7 +65,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         final ObjectMapper mapper = createObjectMapper();
         final Set<ExtensionDTO> extensions;
         try {
-            extensions = mapper.readValue(jsonPayload, new TypeReference<List<ExtensionDTO>>() {
+            extensions = mapper.readValue(jsonPayload, new TypeReference<Set<ExtensionDTO>>() {
             });
         } catch (final IOException e) {
             LOG.error("Extension parsing failed from JSON!", e);

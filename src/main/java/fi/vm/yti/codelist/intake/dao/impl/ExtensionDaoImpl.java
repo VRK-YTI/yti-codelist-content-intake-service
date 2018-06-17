@@ -228,7 +228,11 @@ public class ExtensionDaoImpl implements ExtensionDao {
         final Code code;
         if (fromCode != null && fromCode.getUri() != null && !fromCode.getUri().isEmpty()) {
             code = codeDao.findByUri(fromCode.getUri());
-            checkThatCodeIsInAllowedCodeScheme(code.getCodeScheme(), codeScheme, extensionScheme);
+            if (code != null) {
+                checkThatCodeIsInAllowedCodeScheme(code.getCodeScheme(), codeScheme, extensionScheme);
+            } else {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODE_NOT_FOUND));
+            }
         } else if (fromCode != null && codeScheme != null && fromCode.getCodeValue() != null && !fromCode.getCodeValue().isEmpty()) {
             code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, extension.getCode().getCodeValue());
         } else {
