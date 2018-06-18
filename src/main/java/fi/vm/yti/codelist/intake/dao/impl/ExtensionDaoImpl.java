@@ -126,12 +126,12 @@ public class ExtensionDaoImpl implements ExtensionDao {
                     final Extension toExtension = findById(fromExtension.getId());
                     if (toExtension != null) {
                         toExtension.setExtension(extension);
+                        save(toExtension);
                         toExtensions.add(toExtension);
                     }
                 }
             }
             toExtensions.forEach(extension -> checkExtensionHierarchyLevels(extension, 1));
-            save(toExtensions);
         }
     }
 
