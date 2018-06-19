@@ -570,9 +570,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
-    private Response indexCodeschemeAndCodesAfterCloning(CodeSchemeDTO codeSchemeDTO,
-                                                         String codeRegistryCodeValue) {
-        HashSet<CodeSchemeDTO> codeSchemeDTOs = new HashSet<>();
+    private Response indexCodeschemeAndCodesAfterCloning(final CodeSchemeDTO codeSchemeDTO,
+                                                         final String codeRegistryCodeValue) {
+        final HashSet<CodeSchemeDTO> codeSchemeDTOs = new HashSet<>();
         codeSchemeDTOs.add(codeSchemeDTO);
         indexing.updateCodeSchemes(codeSchemeDTOs);
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
@@ -662,7 +662,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 indexing.updateExtensionScheme(extensionScheme);
             }
             final Meta meta = new Meta();
-            ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSIONSCHEME, null)));
+            ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSION, "extensionScheme,codeScheme,code,codeRegistry,propertyType")));
             final ResponseWrapper<ExtensionDTO> responseWrapper = new ResponseWrapper<>(meta);
             meta.setMessage("Extension added or modified: " + extensions.size());
             meta.setCode(200);
