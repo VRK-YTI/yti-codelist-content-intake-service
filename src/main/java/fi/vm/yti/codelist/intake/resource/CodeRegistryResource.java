@@ -361,6 +361,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             if (existingExtensionScheme != null) {
                 final ExtensionSchemeDTO extensionScheme = extensionSchemeService.deleteExtensionScheme(existingExtensionScheme.getId());
                 indexing.deleteExtensionScheme(extensionScheme);
+                indexing.updateCodeScheme(codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue));
             } else {
                 return Response.status(404).build();
             }

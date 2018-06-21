@@ -1,11 +1,10 @@
 package fi.vm.yti.codelist.intake.resource;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -62,6 +61,33 @@ public class ExtensionResource extends AbstractBaseResource {
     public Response addOrUpdateExtensionFromJson(@ApiParam(value = "Extension UUID", required = true) @PathParam("extensionId") final UUID extensionId,
                                                  @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload) {
         return parseAndPersistExtensionFromSource(jsonPayload);
+    }
+
+    @DELETE
+    @Path("{extensionId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Deletes a single existing Extension.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Extension deleted."),
+        @ApiResponse(code = 404, message = "Extension not found.")
+    })
+    public Response deleteExtension(@ApiParam(value = "Extension UUID", required = true) @PathParam("extensionId") final UUID extensionId,
+                                    @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload) {
+        final ExtensionDTO existingExtension = extensionService.findById(extensionId);
+        if (existingExtension != null) {
+            final UUID extensionSchemeId = existingExtension.getId();
+            extensionService.deleteExtension(existingExtension.getId());
+            indexing.deleteExtension(existingExtension);
+            final ExtensionSchemeDTO extensionScheme = extensionSchemeService.findById(extensionSchemeId);
+            indexing.updateExtensionScheme(extensionScheme);
+
+        } else {
+            return Response.status(404).build();
+        }
+        final Meta meta = new Meta();
+        final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
+        return Response.ok(responseWrapper).build();
     }
 
     private Response parseAndPersistExtensionFromSource(final String jsonPayload) {
