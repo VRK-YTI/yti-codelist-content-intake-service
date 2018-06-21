@@ -19,6 +19,7 @@ import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.model.Meta;
@@ -65,9 +66,7 @@ public class ExtensionResource extends AbstractBaseResource {
 
     private Response parseAndPersistExtensionFromSource(final String jsonPayload) {
         final ExtensionDTO extension = extensionService.parseAndPersistExtensionFromJson(jsonPayload);
-        final Set<ExtensionDTO> extensions = new HashSet<>();
-        extensions.add(extension);
-        indexing.updateExtensions(extensions);
+        indexing.updateExtension(extension);
         final ExtensionSchemeDTO extensionScheme = extensionSchemeService.findById(extension.getExtensionScheme().getId());
         if (extensionScheme != null) {
             indexing.updateExtensionScheme(extensionScheme);
@@ -77,7 +76,6 @@ public class ExtensionResource extends AbstractBaseResource {
         final ResponseWrapper<ExtensionDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("Extension added or modified.");
         meta.setCode(200);
-        responseWrapper.setResults(extensions);
         return Response.ok(responseWrapper).build();
     }
 }

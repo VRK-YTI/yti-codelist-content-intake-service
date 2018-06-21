@@ -260,7 +260,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
         final ExtensionSchemeDTO extensionScheme = extensionSchemeService.parseAndPersistExtensionSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, extensionSchemeCodeValue, jsonPayload);
         indexing.updateExtensionScheme(extensionScheme);
-        indexing.updateExtensions(extensionScheme.getExtensions());
+        indexing.updateExtensions(extensionService.findByExtensionSchemeId(extensionScheme.getId()));
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
