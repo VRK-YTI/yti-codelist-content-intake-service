@@ -76,12 +76,8 @@ public class ExtensionResource extends AbstractBaseResource {
                                     @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload) {
         final ExtensionDTO existingExtension = extensionService.findById(extensionId);
         if (existingExtension != null) {
-            final UUID extensionSchemeId = existingExtension.getId();
             extensionService.deleteExtension(existingExtension.getId());
             indexing.deleteExtension(existingExtension);
-            final ExtensionSchemeDTO extensionScheme = extensionSchemeService.findById(extensionSchemeId);
-            indexing.updateExtensionScheme(extensionScheme);
-
         } else {
             return Response.status(404).build();
         }
