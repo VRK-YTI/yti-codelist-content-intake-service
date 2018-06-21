@@ -53,4 +53,8 @@ public class UriSuomiProperties {
     public void setContextPath(final String contextPath) {
         this.contextPath = contextPath;
     }
+
+    public String getUriSuomiAddress() {
+        return scheme + "://" + host + contextPath;
+    }
 }

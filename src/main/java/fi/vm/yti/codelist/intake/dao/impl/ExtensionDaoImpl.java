@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
@@ -34,16 +35,19 @@ public class ExtensionDaoImpl implements ExtensionDao {
     private final ExtensionRepository extensionRepository;
     private final CodeDao codeDao;
     private final ExtensionSchemeDao extensionSchemeDao;
+    private final UriSuomiProperties uriSuomiProperties;
 
     @Inject
     public ExtensionDaoImpl(final EntityChangeLogger entityChangeLogger,
                             final ExtensionRepository extensionRepository,
                             final CodeDao codeDao,
-                            final ExtensionSchemeDao extensionSchemeDao) {
+                            final ExtensionSchemeDao extensionSchemeDao,
+                            final UriSuomiProperties uriSuomiProperties) {
         this.entityChangeLogger = entityChangeLogger;
         this.extensionRepository = extensionRepository;
         this.codeDao = codeDao;
         this.extensionSchemeDao = extensionSchemeDao;
+        this.uriSuomiProperties = uriSuomiProperties;
     }
 
     public void delete(final Extension extension) {
@@ -112,6 +116,41 @@ public class ExtensionDaoImpl implements ExtensionDao {
         return extensions;
     }
 
+    private UUID getUuidFromString(final String uuid) {
+        try {
+            return UUID.fromString(uuid);
+        } catch (final IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private Extension linkExtension(final ExtensionDTO fromExtension,
+                                    final Extension extension) {
+        final Extension toExtension = findById(fromExtension.getId());
+        if (toExtension != null) {
+            toExtension.setExtension(extension);
+            save(toExtension);
+        }
+        return toExtension;
+    }
+
+    private void checkDuplicateCode(final Set<Extension> extensions,
+                                    final String identifier) {
+        boolean found = false;
+        for (final Extension extension : extensions) {
+            final Code code = extension.getCode();
+            if (code == null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODE_NOT_FOUND));
+            }
+            if ((identifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && code.getUri().equalsIgnoreCase(identifier)) || code.getCodeValue().equalsIgnoreCase(identifier)) {
+                if (found) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONS_HAVE_DUPLICATE_CODE_USE_UUID));
+                }
+                found = true;
+            }
+        }
+    }
+
     private void resolveExtensionRelation(final ExtensionScheme extensionScheme,
                                           final ExtensionDTO fromExtension) {
         final ExtensionDTO relatedExtension = fromExtension.getExtension();
@@ -122,13 +161,18 @@ public class ExtensionDaoImpl implements ExtensionDao {
             final Set<Extension> extensions = findByExtensionSchemeId(extensionScheme.getId());
             final Set<Extension> toExtensions = new HashSet<>();
             for (final Extension extension : extensions) {
-                if (extension.getCode() != null && relatedExtension.getCode() != null && (extension.getCode().getCodeValue().equalsIgnoreCase(relatedExtension.getCode().getCodeValue()) || extension.getCode().getUri().equalsIgnoreCase(relatedExtension.getCode().getCodeValue()))) {
-                    final Extension toExtension = findById(fromExtension.getId());
-                    if (toExtension != null) {
-                        toExtension.setExtension(extension);
-                        save(toExtension);
-                        toExtensions.add(toExtension);
-                    }
+                final String identifier = relatedExtension.getCode().getCodeValue();
+                final UUID uuid = getUuidFromString(identifier);
+                // UUID based extension linking
+                if (uuid != null) {
+                    final Extension toExtension = linkExtension(fromExtension, extension);
+                    toExtensions.add(toExtension);
+                }
+                // URI or parentCodeScheme codeValue based code linking
+                if (identifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) || (extension.getCode() != null && extension.getCode().getCodeValue().equalsIgnoreCase(identifier))) {
+                    checkDuplicateCode(extensions, identifier);
+                    final Extension toExtension = linkExtension(fromExtension, extension);
+                    toExtensions.add(toExtension);
                 }
             }
             toExtensions.forEach(extension -> checkExtensionHierarchyLevels(extension, 1));

@@ -159,8 +159,10 @@ public class ApiUtils {
         return createResourceUrl(API_PATH_PROPERTYTYPES, propertyType.getId().toString());
     }
 
-    public String createExtensionSchemeUrl(final ExtensionSchemeDTO extensionScheme) {
-        return createResourceUrl(API_PATH_EXTENSIONSCHEMES, extensionScheme.getId().toString());
+    public String createExtensionSchemeUrl(final String codeRegistryCodeValue,
+                                           final String codeSchemeCodeValue,
+                                           final String codeValue) {
+        return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_EXTENSIONSCHEMES, urlEncodeString(codeValue));
     }
 
     public String createExtensionUrl(final ExtensionDTO extension) {

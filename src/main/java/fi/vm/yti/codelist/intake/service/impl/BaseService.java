@@ -313,7 +313,8 @@ public abstract class BaseService {
         extensionSchemeDto.setPropertyType(mapPropertyTypeDto(extensionScheme.getPropertyType()));
         extensionSchemeDto.setPrefLabel(extensionScheme.getPrefLabel());
         extensionSchemeDto.setStatus(extensionScheme.getStatus());
-        extensionSchemeDto.setCodeValue(extensionScheme.getCodeValue());
+        final String codeValue = extensionScheme.getCodeValue();
+        extensionSchemeDto.setCodeValue(codeValue);
         extensionSchemeDto.setStartDate(extensionScheme.getStartDate());
         extensionSchemeDto.setEndDate(extensionScheme.getEndDate());
         if (deep || includeParentCodeScheme) {
@@ -329,7 +330,7 @@ public abstract class BaseService {
                 extensionSchemeDto.setExtensions(mapExtensionDtos(extensionScheme.getExtensions(), false));
             }
         }
-        extensionSchemeDto.setUrl(apiUtils.createExtensionSchemeUrl(extensionSchemeDto));
+        extensionSchemeDto.setUrl(apiUtils.createExtensionSchemeUrl(extensionScheme.getParentCodeScheme().getCodeRegistry().getCodeValue(), extensionScheme.getParentCodeScheme().getCodeValue(), codeValue));
         extensionSchemeDto.setCreated(extensionScheme.getCreated());
         extensionSchemeDto.setModified(extensionScheme.getModified());
         return extensionSchemeDto;

@@ -180,7 +180,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "  \"prefLabel\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  },\n" +
-        "  \"codeScheme\": {\n" +
+        "  \"parentCodeScheme\": {\n" +
         "    \"properties\": {\n" +
         "      \"codeValue\": {\n" +
         "        \"type\": \"text\",\n" +

@@ -70,13 +70,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
     private final ExtensionSchemeService extensionSchemeService;
     private final ExtensionService extensionService;
     private final Indexing indexing;
-    private final AuthorizationManager authorizationManager;
     private final CloningService cloningService;
     private final CodeSchemeParser codeSchemeParser;
 
     @Inject
-    public CodeRegistryResource(final AuthorizationManager authorizationManager,
-                                final CodeService codeService,
+    public CodeRegistryResource(final CodeService codeService,
                                 final CodeSchemeService codeSchemeService,
                                 final CodeRegistryService codeRegistryService,
                                 final ExternalReferenceService externalReferenceService,
@@ -85,7 +83,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                 final Indexing indexing,
                                 final CloningService cloningService,
                                 final CodeSchemeParser codeSchemeParser) {
-        this.authorizationManager = authorizationManager;
         this.codeService = codeService;
         this.codeSchemeService = codeSchemeService;
         this.codeRegistryService = codeRegistryService;
@@ -185,9 +182,18 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                      @ApiParam(value = "JSON playload for CodeScheme data.") final String jsonPayload) {
 
         final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
-        indexing.updateCodeScheme(codeScheme);
-        indexing.updateExternalReferences(codeScheme.getExternalReferences());
-        indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
+        if (codeScheme != null) {
+            indexing.updateCodeScheme(codeScheme);
+            indexing.updateExternalReferences(codeScheme.getExternalReferences());
+            indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
+            final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeScheme.getId());
+            if (extensionSchemes != null) {
+                indexing.updateExtensionSchemes(extensionSchemes);
+                extensionSchemes.forEach(extensionScheme -> {
+                    indexing.updateExtensions(extensionService.findByExtensionSchemeId(extensionScheme.getId()));
+                });
+            }
+        }
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
@@ -634,6 +640,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
             extensionSchemes.forEach(extensionScheme -> {
                 final CodeSchemeDTO codeScheme = codeSchemeService.findById(extensionScheme.getParentCodeScheme().getId());
                 codeSchemes.add(codeScheme);
+                final Set<ExtensionDTO> extensions = extensionService.findByExtensionSchemeId(extensionScheme.getId());
+                indexing.updateExtensions(extensions);
             });
             indexing.updateCodeSchemes(codeSchemes);
         }
