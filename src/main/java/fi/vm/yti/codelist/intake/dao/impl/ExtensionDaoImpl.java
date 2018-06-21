@@ -230,6 +230,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (!Objects.equals(existingExtension.getOrder(), fromExtension.getOrder())) {
             existingExtension.setOrder(fromExtension.getOrder());
         }
+        setRelatedExtension(fromExtension, existingExtension);
         if (fromExtension.getCode() != null) {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, extensionScheme, fromExtension);
             if (!Objects.equals(existingExtension.getCode(), code)) {
@@ -258,11 +259,30 @@ public class ExtensionDaoImpl implements ExtensionDao {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, extensionScheme, fromExtension);
             extension.setCode(code);
         }
+        setRelatedExtension(fromExtension, extension);
         extension.setExtensionScheme(extensionScheme);
         final Date timeStamp = new Date(System.currentTimeMillis());
         extension.setCreated(timeStamp);
         extension.setModified(timeStamp);
         return extension;
+    }
+
+    private void setRelatedExtension(final ExtensionDTO fromExtension,
+                                     final Extension extension) {
+        if (fromExtension.getExtension() != null && fromExtension.getExtension().getId() != null) {
+            final UUID relatedExtensionId = fromExtension.getExtension().getId();
+            if (relatedExtensionId != null && relatedExtensionId == fromExtension.getId()) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            }
+            if (relatedExtensionId != null) {
+                final Extension relatedExtension = findById(relatedExtensionId);
+                if (relatedExtension != null) {
+                    extension.setExtension(extension);
+                } else {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                }
+            }
+        }
     }
 
     private Code findCodeUsingCodeValueOrUri(final CodeScheme codeScheme,

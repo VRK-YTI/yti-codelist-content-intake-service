@@ -62,10 +62,11 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
         }
         final Set<Extension> extensions = extensionDao.findByExtensionSchemeId(extension.getExtensionScheme().getId());
         extensions.forEach(extension1 -> {
-           if (extension.getExtension().getId() == id) {
-               extension.setExtension(null);
-               extensionDao.save(extension);
-           }
+            final Extension relatedExtension = extension.getExtension();
+            if (relatedExtension != null && relatedExtension.getId() == id) {
+                extension.setExtension(null);
+                extensionDao.save(extension);
+            }
         });
         final ExtensionDTO extensionDto = mapExtensionDto(extension, false);
         extensionDao.delete(extension);

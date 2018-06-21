@@ -242,6 +242,7 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
         return mapDeepExtensionSchemeDto(extensionScheme);
     }
 
+    @Transactional
     public ExtensionSchemeDTO deleteExtensionScheme(final UUID extensionSchemeId) {
         final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeId);
         if (authorizationManager.canExtensionSchemeBeDeleted(extensionScheme)) {
