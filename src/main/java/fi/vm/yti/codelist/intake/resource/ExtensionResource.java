@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.resource;
 
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;

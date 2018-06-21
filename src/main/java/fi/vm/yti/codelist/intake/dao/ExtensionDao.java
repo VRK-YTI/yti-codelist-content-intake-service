@@ -13,6 +13,8 @@ public interface ExtensionDao {
 
     void delete(final Set<Extension> extensions);
 
+    void save(final Extension extension);
+
     void save(final Set<Extension> extensions);
 
     Set<Extension> findAll();

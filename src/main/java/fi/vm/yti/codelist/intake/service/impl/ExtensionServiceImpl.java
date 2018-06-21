@@ -60,6 +60,13 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
         if (!authorizationManager.canExtensionBeDeleted(extension)) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
+        final Set<Extension> extensions = extensionDao.findByExtensionSchemeId(extension.getExtensionScheme().getId());
+        extensions.forEach(extension1 -> {
+           if (extension.getExtension().getId() == id) {
+               extension.setExtension(null);
+               extensionDao.save(extension);
+           }
+        });
         final ExtensionDTO extensionDto = mapExtensionDto(extension, false);
         extensionDao.delete(extension);
         return extensionDto;
