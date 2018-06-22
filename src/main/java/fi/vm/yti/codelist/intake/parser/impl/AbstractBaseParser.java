@@ -273,4 +273,42 @@ public abstract class AbstractBaseParser {
         }
         return false;
     }
+
+    public Integer resolveOrderFromExcelRow(final Map<String, Integer> headerMap,
+                                             final Row row,
+                                             final DataFormatter formatter) {
+        final Integer order;
+        if (headerMap.containsKey(CONTENT_HEADER_ORDER)) {
+            order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER))));
+        } else {
+            order = null;
+        }
+        return order;
+    }
+
+    public Integer resolveOrderFromCsvRecord(final CSVRecord record) {
+        final Integer order;
+        if (record.isMapped(CONTENT_HEADER_ORDER)) {
+            order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER));
+        } else {
+            order = null;
+        }
+        return order;
+    }
+
+    private Integer resolveOrderFromString(final String orderString) {
+        final Integer order;
+        if (!orderString.isEmpty()) {
+            try {
+                order = Integer.parseInt(orderString);
+            } catch (final NumberFormatException e) {
+                LOG.error("Error parsing order from: " + orderString, e);
+                throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    ERR_MSG_USER_ORDER_INVALID_VALUE));
+            }
+        } else {
+            order = null;
+        }
+        return order;
+    }
 }

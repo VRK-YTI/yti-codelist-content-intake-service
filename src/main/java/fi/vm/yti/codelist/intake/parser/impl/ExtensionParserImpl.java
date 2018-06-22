@@ -87,7 +87,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 validateRequiredDataOnRecord(record);
                 final ExtensionDTO extension = new ExtensionDTO();
                 extension.setId(parseIdFromRecord(record));
-                extension.setOrder(parseOrderFromCsvRecord(record));
+                extension.setOrder(resolveOrderFromCsvRecord(record));
                 extension.setExtensionValue(parseExtensionValueFromCsvRecord(record));
                 extension.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record)));
                 final String relationCodeValue = parseExtensionRelationFromCsvRecord(record);
@@ -152,7 +152,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     extension.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
-                extension.setOrder(Integer.parseInt(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER)))));
+                extension.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
                 extension.setExtensionValue(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))));
                 if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {
                     final String relationCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
@@ -203,15 +203,6 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         if (!headerMap.containsKey(CONTENT_HEADER_CODE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 CONTENT_HEADER_CODE));
-        }
-    }
-
-    private Integer parseOrderFromCsvRecord(final CSVRecord record) {
-        final String value = parseStringFromCsvRecord(record, CONTENT_HEADER_ORDER);
-        if (value != null) {
-            return Integer.parseInt(value);
-        } else {
-            return null;
         }
     }
 
