@@ -300,7 +300,6 @@ public class CodeDaoImpl implements CodeDao {
         } else {
             code.setOrder(getNextOrderInSequence(codeScheme));
         }
-
         for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             code.setPrefLabel(entry.getKey(), entry.getValue());
         }

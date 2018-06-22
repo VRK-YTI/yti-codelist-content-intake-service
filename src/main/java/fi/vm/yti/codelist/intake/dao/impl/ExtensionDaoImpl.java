@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.dao.impl;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -230,6 +231,14 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (!Objects.equals(existingExtension.getOrder(), fromExtension.getOrder())) {
             existingExtension.setOrder(fromExtension.getOrder());
         }
+        if (!Objects.equals(existingExtension.getOrder(), fromExtension.getOrder())) {
+            if (fromExtension.getOrder() != null) {
+                checkOrderIsNotInUse(extensionScheme, fromExtension.getOrder());
+                existingExtension.setOrder(fromExtension.getOrder());
+            } else if (fromExtension.getOrder() == null && existingExtension.getOrder() == null) {
+                existingExtension.setOrder(getNextOrderInSequence(extensionScheme));
+            }
+        }
         setRelatedExtension(fromExtension, existingExtension);
         if (fromExtension.getCode() != null) {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, extensionScheme, fromExtension);
@@ -254,7 +263,12 @@ public class ExtensionDaoImpl implements ExtensionDao {
             extension.setId(uuid);
         }
         extension.setExtensionValue(fromExtension.getExtensionValue());
-        extension.setOrder(fromExtension.getOrder());
+        if (fromExtension.getOrder() != null) {
+            checkOrderIsNotInUse(extensionScheme, fromExtension.getOrder());
+            extension.setOrder(fromExtension.getOrder());
+        } else {
+            extension.setOrder(getNextOrderInSequence(extensionScheme));
+        }
         if (fromExtension.getCode() != null) {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, extensionScheme, fromExtension);
             extension.setCode(code);
@@ -316,6 +330,28 @@ public class ExtensionDaoImpl implements ExtensionDao {
             return;
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODE_NOT_ALLOWED));
+        }
+    }
+
+    private void checkOrderIsNotInUse(final ExtensionScheme extensionScheme,
+                                      final Integer order) {
+        final Extension extension = extensionRepository.findByExtensionSchemeAndOrder(extensionScheme, order);
+        if (extension != null) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_ALREADY_IN_USE));
+        }
+    }
+
+    private Integer getNextOrderInSequence(final ExtensionScheme extensionScheme) {
+        final List<Integer> extensionOrders = extensionRepository.getInMaxOrder(extensionScheme);
+        if (extensionOrders.isEmpty()) {
+            return 1;
+        } else {
+            final Integer maxOrder = extensionOrders.iterator().next();
+            if (maxOrder != null) {
+                return maxOrder + 1;
+            } else {
+                return 1;
+            }
         }
     }
 }
