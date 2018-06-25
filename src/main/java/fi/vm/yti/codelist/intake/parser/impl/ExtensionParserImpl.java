@@ -172,7 +172,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))).isEmpty()) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(row.getRowNum() + 1)));
+                ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE, String.valueOf(row.getRowNum() + 1)));
         }
     }
 

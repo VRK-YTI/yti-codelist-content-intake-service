@@ -227,8 +227,10 @@ public class ExtensionDaoImpl implements ExtensionDao {
                                       final ExtensionScheme extensionScheme,
                                       final Extension existingExtension,
                                       final ExtensionDTO fromExtension) {
-        if (!Objects.equals(existingExtension.getExtensionValue(), fromExtension.getExtensionValue())) {
-            existingExtension.setExtensionValue(fromExtension.getExtensionValue());
+        final String extensionValue = fromExtension.getExtensionValue();
+        validateExtensionValue(extensionValue);
+        if (!Objects.equals(existingExtension.getExtensionValue(), extensionValue)) {
+            existingExtension.setExtensionValue(extensionValue);
         }
         if (fromExtension.getOrder() != null && !Objects.equals(existingExtension.getOrder(), fromExtension.getOrder())) {
             checkOrderIsNotInUse(extensionScheme, fromExtension.getOrder());
@@ -259,7 +261,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
             final UUID uuid = UUID.randomUUID();
             extension.setId(uuid);
         }
-        extension.setExtensionValue(fromExtension.getExtensionValue());
+        final String extensionValue = fromExtension.getExtensionValue();
+        validateExtensionValue(extensionValue);
+        extension.setExtensionValue(extensionValue);
         if (fromExtension.getOrder() != null) {
             checkOrderIsNotInUse(extensionScheme, fromExtension.getOrder());
             extension.setOrder(fromExtension.getOrder());
@@ -276,6 +280,12 @@ public class ExtensionDaoImpl implements ExtensionDao {
         extension.setCreated(timeStamp);
         extension.setModified(timeStamp);
         return extension;
+    }
+
+    private void validateExtensionValue(final String extensionValue) {
+        if (extensionValue == null || extensionValue.isEmpty()) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONVALUE_NOT_SET));
+        }
     }
 
     private void setRelatedExtension(final ExtensionDTO fromExtension,
