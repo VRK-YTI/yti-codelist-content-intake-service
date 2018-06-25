@@ -130,7 +130,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         final DataFormatter formatter = new DataFormatter();
         Sheet sheet = workbook.getSheet(sheetName);
         if (sheet == null) {
-            sheet = workbook.getSheetAt(0);
+            throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE_SHEET_NOT_FOUND);
         }
         final Iterator<Row> rowIterator = sheet.rowIterator();
         Map<String, Integer> headerMap = null;
