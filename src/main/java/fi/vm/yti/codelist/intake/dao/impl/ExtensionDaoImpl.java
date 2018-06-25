@@ -230,7 +230,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (!Objects.equals(existingExtension.getExtensionValue(), fromExtension.getExtensionValue())) {
             existingExtension.setExtensionValue(fromExtension.getExtensionValue());
         }
-        if (fromExtension.getOrder() != null) {
+        if (fromExtension.getOrder() != null && !Objects.equals(existingExtension.getOrder(), fromExtension.getOrder())) {
             checkOrderIsNotInUse(extensionScheme, fromExtension.getOrder());
             existingExtension.setOrder(fromExtension.getOrder());
         } else if (existingExtension.getOrder() == null && fromExtension.getOrder() == null) {
