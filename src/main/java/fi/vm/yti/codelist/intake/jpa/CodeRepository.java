@@ -1,6 +1,5 @@
 package fi.vm.yti.codelist.intake.jpa;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,8 +33,8 @@ public interface CodeRepository extends PagingAndSortingRepository<Code, String>
 
     Code findById(final UUID id);
 
-    @Query(value = "SELECT c.order FROM Code as c WHERE c.codeScheme = :codeScheme ORDER BY c.order DESC")
-    List<Integer> getInMaxOrder(@Param("codeScheme") final CodeScheme codeScheme);
+    @Query(value = "SELECT c.flatorder FROM code as c WHERE c.codescheme_id = :codeSchemeId ORDER BY c.flatorder DESC LIMIT 1", nativeQuery = true)
+    Integer getCodeMaxOrder(@Param("codeSchemeId") final UUID codeSchemeId);
 
     Set<Code> findByCodeScheme(final CodeScheme codeScheme);
 

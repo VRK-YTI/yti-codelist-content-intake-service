@@ -1,6 +1,5 @@
 package fi.vm.yti.codelist.intake.jpa;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -11,7 +10,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 
@@ -26,8 +24,8 @@ public interface ExtensionRepository extends CrudRepository<Extension, String> {
     Extension findByExtensionSchemeAndOrder(final ExtensionScheme extensionScheme,
                                             final Integer order);
 
-    @Query(value = "SELECT e.order FROM Extension as e WHERE e.extensionScheme = :extensionScheme ORDER BY e.order DESC")
-    List<Integer> getInMaxOrder(@Param("extensionScheme") final ExtensionScheme extensionScheme);
+    @Query(value = "SELECT e.extensionorder FROM extension as e WHERE e.extensionscheme_id = :extensionSchemeId ORDER BY e.extensionorder DESC LIMIT 1", nativeQuery = true)
+    Integer getExtensionMaxOrder(@Param("extensionSchemeId") final UUID extensionSchemeId);
 
     Set<Extension> findByExtensionId(final UUID id);
 

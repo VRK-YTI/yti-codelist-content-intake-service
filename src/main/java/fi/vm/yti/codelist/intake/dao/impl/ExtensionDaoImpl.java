@@ -2,7 +2,6 @@ package fi.vm.yti.codelist.intake.dao.impl;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -349,16 +348,11 @@ public class ExtensionDaoImpl implements ExtensionDao {
     }
 
     private Integer getNextOrderInSequence(final ExtensionScheme extensionScheme) {
-        final List<Integer> extensionOrders = extensionRepository.getInMaxOrder(extensionScheme);
-        if (extensionOrders.isEmpty()) {
+        final Integer maxOrder = extensionRepository.getExtensionMaxOrder(extensionScheme.getId());
+        if (maxOrder == null) {
             return 1;
         } else {
-            final Integer maxOrder = extensionOrders.iterator().next();
-            if (maxOrder != null) {
-                return maxOrder + 1;
-            } else {
-                return 1;
-            }
+            return maxOrder + 1;
         }
     }
 }
