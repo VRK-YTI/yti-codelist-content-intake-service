@@ -263,20 +263,6 @@ public class CodeDaoImpl implements CodeDao {
         return existingCode;
     }
 
-    private Integer getNextOrderInSequence(final CodeScheme codeScheme) {
-        final List<Integer> codes = codeRepository.getInMaxOrder(codeScheme);
-        if (codes.isEmpty()) {
-            return 1;
-        } else {
-            final Integer maxOrder = codes.iterator().next();
-            if (maxOrder != null) {
-                return maxOrder + 1;
-            } else {
-                return 1;
-            }
-        }
-    }
-
     private Code createCode(final CodeScheme codeScheme,
                             final CodeDTO fromCode) {
         final Code code = new Code();
@@ -324,6 +310,20 @@ public class CodeDaoImpl implements CodeDao {
             final Code existingCode = codeRepository.findById(code.getId());
             if (existingCode != null && !existingCode.getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_EXISTING_CODE_MISMATCH));
+            }
+        }
+    }
+
+    private Integer getNextOrderInSequence(final CodeScheme codeScheme) {
+        final List<Integer> codes = codeRepository.getInMaxOrder(codeScheme);
+        if (codes.isEmpty()) {
+            return 1;
+        } else {
+            final Integer maxOrder = codes.iterator().next();
+            if (maxOrder != null) {
+                return maxOrder + 1;
+            } else {
+                return 1;
             }
         }
     }
