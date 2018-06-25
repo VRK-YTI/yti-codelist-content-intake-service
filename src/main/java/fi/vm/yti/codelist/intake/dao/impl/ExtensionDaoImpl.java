@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -91,6 +92,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         return extensionRepository.findByExtensionSchemeId(id);
     }
 
+    @Transactional
     public Extension updateExtensionEntityFromDto(final ExtensionScheme extensionScheme,
                                                   final ExtensionDTO extensionDto) {
         final Extension extension = createOrUpdateExtension(extensionScheme, extensionDto);
@@ -100,6 +102,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         return extension;
     }
 
+    @Transactional
     public Set<Extension> updateExtensionEntitiesFromDtos(final ExtensionScheme extensionScheme,
                                                           final Set<ExtensionDTO> extensionDtos) {
         final Set<Extension> extensions = new HashSet<>();
@@ -108,9 +111,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                 final Extension extension = createOrUpdateExtension(extensionScheme, extensionDto);
                 extensionDto.setId(extension.getId());
                 extensions.add(extension);
-            }
-            if (!extensions.isEmpty()) {
-                save(extensions);
+                save(extension);
             }
             resolveExtensionRelations(extensionScheme, extensionDtos);
         }
@@ -195,8 +196,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
         fromExtensions.forEach(fromExtension -> resolveExtensionRelation(extensionScheme, fromExtension));
     }
 
-    private Extension createOrUpdateExtension(final ExtensionScheme extensionSchemeDto,
-                                              final ExtensionDTO fromExtension) {
+    @Transactional
+    public Extension createOrUpdateExtension(final ExtensionScheme extensionSchemeDto,
+                                             final ExtensionDTO fromExtension) {
         final Extension existingExtension;
         final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeDto.getId());
         if (extensionScheme != null) {
@@ -228,16 +230,11 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (!Objects.equals(existingExtension.getExtensionValue(), fromExtension.getExtensionValue())) {
             existingExtension.setExtensionValue(fromExtension.getExtensionValue());
         }
-        if (!Objects.equals(existingExtension.getOrder(), fromExtension.getOrder())) {
+        if (fromExtension.getOrder() != null) {
+            checkOrderIsNotInUse(extensionScheme, fromExtension.getOrder());
             existingExtension.setOrder(fromExtension.getOrder());
-        }
-        if (!Objects.equals(existingExtension.getOrder(), fromExtension.getOrder())) {
-            if (fromExtension.getOrder() != null) {
-                checkOrderIsNotInUse(extensionScheme, fromExtension.getOrder());
-                existingExtension.setOrder(fromExtension.getOrder());
-            } else if (fromExtension.getOrder() == null && existingExtension.getOrder() == null) {
-                existingExtension.setOrder(getNextOrderInSequence(extensionScheme));
-            }
+        } else if (existingExtension.getOrder() == null && fromExtension.getOrder() == null) {
+            existingExtension.setOrder(getNextOrderInSequence(extensionScheme));
         }
         setRelatedExtension(fromExtension, existingExtension);
         if (fromExtension.getCode() != null) {
