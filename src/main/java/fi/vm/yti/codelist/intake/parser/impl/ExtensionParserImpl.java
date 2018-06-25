@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -76,7 +76,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
 
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<ExtensionDTO> parseExtensionsFromCsvInputStream(final InputStream inputStream) {
-        final Set<ExtensionDTO> extensionSchemes = new HashSet<>();
+        final Set<ExtensionDTO> extensionSchemes = new LinkedHashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -126,7 +126,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
 
     public Set<ExtensionDTO> parseExtensionsFromExcelWorkbook(final Workbook workbook,
                                                               final String sheetName) {
-        final Set<ExtensionDTO> extensions = new HashSet<>();
+        final Set<ExtensionDTO> extensions = new LinkedHashSet<>();
         final DataFormatter formatter = new DataFormatter();
         Sheet sheet = workbook.getSheet(sheetName);
         if (sheet == null) {
