@@ -32,7 +32,7 @@ import com.zaxxer.hikari.HikariDataSource;
 @PropertySource(value = "classpath", ignoreResourceNotFound = true)
 public class SpringAppConfig {
 
-    private static final int CONNECTION_TIMEOUT = 10000;
+    private static final int CONNECTION_TIMEOUT = 30000;
     @Value("${yti_codelist_content_intake_service_elastic_host}")
     private String elasticsearchHost;
     @Value("${yti_codelist_content_intake_service_elastic_port}")
