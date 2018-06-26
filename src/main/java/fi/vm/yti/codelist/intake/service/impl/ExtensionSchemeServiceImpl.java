@@ -160,13 +160,12 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
     public Set<ExtensionSchemeDTO> parseAndPersistExtensionSchemesFromExcelWorkbook(final CodeScheme codeScheme,
                                                                                     final Workbook workbook,
                                                                                     final String sheetName,
-                                                                                    final Map<ExtensionSchemeDTO, String> extensionSchemesSheetNames) {
+                                                                                    final Map<ExtensionSchemeDTO, String> extensionsSheetNames) {
         if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
-        Set<ExtensionScheme> extensionSchemes;
-        final Set<ExtensionSchemeDTO> extensionSchemeDtos = extensionSchemeParser.parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, extensionSchemesSheetNames);
-        extensionSchemes = extensionSchemeDao.updateExtensionSchemeEntitiesFromDtos(codeScheme, extensionSchemeDtos);
+        final Set<ExtensionSchemeDTO> extensionSchemeDtos = extensionSchemeParser.parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, extensionsSheetNames);
+        final Set<ExtensionScheme> extensionSchemes = extensionSchemeDao.updateExtensionSchemeEntitiesFromDtos(codeScheme, extensionSchemeDtos);
         extensionSchemeDtos.forEach(extensionSchemeDto -> extensionSchemes.forEach(extensionScheme -> {
             if (extensionScheme.getCodeValue().equalsIgnoreCase(extensionSchemeDto.getCodeValue())) {
                 extensionSchemeDto.setId(extensionScheme.getId());

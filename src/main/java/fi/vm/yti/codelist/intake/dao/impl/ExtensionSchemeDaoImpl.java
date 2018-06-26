@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -98,7 +99,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         return extensionSchemeRepository.findByParentCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeValue);
     }
 
-    @Override
+    @Transactional
     public ExtensionScheme updateExtensionSchemeEntityFromDtos(final CodeScheme codeScheme,
                                                                final ExtensionSchemeDTO extensionSchemeDto) {
         final ExtensionScheme extensionScheme = createOrUpdateExtensionScheme(codeScheme, extensionSchemeDto);
@@ -106,7 +107,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         return extensionScheme;
     }
 
-    @Override
+    @Transactional
     public Set<ExtensionScheme> updateExtensionSchemeEntitiesFromDtos(final CodeScheme codeScheme,
                                                                       final Set<ExtensionSchemeDTO> extensionSchemeDtos) {
         final Set<ExtensionScheme> extensionSchemes = new HashSet<>();
@@ -219,9 +220,23 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
             extensionScheme.setCodeSchemes(codeSchemes);
         }
         extensionScheme.setParentCodeScheme(codeScheme);
+        addExtensionSchemeToParentCodeScheme(codeScheme, extensionScheme);
         final Date timeStamp = new Date(System.currentTimeMillis());
         extensionScheme.setCreated(timeStamp);
         extensionScheme.setModified(timeStamp);
         return extensionScheme;
+    }
+
+    private void addExtensionSchemeToParentCodeScheme(final CodeScheme codeScheme,
+                                                      final ExtensionScheme extensionScheme) {
+        final Set<ExtensionScheme> parentCodeSchemeExtensionSchemes = codeScheme.getExtensionSchemes();
+        if (parentCodeSchemeExtensionSchemes != null) {
+            parentCodeSchemeExtensionSchemes.add(extensionScheme);
+        } else {
+            final Set<ExtensionScheme> extensionSchemes = new HashSet<>();
+            extensionSchemes.add(extensionScheme);
+            codeScheme.setExtensionSchemes(extensionSchemes);
+        }
+        codeSchemeDao.save(codeScheme);
     }
 }

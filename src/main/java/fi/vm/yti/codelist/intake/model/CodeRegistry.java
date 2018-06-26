@@ -28,9 +28,6 @@ import fi.vm.yti.codelist.common.dto.Views;
 import io.swagger.annotations.ApiModel;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
-/**
- * Object model that represents a single code registry.
- */
 @Entity
 @JsonFilter("codeRegistry")
 @Table(name = "coderegistry")

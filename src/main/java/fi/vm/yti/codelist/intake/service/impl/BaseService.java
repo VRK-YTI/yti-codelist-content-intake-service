@@ -138,13 +138,13 @@ public abstract class BaseService {
     @Transactional
     public Set<CodeSchemeDTO> mapCodeSchemeDtos(final Set<CodeScheme> codeSchemes,
                                                 final boolean deep) {
-        final Set<CodeSchemeDTO> codeSchemeDTOS = new HashSet<>();
+        final Set<CodeSchemeDTO> codeSchemeDtos = new HashSet<>();
         if (codeSchemes != null) {
             for (final CodeScheme codeScheme : codeSchemes) {
-                codeSchemeDTOS.add(mapCodeSchemeDto(codeScheme, deep));
+                codeSchemeDtos.add(mapCodeSchemeDto(codeScheme, deep));
             }
         }
-        return codeSchemeDTOS;
+        return codeSchemeDtos;
     }
 
     @Transactional
