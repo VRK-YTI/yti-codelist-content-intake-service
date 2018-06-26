@@ -204,10 +204,6 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (extensionScheme != null) {
             if (fromExtension.getId() != null) {
                 existingExtension = extensionRepository.findByExtensionSchemeAndId(extensionScheme, fromExtension.getId());
-            } else if (fromExtension.getCode() != null && fromExtension.getCode().getCodeValue() != null) {
-                existingExtension = extensionRepository.findByExtensionSchemeAndCodeCodeValueIgnoreCase(extensionScheme, fromExtension.getCode().getCodeValue());
-            } else if (fromExtension.getCode() != null && fromExtension.getCode().getUri() != null) {
-                existingExtension = extensionRepository.findByExtensionSchemeAndCodeUriIgnoreCase(extensionScheme, fromExtension.getCode().getUri());
             } else {
                 existingExtension = null;
             }
