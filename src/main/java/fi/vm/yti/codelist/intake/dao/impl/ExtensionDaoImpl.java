@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.dao.impl;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -231,6 +232,13 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (!Objects.equals(existingExtension.getExtensionValue(), extensionValue)) {
             existingExtension.setExtensionValue(extensionValue);
         }
+        for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
+            final String language = entry.getKey();
+            final String value = entry.getValue();
+            if (!Objects.equals(existingExtension.getPrefLabel(language), value)) {
+                existingExtension.setPrefLabel(language, value);
+            }
+        }
         if (fromExtension.getOrder() != null && !Objects.equals(existingExtension.getOrder(), fromExtension.getOrder())) {
             checkOrderIsNotInUse(extensionScheme, fromExtension.getOrder());
             existingExtension.setOrder(fromExtension.getOrder());
@@ -263,6 +271,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
         final String extensionValue = fromExtension.getExtensionValue();
         validateExtensionValue(extensionValue);
         extension.setExtensionValue(extensionValue);
+        for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
+            extensionScheme.setPrefLabel(entry.getKey(), entry.getValue());
+        }
         if (fromExtension.getOrder() != null) {
             checkOrderIsNotInUse(extensionScheme, fromExtension.getOrder());
             extension.setOrder(fromExtension.getOrder());

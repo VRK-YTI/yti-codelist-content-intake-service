@@ -81,6 +81,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
+            final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
             validateRequiredSchemeHeaders(headerMap);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
@@ -88,6 +89,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 final ExtensionDTO extension = new ExtensionDTO();
                 extension.setId(parseIdFromRecord(record));
                 extension.setOrder(resolveOrderFromCsvRecord(record));
+                extension.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 extension.setExtensionValue(parseExtensionValueFromCsvRecord(record));
                 extension.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record)));
                 final String relationCodeValue = parseExtensionRelationFromCsvRecord(record);
@@ -134,12 +136,14 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         }
         final Iterator<Row> rowIterator = sheet.rowIterator();
         Map<String, Integer> headerMap = null;
+        Map<String, Integer> prefLabelHeaders = null;
         boolean firstRow = true;
         while (rowIterator.hasNext()) {
             final Row row = rowIterator.next();
             if (firstRow) {
                 firstRow = false;
                 headerMap = resolveHeaderMap(row);
+                prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                 validateRequiredSchemeHeaders(headerMap);
             } else {
                 final ExtensionDTO extension = new ExtensionDTO();
@@ -152,6 +156,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     extension.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
+                extension.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 extension.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
                 extension.setExtensionValue(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))));
                 if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {

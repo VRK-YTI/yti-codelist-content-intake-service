@@ -211,6 +211,9 @@ public class IndexingToolsImpl implements IndexingTools {
         "  \"id\": {\n" +
         "    \"type\": \"keyword\"\n" +
         "  },\n" +
+        "  \"prefLabel\": {\n" +
+        "    \"type\": \"nested\"\n" +
+        "  },\n" +
         "  \"order\": {\n" +
         "    \"type\": \"integer\"\n" +
         "  }\n" +

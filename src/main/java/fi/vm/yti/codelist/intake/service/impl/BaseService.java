@@ -262,6 +262,7 @@ public abstract class BaseService {
         extensionDto.setOrder(extension.getOrder());
         extensionDto.setExtensionValue(extension.getExtensionValue());
         extensionDto.setCode(mapCodeDto(extension.getCode(), false));
+        extensionDto.setPrefLabel(extension.getPrefLabel());
         if (deep) {
             if (extension.getExtension() != null) {
                 extensionDto.setExtension(mapExtensionDto(extension.getExtension(), false));
