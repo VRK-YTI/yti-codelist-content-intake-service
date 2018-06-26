@@ -272,7 +272,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         validateExtensionValue(extensionValue);
         extension.setExtensionValue(extensionValue);
         for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
-            extensionScheme.setPrefLabel(entry.getKey(), entry.getValue());
+            extension.setPrefLabel(entry.getKey(), entry.getValue());
         }
         if (fromExtension.getOrder() != null) {
             checkOrderIsNotInUse(extensionScheme, fromExtension.getOrder());
