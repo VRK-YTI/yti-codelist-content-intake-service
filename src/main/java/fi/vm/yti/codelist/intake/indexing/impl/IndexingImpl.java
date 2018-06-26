@@ -117,9 +117,9 @@ public class IndexingImpl implements Indexing {
         final Stopwatch watch = Stopwatch.createStarted();
         final int codeCount = codeService.getCodeCount();
         LOG.info("ElasticSearch indexing: Starting to index " + codeCount + " codes.");
-        int page = 1;
+        int page = 0;
         boolean success = true;
-        while (page == 1 || page * MAX_PAGE_COUNT <= codeCount) {
+        while (page == 0 || (page + 1) * MAX_PAGE_COUNT <= codeCount) {
             final PageRequest pageRequest = new PageRequest(page, MAX_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "codeValue")));
             final Set<CodeDTO> codes = codeService.findAll(pageRequest);
             final boolean partIndexSuccess = indexData(codes, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
