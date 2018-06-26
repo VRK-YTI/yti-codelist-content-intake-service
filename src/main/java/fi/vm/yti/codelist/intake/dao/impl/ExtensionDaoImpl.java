@@ -94,11 +94,11 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
     @Transactional
     public Extension updateExtensionEntityFromDto(final ExtensionScheme extensionScheme,
-                                                  final ExtensionDTO extensionDto) {
-        final Extension extension = createOrUpdateExtension(extensionScheme, extensionDto);
-        extensionDto.setId(extension.getId());
+                                                  final ExtensionDTO fromExtensionDto) {
+        final Extension extension = createOrUpdateExtension(extensionScheme, fromExtensionDto);
+        fromExtensionDto.setId(extension.getId());
         save(extension);
-        resolveExtensionRelation(extensionScheme, extensionDto);
+        resolveExtensionRelation(extensionScheme, extension, fromExtensionDto);
         return extension;
     }
 
@@ -126,16 +126,6 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
     }
 
-    private Extension linkExtension(final ExtensionDTO fromExtension,
-                                    final Extension extension) {
-        final Extension toExtension = findById(fromExtension.getId());
-        if (toExtension != null) {
-            toExtension.setExtension(extension);
-            save(toExtension);
-        }
-        return toExtension;
-    }
-
     private void checkDuplicateCode(final Set<Extension> extensions,
                                     final String identifier) {
         boolean found = false;
@@ -153,32 +143,49 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
     }
 
+    private void linkExtensionWithId(final Extension extension,
+                                     final UUID id) {
+        final Extension relatedExtension = findById(id);
+        linkExtensions(extension, relatedExtension);
+    }
+
+    private void linkExtensions(final Extension extension,
+                                final Extension relatedExtension) {
+        if (relatedExtension != null) {
+            extension.setExtension(relatedExtension);
+        }
+    }
+
     private void resolveExtensionRelation(final ExtensionScheme extensionScheme,
+                                          final Extension extension,
                                           final ExtensionDTO fromExtension) {
         final ExtensionDTO relatedExtension = fromExtension.getExtension();
-        if (relatedExtension != null && relatedExtension.getId() != null && fromExtension.getId() != null && relatedExtension.getId().equals(fromExtension.getId())) {
+        if (relatedExtension != null && relatedExtension.getId() != null && fromExtension.getId() != null && extension.getId().equals(relatedExtension.getId())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        if (relatedExtension != null && relatedExtension.getCode() != null) {
+        final Set<Extension> linkedExtensions = new HashSet<>();
+        if (relatedExtension != null && relatedExtension.getId() != null) {
+            linkExtensionWithId(extension, relatedExtension.getId());
+            linkedExtensions.add(extension);
+        } else if (relatedExtension != null && relatedExtension.getCode() != null) {
             final Set<Extension> extensions = findByExtensionSchemeId(extensionScheme.getId());
-            final Set<Extension> toExtensions = new HashSet<>();
-            for (final Extension extension : extensions) {
-                final String identifier = relatedExtension.getCode().getCodeValue();
-                final UUID uuid = getUuidFromString(identifier);
-                // UUID based extension linking
-                if (uuid != null) {
-                    final Extension toExtension = linkExtension(fromExtension, extension);
-                    toExtensions.add(toExtension);
-                }
-                // URI or parentCodeScheme codeValue based code linking
-                if (identifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) || (extension.getCode() != null && extension.getCode().getCodeValue().equalsIgnoreCase(identifier))) {
+            final String identifier = relatedExtension.getCode().getCodeValue();
+            final UUID uuid = getUuidFromString(identifier);
+            if (uuid != null) {
+                linkExtensionWithId(extension, uuid);
+                linkedExtensions.add(extension);
+            }
+            for (final Extension extensionSchemeExtension : extensions) {
+                if ((identifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && extensionSchemeExtension.getCode() != null && extensionSchemeExtension.getCode().getUri().equalsIgnoreCase(identifier)) ||
+                    (extensionSchemeExtension.getCode() != null && extensionSchemeExtension.getCode().getCodeValue().equalsIgnoreCase(identifier))) {
                     checkDuplicateCode(extensions, identifier);
-                    final Extension toExtension = linkExtension(fromExtension, extension);
-                    toExtensions.add(toExtension);
+                    linkExtensions(extension, extensionSchemeExtension);
+                    linkedExtensions.add(extension);
                 }
             }
-            toExtensions.forEach(extension -> checkExtensionHierarchyLevels(extension, 1));
         }
+        linkedExtensions.forEach(linkedExtension -> checkExtensionHierarchyLevels(linkedExtension, 1));
+        save(linkedExtensions);
     }
 
     private void checkExtensionHierarchyLevels(final Extension extension,
@@ -193,7 +200,10 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
     private void resolveExtensionRelations(final ExtensionScheme extensionScheme,
                                            final Set<ExtensionDTO> fromExtensions) {
-        fromExtensions.forEach(fromExtension -> resolveExtensionRelation(extensionScheme, fromExtension));
+        fromExtensions.forEach(fromExtension -> {
+            final Extension extension = findById(fromExtension.getId());
+            resolveExtensionRelation(extensionScheme, extension, fromExtension);
+        });
     }
 
     @Transactional
