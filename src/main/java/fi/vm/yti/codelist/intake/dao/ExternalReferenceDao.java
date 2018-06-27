@@ -13,6 +13,8 @@ public interface ExternalReferenceDao {
 
     void delete(final Set<ExternalReference> externalReferences);
 
+    void save(final ExternalReference externalReference);
+
     void save(final Set<ExternalReference> externalReferences);
 
     ExternalReference updateExternalReferenceFromDto(final ExternalReferenceDTO externalReferenceDto,

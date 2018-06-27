@@ -142,11 +142,16 @@ public class CloningServiceImpl extends BaseService implements CloningService {
                                             final CodeScheme newCodeScheme) {
         final Set<ExternalReference> originalExternalReferences = originalCodeScheme.getExternalReferences();
         final Set<ExternalReference> newExternalReferences = new HashSet<>();
-        for (final ExternalReference originalExternalReference : originalExternalReferences) {
-            ExternalReference newExternalReference = cloneExternalReference(originalExternalReference, newCodeScheme);
-            newExternalReferences.add(newExternalReference);
-        }
-        externalReferenceDao.save(newExternalReferences);
+        originalExternalReferences.forEach(originalExternalReference -> {
+            final ExternalReference newExternalReference;
+            if (!originalExternalReference.getGlobal()) {
+                newExternalReference = cloneExternalReference(originalExternalReference, newCodeScheme);
+                externalReferenceDao.save(newExternalReference);
+                newExternalReferences.add(newExternalReference);
+            } else {
+                newExternalReferences.add(originalExternalReference);
+            }
+        });
         final Set<ExternalReferenceDTO> extRefDtos = mapExternalReferenceDtos(newExternalReferences, true);
         codeSchemeWithUserChangesFromUi.setExternalReferences(extRefDtos);
     }
