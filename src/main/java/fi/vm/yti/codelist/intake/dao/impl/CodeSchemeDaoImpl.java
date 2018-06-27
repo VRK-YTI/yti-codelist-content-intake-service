@@ -126,6 +126,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         if (codeRegistry != null) {
             for (final CodeSchemeDTO codeSchemeDto : codeSchemeDtos) {
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, codeSchemeDto);
+                save(codeScheme);
                 if (updateExternalReferences) {
                     updateExternalReferences(codeScheme, codeSchemeDto);
                 }

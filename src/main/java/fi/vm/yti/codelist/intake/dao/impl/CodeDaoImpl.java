@@ -141,6 +141,7 @@ public class CodeDaoImpl implements CodeDao {
         if (codeScheme != null) {
             for (final CodeDTO codeDto : codeDtos) {
                 final Code code = createOrUpdateCode(codeScheme, codeDto);
+                save(code);
                 if (updateExternalReferences) {
                     updateExternalReferences(codeScheme, code, codeDto);
                 }
