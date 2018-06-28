@@ -242,7 +242,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         copy.setShortName(original.getShortName());
         copy.setExternalReferences(original.getExternalReferences());
         for (final ExternalReference extRef : copy.getExternalReferences()) {
-            extRef.setId(null);
+            if (!extRef.getGlobal()) {
+                extRef.setId(null);
+            }
         }
         copy.setExtensions(original.getExtensions());
         copy.setStatus(Status.DRAFT.toString());
