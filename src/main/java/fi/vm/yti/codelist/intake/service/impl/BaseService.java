@@ -78,10 +78,8 @@ public abstract class BaseService {
     public Set<CodeDTO> mapCodeDtos(final Set<Code> codes,
                                     final boolean deep) {
         final Set<CodeDTO> codeDtos = new HashSet<>();
-        if (codes != null) {
-            for (final Code code : codes) {
-                codeDtos.add(mapCodeDto(code, deep));
-            }
+        if (codes != null && !codes.isEmpty()) {
+            codes.forEach(code -> codeDtos.add(mapCodeDto(code, deep)));
         }
         return codeDtos;
     }
@@ -139,10 +137,8 @@ public abstract class BaseService {
     public Set<CodeSchemeDTO> mapCodeSchemeDtos(final Set<CodeScheme> codeSchemes,
                                                 final boolean deep) {
         final Set<CodeSchemeDTO> codeSchemeDtos = new HashSet<>();
-        if (codeSchemes != null) {
-            for (final CodeScheme codeScheme : codeSchemes) {
-                codeSchemeDtos.add(mapCodeSchemeDto(codeScheme, deep));
-            }
+        if (codeSchemes != null && !codeSchemes.isEmpty()) {
+            codeSchemes.forEach(codeScheme -> codeSchemeDtos.add(mapCodeSchemeDto(codeScheme, deep)));
         }
         return codeSchemeDtos;
     }
@@ -165,10 +161,8 @@ public abstract class BaseService {
     @Transactional
     public Set<CodeRegistryDTO> mapCodeRegistryDtos(final Set<CodeRegistry> codeRegistries) {
         final Set<CodeRegistryDTO> codeRegistryDtos = new HashSet<>();
-        if (codeRegistries != null) {
-            for (final CodeRegistry codeRegistry : codeRegistries) {
-                codeRegistryDtos.add(mapCodeRegistryDto(codeRegistry));
-            }
+        if (codeRegistries != null && !codeRegistries.isEmpty()) {
+            codeRegistries.forEach(codeRegistry -> codeRegistryDtos.add(mapCodeRegistryDto(codeRegistry)));
         }
         return codeRegistryDtos;
     }
@@ -214,10 +208,8 @@ public abstract class BaseService {
     public Set<ExternalReferenceDTO> mapExternalReferenceDtos(final Set<ExternalReference> externalReferences,
                                                               final boolean deep) {
         final Set<ExternalReferenceDTO> externalReferenceDtos = new HashSet<>();
-        if (externalReferences != null) {
-            for (final ExternalReference externalReference : externalReferences) {
-                externalReferenceDtos.add(mapExternalReferenceDto(externalReference, deep));
-            }
+        if (externalReferences != null && !externalReferences.isEmpty()) {
+            externalReferences.forEach(externalReference -> externalReferenceDtos.add(mapExternalReferenceDto(externalReference, deep)));
         }
         return externalReferenceDtos;
     }
@@ -241,10 +233,8 @@ public abstract class BaseService {
     @Transactional
     public Set<PropertyTypeDTO> mapPropertyTypeDtos(final Set<PropertyType> propertyTypes) {
         final Set<PropertyTypeDTO> propertyTypeDtos = new HashSet<>();
-        if (propertyTypes != null) {
-            for (final PropertyType propertyType : propertyTypes) {
-                propertyTypeDtos.add(mapPropertyTypeDto(propertyType));
-            }
+        if (propertyTypes != null && !propertyTypes.isEmpty()) {
+            propertyTypes.forEach(propertyType -> propertyTypeDtos.add(mapPropertyTypeDto(propertyType)));
         }
         return propertyTypeDtos;
     }
@@ -286,10 +276,8 @@ public abstract class BaseService {
     public Set<ExtensionDTO> mapExtensionDtos(final Set<Extension> extensions,
                                               final boolean deep) {
         final Set<ExtensionDTO> extensionDtos = new HashSet<>();
-        if (extensions != null) {
-            for (final Extension extension : extensions) {
-                extensionDtos.add(mapExtensionDto(extension, deep));
-            }
+        if (extensions != null && !extensions.isEmpty()) {
+            extensions.forEach(extension -> extensionDtos.add(mapExtensionDto(extension, deep)));
         }
         return extensionDtos;
     }
@@ -346,10 +334,8 @@ public abstract class BaseService {
     public Set<ExtensionSchemeDTO> mapExtensionSchemeDtos(final Set<ExtensionScheme> extensionSchemes,
                                                           final boolean deep) {
         final Set<ExtensionSchemeDTO> extensionSchemeDtos = new HashSet<>();
-        if (extensionSchemes != null) {
-            for (final ExtensionScheme extensionScheme : extensionSchemes) {
-                extensionSchemeDtos.add(mapExtensionSchemeDto(extensionScheme, deep));
-            }
+        if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
+            extensionSchemes.forEach(extensionScheme -> extensionSchemeDtos.add(mapExtensionSchemeDto(extensionScheme, deep)));
         }
         return extensionSchemeDtos;
     }
@@ -375,10 +361,8 @@ public abstract class BaseService {
     public Set<OrganizationDTO> mapOrganizationDtos(final Set<Organization> organizations,
                                                     final boolean deep) {
         final Set<OrganizationDTO> organizationDtos = new HashSet<>();
-        if (organizations != null) {
-            for (final Organization organization : organizations) {
-                organizationDtos.add(mapOrganizationDto(organization, deep));
-            }
+        if (organizations != null && !organizations.isEmpty()) {
+            organizations.forEach(organization -> organizationDtos.add(mapOrganizationDto(organization, deep)));
         }
         return organizationDtos;
     }

@@ -3,7 +3,9 @@ package fi.vm.yti.codelist.intake.service;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.ExternalReference;
 
+import java.util.Map;
 import java.util.UUID;
 
 public interface CloningService {
@@ -12,7 +14,11 @@ public interface CloningService {
 
     CodeScheme findCodeSchemeAndEagerFetchTheChildren(final UUID id);
 
-    Code cloneCode(Code code, CodeScheme newCodeScheme);
+    Code cloneCode(final Code code,
+                   final CodeScheme newCodeScheme,
+                   final Map<UUID, ExternalReference> externalReferenceMap);
 
-    CodeSchemeDTO cloneCodeSchemeWithAllThePlumbing(CodeSchemeDTO codeSchemeDTO, String codeRegistryCodeValue, String originalCodeSchemeUuid);
+    CodeSchemeDTO cloneCodeSchemeWithAllThePlumbing(final CodeSchemeDTO codeSchemeDTO,
+                                                    final String codeRegistryCodeValue,
+                                                    final String originalCodeSchemeUuid);
 }
