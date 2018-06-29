@@ -93,13 +93,15 @@ public class ExtensionDaoImpl implements ExtensionDao {
     }
 
     @Transactional
-    public Extension updateExtensionEntityFromDto(final ExtensionScheme extensionScheme,
+    public Set<Extension> updateExtensionEntityFromDto(final ExtensionScheme extensionScheme,
                                                   final ExtensionDTO fromExtensionDto) {
-        final Extension extension = createOrUpdateExtension(extensionScheme, fromExtensionDto);
+        final Set<Extension> extensions = new HashSet<>();
+        final Extension extension = createOrUpdateExtension(extensionScheme, fromExtensionDto, extensions);
         fromExtensionDto.setId(extension.getId());
         save(extension);
+        extensions.add(extension);
         resolveExtensionRelation(extensionScheme, extension, fromExtensionDto);
-        return extension;
+        return extensions;
     }
 
     @Transactional
@@ -108,7 +110,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         final Set<Extension> extensions = new HashSet<>();
         if (extensionDtos != null) {
             for (final ExtensionDTO extensionDto : extensionDtos) {
-                final Extension extension = createOrUpdateExtension(extensionScheme, extensionDto);
+                final Extension extension = createOrUpdateExtension(extensionScheme, extensionDto, extensions);
                 extensionDto.setId(extension.getId());
                 extensions.add(extension);
                 save(extension);
@@ -208,7 +210,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
     @Transactional
     public Extension createOrUpdateExtension(final ExtensionScheme extensionSchemeDto,
-                                             final ExtensionDTO fromExtension) {
+                                             final ExtensionDTO fromExtension,
+                                             final Set<Extension> extensions) {
         final Extension existingExtension;
         final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeDto.getId());
         if (extensionScheme != null) {
@@ -219,9 +222,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
             }
             final Extension extension;
             if (existingExtension != null) {
-                extension = updateExtension(extensionScheme.getParentCodeScheme(), extensionScheme, existingExtension, fromExtension);
+                extension = updateExtension(extensionScheme.getParentCodeScheme(), extensionScheme, existingExtension, fromExtension, extensions);
             } else {
-                extension = createExtension(extensionScheme.getParentCodeScheme(), extensionScheme, fromExtension);
+                extension = createExtension(extensionScheme.getParentCodeScheme(), extensionScheme, fromExtension, extensions);
             }
             return extension;
         } else {
@@ -232,7 +235,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
     private Extension updateExtension(final CodeScheme codeScheme,
                                       final ExtensionScheme extensionScheme,
                                       final Extension existingExtension,
-                                      final ExtensionDTO fromExtension) {
+                                      final ExtensionDTO fromExtension,
+                                      final Set<Extension> extensions) {
         final String extensionValue = fromExtension.getExtensionValue();
         validateExtensionValue(extensionValue);
         if (!Objects.equals(existingExtension.getExtensionValue(), extensionValue)) {
@@ -246,7 +250,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             }
         }
         if (fromExtension.getOrder() != null && !Objects.equals(existingExtension.getOrder(), fromExtension.getOrder())) {
-            checkOrderIsNotInUse(extensionScheme, fromExtension.getOrder());
+            checkOrderAndShiftExistingExtensionOrderIfInUse(extensionScheme, fromExtension.getOrder(), extensions);
             existingExtension.setOrder(fromExtension.getOrder());
         } else if (existingExtension.getOrder() == null && fromExtension.getOrder() == null) {
             existingExtension.setOrder(getNextOrderInSequence(extensionScheme));
@@ -266,7 +270,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
     private Extension createExtension(final CodeScheme codeScheme,
                                       final ExtensionScheme extensionScheme,
-                                      final ExtensionDTO fromExtension) {
+                                      final ExtensionDTO fromExtension,
+                                      final Set<Extension> extensions) {
         final Extension extension = new Extension();
         if (fromExtension.getId() != null) {
             extension.setId(fromExtension.getId());
@@ -281,7 +286,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             extension.setPrefLabel(entry.getKey(), entry.getValue());
         }
         if (fromExtension.getOrder() != null) {
-            checkOrderIsNotInUse(extensionScheme, fromExtension.getOrder());
+            checkOrderAndShiftExistingExtensionOrderIfInUse(extensionScheme, fromExtension.getOrder(), extensions);
             extension.setOrder(fromExtension.getOrder());
         } else {
             extension.setOrder(getNextOrderInSequence(extensionScheme));
@@ -356,11 +361,14 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
     }
 
-    private void checkOrderIsNotInUse(final ExtensionScheme extensionScheme,
-                                      final Integer order) {
+    private void checkOrderAndShiftExistingExtensionOrderIfInUse(final ExtensionScheme extensionScheme,
+                                                                 final Integer order,
+                                                                 final Set<Extension> extensions) {
         final Extension extension = extensionRepository.findByExtensionSchemeAndOrder(extensionScheme, order);
         if (extension != null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_ALREADY_IN_USE));
+            extension.setOrder(getNextOrderInSequence(extensionScheme));
+            save(extension);
+            extensions.add(extension);
         }
     }
 

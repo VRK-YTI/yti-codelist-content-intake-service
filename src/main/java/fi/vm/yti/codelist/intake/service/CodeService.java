@@ -44,10 +44,10 @@ public interface CodeService {
                                                     final InputStream inputStream,
                                                     final String jsonPayload);
 
-    CodeDTO parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
-                                        final String codeSchemeCodeValue,
-                                        final String codeCodeValue,
-                                        final String jsonPayload);
+    Set<CodeDTO> parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
+                                             final String codeSchemeCodeValue,
+                                             final String codeCodeValue,
+                                             final String jsonPayload);
 
     Set<CodeDTO> removeBroaderCodeId(final UUID broaderCodeId);
 
@@ -59,8 +59,8 @@ public interface CodeService {
                                                                           final String codeSchemeCodeValue,
                                                                           final String codeCodeValue);
 
-    public Set<Code> updateCodesFromDtos(final CodeScheme codeScheme,
-                                         final Set<CodeDTO> codeDtos,
-                                         final Map<String, String> broaderCodeMapping,
-                                         final boolean updateExternalReferences);
+    Set<Code> updateCodesFromDtos(final CodeScheme codeScheme,
+                                  final Set<CodeDTO> codeDtos,
+                                  final Map<String, String> broaderCodeMapping,
+                                  final boolean updateExternalReferences);
 }

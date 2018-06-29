@@ -187,11 +187,11 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     }
 
     @Transactional
-    public CodeDTO parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
-                                               final String codeSchemeCodeValue,
-                                               final String codeCodeValue,
-                                               final String jsonPayload) {
-        Code code = null;
+    public Set<CodeDTO> parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
+                                                    final String codeSchemeCodeValue,
+                                                    final String codeCodeValue,
+                                                    final String jsonPayload) {
+        final Set<Code> codes;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
@@ -205,7 +205,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                         if (!codeDto.getCodeValue().equalsIgnoreCase(codeCodeValue)) {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
                         }
-                        code = codeDao.updateCodeFromDto(codeScheme, codeDto);
+                        codes = codeDao.updateCodeFromDto(codeScheme, codeDto);
                     } else {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
                     }
@@ -221,7 +221,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return mapDeepCodeDto(code);
+        return mapDeepCodeDtos(codes);
     }
 
     private Set<CodeDTO> decreaseChildHierarchyLevel(final UUID broaderCodeId) {

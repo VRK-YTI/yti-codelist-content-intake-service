@@ -27,8 +27,8 @@ public interface ExtensionDao {
 
     Set<Extension> findByExtensionSchemeId(final UUID id);
 
-    Extension updateExtensionEntityFromDto(final ExtensionScheme extensionScheme,
-                                           final ExtensionDTO extensionDto);
+    Set<Extension> updateExtensionEntityFromDto(final ExtensionScheme extensionScheme,
+                                                final ExtensionDTO extensionDto);
 
     Set<Extension> updateExtensionEntitiesFromDtos(final ExtensionScheme extensionScheme,
                                                    final Set<ExtensionDTO> extensionDtos);

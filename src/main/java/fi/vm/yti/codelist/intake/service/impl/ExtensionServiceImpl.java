@@ -89,8 +89,8 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
     }
 
     @Transactional
-    public ExtensionDTO parseAndPersistExtensionFromJson(final String jsonPayload) {
-        Extension extension = null;
+    public Set<ExtensionDTO> parseAndPersistExtensionFromJson(final String jsonPayload) {
+        Set<Extension> extensions;
         if (jsonPayload != null && !jsonPayload.isEmpty()) {
             final ExtensionDTO extensionDto = extensionParser.parseExtensionFromJson(jsonPayload);
             if (extensionDto.getExtensionScheme() != null) {
@@ -98,17 +98,17 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
                 if (!authorizationManager.canBeModifiedByUserInOrganization(extensionScheme.getParentCodeScheme().getCodeRegistry().getOrganizations())) {
                     throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                 }
-                extension = extensionDao.updateExtensionEntityFromDto(extensionScheme, extensionDto);
+                extensions = extensionDao.updateExtensionEntityFromDto(extensionScheme, extensionDto);
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
             }
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        if (extension == null) {
+        if (extensions == null) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return mapDeepExtensionDto(extension);
+        return mapDeepExtensionDtos(extensions);
     }
 
     @Transactional

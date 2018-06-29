@@ -19,7 +19,7 @@ public interface ExtensionService {
 
     Set<ExtensionDTO> findByExtensionSchemeId(final UUID id);
 
-    ExtensionDTO parseAndPersistExtensionFromJson(final String jsonPayload);
+    Set<ExtensionDTO> parseAndPersistExtensionFromJson(final String jsonPayload);
 
     Set<ExtensionDTO> parseAndPersistExtensionsFromSourceData(final String codeRegistryCodeValue,
                                                               final String codeSchemeCodeValue,

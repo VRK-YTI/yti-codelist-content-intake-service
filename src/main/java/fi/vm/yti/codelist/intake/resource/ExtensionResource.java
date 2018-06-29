@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.resource;
 
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -89,11 +90,13 @@ public class ExtensionResource extends AbstractBaseResource {
     }
 
     private Response parseAndPersistExtensionFromSource(final String jsonPayload) {
-        final ExtensionDTO extension = extensionService.parseAndPersistExtensionFromJson(jsonPayload);
-        indexing.updateExtension(extension);
-        final ExtensionSchemeDTO extensionScheme = extensionSchemeService.findById(extension.getExtensionScheme().getId());
-        if (extensionScheme != null) {
-            indexing.updateExtensionScheme(extensionScheme);
+        final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionFromJson(jsonPayload);
+        indexing.updateExtensions(extensions);
+        if (!extensions.isEmpty()) {
+            final ExtensionSchemeDTO extensionScheme = extensionSchemeService.findById(extensions.iterator().next().getExtensionScheme().getId());
+            if (extensionScheme != null) {
+                indexing.updateExtensionScheme(extensionScheme);
+            }
         }
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSION, "extension")));
