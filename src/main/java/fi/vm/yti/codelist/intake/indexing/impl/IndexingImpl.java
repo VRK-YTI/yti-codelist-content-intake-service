@@ -112,14 +112,19 @@ public class IndexingImpl implements Indexing {
         return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
     }
 
+    private int getCodePageCount(final int codeCount) {
+        return codeCount / MAX_PAGE_COUNT + 1;
+    }
+
     @Transactional
     public boolean indexCodes(final String indexName) {
         final Stopwatch watch = Stopwatch.createStarted();
         final int codeCount = codeService.getCodeCount();
-        LOG.info("ElasticSearch indexing: Starting to index " + codeCount + " codes.");
+        final int pageCount = getCodePageCount(codeCount);
+        LOG.info("ElasticSearch indexing: Starting to index " + pageCount + " pages of codes " + codeCount + " codes.");
         int page = 0;
         boolean success = true;
-        while (page == 0 || (page + 1) * MAX_PAGE_COUNT <= codeCount) {
+        while (page + 1 <= pageCount) {
             final PageRequest pageRequest = new PageRequest(page, MAX_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "codeValue")));
             final Set<CodeDTO> codes = codeService.findAll(pageRequest);
             final boolean partIndexSuccess = indexData(codes, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
