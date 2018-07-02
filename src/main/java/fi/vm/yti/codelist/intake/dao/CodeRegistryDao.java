@@ -7,6 +7,8 @@ import fi.vm.yti.codelist.intake.model.CodeRegistry;
 
 public interface CodeRegistryDao {
 
+    void delete(final CodeRegistry codeRegistry);
+
     Set<CodeRegistry> findAll();
 
     CodeRegistry findByCodeValue(final String codeValue);

@@ -242,6 +242,19 @@ public class IndexingImpl implements Indexing {
         return true;
     }
 
+    public boolean deleteCodeRegistry(final CodeRegistryDTO codeRegistry) {
+        final Set<CodeRegistryDTO> codeRegistries = new HashSet<>();
+        codeRegistries.add(codeRegistry);
+        return deleteCodeRegistries(codeRegistries);
+    }
+
+    public boolean deleteCodeRegistries(final Set<CodeRegistryDTO> codeRegistries) {
+        if (!codeRegistries.isEmpty()) {
+            return deleteData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES);
+        }
+        return true;
+    }
+
     public boolean deleteCodeScheme(final CodeSchemeDTO codeScheme) {
         final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
         codeSchemes.add(codeScheme);

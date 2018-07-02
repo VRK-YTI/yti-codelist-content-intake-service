@@ -14,23 +14,27 @@ public interface Indexing {
 
     boolean updateCode(final CodeDTO code);
 
+    boolean updateCodes(final Set<CodeDTO> code);
+
     boolean deleteCode(final CodeDTO code);
 
     boolean deleteCodes(final Set<CodeDTO> codes);
 
-    boolean updateCodes(final Set<CodeDTO> code);
-
     boolean updateCodeScheme(final CodeSchemeDTO codeScheme);
+
+    boolean updateCodeSchemes(final Set<CodeSchemeDTO> codeSchemes);
 
     boolean deleteCodeScheme(final CodeSchemeDTO codeScheme);
 
     boolean deleteCodeSchemes(final Set<CodeSchemeDTO> codeSchemes);
 
-    boolean updateCodeSchemes(final Set<CodeSchemeDTO> codeSchemes);
-
     boolean updateCodeRegistry(final CodeRegistryDTO codeRegistry);
 
     boolean updateCodeRegistries(final Set<CodeRegistryDTO> codeRegistries);
+
+    boolean deleteCodeRegistry(final CodeRegistryDTO codeRegistry);
+
+    boolean deleteCodeRegistries(final Set<CodeRegistryDTO> codeRegistries);
 
     boolean updateExternalReference(final ExternalReferenceDTO externalReference);
 

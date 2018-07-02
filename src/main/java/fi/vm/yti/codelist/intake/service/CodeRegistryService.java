@@ -22,4 +22,6 @@ public interface CodeRegistryService {
 
     CodeRegistryDTO parseAndPersistCodeRegistryFromJson(final String codeRegistryCodeValue,
                                                         final String jsonPayload);
+
+    CodeRegistryDTO deleteCodeRegistry(final String codeRegistryCodeValue);
 }

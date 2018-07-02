@@ -127,4 +127,17 @@ public class CodeRegistryServiceImpl extends BaseService implements CodeRegistry
         }
         return mapCodeRegistryDto(codeRegistry);
     }
+
+    @Transactional
+    public CodeRegistryDTO deleteCodeRegistry(final String codeRegistryCodeValue) {
+        final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
+        if (authorizationManager.canCodeRegistryBeDeleted(codeRegistry)) {
+            final CodeRegistryDTO codeRegistryDto = mapCodeRegistryDto(codeRegistry);
+            codeRegistryDao.delete(codeRegistry);
+            return codeRegistryDto;
+        } else {
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+        }
+    }
+
 }

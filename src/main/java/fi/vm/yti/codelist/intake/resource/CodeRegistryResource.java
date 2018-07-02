@@ -149,6 +149,51 @@ public class CodeRegistryResource extends AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
+    @DELETE
+    @Path("{codeRegistryCodeValue}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Deletes a single existing CodeRegistry.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "CodeRegistry deleted."),
+        @ApiResponse(code = 404, message = "CodeRegistry not found.")
+    })
+    public Response deleteCodeRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue) {
+
+        final CodeRegistryDTO existingCodeRegistry = codeRegistryService.findByCodeValue(codeRegistryCodeValue);
+        if (existingCodeRegistry != null) {
+            final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.findByCodeRegistryCodeValue(codeRegistryCodeValue);
+            codeSchemes.forEach(existingCodeScheme -> {
+                final UUID codeSchemeId = existingCodeScheme.getId();
+                final Set<CodeDTO> codes = codeService.findByCodeSchemeId(codeSchemeId);
+                final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
+                final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeSchemeId);
+                final Set<ExtensionDTO> extensions = extensionService.findByExtensionSchemeId(codeSchemeId);
+                final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue());
+                indexing.deleteCodeScheme(codeScheme);
+                if (codes != null) {
+                    indexing.deleteCodes(codes);
+                }
+                if (externalReferences != null) {
+                    indexing.deleteExternalReferences(externalReferences);
+                }
+                if (extensionSchemes != null) {
+                    indexing.deleteExtensionSchemes(extensionSchemes);
+                }
+                if (extensions != null) {
+                    indexing.deleteExtensions(extensions);
+                }
+            });
+            final CodeRegistryDTO codeRegistry = codeRegistryService.deleteCodeRegistry(codeRegistryCodeValue);
+            indexing.deleteCodeRegistry(codeRegistry);
+        } else {
+            return Response.status(404).build();
+        }
+        final Meta meta = new Meta();
+        final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
+        return Response.ok(responseWrapper).build();
+    }
+
     @POST
     @Path("{codeRegistryCodeValue}/codeschemes/")
     @Consumes(MediaType.APPLICATION_JSON)

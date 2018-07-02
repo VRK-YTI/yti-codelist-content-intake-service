@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.model.AbstractIdentifyableCode;
 import fi.vm.yti.codelist.intake.model.Code;
+import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
@@ -64,6 +65,11 @@ public class AuthorizationManagerImpl implements AuthorizationManager {
         final Collection<UUID> organizationIds = extensionScheme.getParentCodeScheme().getCodeRegistry().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(extensionScheme.getStatus()).ordinal() <= Status.VALID.ordinal());
+    }
+
+    public boolean canCodeRegistryBeDeleted(final CodeRegistry codeRegistry) {
+        final YtiUser user = userProvider.getUser();
+        return user.isSuperuser();
     }
 
     public boolean canCodeSchemeBeDeleted(final CodeScheme codeScheme) {

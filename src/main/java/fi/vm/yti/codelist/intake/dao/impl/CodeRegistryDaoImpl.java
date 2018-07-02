@@ -42,6 +42,11 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         this.organizationRepository = organizationRepository;
     }
 
+    public void delete(final CodeRegistry codeRegistry) {
+        entityChangeLogger.logCodeRegistryChange(codeRegistry);
+        codeRegistryRepository.delete(codeRegistry);
+    }
+
     public Set<CodeRegistry> findAll() {
         return codeRegistryRepository.findAll();
     }

@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.integration;
 
 import fi.vm.yti.codelist.intake.model.Code;
+import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
@@ -40,6 +41,11 @@ public class AuthorizationManagerForTestsImpl implements AuthorizationManager {
 
     @Override
     public boolean canExtensionBeDeleted(final Extension extension) {
+        return true;
+    }
+
+    @Override
+    public boolean canCodeRegistryBeDeleted(final CodeRegistry codeRegistry) {
         return true;
     }
 
