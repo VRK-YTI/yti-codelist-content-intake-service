@@ -21,6 +21,8 @@ public interface CodeSchemeDao {
 
     Set<CodeScheme> findAll();
 
+    Set<CodeScheme> findByCodeRegistryCodeValue(final String codeRegistryCodeValue);
+
     CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry, final String codeValue);
 
     CodeScheme findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue, final String codeSchemeCodeValue);

@@ -132,6 +132,18 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
         final CodeRegistryDTO codeRegistry = codeRegistryService.parseAndPersistCodeRegistryFromJson(codeRegistryCodeValue, jsonPayload);
         indexing.updateCodeRegistry(codeRegistry);
+        final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.findByCodeRegistryCodeValue(codeRegistry.getCodeValue());
+        codeSchemes.forEach(codeScheme -> {
+            indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
+            indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
+            final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeScheme.getId());
+            if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
+                indexing.updateExtensionSchemes(extensionSchemes);
+                for (final ExtensionSchemeDTO extensionScheme : extensionSchemes) {
+                    indexing.updateExtensions(extensionService.findByExtensionSchemeId(extensionScheme.getId()));
+                }
+            }
+        });
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
@@ -569,6 +581,20 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                              final String jsonPayload) {
         final Set<CodeRegistryDTO> codeRegistries = codeRegistryService.parseAndPersistCodeRegistriesFromSourceData(format, inputStream, jsonPayload);
         indexing.updateCodeRegistries(codeRegistries);
+        codeRegistries.forEach(codeRegistry -> {
+            final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.findByCodeRegistryCodeValue(codeRegistry.getCodeValue());
+            codeSchemes.forEach(codeScheme -> {
+                indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
+                indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
+                final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeScheme.getId());
+                if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
+                    indexing.updateExtensionSchemes(extensionSchemes);
+                    for (final ExtensionSchemeDTO extensionScheme : extensionSchemes) {
+                        indexing.updateExtensions(extensionService.findByExtensionSchemeId(extensionScheme.getId()));
+                    }
+                }
+            });
+        });
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
         final ResponseWrapper<CodeRegistryDTO> responseWrapper = new ResponseWrapper<>(meta);
@@ -578,15 +604,15 @@ public class CodeRegistryResource extends AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
-    private Response indexCodeschemeAndCodesAfterCloning(final CodeSchemeDTO codeSchemeDTO,
+    private Response indexCodeschemeAndCodesAfterCloning(final CodeSchemeDTO codeScheme,
                                                          final String codeRegistryCodeValue) {
-        final HashSet<CodeSchemeDTO> codeSchemeDTOs = new HashSet<>();
-        codeSchemeDTOs.add(codeSchemeDTO);
-        indexing.updateCodeSchemes(codeSchemeDTOs);
+        final HashSet<CodeSchemeDTO> codeSchemes = new HashSet<>();
+        codeSchemes.add(codeScheme);
+        indexing.updateCodeSchemes(codeSchemes);
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
-        indexing.updateCodes(codeService.findByCodeSchemeId(codeSchemeDTO.getId()));
-        indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeSchemeDTO.getId()));
-        final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeSchemeDTO.getId());
+        indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
+        indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
+        final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeScheme.getId());
         if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
             indexing.updateExtensionSchemes(extensionSchemes);
             for (final ExtensionSchemeDTO extensionScheme : extensionSchemes) {
@@ -598,7 +624,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final ResponseWrapper<CodeSchemeDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("A CodeScheme was cloned.");
         meta.setCode(200);
-        responseWrapper.setResults(codeSchemeDTOs);
+        responseWrapper.setResults(codeSchemes);
         return Response.ok(responseWrapper).build();
     }
 

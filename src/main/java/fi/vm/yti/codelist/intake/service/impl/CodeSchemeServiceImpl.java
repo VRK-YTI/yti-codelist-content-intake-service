@@ -101,13 +101,20 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
 
     @Transactional
     @Nullable
+    public Set<CodeSchemeDTO> findByCodeRegistryCodeValue(final String codeRegistryCodeValue) {
+        final Set<CodeScheme> codeSchemes = codeSchemeDao.findByCodeRegistryCodeValue(codeRegistryCodeValue);
+        return mapDeepCodeSchemeDtos(codeSchemes);
+    }
+
+    @Transactional
+    @Nullable
     public CodeSchemeDTO findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                                  final String codeSchemeCodeValue) {
-        final CodeScheme scheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-        if (scheme == null) {
+        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if (codeScheme == null) {
             return null;
         }
-        return mapDeepCodeSchemeDto(scheme);
+        return mapDeepCodeSchemeDto(codeScheme);
     }
 
     @Transactional

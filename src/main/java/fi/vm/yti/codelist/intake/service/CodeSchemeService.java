@@ -12,6 +12,8 @@ public interface CodeSchemeService {
 
     CodeSchemeDTO findById(final UUID id);
 
+    Set<CodeSchemeDTO> findByCodeRegistryCodeValue(final String codeRegistryCodeValue);
+
     CodeSchemeDTO findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                           final String codeSchemeCodeValue);
 
