@@ -164,7 +164,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     public Response deleteCodeRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue) {
 
         final CodeRegistryDTO existingCodeRegistry = codeRegistryService.findByCodeValue(codeRegistryCodeValue);
-        if (existingCodeRegistry.getCodeSchemes() != null && existingCodeRegistry.getCodeSchemes().isEmpty()) {
+        if (existingCodeRegistry.getCodeSchemes() != null && !existingCodeRegistry.getCodeSchemes().isEmpty()) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_EMPTY));
         }
         if (existingCodeRegistry != null) {
