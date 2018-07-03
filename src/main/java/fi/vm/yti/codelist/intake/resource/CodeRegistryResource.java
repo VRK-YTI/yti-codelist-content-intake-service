@@ -123,7 +123,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Path("{codeRegistryCodeValue}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Modifies single existing CodeRegistry.")
+    @ApiOperation(value = "Modifies a single existing CodeRegistry.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "CodeRegistry modified successfully.")
     })
@@ -133,6 +133,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final CodeRegistryDTO codeRegistry = codeRegistryService.parseAndPersistCodeRegistryFromJson(codeRegistryCodeValue, jsonPayload);
         indexing.updateCodeRegistry(codeRegistry);
         final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.findByCodeRegistryCodeValue(codeRegistry.getCodeValue());
+        indexing.updateCodeSchemes(codeSchemes);
         codeSchemes.forEach(codeScheme -> {
             indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
             indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
@@ -628,6 +629,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         indexing.updateCodeRegistries(codeRegistries);
         codeRegistries.forEach(codeRegistry -> {
             final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.findByCodeRegistryCodeValue(codeRegistry.getCodeValue());
+            indexing.updateCodeSchemes(codeSchemes);
             codeSchemes.forEach(codeScheme -> {
                 indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
                 indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
