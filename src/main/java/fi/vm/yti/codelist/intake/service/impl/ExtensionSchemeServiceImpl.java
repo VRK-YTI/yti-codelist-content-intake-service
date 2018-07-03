@@ -29,7 +29,6 @@ import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.parser.ExtensionParser;
 import fi.vm.yti.codelist.intake.parser.ExtensionSchemeParser;
