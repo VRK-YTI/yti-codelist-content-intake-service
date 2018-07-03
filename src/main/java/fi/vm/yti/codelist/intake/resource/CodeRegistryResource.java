@@ -196,6 +196,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             return Response.status(404).build();
         }
         final Meta meta = new Meta();
+        meta.setCode(200);
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
     }
