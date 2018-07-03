@@ -55,6 +55,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_CODEREGISTRY_NOT_EMPTY;
 
 @Component
 @Path("/v1/coderegistries")
@@ -157,11 +158,15 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @ApiOperation(value = "Deletes a single existing CodeRegistry.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "CodeRegistry deleted."),
-        @ApiResponse(code = 404, message = "CodeRegistry not found.")
+        @ApiResponse(code = 404, message = "CodeRegistry not found."),
+        @ApiResponse(code = 406, message = "CodeRegistry has code lists, cannot delete.")
     })
     public Response deleteCodeRegistry(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue) {
 
         final CodeRegistryDTO existingCodeRegistry = codeRegistryService.findByCodeValue(codeRegistryCodeValue);
+        if (existingCodeRegistry.getCodeSchemes() != null && existingCodeRegistry.getCodeSchemes().isEmpty()) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_EMPTY));
+        }
         if (existingCodeRegistry != null) {
             final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.findByCodeRegistryCodeValue(codeRegistryCodeValue);
             codeSchemes.forEach(existingCodeScheme -> {
