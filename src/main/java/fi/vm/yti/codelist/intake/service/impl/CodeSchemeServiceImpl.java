@@ -2,10 +2,7 @@ package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -287,5 +284,11 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         final CodeScheme codeScheme = codeSchemeDao.updateCodeSchemeFromDto(codeRegistry, codeSchemeDto);
         return mapCodeSchemeDto(codeScheme, true);
+    }
+
+    @Transactional
+    public Set<CodeSchemeDTO> findAllVariantsFromTheSameMother(final UUID uuidOfTheMotherCodeScheme) {
+        Set<CodeScheme> codeSchemes = codeSchemeDao.findAllVariantsFromTheSameMother(uuidOfTheMotherCodeScheme);
+        return mapDeepCodeSchemeDtos(codeSchemes);
     }
 }

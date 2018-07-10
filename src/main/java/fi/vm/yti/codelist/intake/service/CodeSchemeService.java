@@ -38,4 +38,6 @@ public interface CodeSchemeService {
     CodeSchemeDTO updateCodeSchemeFromDto(String codeRegistryCodeValue,
                                           CodeSchemeDTO codeSchemeDTO);
 
+    Set<CodeSchemeDTO> findAllVariantsFromTheSameMother(final UUID uuidOfTheMotherCodeScheme);
+
 }

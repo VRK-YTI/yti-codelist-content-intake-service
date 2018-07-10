@@ -67,6 +67,7 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         final CodeScheme originalCodeScheme = findCodeSchemeAndEagerFetchTheChildren(UUID.fromString(originalCodeSchemeUuid));
 
         codeSchemeWithUserChangesFromUi.setStatus(Status.DRAFT.toString());
+        codeSchemeWithUserChangesFromUi.setVariantCodeschemeId(UUID.fromString(originalCodeSchemeUuid));
 
         codeSchemeWithUserChangesFromUi = codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
 

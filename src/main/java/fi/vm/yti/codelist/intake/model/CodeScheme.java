@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
@@ -33,7 +34,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeScheme")
 @Table(name = "codescheme")
 @XmlRootElement
-@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies" })
+@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies", "variantCodeschemeId" })
 @ApiModel(value = "CodeScheme", description = "CodeScheme model that represents data for one single codescheme.")
 public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
@@ -54,6 +55,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private Set<ExtensionScheme> extensionSchemes;
     private String conceptUriInVocabularies;
     private Code defaultCode;
+    private UUID variantCodeschemeId; //mother codescheme if this codescheme is a variant
 
     public CodeScheme() {
         prefLabel = new HashMap<>();
@@ -339,5 +341,15 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     public void setExtensionSchemes(final Set<ExtensionScheme> extensionSchemes) {
         this.extensionSchemes = extensionSchemes;
+    }
+
+    @Column(name = "variant_codescheme_id")
+    @JsonView(Views.Normal.class)
+    public UUID getVariantCodeschemeId() {
+        return variantCodeschemeId;
+    }
+
+    public void setVariantCodeschemeId(final UUID variantCodeschemeId) {
+        this.variantCodeschemeId = variantCodeschemeId;
     }
 }

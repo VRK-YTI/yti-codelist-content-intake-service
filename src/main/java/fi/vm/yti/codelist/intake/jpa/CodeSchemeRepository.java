@@ -35,4 +35,7 @@ public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String>
             "where cs.id = ?1")
     CodeScheme findCodeSchemeAndEagerFetchTheChildren(final UUID id);
 
+    @Query("select cs from CodeScheme cs " +
+            "where cs.variantCodeschemeId = ?1")
+    Set<CodeScheme> findAllVariantsFromTheSameMother(final UUID uuidOfTheMotherCodeScheme);
 }

@@ -304,6 +304,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         final Date timeStamp = new Date(System.currentTimeMillis());
         codeScheme.setCreated(timeStamp);
         codeScheme.setModified(timeStamp);
+        codeScheme.setVariantCodeschemeId(fromCodeScheme.getVariantCodeschemeId());
         return codeScheme;
     }
 
@@ -334,5 +335,9 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_EXISTING_CODE_MISMATCH));
             }
         }
+    }
+
+    public Set<CodeScheme> findAllVariantsFromTheSameMother(final UUID uuidOfTheMotherCodeScheme) {
+        return codeSchemeRepository.findAllVariantsFromTheSameMother(uuidOfTheMotherCodeScheme);
     }
 }

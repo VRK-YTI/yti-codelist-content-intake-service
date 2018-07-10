@@ -18,6 +18,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fi.vm.yti.codelist.common.model.Variant;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -272,6 +273,18 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
         CodeSchemeDTO codeSchemeWithUserChangesFromUi = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
         codeSchemeWithUserChangesFromUi = cloningService.cloneCodeSchemeWithAllThePlumbing(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue, originalCodeSchemeUuid);
+        CodeSchemeDTO originalCodeScheme = this.codeSchemeService.findById(UUID.fromString(originalCodeSchemeUuid));
+        Variant mother = new Variant(originalCodeScheme.getPrefLabel(),originalCodeScheme.getUri());
+        codeSchemeWithUserChangesFromUi.setMotherOfThisVariant(mother);
+        Set<CodeSchemeDTO> allVariantsFromTheSameMother = this.codeSchemeService.findAllVariantsFromTheSameMother(UUID.fromString(originalCodeSchemeUuid));
+        Set<Variant> otherVariantsFromTheSameMother = new HashSet<>();
+        for (CodeSchemeDTO dto : allVariantsFromTheSameMother) {
+            if (dto.getId().compareTo(codeSchemeWithUserChangesFromUi.getId()) != 0) {
+                Variant variant = new Variant(dto.getPrefLabel(), dto.getUri());
+                otherVariantsFromTheSameMother.add(variant);
+            }
+        }
+        codeSchemeWithUserChangesFromUi.setOtherVariantsFromTheSameMother(otherVariantsFromTheSameMother);
         return indexCodeschemeAndCodesAfterCloning(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue);
     }
 

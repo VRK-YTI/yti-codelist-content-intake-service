@@ -1,0 +1,1 @@
+ALTER TABLE public.codescheme ADD variant_codescheme_id uuid NULL;
