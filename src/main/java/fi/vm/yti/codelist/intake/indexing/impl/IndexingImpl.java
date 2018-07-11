@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
+import fi.vm.yti.codelist.common.model.Variant;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.support.WriteRequest;
@@ -109,7 +110,35 @@ public class IndexingImpl implements Indexing {
 
     private boolean indexCodeSchemes(final String indexName) {
         final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.findAll();
+
+        for (CodeSchemeDTO currentCodeScheme : codeSchemes) {
+            if (currentCodeScheme.getVariantCodeschemeId() != null) {
+                populateVariantInfoToCodeSchemeDTO(currentCodeScheme);
+            }
+        }
         return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
+    }
+
+    /**
+     * variantCodeSchemeId == if current codescheme is a variant, this is its mothers id (mother is the codescheme from which THIS codescheme was copied)
+     * and variantCodeSchemeId is the only piece of data that is persisted in the SQL database.
+     * Info about the mother, and the other variants with the same mother (if any) are not persisted in DB and hence have to be populated here to the index.
+     * So "mother" and the "brothers" (other variants from the same "mother") live only in the ES index and are calculated based on variantCodeSchemeId
+     * which is stored in the SQL database.
+     */
+    private void populateVariantInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
+        CodeSchemeDTO variantMotherCodeScheme = this.codeSchemeService.findById(currentCodeScheme.getVariantCodeschemeId());
+        Variant mother = new Variant(variantMotherCodeScheme.getPrefLabel(),variantMotherCodeScheme.getUri());
+        currentCodeScheme.setMotherOfThisVariant(mother);
+        Set<CodeSchemeDTO> allVariantsFromTheSameMother = this.codeSchemeService.findAllVariantsFromTheSameMother(currentCodeScheme.getVariantCodeschemeId());
+        Set<Variant> otherVariantsFromTheSameMother = new HashSet<>();
+        for (CodeSchemeDTO currentVariant : allVariantsFromTheSameMother) {
+            if (currentVariant.getId().compareTo(currentCodeScheme.getId()) != 0) {
+                Variant variant = new Variant(currentVariant.getPrefLabel(), currentVariant.getUri());
+                otherVariantsFromTheSameMother.add(variant);
+            }
+        }
+        currentCodeScheme.setOtherVariantsFromTheSameMother(otherVariantsFromTheSameMother);
     }
 
     private int getCodePageCount(final int codeCount) {
