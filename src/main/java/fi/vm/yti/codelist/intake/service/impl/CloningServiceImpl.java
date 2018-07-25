@@ -1,16 +1,12 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
+import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
@@ -67,12 +63,36 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         final CodeScheme originalCodeScheme = findCodeSchemeAndEagerFetchTheChildren(UUID.fromString(originalCodeSchemeUuid));
 
         codeSchemeWithUserChangesFromUi.setStatus(Status.DRAFT.toString());
-        codeSchemeWithUserChangesFromUi.setVariantCodeschemeId(UUID.fromString(originalCodeSchemeUuid));
+        codeSchemeWithUserChangesFromUi.setNextCodeschemeId(null);
+        codeSchemeWithUserChangesFromUi.setPrevCodeschemeId(originalCodeScheme.getId());
+
+        LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
+
+        LinkedHashSet<CodeScheme> previousVersions = new LinkedHashSet<>();
+        previousVersions = getPreviousVersions(originalCodeScheme.getId(), previousVersions);
+        for (CodeScheme codeScheme : previousVersions) {
+            codeScheme.setLastCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
+            CodeSchemeListItem olderVersion = new CodeSchemeListItem(codeScheme.getPrefLabel(), codeScheme.getUri());
+            versionHistory.add(olderVersion);
+        }
+        codeSchemeDao.save(previousVersions);
 
         codeSchemeWithUserChangesFromUi = codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
 
+        originalCodeScheme.setNextCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
+        originalCodeScheme.setLastCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
+
+        codeSchemeDao.save(originalCodeScheme);
+
         final CodeScheme newCodeScheme = codeSchemeDao.findById(codeSchemeWithUserChangesFromUi.getId());
 
+        CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getPrefLabel(), codeSchemeWithUserChangesFromUi.getUri());
+        codeSchemeWithUserChangesFromUi.setLastCodeschemeId(newCodeScheme.getId());
+
+        LinkedHashSet<CodeSchemeListItem> allVersions = new LinkedHashSet<>();
+        allVersions.add(newVersionListItem);
+        allVersions.addAll(versionHistory);
+        codeSchemeWithUserChangesFromUi.setAllVersions(allVersions);
         final Map<UUID, ExternalReference> externalReferenceMap = handleParentExternalReferences(originalCodeScheme, newCodeScheme);
 
         handleCodeSchemeExternalReferences(codeSchemeWithUserChangesFromUi,
@@ -89,6 +109,21 @@ public class CloningServiceImpl extends BaseService implements CloningService {
             originalCodeScheme);
 
         return codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
+    }
+
+    @Transactional
+    protected LinkedHashSet<CodeScheme> getPreviousVersions(UUID uuid, LinkedHashSet result) {
+        CodeScheme prevVersion = codeSchemeDao.findById(uuid);
+        if (prevVersion == null) {
+            return result;
+        } else {
+            result.add(prevVersion);
+            if (prevVersion.getPrevCodeschemeId() == null) {
+                return result;
+            } else {
+                return getPreviousVersions(prevVersion.getPrevCodeschemeId(), result);
+            }
+        }
     }
 
     @Transactional

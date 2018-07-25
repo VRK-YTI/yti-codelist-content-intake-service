@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
+import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import org.apache.poi.POIXMLException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -230,6 +231,9 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             try {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     final CodeSchemeDTO codeSchemeDto = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
+                    if (codeSchemeDto.getId() != null && codeSchemeDto.getLastCodeschemeId() != null) {
+                        this.populateAllVersionsToCodeSchemeDTO(codeSchemeDto);
+                    }
                     if (!codeSchemeDto.getCodeValue().equalsIgnoreCase(codeSchemeCodeValue)) {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
                     }
@@ -246,7 +250,11 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return mapCodeSchemeDto(codeScheme, true);
+        CodeSchemeDTO codeSchemeDTO = mapCodeSchemeDto(codeScheme, true);
+        if (codeSchemeDTO.getId() != null && codeSchemeDTO.getLastCodeschemeId() != null) {
+            this.populateAllVersionsToCodeSchemeDTO(codeSchemeDTO);
+        }
+        return codeSchemeDTO;
     }
 
     @Transactional
@@ -290,5 +298,31 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     public Set<CodeSchemeDTO> findAllVariantsFromTheSameMother(final UUID uuidOfTheMotherCodeScheme) {
         Set<CodeScheme> codeSchemes = codeSchemeDao.findAllVariantsFromTheSameMother(uuidOfTheMotherCodeScheme);
         return mapDeepCodeSchemeDtos(codeSchemes);
+    }
+
+    public void populateAllVersionsToCodeSchemeDTO(CodeSchemeDTO currentCodeScheme) {
+        LinkedHashSet<CodeSchemeDTO> allVersions = new LinkedHashSet<>();
+        CodeSchemeDTO latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
+        allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
+        LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
+        for (CodeSchemeDTO version: allVersions) {
+            CodeSchemeListItem listItem = new CodeSchemeListItem(version.getPrefLabel(), version.getUri());
+            versionHistory.add(listItem);
+        }
+        currentCodeScheme.setAllVersions(versionHistory);
+    }
+
+    private LinkedHashSet<CodeSchemeDTO> getPreviousVersions(UUID uuid, LinkedHashSet result) {
+        CodeSchemeDTO prevVersion = this.findById(uuid);
+        if (prevVersion == null) {
+            return result;
+        } else {
+            result.add(prevVersion);
+            if (prevVersion.getPrevCodeschemeId() == null) {
+                return result;
+            } else {
+                return getPreviousVersions(prevVersion.getPrevCodeschemeId(), result);
+            }
+        }
     }
 }

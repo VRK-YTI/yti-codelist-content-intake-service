@@ -18,7 +18,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import fi.vm.yti.codelist.common.model.Variant;
+import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -270,22 +270,25 @@ public class CodeRegistryResource extends AbstractBaseResource {
     public Response cloneCodeSchemeFromJson(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                             @PathParam("originalCodeSchemeUuid") final String originalCodeSchemeUuid,
                                             @ApiParam(value = "JSON playload for CodeScheme data.", required = true) final String jsonPayload) {
-
         CodeSchemeDTO codeSchemeWithUserChangesFromUi = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
         codeSchemeWithUserChangesFromUi = cloningService.cloneCodeSchemeWithAllThePlumbing(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue, originalCodeSchemeUuid);
-        CodeSchemeDTO originalCodeScheme = this.codeSchemeService.findById(UUID.fromString(originalCodeSchemeUuid));
-        Variant mother = new Variant(originalCodeScheme.getPrefLabel(),originalCodeScheme.getUri());
-        codeSchemeWithUserChangesFromUi.setMotherOfThisVariant(mother);
-        Set<CodeSchemeDTO> allVariantsFromTheSameMother = this.codeSchemeService.findAllVariantsFromTheSameMother(UUID.fromString(originalCodeSchemeUuid));
-        Set<Variant> otherVariantsFromTheSameMother = new HashSet<>();
-        for (CodeSchemeDTO dto : allVariantsFromTheSameMother) {
-            if (dto.getId().compareTo(codeSchemeWithUserChangesFromUi.getId()) != 0) {
-                Variant variant = new Variant(dto.getPrefLabel(), dto.getUri());
-                otherVariantsFromTheSameMother.add(variant);
-            }
-        }
-        codeSchemeWithUserChangesFromUi.setOtherVariantsFromTheSameMother(otherVariantsFromTheSameMother);
         return indexCodeschemeAndCodesAfterCloning(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue);
+    }
+
+    @POST
+    @Path("{codeRegistryCodeValue}/attachvariant/{variantCodeSchemeId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    public Response attachAVariantToCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                            @PathParam("variantCodeSchemeId") final String variantCodeSchemeId,
+                                            @ApiParam(value = "JSON playload for the mother CodeScheme data.", required = true) final String jsonPayload) {
+        CodeSchemeDTO motherCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
+        CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(UUID.fromString(variantCodeSchemeId));
+        variantCodeScheme.setVariantCodeschemeId(motherCodeScheme.getId());
+        codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, variantCodeScheme);
+        CodeSchemeListItem variant = new CodeSchemeListItem(variantCodeScheme.getPrefLabel(), variantCodeScheme.getUri());
+        motherCodeScheme.getVariantsOfThisCodeScheme().add(variant);
+        return indexCodeschemeAfterVariantAttachment(motherCodeScheme);
     }
 
     @POST
@@ -670,9 +673,25 @@ public class CodeRegistryResource extends AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
+    private Response indexCodeschemeAfterVariantAttachment(final CodeSchemeDTO codeScheme) {
+        final HashSet<CodeSchemeDTO> codeSchemes = new HashSet<>();
+        indexing.populateVariantInfoToCodeSchemeDTO(codeScheme);
+        codeSchemes.add(codeScheme);
+        indexing.updateCodeSchemes(codeSchemes);
+        final Meta meta = new Meta();
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry,code,extensionScheme,extension")));
+        final ResponseWrapper<CodeSchemeDTO> responseWrapper = new ResponseWrapper<>(meta);
+        meta.setMessage("A Variant was attached to a CodeScheme.");
+        meta.setCode(200);
+        responseWrapper.setResults(codeSchemes);
+        return Response.ok(responseWrapper).build();
+    }
+
     private Response indexCodeschemeAndCodesAfterCloning(final CodeSchemeDTO codeScheme,
                                                          final String codeRegistryCodeValue) {
         final HashSet<CodeSchemeDTO> codeSchemes = new HashSet<>();
+        indexing.populateAllVersionsToCodeSchemeDTO(codeScheme);
+        indexing.populateVariantInfoToCodeSchemeDTO(codeScheme);
         codeSchemes.add(codeScheme);
         indexing.updateCodeSchemes(codeSchemes);
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
@@ -699,6 +718,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                           final InputStream inputStream,
                                                           final String jsonPayload) {
         final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload);
+        for (CodeSchemeDTO codeScheme : codeSchemes) {
+            if (codeScheme.getLastCodeschemeId() != null) {
+                indexing.populateAllVersionsToCodeSchemeDTO(codeScheme);
+            }
+        }
         indexing.updateCodeSchemes(codeSchemes);
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
         for (final CodeSchemeDTO codeScheme : codeSchemes) {

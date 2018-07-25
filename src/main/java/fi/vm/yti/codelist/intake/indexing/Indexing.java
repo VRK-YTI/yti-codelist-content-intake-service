@@ -69,4 +69,8 @@ public interface Indexing {
     void reIndexEverythingIfNecessary();
 
     boolean reIndex(final String indexName, final String type);
+
+    void populateAllVersionsToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme);
+
+    void populateVariantInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme);
 }

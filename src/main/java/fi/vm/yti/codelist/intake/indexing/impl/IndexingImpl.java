@@ -1,15 +1,12 @@
 package fi.vm.yti.codelist.intake.indexing.impl;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
-import fi.vm.yti.codelist.common.model.Variant;
+import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.support.WriteRequest;
@@ -111,34 +108,65 @@ public class IndexingImpl implements Indexing {
     private boolean indexCodeSchemes(final String indexName) {
         final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.findAll();
 
+        LinkedHashSet<UUID> parentsOfVariants = new LinkedHashSet<>();
         for (CodeSchemeDTO currentCodeScheme : codeSchemes) {
             if (currentCodeScheme.getVariantCodeschemeId() != null) {
+                parentsOfVariants.add(currentCodeScheme.getVariantCodeschemeId());
+            }
+            if (currentCodeScheme.getLastCodeschemeId() != null) {
+                populateAllVersionsToCodeSchemeDTO(currentCodeScheme);
+            }
+        }
+        for (CodeSchemeDTO currentCodeScheme : codeSchemes) {
+            if (parentsOfVariants.contains(currentCodeScheme.getId())) {
                 populateVariantInfoToCodeSchemeDTO(currentCodeScheme);
             }
         }
         return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
     }
 
+    public void populateAllVersionsToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
+        LinkedHashSet<CodeSchemeDTO> allVersions = new LinkedHashSet<>();
+        CodeSchemeDTO latestVersion = codeSchemeService.findById(currentCodeScheme.getLastCodeschemeId());
+        allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
+        LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
+        for (CodeSchemeDTO version: allVersions) {
+            CodeSchemeListItem listItem = new CodeSchemeListItem(version.getPrefLabel(), version.getUri());
+            versionHistory.add(listItem);
+        }
+        currentCodeScheme.setAllVersions(versionHistory);
+    }
+
+    private LinkedHashSet<CodeSchemeDTO> getPreviousVersions(final UUID uuid, LinkedHashSet result) {
+        CodeSchemeDTO prevVersion = codeSchemeService.findById(uuid);
+        if (prevVersion == null) {
+            return result;
+        } else {
+            result.add(prevVersion);
+            if (prevVersion.getPrevCodeschemeId() == null) {
+                return result;
+            } else {
+                return getPreviousVersions(prevVersion.getPrevCodeschemeId(), result);
+            }
+        }
+    }
+
     /**
-     * variantCodeSchemeId == if current codescheme is a variant, this is its mothers id (mother is the codescheme from which THIS codescheme was copied)
-     * and variantCodeSchemeId is the only piece of data that is persisted in the SQL database.
+     * variantCodeSchemeId == if current codescheme is a variant, this is its mothers id (mother is the codescheme to
+     * which THIS codescheme was explitcitly attached by the user as a variant)
+     * The variantCodeSchemeId is the only piece of data that is persisted in the SQL database.
      * Info about the mother, and the other variants with the same mother (if any) are not persisted in DB and hence have to be populated here to the index.
      * So "mother" and the "brothers" (other variants from the same "mother") live only in the ES index and are calculated based on variantCodeSchemeId
      * which is stored in the SQL database.
      */
-    private void populateVariantInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
-        CodeSchemeDTO variantMotherCodeScheme = this.codeSchemeService.findById(currentCodeScheme.getVariantCodeschemeId());
-        Variant mother = new Variant(variantMotherCodeScheme.getPrefLabel(),variantMotherCodeScheme.getUri());
-        currentCodeScheme.setMotherOfThisVariant(mother);
-        Set<CodeSchemeDTO> allVariantsFromTheSameMother = this.codeSchemeService.findAllVariantsFromTheSameMother(currentCodeScheme.getVariantCodeschemeId());
-        Set<Variant> otherVariantsFromTheSameMother = new HashSet<>();
+    public void populateVariantInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
+        Set<CodeSchemeDTO> allVariantsFromTheSameMother = this.codeSchemeService.findAllVariantsFromTheSameMother(currentCodeScheme.getId());
+        LinkedHashSet<CodeSchemeListItem> variants = new LinkedHashSet<>();
         for (CodeSchemeDTO currentVariant : allVariantsFromTheSameMother) {
-            if (currentVariant.getId().compareTo(currentCodeScheme.getId()) != 0) {
-                Variant variant = new Variant(currentVariant.getPrefLabel(), currentVariant.getUri());
-                otherVariantsFromTheSameMother.add(variant);
-            }
+            CodeSchemeListItem variant = new CodeSchemeListItem(currentVariant.getPrefLabel(), currentVariant.getUri());
+            variants.add(variant);
         }
-        currentCodeScheme.setOtherVariantsFromTheSameMother(otherVariantsFromTheSameMother);
+        currentCodeScheme.setVariantsOfThisCodeScheme(variants);
     }
 
     private int getCodePageCount(final int codeCount) {

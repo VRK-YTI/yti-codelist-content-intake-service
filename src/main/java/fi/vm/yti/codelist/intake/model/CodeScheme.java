@@ -34,7 +34,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeScheme")
 @Table(name = "codescheme")
 @XmlRootElement
-@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies", "variantCodeschemeId" })
+@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies", "variantCodeschemeId", "nextCodeschemeId", "prevCodeschemeId", "lastCodeschemeId" })
 @ApiModel(value = "CodeScheme", description = "CodeScheme model that represents data for one single codescheme.")
 public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
@@ -52,10 +52,14 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private Set<Code> codes;
     private Set<Code> dataClassifications;
     private Set<ExternalReference> externalReferences;
+
     private Set<ExtensionScheme> extensionSchemes;
     private String conceptUriInVocabularies;
     private Code defaultCode;
     private UUID variantCodeschemeId; //mother codescheme if this codescheme is a variant
+    private UUID nextCodeschemeId;
+    private UUID prevCodeschemeId;
+    private UUID lastCodeschemeId;
 
     public CodeScheme() {
         prefLabel = new HashMap<>();
@@ -351,5 +355,35 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     public void setVariantCodeschemeId(final UUID variantCodeschemeId) {
         this.variantCodeschemeId = variantCodeschemeId;
+    }
+
+    @Column(name = "next_codescheme_id")
+    @JsonView(Views.Normal.class)
+    public UUID getNextCodeschemeId() {
+        return nextCodeschemeId;
+    }
+
+    public void setNextCodeschemeId(final UUID nextCodeschemeId) {
+        this.nextCodeschemeId = nextCodeschemeId;
+    }
+
+    @Column(name = "prev_codescheme_id")
+    @JsonView(Views.Normal.class)
+    public UUID getPrevCodeschemeId() {
+        return prevCodeschemeId;
+    }
+
+    public void setPrevCodeschemeId(final UUID prevCodeschemeId) {
+        this.prevCodeschemeId = prevCodeschemeId;
+    }
+
+    @Column(name = "last_codescheme_id")
+    @JsonView(Views.Normal.class)
+    public UUID getLastCodeschemeId() {
+        return lastCodeschemeId;
+    }
+
+    public void setLastCodeschemeId(final UUID lastCodeschemeId) {
+        this.lastCodeschemeId = lastCodeschemeId;
     }
 }

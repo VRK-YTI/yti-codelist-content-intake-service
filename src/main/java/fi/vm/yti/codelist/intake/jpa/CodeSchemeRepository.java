@@ -38,4 +38,8 @@ public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String>
     @Query("select cs from CodeScheme cs " +
             "where cs.variantCodeschemeId = ?1")
     Set<CodeScheme> findAllVariantsFromTheSameMother(final UUID uuidOfTheMotherCodeScheme);
+
+    @Query("select cs from CodeScheme cs " +
+            "where cs.prevCodeschemeId = ?1")
+    CodeScheme findByPrevCodeschemeId(final UUID codeschemeId);
 }

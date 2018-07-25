@@ -126,6 +126,9 @@ public abstract class BaseService {
         codeSchemeDto.setCreated(codeScheme.getCreated());
         codeSchemeDto.setModified(codeScheme.getModified());
         codeSchemeDto.setVariantCodeschemeId(codeScheme.getVariantCodeschemeId());
+        codeSchemeDto.setPrevCodeschemeId(codeScheme.getPrevCodeschemeId());
+        codeSchemeDto.setNextCodeschemeId(codeScheme.getNextCodeschemeId());
+        codeSchemeDto.setLastCodeschemeId(codeScheme.getLastCodeschemeId());
         return codeSchemeDto;
     }
 

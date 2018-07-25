@@ -40,4 +40,6 @@ public interface CodeSchemeService {
 
     Set<CodeSchemeDTO> findAllVariantsFromTheSameMother(final UUID uuidOfTheMotherCodeScheme);
 
+    void populateAllVersionsToCodeSchemeDTO(CodeSchemeDTO codeSchemeDTO);
+
 }

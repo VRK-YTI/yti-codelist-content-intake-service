@@ -262,7 +262,12 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         } else {
             existingCodeScheme.setDefaultCode(null);
         }
+        existingCodeScheme.setVariantCodeschemeId(fromCodeScheme.getVariantCodeschemeId());
+        existingCodeScheme.setLastCodeschemeId(fromCodeScheme.getLastCodeschemeId());
+        existingCodeScheme.setPrevCodeschemeId(fromCodeScheme.getPrevCodeschemeId());
+        existingCodeScheme.setNextCodeschemeId(fromCodeScheme.getNextCodeschemeId());
         existingCodeScheme.setModified(new Date(System.currentTimeMillis()));
+
         return existingCodeScheme;
     }
 
@@ -305,6 +310,9 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeScheme.setCreated(timeStamp);
         codeScheme.setModified(timeStamp);
         codeScheme.setVariantCodeschemeId(fromCodeScheme.getVariantCodeschemeId());
+        codeScheme.setNextCodeschemeId(fromCodeScheme.getNextCodeschemeId());
+        codeScheme.setPrevCodeschemeId(fromCodeScheme.getPrevCodeschemeId());
+        codeScheme.setLastCodeschemeId(fromCodeScheme.getLastCodeschemeId());
         return codeScheme;
     }
 
