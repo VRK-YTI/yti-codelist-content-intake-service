@@ -231,9 +231,6 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             try {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     final CodeSchemeDTO codeSchemeDto = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
-                    if (codeSchemeDto.getId() != null && codeSchemeDto.getLastCodeschemeId() != null) {
-                        this.populateAllVersionsToCodeSchemeDTO(codeSchemeDto);
-                    }
                     if (!codeSchemeDto.getCodeValue().equalsIgnoreCase(codeSchemeCodeValue)) {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
                     }
@@ -254,6 +251,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         if (codeSchemeDTO.getId() != null && codeSchemeDTO.getLastCodeschemeId() != null) {
             this.populateAllVersionsToCodeSchemeDTO(codeSchemeDTO);
         }
+        this.populateVariantInfoToCodeSchemeDTO(codeSchemeDTO);
         return codeSchemeDTO;
     }
 
@@ -324,5 +322,15 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                 return getPreviousVersions(prevVersion.getPrevCodeschemeId(), result);
             }
         }
+    }
+
+    public void populateVariantInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
+        Set<CodeSchemeDTO> allVariantsFromTheSameMother = findAllVariantsFromTheSameMother(currentCodeScheme.getId());
+        LinkedHashSet<CodeSchemeListItem> variants = new LinkedHashSet<>();
+        for (CodeSchemeDTO currentVariant : allVariantsFromTheSameMother) {
+            CodeSchemeListItem variant = new CodeSchemeListItem(currentVariant.getPrefLabel(), currentVariant.getUri(), currentVariant.getStartDate(), currentVariant.getEndDate(), currentVariant.getStatus());
+            variants.add(variant);
+        }
+        currentCodeScheme.setVariantsOfThisCodeScheme(variants);
     }
 }
