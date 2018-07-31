@@ -72,7 +72,7 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         previousVersions = getPreviousVersions(originalCodeScheme.getId(), previousVersions);
         for (CodeScheme codeScheme : previousVersions) {
             codeScheme.setLastCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
-            CodeSchemeListItem olderVersion = new CodeSchemeListItem(codeScheme.getPrefLabel(), codeScheme.getUri());
+            CodeSchemeListItem olderVersion = new CodeSchemeListItem(codeScheme.getPrefLabel(), codeScheme.getUri(), codeScheme.getStartDate(), codeScheme.getEndDate(), codeScheme.getStatus());
             versionHistory.add(olderVersion);
         }
         codeSchemeDao.save(previousVersions);
@@ -86,7 +86,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
 
         final CodeScheme newCodeScheme = codeSchemeDao.findById(codeSchemeWithUserChangesFromUi.getId());
 
-        CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getPrefLabel(), codeSchemeWithUserChangesFromUi.getUri());
+        CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getPrefLabel(),
+                codeSchemeWithUserChangesFromUi.getUri(), codeSchemeWithUserChangesFromUi.getStartDate(),
+                codeSchemeWithUserChangesFromUi.getEndDate(), codeSchemeWithUserChangesFromUi.getStatus());
         codeSchemeWithUserChangesFromUi.setLastCodeschemeId(newCodeScheme.getId());
 
         LinkedHashSet<CodeSchemeListItem> allVersions = new LinkedHashSet<>();

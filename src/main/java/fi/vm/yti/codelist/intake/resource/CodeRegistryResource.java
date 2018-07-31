@@ -257,6 +257,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     indexing.updateExtensions(extensionService.findByExtensionSchemeId(extensionScheme.getId()));
                 });
             }
+            indexing.populateVariantInfoToCodeSchemeDTO(codeScheme);
         }
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
@@ -286,7 +287,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(UUID.fromString(variantCodeSchemeId));
         variantCodeScheme.setVariantCodeschemeId(motherCodeScheme.getId());
         codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, variantCodeScheme);
-        CodeSchemeListItem variant = new CodeSchemeListItem(variantCodeScheme.getPrefLabel(), variantCodeScheme.getUri());
+        CodeSchemeListItem variant = new CodeSchemeListItem(variantCodeScheme.getPrefLabel(), variantCodeScheme.getUri(), variantCodeScheme.getStartDate(), variantCodeScheme.getEndDate(), variantCodeScheme.getStatus());
         motherCodeScheme.getVariantsOfThisCodeScheme().add(variant);
         return indexCodeschemeAfterVariantAttachment(motherCodeScheme);
     }
