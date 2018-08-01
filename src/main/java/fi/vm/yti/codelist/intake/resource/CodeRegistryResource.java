@@ -287,9 +287,25 @@ public class CodeRegistryResource extends AbstractBaseResource {
         CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(UUID.fromString(variantCodeSchemeId));
         variantCodeScheme.setVariantCodeschemeId(motherCodeScheme.getId());
         codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, variantCodeScheme);
-        CodeSchemeListItem variant = new CodeSchemeListItem(variantCodeScheme.getPrefLabel(), variantCodeScheme.getUri(), variantCodeScheme.getStartDate(), variantCodeScheme.getEndDate(), variantCodeScheme.getStatus());
+        CodeSchemeListItem variant = new CodeSchemeListItem(variantCodeScheme.getId(), variantCodeScheme.getPrefLabel(), variantCodeScheme.getUri(), variantCodeScheme.getStartDate(), variantCodeScheme.getEndDate(), variantCodeScheme.getStatus());
         motherCodeScheme.getVariantsOfThisCodeScheme().add(variant);
-        return indexCodeschemeAfterVariantAttachment(motherCodeScheme);
+        return indexCodeschemeAfterVariantAttachmentOrDetachment(motherCodeScheme);
+    }
+
+    @POST
+    @Path("{codeRegistryCodeValue}/detachvariant/{idOfVariantToDetach}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    public Response detachAVariantFromCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                               @PathParam("idOfVariantToDetach") final String idOfVariantToDetach,
+                                               @ApiParam(value = "JSON playload for the mother CodeScheme data.", required = true) final String jsonPayload) {
+        CodeSchemeDTO motherCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
+        CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(UUID.fromString(idOfVariantToDetach));
+        variantCodeScheme.setVariantCodeschemeId(null);
+        codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, variantCodeScheme);
+        CodeSchemeListItem variant = new CodeSchemeListItem(variantCodeScheme.getId(),variantCodeScheme.getPrefLabel(), variantCodeScheme.getUri(), variantCodeScheme.getStartDate(), variantCodeScheme.getEndDate(), variantCodeScheme.getStatus());
+        motherCodeScheme.getVariantsOfThisCodeScheme().remove(variant);
+        return indexCodeschemeAfterVariantAttachmentOrDetachment(motherCodeScheme);
     }
 
     @POST
@@ -674,7 +690,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
-    private Response indexCodeschemeAfterVariantAttachment(final CodeSchemeDTO codeScheme) {
+    private Response indexCodeschemeAfterVariantAttachmentOrDetachment(final CodeSchemeDTO codeScheme) {
         final HashSet<CodeSchemeDTO> codeSchemes = new HashSet<>();
         indexing.populateVariantInfoToCodeSchemeDTO(codeScheme);
         codeSchemes.add(codeScheme);

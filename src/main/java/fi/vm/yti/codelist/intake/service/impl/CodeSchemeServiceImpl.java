@@ -304,7 +304,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
         LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
         for (CodeSchemeDTO version: allVersions) {
-            CodeSchemeListItem listItem = new CodeSchemeListItem(version.getPrefLabel(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
+            CodeSchemeListItem listItem = new CodeSchemeListItem(version.getId(), version.getPrefLabel(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
             versionHistory.add(listItem);
         }
         currentCodeScheme.setAllVersions(versionHistory);
@@ -328,7 +328,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         Set<CodeSchemeDTO> allVariantsFromTheSameMother = findAllVariantsFromTheSameMother(currentCodeScheme.getId());
         LinkedHashSet<CodeSchemeListItem> variants = new LinkedHashSet<>();
         for (CodeSchemeDTO currentVariant : allVariantsFromTheSameMother) {
-            CodeSchemeListItem variant = new CodeSchemeListItem(currentVariant.getPrefLabel(), currentVariant.getUri(), currentVariant.getStartDate(), currentVariant.getEndDate(), currentVariant.getStatus());
+            CodeSchemeListItem variant = new CodeSchemeListItem(currentVariant.getId(), currentVariant.getPrefLabel(), currentVariant.getUri(), currentVariant.getStartDate(), currentVariant.getEndDate(), currentVariant.getStatus());
             variants.add(variant);
         }
         currentCodeScheme.setVariantsOfThisCodeScheme(variants);
