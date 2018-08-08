@@ -310,7 +310,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         currentCodeScheme.setAllVersions(versionHistory);
     }
 
-    private LinkedHashSet<CodeSchemeDTO> getPreviousVersions(UUID uuid, LinkedHashSet result) {
+    @Transactional
+    public LinkedHashSet<CodeSchemeDTO> getPreviousVersions(UUID uuid, LinkedHashSet result) {
         CodeSchemeDTO prevVersion = this.findById(uuid);
         if (prevVersion == null) {
             return result;

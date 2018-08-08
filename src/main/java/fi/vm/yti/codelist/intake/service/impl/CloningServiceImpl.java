@@ -66,6 +66,16 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         codeSchemeWithUserChangesFromUi.setNextCodeschemeId(null);
         codeSchemeWithUserChangesFromUi.setPrevCodeschemeId(originalCodeScheme.getId());
 
+        codeSchemeWithUserChangesFromUi = codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
+        codeSchemeWithUserChangesFromUi.setLastCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
+
+        originalCodeScheme.setNextCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
+        originalCodeScheme.setLastCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
+
+        codeSchemeDao.save(originalCodeScheme);
+
+        final CodeScheme newCodeScheme = codeSchemeDao.findById(codeSchemeWithUserChangesFromUi.getId());
+
         LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
 
         LinkedHashSet<CodeScheme> previousVersions = new LinkedHashSet<>();
@@ -76,15 +86,6 @@ public class CloningServiceImpl extends BaseService implements CloningService {
             versionHistory.add(olderVersion);
         }
         codeSchemeDao.save(previousVersions);
-
-        codeSchemeWithUserChangesFromUi = codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
-
-        originalCodeScheme.setNextCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
-        originalCodeScheme.setLastCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
-
-        codeSchemeDao.save(originalCodeScheme);
-
-        final CodeScheme newCodeScheme = codeSchemeDao.findById(codeSchemeWithUserChangesFromUi.getId());
 
         CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getId(), codeSchemeWithUserChangesFromUi.getPrefLabel(),
                 codeSchemeWithUserChangesFromUi.getUri(), codeSchemeWithUserChangesFromUi.getStartDate(),
@@ -114,7 +115,7 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     }
 
     @Transactional
-    protected LinkedHashSet<CodeScheme> getPreviousVersions(UUID uuid, LinkedHashSet result) {
+    public LinkedHashSet<CodeScheme> getPreviousVersions(UUID uuid, LinkedHashSet result) {
         CodeScheme prevVersion = codeSchemeDao.findById(uuid);
         if (prevVersion == null) {
             return result;

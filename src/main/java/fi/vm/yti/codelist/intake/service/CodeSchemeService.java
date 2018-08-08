@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,4 +43,5 @@ public interface CodeSchemeService {
 
     void populateAllVersionsToCodeSchemeDTO(CodeSchemeDTO codeSchemeDTO);
 
+    LinkedHashSet<CodeSchemeDTO> getPreviousVersions(UUID uuid, LinkedHashSet result);
 }

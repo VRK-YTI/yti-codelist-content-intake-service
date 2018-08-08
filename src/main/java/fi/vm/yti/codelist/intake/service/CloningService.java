@@ -5,6 +5,7 @@ import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,4 +22,6 @@ public interface CloningService {
     CodeSchemeDTO cloneCodeSchemeWithAllThePlumbing(final CodeSchemeDTO codeSchemeDTO,
                                                     final String codeRegistryCodeValue,
                                                     final String originalCodeSchemeUuid);
+
+    LinkedHashSet<CodeScheme> getPreviousVersions(UUID uuid, LinkedHashSet result);
 }
