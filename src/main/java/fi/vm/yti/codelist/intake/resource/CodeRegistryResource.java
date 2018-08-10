@@ -248,7 +248,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
         final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
         if (codeScheme != null) {
-            indexing.updateCodeScheme(codeScheme);
             if (codeScheme.getVariantCodeschemeId() != null) {
                 CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(codeScheme.getVariantCodeschemeId());
                 indexing.populateVariantInfoToCodeSchemeDTO(motherCodeScheme);
@@ -279,6 +278,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 indexing.updateCodeSchemes(versionsToReIndex);
 
             }
+            indexing.updateCodeScheme(codeScheme);
             indexing.updateExternalReferences(codeScheme.getExternalReferences());
             indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
             final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeScheme.getId());
