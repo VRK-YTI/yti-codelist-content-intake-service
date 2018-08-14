@@ -186,17 +186,29 @@ public class ExtensionDaoImpl implements ExtensionDao {
                 }
             }
         }
-        linkedExtensions.forEach(linkedExtension -> checkExtensionHierarchyLevels(linkedExtension, 1));
+        linkedExtensions.forEach(linkedExtension -> checkExtensionHierarchyLevels(linkedExtension));
         save(linkedExtensions);
     }
 
-    private void checkExtensionHierarchyLevels(final Extension extension,
+    private void checkExtensionHierarchyLevels(final Extension extension) {
+        final Set<Extension> chainedExtensions = new HashSet<>();
+        chainedExtensions.add(extension);
+        checkExtensionHierarchyLevels(chainedExtensions, extension, 1);
+    }
+
+    private void checkExtensionHierarchyLevels(final Set<Extension> chainedExtensions,
+                                               final Extension extension,
                                                final int level) {
         if (level > MAX_LEVEL) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_HIERARCHY_MAXLEVEL_REACHED));
         }
-        if (extension.getExtension() != null) {
-            checkExtensionHierarchyLevels(extension.getExtension(), level + 1);
+        final Extension relatedExtension = extension.getExtension();
+        if (relatedExtension != null) {
+            if (chainedExtensions.contains(relatedExtension)) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CYCLIC_DEPENDENCY_ISSUE));
+            }
+            chainedExtensions.add(relatedExtension);
+            checkExtensionHierarchyLevels(chainedExtensions, relatedExtension, level + 1);
         }
     }
 
