@@ -149,9 +149,6 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
             } else {
                 final ExtensionDTO extension = new ExtensionDTO();
                 final String codeIdentifier = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
-                if (codeIdentifier == null || codeIdentifier.isEmpty()) {
-                    continue;
-                }
                 validateRequiredDataOnRow(row, headerMap, formatter);
                 extension.setCode(createCodeUsingIdentifier(codeIdentifier));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
