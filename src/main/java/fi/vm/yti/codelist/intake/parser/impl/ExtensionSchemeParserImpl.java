@@ -60,6 +60,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
         final ExtensionSchemeDTO extensionScheme;
         try {
             extensionScheme = mapper.readValue(jsonPayload, ExtensionSchemeDTO.class);
+            validateStartDateIsBeforeEndDate(extensionScheme);
         } catch (final IOException e) {
             LOG.error("ExtensionScheme parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
@@ -78,6 +79,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
             LOG.error("ExtensionSchemes parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
+        extensionSchemes.forEach(this::validateStartDateIsBeforeEndDate);
         return extensionSchemes;
     }
 
