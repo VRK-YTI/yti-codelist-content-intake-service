@@ -44,4 +44,6 @@ public interface CodeSchemeService {
     void populateAllVersionsToCodeSchemeDTO(CodeSchemeDTO codeSchemeDTO);
 
     LinkedHashSet<CodeSchemeDTO> getPreviousVersions(UUID uuid, LinkedHashSet result);
+
+    void populateVariantInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme);
 }

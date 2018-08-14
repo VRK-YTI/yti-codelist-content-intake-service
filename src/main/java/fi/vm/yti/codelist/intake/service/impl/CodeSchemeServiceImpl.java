@@ -298,6 +298,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         return mapDeepCodeSchemeDtos(codeSchemes);
     }
 
+    @Transactional
     public void populateAllVersionsToCodeSchemeDTO(CodeSchemeDTO currentCodeScheme) {
         LinkedHashSet<CodeSchemeDTO> allVersions = new LinkedHashSet<>();
         CodeSchemeDTO latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
@@ -325,6 +326,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         }
     }
 
+    @Transactional
     public void populateVariantInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
         Set<CodeSchemeDTO> allVariantsFromTheSameMother = findAllVariantsFromTheSameMother(currentCodeScheme.getId());
         LinkedHashSet<CodeSchemeListItem> variants = new LinkedHashSet<>();
