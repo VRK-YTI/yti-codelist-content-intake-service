@@ -73,8 +73,7 @@ public class ExtensionResource extends AbstractBaseResource {
         @ApiResponse(code = 200, message = "Extension deleted."),
         @ApiResponse(code = 404, message = "Extension not found.")
     })
-    public Response deleteExtension(@ApiParam(value = "Extension UUID", required = true) @PathParam("extensionId") final UUID extensionId,
-                                    @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload) {
+    public Response deleteExtension(@ApiParam(value = "Extension UUID", required = true) @PathParam("extensionId") final UUID extensionId) {
         final ExtensionDTO existingExtension = extensionService.findById(extensionId);
         if (existingExtension != null) {
             final UUID extensionSchemeId = existingExtension.getExtensionScheme().getId();

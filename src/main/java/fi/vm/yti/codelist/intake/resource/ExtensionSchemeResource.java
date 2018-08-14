@@ -67,7 +67,7 @@ public class ExtensionSchemeResource extends AbstractBaseResource {
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSIONSCHEME, "extensionScheme")));
         final ResponseWrapper<ExtensionSchemeDTO> responseWrapper = new ResponseWrapper<>(meta);
-        meta.setMessage("ExtensionScheme added or modified.");
+        meta.setMessage("ExtensionScheme extensions added or modified.");
         meta.setCode(200);
         responseWrapper.setResults(extensionSchemes);
         return Response.ok(responseWrapper).build();
