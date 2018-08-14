@@ -199,7 +199,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
     private void validateRequiredSchemeHeaders(final Map<String, Integer> headerMap) {
         if (!headerMap.containsKey(CONTENT_HEADER_EXTENSIONVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                CONTENT_HEADER_EXTENSIONVALUE));
+                ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE));
         }
         if (!headerMap.containsKey(CONTENT_HEADER_ORDER)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
