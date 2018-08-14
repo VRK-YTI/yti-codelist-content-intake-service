@@ -324,6 +324,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                 }
             }
+        } else {
+            extension.setExtension(null);
         }
     }
 
