@@ -186,9 +186,9 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE, String.valueOf(record.getRecordNumber() + 1)));
         }
-        if (record.get(CONTENT_HEADER_ORDER) == null || record.get(CONTENT_HEADER_ORDER).isEmpty()) {
+        if (record.get(CONTENT_HEADER_ORDER) == null) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                CONTENT_HEADER_ORDER, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_ORDER, String.valueOf(record.getRecordNumber() + 1)));
         }
         if (record.get(CONTENT_HEADER_CODE) == null || record.get(CONTENT_HEADER_CODE).isEmpty()) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
@@ -203,11 +203,11 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         }
         if (!headerMap.containsKey(CONTENT_HEADER_ORDER)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                CONTENT_HEADER_ORDER));
+                ERR_MSG_USER_ROW_MISSING_ORDER));
         }
         if (!headerMap.containsKey(CONTENT_HEADER_CODE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                CONTENT_HEADER_CODE));
+                ERR_MSG_USER_ROW_MISSING_CODE));
         }
     }
 
