@@ -141,6 +141,9 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         boolean firstRow = true;
         while (rowIterator.hasNext()) {
             final Row row = rowIterator.next();
+            if (row == null) {
+                continue;
+            }
             if (firstRow) {
                 firstRow = false;
                 headerMap = resolveHeaderMap(row);

@@ -35,12 +35,24 @@ public class ConfigurationResource extends AbstractBaseResource {
     @ApiOperation(value = "Get configuration values as JSON")
     @ApiResponse(code = 200, message = "Returns the configuration JSON element to the frontend related to this service.")
     public Response getConfig() {
-        final String groupManagementPublicUrl = apiUtils.getGroupmanagementPublicUrl();
         final ObjectMapper mapper = new ObjectMapper();
         final ObjectNode configJson = mapper.createObjectNode();
+
+        final String groupManagementPublicUrl = apiUtils.getGroupmanagementPublicUrl();
         final ObjectNode groupManagementConfig = mapper.createObjectNode();
         groupManagementConfig.put("url", groupManagementPublicUrl);
         configJson.set("groupManagementConfig", groupManagementConfig);
+
+        final String datamodelPublicUrl = apiUtils.getDataModelPublicUrl();
+        final ObjectNode dataModelConfig = mapper.createObjectNode();
+        dataModelConfig.put("url", datamodelPublicUrl);
+        configJson.set("dataModelConfig", dataModelConfig);
+
+        final String terminologyPublicUrl = apiUtils.getTerminologyPublicUrl();
+        final ObjectNode terminologyConfig = mapper.createObjectNode();
+        terminologyConfig.put("url", terminologyPublicUrl);
+        configJson.set("terminologyConfig", terminologyConfig);
+
         configJson.put("env", apiUtils.getEnv());
         configJson.put("defaultStatus", apiUtils.getDefaultStatus());
         configJson.put("codeSchemeSortMode", apiUtils.getCodeSchemeSortMode());

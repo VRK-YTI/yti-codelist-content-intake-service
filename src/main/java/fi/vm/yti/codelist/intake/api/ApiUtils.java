@@ -16,9 +16,11 @@ import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
+import fi.vm.yti.codelist.intake.configuration.DataModelProperties;
 import fi.vm.yti.codelist.intake.configuration.FrontendProperties;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
+import fi.vm.yti.codelist.intake.configuration.TerminologyProperties;
 import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
@@ -37,18 +39,24 @@ public class ApiUtils {
     private UriSuomiProperties uriSuomiProperties;
     private ContentIntakeServiceProperties contentIntakeServiceProperties;
     private GroupManagementProperties groupManagementProperties;
+    private TerminologyProperties terminologyProperties;
+    private DataModelProperties dataModelProperties;
     private FrontendProperties frontendProperties;
 
     @Inject
     public ApiUtils(final PublicApiServiceProperties publicApiServiceProperties,
                     final ContentIntakeServiceProperties contentIntakeServiceProperties,
                     final GroupManagementProperties groupManagementProperties,
+                    final TerminologyProperties terminologyProperties,
+                    final DataModelProperties dataModelProperties,
                     final UriSuomiProperties uriSuomiProperties,
                     final FrontendProperties frontendProperties) {
         this.publicApiServiceProperties = publicApiServiceProperties;
         this.uriSuomiProperties = uriSuomiProperties;
         this.contentIntakeServiceProperties = contentIntakeServiceProperties;
         this.groupManagementProperties = groupManagementProperties;
+        this.terminologyProperties = terminologyProperties;
+        this.dataModelProperties = dataModelProperties;
         this.frontendProperties = frontendProperties;
     }
 
@@ -186,6 +194,14 @@ public class ApiUtils {
 
     public String getGroupmanagementPublicUrl() {
         return groupManagementProperties.getPublicUrl();
+    }
+
+    public String getTerminologyPublicUrl() {
+        return terminologyProperties.getPublicUrl();
+    }
+
+    public String getDataModelPublicUrl() {
+        return dataModelProperties.getPublicUrl();
     }
 
     private void appendPortToUrlIfNotEmpty(final String port,

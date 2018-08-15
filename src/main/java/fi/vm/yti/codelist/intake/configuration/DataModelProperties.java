@@ -6,24 +6,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-@ConfigurationProperties("terminology")
+@ConfigurationProperties("datamodel")
 @Component
 @Validated
-public class TerminologyProperties {
-
-    @NotNull
-    private String url;
+public class DataModelProperties {
 
     @NotNull
     private String publicUrl;
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(final String url) {
-        this.url = url;
-    }
 
     public String getPublicUrl() {
         return publicUrl;
