@@ -114,59 +114,15 @@ public class IndexingImpl implements Indexing {
                 parentsOfVariants.add(currentCodeScheme.getVariantCodeschemeId());
             }
             if (currentCodeScheme.getLastCodeschemeId() != null) {
-                populateAllVersionsToCodeSchemeDTO(currentCodeScheme);
+                codeSchemeService.populateAllVersionsToCodeSchemeDTO(currentCodeScheme);
             }
         }
         for (CodeSchemeDTO currentCodeScheme : codeSchemes) {
             if (parentsOfVariants.contains(currentCodeScheme.getId())) {
-                populateVariantInfoToCodeSchemeDTO(currentCodeScheme);
+                codeSchemeService.populateVariantInfoToCodeSchemeDTO(currentCodeScheme);
             }
         }
         return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
-    }
-
-    public void populateAllVersionsToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
-        LinkedHashSet<CodeSchemeDTO> allVersions = new LinkedHashSet<>();
-        CodeSchemeDTO latestVersion = codeSchemeService.findById(currentCodeScheme.getLastCodeschemeId());
-        allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
-        LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
-        for (CodeSchemeDTO version: allVersions) {
-            CodeSchemeListItem listItem = new CodeSchemeListItem(version.getId(), version.getPrefLabel(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
-            versionHistory.add(listItem);
-        }
-        currentCodeScheme.setAllVersions(versionHistory);
-    }
-
-    private LinkedHashSet<CodeSchemeDTO> getPreviousVersions(final UUID uuid, LinkedHashSet result) {
-        CodeSchemeDTO prevVersion = codeSchemeService.findById(uuid);
-        if (prevVersion == null) {
-            return result;
-        } else {
-            result.add(prevVersion);
-            if (prevVersion.getPrevCodeschemeId() == null) {
-                return result;
-            } else {
-                return getPreviousVersions(prevVersion.getPrevCodeschemeId(), result);
-            }
-        }
-    }
-
-    /**
-     * variantCodeSchemeId == if current codescheme is a variant, this is its mothers id (mother is the codescheme to
-     * which THIS codescheme was explitcitly attached by the user as a variant)
-     * The variantCodeSchemeId is the only piece of data that is persisted in the SQL database.
-     * Info about the mother, and the other variants with the same mother (if any) are not persisted in DB and hence have to be populated here to the index.
-     * So "mother" and the "brothers" (other variants from the same "mother") live only in the ES index and are calculated based on variantCodeSchemeId
-     * which is stored in the SQL database.
-     */
-    public void populateVariantInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
-        Set<CodeSchemeDTO> allVariantsFromTheSameMother = this.codeSchemeService.findAllVariantsFromTheSameMother(currentCodeScheme.getId());
-        LinkedHashSet<CodeSchemeListItem> variants = new LinkedHashSet<>();
-        for (CodeSchemeDTO currentVariant : allVariantsFromTheSameMother) {
-            CodeSchemeListItem variant = new CodeSchemeListItem(currentVariant.getId(), currentVariant.getPrefLabel(), currentVariant.getUri(), currentVariant.getStartDate(), currentVariant.getEndDate(), currentVariant.getStatus());
-            variants.add(variant);
-        }
-        currentCodeScheme.setVariantsOfThisCodeScheme(variants);
     }
 
     private int getCodePageCount(final int codeCount) {

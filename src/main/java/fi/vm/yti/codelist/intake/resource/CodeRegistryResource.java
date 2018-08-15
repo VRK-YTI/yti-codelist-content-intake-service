@@ -1,10 +1,7 @@
 package fi.vm.yti.codelist.intake.resource;
 
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -250,7 +247,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         if (codeScheme != null) {
             if (codeScheme.getVariantCodeschemeId() != null) {
                 CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(codeScheme.getVariantCodeschemeId());
-                indexing.populateVariantInfoToCodeSchemeDTO(motherCodeScheme);
+                codeSchemeService.populateVariantInfoToCodeSchemeDTO(motherCodeScheme);
                 LinkedHashSet<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
                 for (CodeSchemeListItem item : variantsOfTheMother) {
                     if (item.getId().equals(codeScheme.getId())) {
@@ -288,7 +285,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     indexing.updateExtensions(extensionService.findByExtensionSchemeId(extensionScheme.getId()));
                 });
             }
-            indexing.populateVariantInfoToCodeSchemeDTO(codeScheme);
+            codeSchemeService.populateVariantInfoToCodeSchemeDTO(codeScheme);
         }
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
@@ -731,7 +728,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
     private Response indexCodeschemesAfterVariantAttachmentOrDetachment(final CodeSchemeDTO motherCodeScheme, final CodeSchemeDTO variantCodeScheme) {
         final HashSet<CodeSchemeDTO> codeSchemes = new HashSet<>();
-        indexing.populateVariantInfoToCodeSchemeDTO(motherCodeScheme);
+        codeSchemeService.populateVariantInfoToCodeSchemeDTO(motherCodeScheme);
         codeSchemes.add(variantCodeScheme);
         codeSchemes.add(motherCodeScheme);
         indexing.updateCodeSchemes(codeSchemes);
@@ -747,13 +744,13 @@ public class CodeRegistryResource extends AbstractBaseResource {
     private Response indexCodeschemeAndCodesAfterCloning(final CodeSchemeDTO codeScheme,
                                                          final String codeRegistryCodeValue) {
         final HashSet<CodeSchemeDTO> codeSchemes = new HashSet<>();
-        indexing.populateAllVersionsToCodeSchemeDTO(codeScheme);
-        indexing.populateVariantInfoToCodeSchemeDTO(codeScheme);
+        codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
+        codeSchemeService.populateVariantInfoToCodeSchemeDTO(codeScheme);
         codeSchemes.add(codeScheme);
         LinkedHashSet<CodeSchemeDTO> previousVersions = new LinkedHashSet<>();
-        codeSchemeService.getPreviousVersions(codeScheme.getPrevCodeschemeId(), previousVersions);
+        previousVersions = codeSchemeService.getPreviousVersions(codeScheme.getPrevCodeschemeId(), previousVersions);
         for (CodeSchemeDTO prevVersion : previousVersions) {
-            indexing.populateAllVersionsToCodeSchemeDTO(prevVersion);
+            codeSchemeService.populateAllVersionsToCodeSchemeDTO(prevVersion);
         }
         codeSchemes.addAll(previousVersions);
         indexing.updateCodeSchemes(codeSchemes);
@@ -783,7 +780,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
         final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload);
         for (CodeSchemeDTO codeScheme : codeSchemes) {
             if (codeScheme.getLastCodeschemeId() != null) {
-                indexing.populateAllVersionsToCodeSchemeDTO(codeScheme);
+                codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
             }
         }
         indexing.updateCodeSchemes(codeSchemes);
