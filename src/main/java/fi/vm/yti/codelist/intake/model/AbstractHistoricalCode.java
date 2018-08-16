@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.model;
 
+import java.util.Calendar;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -27,7 +28,7 @@ public abstract class AbstractHistoricalCode extends AbstractCommonCode {
     @JsonView(Views.Normal.class)
     public Date getStartDate() {
         if (startDate != null) {
-            return new Date(startDate.getTime());
+            return getTimeZoneProtectedDate(startDate);
         }
         return null;
     }
@@ -47,7 +48,7 @@ public abstract class AbstractHistoricalCode extends AbstractCommonCode {
     @JsonView(Views.Normal.class)
     public Date getEndDate() {
         if (endDate != null) {
-            return new Date(endDate.getTime());
+            return getTimeZoneProtectedDate(endDate);
         }
         return null;
     }
@@ -68,5 +69,22 @@ public abstract class AbstractHistoricalCode extends AbstractCommonCode {
 
     public void setStatus(final String status) {
         this.status = status;
+    }
+
+    /**
+     * java.util.Date attaches time information to dates even though they are strictly date ie. 2018-12-31
+     * in the db. This creates problems in ES indexing as the value will jump -2 or .-3 hours,
+     * depending on is it currently summertime or not.
+     * Because this backwards move happens across midnight, it  results in the wrong date in the
+     * ES index (eg 2018-03-03 instead of 2018-03-04) and this hack ensures this will never happen.
+     * There are plans to replace java.util.Date with the new java.time.LocalDate
+     * throughout the codebase but this is to be done separately.
+     */
+    private Date getTimeZoneProtectedDate(final Date theDate) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(theDate);
+        calendar.add(Calendar.HOUR_OF_DAY,
+                4);
+        return calendar.getTime();
     }
 }

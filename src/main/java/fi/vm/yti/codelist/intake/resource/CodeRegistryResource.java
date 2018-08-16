@@ -248,6 +248,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             if (codeScheme.getVariantCodeschemeId() != null) {
                 CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(codeScheme.getVariantCodeschemeId());
                 codeSchemeService.populateVariantInfoToCodeSchemeDTO(motherCodeScheme);
+                codeSchemeService.populateAllVersionsToCodeSchemeDTO(motherCodeScheme);
                 LinkedHashSet<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
                 for (CodeSchemeListItem item : variantsOfTheMother) {
                     if (item.getId().equals(codeScheme.getId())) {
@@ -729,6 +730,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
     private Response indexCodeschemesAfterVariantAttachmentOrDetachment(final CodeSchemeDTO motherCodeScheme, final CodeSchemeDTO variantCodeScheme) {
         final HashSet<CodeSchemeDTO> codeSchemes = new HashSet<>();
         codeSchemeService.populateVariantInfoToCodeSchemeDTO(motherCodeScheme);
+        codeSchemeService.populateAllVersionsToCodeSchemeDTO(variantCodeScheme);
         codeSchemes.add(variantCodeScheme);
         codeSchemes.add(motherCodeScheme);
         indexing.updateCodeSchemes(codeSchemes);
