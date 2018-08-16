@@ -306,7 +306,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
         }
         LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
-        if (latestVersion != null) {
+        if (latestVersion != null && latestVersion.getId() != null) {
             allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
             for (CodeSchemeDTO version : allVersions) {
                 CodeSchemeListItem listItem = new CodeSchemeListItem(version.getId(), version.getPrefLabel(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
