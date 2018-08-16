@@ -301,7 +301,13 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     @Transactional
     public void populateAllVersionsToCodeSchemeDTO(CodeSchemeDTO currentCodeScheme) {
         LinkedHashSet<CodeSchemeDTO> allVersions = new LinkedHashSet<>();
-        CodeSchemeDTO latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
+        CodeSchemeDTO latestVersion = null;
+        try {
+            latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
+        } catch (NullPointerException e) {
+            LOG.error("NPE !!! currentCodeScheme.getId() == " + currentCodeScheme.getId() + " and currentCodeScheme "
+                + currentCodeScheme);
+        }
         allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
         LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
         for (CodeSchemeDTO version: allVersions) {
