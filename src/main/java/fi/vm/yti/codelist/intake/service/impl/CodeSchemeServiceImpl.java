@@ -94,7 +94,11 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
 
     @Transactional
     public CodeSchemeDTO findById(final UUID id) {
-        return mapDeepCodeSchemeDto(codeSchemeDao.findById(id));
+        final CodeScheme codeScheme = codeSchemeDao.findById(id);
+        if (codeScheme == null) {
+            return null;
+        }
+        return mapDeepCodeSchemeDto(codeScheme);
     }
 
     @Transactional
