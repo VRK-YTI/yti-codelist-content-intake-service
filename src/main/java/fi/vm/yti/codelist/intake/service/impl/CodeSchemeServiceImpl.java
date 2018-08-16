@@ -306,7 +306,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
         } catch (NullPointerException e) {
             LOG.error("NPE !!! currentCodeScheme.getId() == " + currentCodeScheme.getId() + " and currentCodeScheme "
-                + currentCodeScheme);
+                + currentCodeScheme, e);
         }
         allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
         LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
