@@ -308,11 +308,13 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             LOG.error("NPE !!! currentCodeScheme.getId() == " + currentCodeScheme.getId() + " and currentCodeScheme "
                 + currentCodeScheme, e);
         }
-        allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
         LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
-        for (CodeSchemeDTO version: allVersions) {
-            CodeSchemeListItem listItem = new CodeSchemeListItem(version.getId(), version.getPrefLabel(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
-            versionHistory.add(listItem);
+        if (latestVersion != null) {
+            allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
+            for (CodeSchemeDTO version : allVersions) {
+                CodeSchemeListItem listItem = new CodeSchemeListItem(version.getId(), version.getPrefLabel(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
+                versionHistory.add(listItem);
+            }
         }
         currentCodeScheme.setAllVersions(versionHistory);
     }
