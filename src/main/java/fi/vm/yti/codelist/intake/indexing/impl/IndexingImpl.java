@@ -447,6 +447,7 @@ public class IndexingImpl implements Indexing {
         indexStatusRepository.save(indexStatuses);
     }
 
+    @Transactional
     public boolean reIndex(final String indexName,
                            final String type) {
         final Set<IndexStatus> list = indexStatusRepository.getLatestRunningIndexStatusForIndexAlias(indexName);
