@@ -94,11 +94,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
 
     @Transactional
     public CodeSchemeDTO findById(final UUID id) {
-        final CodeScheme codeScheme = codeSchemeDao.findById(id);
-        if (codeScheme == null) {
-            return null;
-        }
-        return mapDeepCodeSchemeDto(codeScheme);
+        return mapDeepCodeSchemeDto(codeSchemeDao.findById(id));
     }
 
     @Transactional
@@ -306,25 +302,23 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     public void populateAllVersionsToCodeSchemeDTO(CodeSchemeDTO currentCodeScheme) {
         LinkedHashSet<CodeSchemeDTO> allVersions = new LinkedHashSet<>();
         CodeSchemeDTO latestVersion = null;
-        if (currentCodeScheme != null && currentCodeScheme.getLastCodeschemeId() != null) {
+        try {
             latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
+        } catch (NullPointerException e) {
+            LOG.error("NPE !!! currentCodeScheme.getId() == " + currentCodeScheme.getId() + " and currentCodeScheme "
+                + currentCodeScheme);
         }
+        allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
         LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
-        if (latestVersion != null && latestVersion.getId() != null) {
-            allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
-            for (CodeSchemeDTO version : allVersions) {
-                CodeSchemeListItem listItem = new CodeSchemeListItem(version.getId(), version.getPrefLabel(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
-                versionHistory.add(listItem);
-            }
+        for (CodeSchemeDTO version: allVersions) {
+            CodeSchemeListItem listItem = new CodeSchemeListItem(version.getId(), version.getPrefLabel(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
+            versionHistory.add(listItem);
         }
         currentCodeScheme.setAllVersions(versionHistory);
     }
 
     @Transactional
     public LinkedHashSet<CodeSchemeDTO> getPreviousVersions(UUID uuid, LinkedHashSet result) {
-        if (uuid == null) {
-            return result;
-        }
         CodeSchemeDTO prevVersion = this.findById(uuid);
         if (prevVersion == null) {
             return result;
