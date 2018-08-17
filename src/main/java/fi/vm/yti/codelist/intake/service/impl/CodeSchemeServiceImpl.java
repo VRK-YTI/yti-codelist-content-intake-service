@@ -305,7 +305,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         try {
             latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
         } catch (NullPointerException e) {
-            LOG.error("NPE !!! currentCodeScheme.getId() == " + currentCodeScheme.getId() + " and currentCodeScheme "
+            LOG.debug("NPE !!! currentCodeScheme.getId() == " + currentCodeScheme.getId() + " and currentCodeScheme "
                 + currentCodeScheme);
         }
         allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
