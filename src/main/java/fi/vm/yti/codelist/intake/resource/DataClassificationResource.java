@@ -4,8 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -75,7 +78,8 @@ public class DataClassificationResource extends AbstractBaseResource {
     @ApiOperation(value = "Data classification API for listing codes and counts.")
     @ApiResponse(code = 200, message = "Returns data classifications and counts.")
     @Transactional
-    public Response getDataClassifications(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand) {
+    public Response getDataClassifications(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand,
+                                           @ApiParam(value = "Language code for sorting results.") @QueryParam("language") final String language) {
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_DATACLASSIFICATION, expand)));
         final Meta meta = new Meta();
         final ResponseWrapper<DataClassification> wrapper = new ResponseWrapper<>();
@@ -91,10 +95,17 @@ public class DataClassificationResource extends AbstractBaseResource {
             final DataClassification dataClassification = new DataClassification(code, count != null ? count : 0);
             dataClassifications.add(dataClassification);
         });
+        if (language != null && !language.isEmpty()) {
+            final List<DataClassification> sortedClassifications = new ArrayList<>(dataClassifications);
+            Collections.sort(sortedClassifications, (dataClassification1, dataClassification2) -> dataClassification1.getPrefLabel(language).compareTo(dataClassification2.getPrefLabel(language)));
+            final Set<DataClassification> sortedSet = new LinkedHashSet<>(sortedClassifications);
+            wrapper.setResults(sortedSet);
+        } else {
+            wrapper.setResults(dataClassifications);
+        }
         meta.setCode(200);
         meta.setResultCount(dataClassifications.size());
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
-        wrapper.setResults(dataClassifications);
         return Response.ok(wrapper).build();
     }
 
