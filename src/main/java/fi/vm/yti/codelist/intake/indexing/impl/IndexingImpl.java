@@ -114,6 +114,8 @@ public class IndexingImpl implements Indexing {
                 parentsOfVariants.add(currentCodeScheme.getVariantCodeschemeId());
             }
             if (currentCodeScheme.getLastCodeschemeId() != null) {
+                LOG.info("currentCodeScheme.getID() == " + currentCodeScheme.getId() + " AND " +
+                    "currentCodeScheme.getLastCodeschemeID() == " + currentCodeScheme.getLastCodeschemeId());
                 codeSchemeService.populateAllVersionsToCodeSchemeDTO(currentCodeScheme);
             }
         }
@@ -446,7 +448,7 @@ public class IndexingImpl implements Indexing {
         indexStatuses.forEach(indexStatus -> indexStatus.setStatus(UPDATE_FAILED));
         indexStatusRepository.save(indexStatuses);
     }
-    
+
     public boolean reIndex(final String indexName,
                            final String type) {
         final Set<IndexStatus> list = indexStatusRepository.getLatestRunningIndexStatusForIndexAlias(indexName);
