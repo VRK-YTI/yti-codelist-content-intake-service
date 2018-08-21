@@ -47,7 +47,8 @@ public class IndexingToolsImpl implements IndexingTools {
         "    \"analyzer\": \"text_analyzer\",\n" +
         "    \"fields\": {\n" +
         "      \"raw\": { \n" +
-        "        \"type\": \"keyword\"\n" +
+        "        \"type\": \"keyword\",\n" +
+        "        \"normalizer\": \"keyword_normalizer\"\n" +
         "      }\n" +
         "    }\n" +
         "  },\n" +
@@ -83,7 +84,8 @@ public class IndexingToolsImpl implements IndexingTools {
         "    \"analyzer\": \"text_analyzer\",\n" +
         "    \"fields\": {\n" +
         "      \"raw\": { \n" +
-        "        \"type\": \"keyword\"\n" +
+        "        \"type\": \"keyword\",\n" +
+        "        \"normalizer\": \"keyword_normalizer\"\n" +
         "      }\n" +
         "    }\n" +
         "  },\n" +
@@ -123,7 +125,8 @@ public class IndexingToolsImpl implements IndexingTools {
         "    \"analyzer\": \"text_analyzer\",\n" +
         "    \"fields\": {\n" +
         "      \"raw\": { \n" +
-        "        \"type\": \"keyword\"\n" +
+        "        \"type\": \"keyword\",\n" +
+        "        \"normalizer\": \"keyword_normalizer\"\n" +
         "      }\n" +
         "    }\n" +
         "  },\n" +
@@ -170,7 +173,8 @@ public class IndexingToolsImpl implements IndexingTools {
         "    \"analyzer\": \"text_analyzer\",\n" +
         "    \"fields\": {\n" +
         "      \"raw\": { \n" +
-        "        \"type\": \"keyword\"\n" +
+        "        \"type\": \"keyword\",\n" +
+        "        \"normalizer\": \"keyword_normalizer\"\n" +
         "      }\n" +
         "    }\n" +
         "  },\n" +
@@ -305,7 +309,7 @@ public class IndexingToolsImpl implements IndexingTools {
                     .startObject("text_analyzer")
                     .field("type", "custom")
                     .field("tokenizer", "keyword")
-                    .field("filter", new String[]{"lowercase", "standard"})
+                    .field("filter", new String[]{"standard", "lowercase", "trim"})
                     .endObject()
                     .startObject("preflabel_analyzer")
                     .field("type", "custom")
