@@ -174,7 +174,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
                 final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeSchemeId);
                 final Set<ExtensionDTO> extensions = extensionService.findByExtensionSchemeId(codeSchemeId);
-                final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue());
+                HashSet<CodeSchemeDTO> codeSchemesToIndexButRedundantHereBecauseTheWholeRegistryIsGettingDeletedInThisLoop = new LinkedHashSet<>();
+                final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue(), codeSchemesToIndexButRedundantHereBecauseTheWholeRegistryIsGettingDeletedInThisLoop);
                 indexing.deleteCodeScheme(codeScheme);
                 if (codes != null) {
                     indexing.deleteCodes(codes);
@@ -447,13 +448,16 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue) {
 
         final CodeSchemeDTO existingCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+
         if (existingCodeScheme != null) {
             final UUID codeSchemeId = existingCodeScheme.getId();
             final Set<CodeDTO> codes = codeService.findByCodeSchemeId(codeSchemeId);
             final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
             final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeSchemeId);
             final Set<ExtensionDTO> extensions = extensionService.findByExtensionSchemeId(codeSchemeId);
-            final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue());
+            HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex = new LinkedHashSet<>();
+            final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue(), codeSchemeDTOsToIndex);
+            indexing.updateCodeSchemes(codeSchemeDTOsToIndex);
             indexing.deleteCodeScheme(codeScheme);
             if (codes != null) {
                 indexing.deleteCodes(codes);

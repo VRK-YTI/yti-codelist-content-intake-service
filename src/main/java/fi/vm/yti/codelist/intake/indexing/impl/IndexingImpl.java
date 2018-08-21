@@ -6,7 +6,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
-import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.support.WriteRequest;
@@ -114,8 +113,6 @@ public class IndexingImpl implements Indexing {
                 parentsOfVariants.add(currentCodeScheme.getVariantCodeschemeId());
             }
             if (currentCodeScheme.getLastCodeschemeId() != null) {
-                LOG.info("currentCodeScheme.getID() == " + currentCodeScheme.getId() + " AND " +
-                    "currentCodeScheme.getLastCodeschemeID() == " + currentCodeScheme.getLastCodeschemeId());
                 codeSchemeService.populateAllVersionsToCodeSchemeDTO(currentCodeScheme);
             }
         }
