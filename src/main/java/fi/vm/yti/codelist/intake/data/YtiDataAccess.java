@@ -92,9 +92,9 @@ public class YtiDataAccess {
         if (contentIntakeServiceProperties.getInitializeContent()) {
             initializeDefaultData();
             loadRegistryContent(DEFAULT_YTIREGISTRY_FILENAME, "V2_YTI");
-            loadRegistryContent(DEFAULT_CODEREGISTRY_FILENAME, "V1_DEFAULT");
         }
         if (contentIntakeServiceProperties.getInitializeTestContent()) {
+            loadRegistryContent(DEFAULT_CODEREGISTRY_FILENAME, "V1_DEFAULT");
             loadRegistryContent(DEFAULT_TESTREGISTRY_FILENAME, "V1_TEST");
         }
     }
