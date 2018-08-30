@@ -31,5 +31,4 @@ public interface CodeSchemeDao {
 
     Set<CodeScheme> updateCodeSchemesFromDtos(final CodeRegistry codeRegistry, final Set<CodeSchemeDTO> codeSchemeDtos, final boolean updateExternalReferences);
 
-    Set<CodeScheme> findAllVariantsFromTheSameMother(final UUID uuidOfTheMotherCodeScheme);
 }

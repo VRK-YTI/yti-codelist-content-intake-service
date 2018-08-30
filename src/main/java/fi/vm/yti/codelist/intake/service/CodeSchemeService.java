@@ -41,11 +41,11 @@ public interface CodeSchemeService {
     CodeSchemeDTO updateCodeSchemeFromDto(String codeRegistryCodeValue,
                                           CodeSchemeDTO codeSchemeDTO);
 
-    Set<CodeSchemeDTO> findAllVariantsFromTheSameMother(final UUID uuidOfTheMotherCodeScheme);
-
     void populateAllVersionsToCodeSchemeDTO(CodeSchemeDTO codeSchemeDTO);
 
     LinkedHashSet<CodeSchemeDTO> getPreviousVersions(UUID uuid, LinkedHashSet result);
 
     void populateVariantInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme);
+
+    void populateVariantMotherInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme);
 }

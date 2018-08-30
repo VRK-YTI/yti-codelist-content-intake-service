@@ -34,7 +34,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeScheme")
 @Table(name = "codescheme")
 @XmlRootElement
-@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies", "variantCodeschemeId", "nextCodeschemeId", "prevCodeschemeId", "lastCodeschemeId" })
+@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies", "variants", "variantMothers", "nextCodeschemeId", "prevCodeschemeId", "lastCodeschemeId" })
 @ApiModel(value = "CodeScheme", description = "CodeScheme model that represents data for one single codescheme.")
 public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
@@ -56,7 +56,8 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private Set<ExtensionScheme> extensionSchemes;
     private String conceptUriInVocabularies;
     private Code defaultCode;
-    private UUID variantCodeschemeId; //mother codescheme if this codescheme is a variant
+    private Set<CodeScheme> variants;
+    private Set<CodeScheme> variantMothers;
     private UUID nextCodeschemeId;
     private UUID prevCodeschemeId;
     private UUID lastCodeschemeId;
@@ -347,16 +348,6 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         this.extensionSchemes = extensionSchemes;
     }
 
-    @Column(name = "variant_codescheme_id")
-    @JsonView(Views.Normal.class)
-    public UUID getVariantCodeschemeId() {
-        return variantCodeschemeId;
-    }
-
-    public void setVariantCodeschemeId(final UUID variantCodeschemeId) {
-        this.variantCodeschemeId = variantCodeschemeId;
-    }
-
     @Column(name = "next_codescheme_id")
     @JsonView(Views.Normal.class)
     public UUID getNextCodeschemeId() {
@@ -385,5 +376,35 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     public void setLastCodeschemeId(final UUID lastCodeschemeId) {
         this.lastCodeschemeId = lastCodeschemeId;
+    }
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "codescheme_variant",
+            joinColumns = {
+                    @JoinColumn(name = "codescheme_id", referencedColumnName = "id") },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "variant_codescheme_id", referencedColumnName = "id") })
+    @JsonView(Views.Extended.class)
+    public Set<CodeScheme> getVariants() {
+        return variants;
+    }
+
+    public void setVariants(final Set<CodeScheme> variants) {
+        this.variants = variants;
+    }
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "codescheme_variant",
+            joinColumns = {
+                    @JoinColumn(name = "variant_codescheme_id", referencedColumnName = "id") },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "codescheme_id", referencedColumnName = "id") })
+    @JsonView(Views.Extended.class)
+    public Set<CodeScheme> getVariantMothers() {
+        return variantMothers;
+    }
+
+    public void setVariantMothers(final Set<CodeScheme> variantMothers) {
+        this.variantMothers = variantMothers;
     }
 }

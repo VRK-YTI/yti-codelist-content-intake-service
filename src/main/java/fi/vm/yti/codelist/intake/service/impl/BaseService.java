@@ -121,16 +121,50 @@ public abstract class BaseService {
             if (codeScheme.getExtensionSchemes() != null) {
                 codeSchemeDto.setExtensionSchemes(mapExtensionSchemeDtos(codeScheme.getExtensionSchemes(), false));
             }
+            if (!codeScheme.getVariants().isEmpty()) {
+                codeSchemeDto.setVariants(mapVariantDtos(codeScheme.getVariants()));
+            }
+            if (!codeScheme.getVariantMothers().isEmpty()) {
+                codeSchemeDto.setVariantMothers(mapVariantMotherDtos(codeScheme.getVariantMothers()));
+            }
         }
         codeSchemeDto.setUrl(apiUtils.createCodeSchemeUrl(codeSchemeDto));
         codeSchemeDto.setCreated(codeScheme.getCreated());
         codeSchemeDto.setModified(codeScheme.getModified());
-        codeSchemeDto.setVariantCodeschemeId(codeScheme.getVariantCodeschemeId());
         codeSchemeDto.setPrevCodeschemeId(codeScheme.getPrevCodeschemeId());
         codeSchemeDto.setNextCodeschemeId(codeScheme.getNextCodeschemeId());
         codeSchemeDto.setLastCodeschemeId(codeScheme.getLastCodeschemeId());
         return codeSchemeDto;
     }
+
+    @Transactional
+    public Set<CodeSchemeDTO> mapVariantDtos(final Set<CodeScheme> variants) {
+        final Set<CodeSchemeDTO> codeSchemeDtos = new HashSet<>();
+        if (variants != null && !variants.isEmpty()) {
+            variants.forEach(variant -> codeSchemeDtos.add(mapCodeSchemeDto(variant, false)));
+        }
+        return codeSchemeDtos;
+    }
+
+    @Transactional
+    public Set<CodeSchemeDTO> mapVariantMotherDtos(final Set<CodeScheme> variantMothers) {
+        final Set<CodeSchemeDTO> codeSchemeDtos = new HashSet<>();
+        if (variantMothers != null && !variantMothers.isEmpty()) {
+            variantMothers.forEach(variantMother -> codeSchemeDtos.add(mapCodeSchemeDto(variantMother, false)));
+        }
+        return codeSchemeDtos;
+    }
+
+    @Transactional
+    public Set<ExtensionSchemeDTO> mapExtensiondSchemeDtos(final Set<ExtensionScheme> extensionSchemes,
+                                                          final boolean deep) {
+        final Set<ExtensionSchemeDTO> extensionSchemeDtos = new HashSet<>();
+        if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
+            extensionSchemes.forEach(extensionScheme -> extensionSchemeDtos.add(mapExtensionSchemeDto(extensionScheme, deep)));
+        }
+        return extensionSchemeDtos;
+    }
+
 
     @Transactional
     public Set<CodeSchemeDTO> mapDeepCodeSchemeDtos(final Set<CodeScheme> codeSchemes) {
@@ -141,6 +175,7 @@ public abstract class BaseService {
     public Set<CodeSchemeDTO> mapCodeSchemeDtos(final Set<CodeScheme> codeSchemes,
                                                 final boolean deep) {
         final Set<CodeSchemeDTO> codeSchemeDtos = new HashSet<>();
+
         if (codeSchemes != null && !codeSchemes.isEmpty()) {
             codeSchemes.forEach(codeScheme -> codeSchemeDtos.add(mapCodeSchemeDto(codeScheme, deep)));
         }

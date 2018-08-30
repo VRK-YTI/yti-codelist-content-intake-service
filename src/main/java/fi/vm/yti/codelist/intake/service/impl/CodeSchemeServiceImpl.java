@@ -292,17 +292,17 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                                  final CodeSchemeDTO codeSchemeDto) {
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         final CodeScheme codeScheme = codeSchemeDao.updateCodeSchemeFromDto(codeRegistry, codeSchemeDto);
-        return mapCodeSchemeDto(codeScheme, true);
-    }
-
-    @Transactional
-    public Set<CodeSchemeDTO> findAllVariantsFromTheSameMother(final UUID uuidOfTheMotherCodeScheme) {
-        Set<CodeScheme> codeSchemes = codeSchemeDao.findAllVariantsFromTheSameMother(uuidOfTheMotherCodeScheme);
-        return mapDeepCodeSchemeDtos(codeSchemes);
+        CodeSchemeDTO result =  mapCodeSchemeDto(codeScheme, true);
+        result.setVariants(mapCodeSchemeDtos(codeScheme.getVariants(), false));
+        result.setVariantMothers(mapCodeSchemeDtos(codeScheme.getVariantMothers(), false));
+        return result;
     }
 
     @Transactional
     public void populateAllVersionsToCodeSchemeDTO(CodeSchemeDTO currentCodeScheme) {
+        if (currentCodeScheme.getLastCodeschemeId() == null) {
+            return;
+        }
         LinkedHashSet<CodeSchemeDTO> allVersions = new LinkedHashSet<>();
         CodeSchemeDTO latestVersion = null;
         latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
@@ -332,13 +332,24 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
 
     @Transactional
     public void populateVariantInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
-        Set<CodeSchemeDTO> allVariantsFromTheSameMother = findAllVariantsFromTheSameMother(currentCodeScheme.getId());
+        Set<CodeSchemeDTO> allVariantsFromTheSameMother = currentCodeScheme.getVariants(); //findAllVariantsFromTheSameMother(currentCodeScheme.getId());
         LinkedHashSet<CodeSchemeListItem> variants = new LinkedHashSet<>();
         for (CodeSchemeDTO currentVariant : allVariantsFromTheSameMother) {
             CodeSchemeListItem variant = new CodeSchemeListItem(currentVariant.getId(), currentVariant.getPrefLabel(), currentVariant.getUri(), currentVariant.getStartDate(), currentVariant.getEndDate(), currentVariant.getStatus());
             variants.add(variant);
         }
         currentCodeScheme.setVariantsOfThisCodeScheme(variants);
+    }
+
+    @Transactional
+    public void populateVariantMotherInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
+        Set<CodeSchemeDTO> variantMothers = currentCodeScheme.getVariantMothers();
+        LinkedHashSet<CodeSchemeListItem> mothers = new LinkedHashSet<>();
+        for (CodeSchemeDTO currentMother : variantMothers) {
+            CodeSchemeListItem mother = new CodeSchemeListItem(currentMother.getId(), currentMother.getPrefLabel(), currentMother.getUri(), currentMother.getStartDate(), currentMother.getEndDate(), currentMother.getStatus());
+            mothers.add(mother);
+        }
+        currentCodeScheme.setVariantMothersOfThisCodeScheme(mothers);
     }
 
     private void dealWithPossibleVersionHierarchyBeforeDeleting(CodeSchemeDTO currentCodeScheme, HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {

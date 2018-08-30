@@ -1,11 +1,6 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -262,7 +257,20 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         } else {
             existingCodeScheme.setDefaultCode(null);
         }
-        existingCodeScheme.setVariantCodeschemeId(fromCodeScheme.getVariantCodeschemeId());
+        Set<CodeScheme> variants = new LinkedHashSet<>();
+        for (CodeSchemeDTO variant : fromCodeScheme.getVariants()) {
+            CodeScheme codeScheme = this.findById(variant.getId());
+            variants.add(codeScheme);
+        }
+        existingCodeScheme.setVariants(variants);
+
+        Set<CodeScheme> variantMothers = new LinkedHashSet<>();
+        for (CodeSchemeDTO variantMother : fromCodeScheme.getVariantMothers()) {
+            CodeScheme codeScheme = this.findById(variantMother.getId());
+            variantMothers.add(codeScheme);
+        }
+        existingCodeScheme.setVariantMothers(variantMothers);
+
         existingCodeScheme.setLastCodeschemeId(fromCodeScheme.getLastCodeschemeId());
         existingCodeScheme.setPrevCodeschemeId(fromCodeScheme.getPrevCodeschemeId());
         existingCodeScheme.setNextCodeschemeId(fromCodeScheme.getNextCodeschemeId());
@@ -309,7 +317,20 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         final Date timeStamp = new Date(System.currentTimeMillis());
         codeScheme.setCreated(timeStamp);
         codeScheme.setModified(timeStamp);
-        codeScheme.setVariantCodeschemeId(fromCodeScheme.getVariantCodeschemeId());
+        Set<CodeScheme> variants = new LinkedHashSet<>();
+        for (CodeSchemeDTO variant : fromCodeScheme.getVariants()) {
+            CodeScheme variantCodeScheme = this.findById(variant.getId());
+            variants.add(variantCodeScheme);
+        }
+        codeScheme.setVariants(variants);
+
+        Set<CodeScheme> variantMothers = new LinkedHashSet<>();
+        for (CodeSchemeDTO variantMother : fromCodeScheme.getVariantMothers()) {
+            CodeScheme variantMotherEntity = this.findById(variantMother.getId());
+            variantMothers.add(variantMotherEntity);
+        }
+        codeScheme.setVariantMothers(variantMothers);
+
         codeScheme.setNextCodeschemeId(fromCodeScheme.getNextCodeschemeId());
         codeScheme.setPrevCodeschemeId(fromCodeScheme.getPrevCodeschemeId());
         codeScheme.setLastCodeschemeId(fromCodeScheme.getLastCodeschemeId());
@@ -343,9 +364,5 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_EXISTING_CODE_MISMATCH));
             }
         }
-    }
-
-    public Set<CodeScheme> findAllVariantsFromTheSameMother(final UUID uuidOfTheMotherCodeScheme) {
-        return codeSchemeRepository.findAllVariantsFromTheSameMother(uuidOfTheMotherCodeScheme);
     }
 }
