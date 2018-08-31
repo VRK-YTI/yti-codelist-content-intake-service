@@ -33,6 +33,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 public class ExtensionDaoImpl implements ExtensionDao {
 
     private static final int MAX_LEVEL = 10;
+    private static final String CALCULATION_HIERARCHY = "calculationHierarchy";
     private final EntityChangeLogger entityChangeLogger;
     private final ExtensionRepository extensionRepository;
     private final CodeDao codeDao;
@@ -250,7 +251,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
                                       final ExtensionDTO fromExtension,
                                       final Set<Extension> extensions) {
         final String extensionValue = fromExtension.getExtensionValue();
-        validateExtensionValue(extensionValue);
+        if (extensionScheme.getPropertyType().getLocalName().equalsIgnoreCase(CALCULATION_HIERARCHY)) {
+            validateExtensionValue(extensionValue);
+        }
         if (!Objects.equals(existingExtension.getExtensionValue(), extensionValue)) {
             existingExtension.setExtensionValue(extensionValue);
         }
@@ -292,7 +295,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
             extension.setId(uuid);
         }
         final String extensionValue = fromExtension.getExtensionValue();
-        validateExtensionValue(extensionValue);
+        if (extensionScheme.getPropertyType().getLocalName().equalsIgnoreCase(CALCULATION_HIERARCHY)) {
+            validateExtensionValue(extensionValue);
+        }
         extension.setExtensionValue(extensionValue);
         for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
             extension.setPrefLabel(entry.getKey(), entry.getValue());
