@@ -134,7 +134,7 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                         if (!extensionsSheetNames.isEmpty()) {
                             extensionsSheetNames.forEach((extensionSchemeDto, extensionsSheetName) -> extensionSchemes.forEach(extensionScheme -> {
                                 if (extensionScheme.getCodeValue().equalsIgnoreCase(extensionSchemeDto.getCodeValue())) {
-                                    extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionParser.parseExtensionsFromExcelWorkbook(workbook, extensionsSheetName));
+                                    extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionParser.parseExtensionsFromExcelWorkbook(extensionScheme, workbook, extensionsSheetName));
                                 }
                             }));
                         }

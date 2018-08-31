@@ -136,10 +136,10 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
                         }
                         break;
                     case FORMAT_EXCEL:
-                        extensions = extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionParser.parseExtensionsFromExcelInputStream(inputStream, sheetName));
+                        extensions = extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionParser.parseExtensionsFromExcelInputStream(extensionScheme, inputStream, sheetName));
                         break;
                     case FORMAT_CSV:
-                        extensions = extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionParser.parseExtensionsFromCsvInputStream(inputStream));
+                        extensions = extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionParser.parseExtensionsFromCsvInputStream(extensionScheme, inputStream));
                         break;
                     default:
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
@@ -160,7 +160,7 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         Set<Extension> extensions;
-        final Set<ExtensionDTO> extensionDtos = extensionParser.parseExtensionsFromExcelWorkbook(workbook, sheetName);
+        final Set<ExtensionDTO> extensionDtos = extensionParser.parseExtensionsFromExcelWorkbook(extensionScheme, workbook, sheetName);
         extensions = extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionDtos);
         return mapDeepExtensionDtos(extensions);
     }

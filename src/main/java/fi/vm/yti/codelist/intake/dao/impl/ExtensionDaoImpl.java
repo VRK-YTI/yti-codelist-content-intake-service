@@ -253,9 +253,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
         final String extensionValue = fromExtension.getExtensionValue();
         if (extensionScheme.getPropertyType().getLocalName().equalsIgnoreCase(CALCULATION_HIERARCHY)) {
             validateExtensionValue(extensionValue);
-        }
-        if (!Objects.equals(existingExtension.getExtensionValue(), extensionValue)) {
-            existingExtension.setExtensionValue(extensionValue);
+            if (!Objects.equals(existingExtension.getExtensionValue(), extensionValue)) {
+                existingExtension.setExtensionValue(extensionValue);
+            }
         }
         for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
@@ -297,8 +297,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
         final String extensionValue = fromExtension.getExtensionValue();
         if (extensionScheme.getPropertyType().getLocalName().equalsIgnoreCase(CALCULATION_HIERARCHY)) {
             validateExtensionValue(extensionValue);
+            extension.setExtensionValue(extensionValue);
         }
-        extension.setExtensionValue(extensionValue);
         for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
             extension.setPrefLabel(entry.getKey(), entry.getValue());
         }

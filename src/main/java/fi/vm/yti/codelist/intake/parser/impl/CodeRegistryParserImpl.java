@@ -137,7 +137,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
                     headerMap = resolveHeaderMap(row);
                     prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                     definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
-                    validateRequiredCodeHeaders(headerMap);
+                    validateRequiredHeaders(headerMap);
                 } else {
                     final CodeRegistryDTO fromCodeRegistry = new CodeRegistryDTO();
                     final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
@@ -161,7 +161,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
         return codeRegistries;
     }
 
-    private void validateRequiredCodeHeaders(final Map<String, Integer> headerMap) {
+    private void validateRequiredHeaders(final Map<String, Integer> headerMap) {
         if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_CODEVALUE));

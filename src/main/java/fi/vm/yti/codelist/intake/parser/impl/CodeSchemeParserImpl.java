@@ -101,7 +101,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
             final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
             final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
             final Map<String, Integer> changeNoteHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_CHANGENOTE_PREFIX);
-            validateRequiredSchemeHeaders(headerMap);
+            validateRequiredHeaders(headerMap);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
                 validateRequiredDataOnRecord(record);
@@ -181,7 +181,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
                 descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
                 changeNoteHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_CHANGENOTE_PREFIX);
-                validateRequiredSchemeHeaders(headerMap);
+                validateRequiredHeaders(headerMap);
             } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
                 final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
@@ -301,7 +301,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         }
     }
 
-    private void validateRequiredSchemeHeaders(final Map<String, Integer> headerMap) {
+    private void validateRequiredHeaders(final Map<String, Integer> headerMap) {
         if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_CODEVALUE));

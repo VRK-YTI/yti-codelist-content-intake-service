@@ -41,6 +41,7 @@ import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.parser.ExtensionParser;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -49,6 +50,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 public class ExtensionParserImpl extends AbstractBaseParser implements ExtensionParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExtensionParserImpl.class);
+    private static final String TYPE_CALCULATION_HIERARCHY = "calculationHierarchy";
 
     public ExtensionDTO parseExtensionFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
@@ -76,22 +78,26 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
     }
 
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public Set<ExtensionDTO> parseExtensionsFromCsvInputStream(final InputStream inputStream) {
+    public Set<ExtensionDTO> parseExtensionsFromCsvInputStream(final ExtensionScheme extensionScheme,
+                                                               final InputStream inputStream) {
+        final boolean requiresExtensionValue = hasExtensionValue(extensionScheme);
         final Set<ExtensionDTO> extensionSchemes = new LinkedHashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
             final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
-            validateRequiredSchemeHeaders(headerMap);
+            validateRequiredHeaders(requiresExtensionValue, headerMap);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
-                validateRequiredDataOnRecord(record);
+                validateRequiredDataOnRecord(requiresExtensionValue, record);
                 final ExtensionDTO extension = new ExtensionDTO();
                 extension.setId(parseIdFromRecord(record));
                 extension.setOrder(resolveOrderFromCsvRecord(record));
                 extension.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
-                extension.setExtensionValue(parseExtensionValueFromCsvRecord(record));
+                if (requiresExtensionValue) {
+                    extension.setExtensionValue(parseExtensionValueFromCsvRecord(record));
+                }
                 extension.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record)));
                 final String relationCodeValue = parseExtensionRelationFromCsvRecord(record);
                 if (relationCodeValue != null) {
@@ -117,18 +123,25 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         return refExtension;
     }
 
-    public Set<ExtensionDTO> parseExtensionsFromExcelInputStream(final InputStream inputStream,
+    public Set<ExtensionDTO> parseExtensionsFromExcelInputStream(final ExtensionScheme extensionScheme,
+                                                                 final InputStream inputStream,
                                                                  final String sheetName) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-            return parseExtensionsFromExcelWorkbook(workbook, sheetName);
+            return parseExtensionsFromExcelWorkbook(extensionScheme, workbook, sheetName);
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
     }
 
-    public Set<ExtensionDTO> parseExtensionsFromExcelWorkbook(final Workbook workbook,
+    private boolean hasExtensionValue(final ExtensionScheme extensionScheme) {
+        return extensionScheme.getPropertyType().getLocalName().equalsIgnoreCase(TYPE_CALCULATION_HIERARCHY);
+    }
+
+    public Set<ExtensionDTO> parseExtensionsFromExcelWorkbook(final ExtensionScheme extensionScheme,
+                                                              final Workbook workbook,
                                                               final String sheetName) {
+        final boolean requireExtensionValue = hasExtensionValue(extensionScheme);
         final Set<ExtensionDTO> extensions = new LinkedHashSet<>();
         final DataFormatter formatter = new DataFormatter();
         Sheet sheet = workbook.getSheet(sheetName);
@@ -148,18 +161,20 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 firstRow = false;
                 headerMap = resolveHeaderMap(row);
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
-                validateRequiredSchemeHeaders(headerMap);
+                validateRequiredHeaders(requireExtensionValue, headerMap);
             } else {
                 final ExtensionDTO extension = new ExtensionDTO();
                 final String codeIdentifier = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
-                validateRequiredDataOnRow(row, headerMap, formatter);
+                validateRequiredDataOnRow(requireExtensionValue, row, headerMap, formatter);
                 extension.setCode(createCodeUsingIdentifier(codeIdentifier));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     extension.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
                 extension.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 extension.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
-                extension.setExtensionValue(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))));
+                if (requireExtensionValue) {
+                    extension.setExtensionValue(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))));
+                }
                 if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {
                     final String relationCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
                     if (relationCodeValue != null && !relationCodeValue.isEmpty()) {
@@ -172,11 +187,12 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         return extensions;
     }
 
-    private void validateRequiredDataOnRow(final Row row,
+    private void validateRequiredDataOnRow(final boolean requireExtensionValue,
+                                           final Row row,
                                            final Map<String, Integer> headerMap,
                                            final DataFormatter formatter) {
-        if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))) == null ||
-            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))).isEmpty()) {
+        if (requireExtensionValue && (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))) == null ||
+            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))).isEmpty())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE, String.valueOf(row.getRowNum() + 1)));
         }
@@ -187,8 +203,9 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         }
     }
 
-    private void validateRequiredDataOnRecord(final CSVRecord record) {
-        if (record.get(CONTENT_HEADER_EXTENSIONVALUE) == null || record.get(CONTENT_HEADER_EXTENSIONVALUE).isEmpty()) {
+    private void validateRequiredDataOnRecord(final boolean requireExtensionValue,
+                                              final CSVRecord record) {
+        if (requireExtensionValue && (record.get(CONTENT_HEADER_EXTENSIONVALUE) == null || record.get(CONTENT_HEADER_EXTENSIONVALUE).isEmpty())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE, String.valueOf(record.getRecordNumber() + 1)));
         }
@@ -198,18 +215,19 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         }
     }
 
-    private void validateRequiredSchemeHeaders(final Map<String, Integer> headerMap) {
-        if (!headerMap.containsKey(CONTENT_HEADER_EXTENSIONVALUE)) {
+    private void validateRequiredHeaders(final boolean requiresExtensionValue,
+                                         final Map<String, Integer> headerMap) {
+        if (requiresExtensionValue && !headerMap.containsKey(CONTENT_HEADER_EXTENSIONVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE));
+                ERR_MSG_USER_MISSING_HEADER_EXTENSIONVALUE));
         }
         if (!headerMap.containsKey(CONTENT_HEADER_ORDER)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_ORDER));
+                ERR_MSG_USER_MISSING_HEADER_ORDER));
         }
         if (!headerMap.containsKey(CONTENT_HEADER_CODE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_CODE));
+                ERR_MSG_USER_MISSING_HEADER_CODE));
         }
     }
 

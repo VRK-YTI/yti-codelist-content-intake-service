@@ -65,7 +65,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
             final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
             final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
             final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
-            validateRequiredCodeHeaders(headerMap);
+            validateRequiredHeaders(headerMap);
 
             final List<CSVRecord> records = csvParser.getRecords();
 
@@ -153,7 +153,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                 definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
                 descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
-                validateRequiredCodeHeaders(headerMap);
+                validateRequiredHeaders(headerMap);
 
             } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
                 final CodeDTO code = new CodeDTO();
@@ -274,7 +274,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         return hierarchyLevel;
     }
 
-    private void validateRequiredCodeHeaders(final Map<String, Integer> headerMap) {
+    private void validateRequiredHeaders(final Map<String, Integer> headerMap) {
         if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_CODEVALUE));

@@ -6,6 +6,7 @@ import java.util.Set;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 
 public interface ExtensionParser {
 
@@ -13,11 +14,14 @@ public interface ExtensionParser {
 
     Set<ExtensionDTO> parseExtensionsFromJson(final String jsonPayload);
 
-    Set<ExtensionDTO> parseExtensionsFromCsvInputStream(final InputStream inputStream);
+    Set<ExtensionDTO> parseExtensionsFromCsvInputStream(final ExtensionScheme extensionScheme,
+                                                        final InputStream inputStream);
 
-    Set<ExtensionDTO> parseExtensionsFromExcelInputStream(final InputStream inputStream,
+    Set<ExtensionDTO> parseExtensionsFromExcelInputStream(final ExtensionScheme extensionScheme,
+                                                          final InputStream inputStream,
                                                           final String sheetName);
 
-    Set<ExtensionDTO> parseExtensionsFromExcelWorkbook(final Workbook workbook,
+    Set<ExtensionDTO> parseExtensionsFromExcelWorkbook(final ExtensionScheme extensionScheme,
+                                                       final Workbook workbook,
                                                        final String sheetName);
 }

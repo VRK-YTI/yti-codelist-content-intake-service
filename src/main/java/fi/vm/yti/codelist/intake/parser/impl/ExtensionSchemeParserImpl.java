@@ -93,7 +93,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
             final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
-            validateRequiredSchemeHeaders(headerMap);
+            validateRequiredHeaders(headerMap);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
                 validateRequiredDataOnRecord(record);
@@ -173,7 +173,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 firstRow = false;
                 headerMap = resolveHeaderMap(row);
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
-                validateRequiredSchemeHeaders(headerMap);
+                validateRequiredHeaders(headerMap);
             } else {
                 final ExtensionSchemeDTO extensionScheme = new ExtensionSchemeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
@@ -247,7 +247,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
         }
     }
 
-    private void validateRequiredSchemeHeaders(final Map<String, Integer> headerMap) {
+    private void validateRequiredHeaders(final Map<String, Integer> headerMap) {
         if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
