@@ -247,7 +247,7 @@ public abstract class AbstractBaseParser {
     public String parseCodeValueFromRecord(final CSVRecord record) {
         final String codeValue;
         if (record.isMapped(CONTENT_HEADER_CODEVALUE)) {
-            codeValue = parseStringFromCsvRecord(record, CONTENT_HEADER_CODEVALUE);
+            codeValue = parseStringFromCsvRecord(record, CONTENT_HEADER_CODEVALUE).trim();
         } else {
             codeValue = null;
         }

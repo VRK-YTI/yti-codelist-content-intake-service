@@ -140,8 +140,8 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
                     validateRequiredHeaders(headerMap);
                 } else {
                     final CodeRegistryDTO fromCodeRegistry = new CodeRegistryDTO();
-                    final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
-                    if (codeValue == null || codeValue.trim().isEmpty()) {
+                    final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).trim();
+                    if (codeValue.isEmpty()) {
                         continue;
                     }
                     validateCodeValue(codeValue);

@@ -176,7 +176,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 validateRequiredHeaders(headerMap);
             } else {
                 final ExtensionSchemeDTO extensionScheme = new ExtensionSchemeDTO();
-                final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)));
+                final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).trim();
                 final String status = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)));
                 if (skipEmptyLine(codeValue, status)) {
                     continue;
