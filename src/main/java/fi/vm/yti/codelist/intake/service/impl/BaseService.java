@@ -297,7 +297,7 @@ public abstract class BaseService {
                 extensionDto.setExtension(mapExtensionDto(extension.getExtension(), false));
             }
             if (extension.getExtensionScheme() != null) {
-                extensionDto.setExtensionScheme(mapExtensionSchemeDto(extension.getExtensionScheme(), false, true));
+                extensionDto.setExtensionScheme(mapExtensionSchemeDto(extension.getExtensionScheme(), false, true, true));
             }
         }
         extensionDto.setUrl(apiUtils.createExtensionUrl(extensionDto));
@@ -329,13 +329,14 @@ public abstract class BaseService {
     @Transactional
     public ExtensionSchemeDTO mapExtensionSchemeDto(final ExtensionScheme extensionScheme,
                                                     final boolean deep) {
-        return mapExtensionSchemeDto(extensionScheme, deep, false);
+        return mapExtensionSchemeDto(extensionScheme, deep, false, false);
     }
 
     @Transactional
     public ExtensionSchemeDTO mapExtensionSchemeDto(final ExtensionScheme extensionScheme,
                                                     final boolean deep,
-                                                    final boolean includeParentCodeScheme) {
+                                                    final boolean includeParentCodeScheme,
+                                                    final boolean includeCodeSchemes) {
         final ExtensionSchemeDTO extensionSchemeDto = new ExtensionSchemeDTO();
         extensionSchemeDto.setId(extensionScheme.getId());
         extensionSchemeDto.setPropertyType(mapPropertyTypeDto(extensionScheme.getPropertyType()));
@@ -350,10 +351,13 @@ public abstract class BaseService {
                 extensionSchemeDto.setParentCodeScheme(mapCodeSchemeDto(extensionScheme.getParentCodeScheme(), false));
             }
         }
-        if (deep) {
+        if (deep || includeCodeSchemes) {
             if (extensionScheme.getCodeSchemes() != null) {
                 extensionSchemeDto.setCodeSchemes(mapCodeSchemeDtos(extensionScheme.getCodeSchemes(), false));
             }
+        }
+
+        if (deep) {
             if (extensionScheme.getExtensions() != null) {
                 extensionSchemeDto.setExtensions(mapExtensionDtos(extensionScheme.getExtensions(), false));
             }
