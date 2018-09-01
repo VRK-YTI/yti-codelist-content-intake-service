@@ -252,7 +252,6 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         if (codeSchemeDTO.getId() != null && codeSchemeDTO.getLastCodeschemeId() != null) {
             this.populateAllVersionsToCodeSchemeDTO(codeSchemeDTO);
         }
-        this.populateVariantInfoToCodeSchemeDTO(codeSchemeDTO);
         return codeSchemeDTO;
     }
 
@@ -263,6 +262,41 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (authorizationManager.canCodeSchemeBeDeleted(codeScheme)) {
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
+            LinkedHashSet<CodeSchemeListItem> variantsOfCodeSchemeToBeDeleted = codeSchemeDto.getVariantsOfThisCodeScheme();
+            if (!variantsOfCodeSchemeToBeDeleted.isEmpty()) {
+                variantsOfCodeSchemeToBeDeleted.forEach( variant -> {
+                    CodeSchemeDTO variantDTO = this.findById(variant.getId());
+                    LinkedHashSet<CodeSchemeListItem> variantsVariantMothers = variantDTO.getVariantMothersOfThisCodeScheme();
+                    LinkedHashSet<CodeSchemeListItem> variantMothersToRemove = new LinkedHashSet<>();
+                    variantsVariantMothers.forEach( variantMother -> {
+                        if (variantMother.getId().compareTo(codeSchemeDto.getId()) == 0) {
+                            variantMothersToRemove.add(variantMother);
+                            codeSchemeDTOsToIndex.add(variantDTO);
+                        }
+                    });
+                    variantDTO.getVariantMothersOfThisCodeScheme().removeAll(variantMothersToRemove);
+                });
+
+            }
+
+
+            LinkedHashSet<CodeSchemeListItem> variantMothersOfCodeSchemeToBeDeleted = codeSchemeDto.getVariantMothersOfThisCodeScheme();
+
+            if (!variantMothersOfCodeSchemeToBeDeleted.isEmpty()) {
+                variantMothersOfCodeSchemeToBeDeleted.forEach( variantMother -> {
+                    CodeSchemeDTO variantMotherDTO = this.findById(variantMother.getId());
+                    LinkedHashSet<CodeSchemeListItem> variantMothersVariants = variantMotherDTO.getVariantsOfThisCodeScheme();
+                    LinkedHashSet<CodeSchemeListItem> variantsToRemove = new LinkedHashSet<>();
+                    variantMothersVariants.forEach( variant -> {
+                        if (variant.getId().compareTo(codeSchemeDto.getId()) == 0) {
+                            variantsToRemove.add(variant);
+                            codeSchemeDTOsToIndex.add(variantMotherDTO);
+                        }
+                    });
+                    variantMotherDTO.getVariantsOfThisCodeScheme().removeAll(variantsToRemove);
+                });
+            }
+
             dealWithPossibleVersionHierarchyBeforeDeleting(codeSchemeDto, codeSchemeDTOsToIndex);
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
             if (!externalReferences.isEmpty()) {
@@ -293,8 +327,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         final CodeScheme codeScheme = codeSchemeDao.updateCodeSchemeFromDto(codeRegistry, codeSchemeDto);
         CodeSchemeDTO result =  mapCodeSchemeDto(codeScheme, true);
-        result.setVariants(mapCodeSchemeDtos(codeScheme.getVariants(), false));
-        result.setVariantMothers(mapCodeSchemeDtos(codeScheme.getVariantMothers(), false));
+        result.setVariantsOfThisCodeScheme(result.getVariantsOfThisCodeScheme());
+        result.setVariantMothersOfThisCodeScheme(result.getVariantMothersOfThisCodeScheme());
         return result;
     }
 
@@ -328,28 +362,6 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                 return getPreviousVersions(prevVersion.getPrevCodeschemeId(), result);
             }
         }
-    }
-
-    @Transactional
-    public void populateVariantInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
-        Set<CodeSchemeDTO> allVariantsFromTheSameMother = currentCodeScheme.getVariants(); //findAllVariantsFromTheSameMother(currentCodeScheme.getId());
-        LinkedHashSet<CodeSchemeListItem> variants = new LinkedHashSet<>();
-        for (CodeSchemeDTO currentVariant : allVariantsFromTheSameMother) {
-            CodeSchemeListItem variant = new CodeSchemeListItem(currentVariant.getId(), currentVariant.getPrefLabel(), currentVariant.getUri(), currentVariant.getStartDate(), currentVariant.getEndDate(), currentVariant.getStatus());
-            variants.add(variant);
-        }
-        currentCodeScheme.setVariantsOfThisCodeScheme(variants);
-    }
-
-    @Transactional
-    public void populateVariantMotherInfoToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
-        Set<CodeSchemeDTO> variantMothers = currentCodeScheme.getVariantMothers();
-        LinkedHashSet<CodeSchemeListItem> mothers = new LinkedHashSet<>();
-        for (CodeSchemeDTO currentMother : variantMothers) {
-            CodeSchemeListItem mother = new CodeSchemeListItem(currentMother.getId(), currentMother.getPrefLabel(), currentMother.getUri(), currentMother.getStartDate(), currentMother.getEndDate(), currentMother.getStatus());
-            mothers.add(mother);
-        }
-        currentCodeScheme.setVariantMothersOfThisCodeScheme(mothers);
     }
 
     private void dealWithPossibleVersionHierarchyBeforeDeleting(CodeSchemeDTO currentCodeScheme, HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {

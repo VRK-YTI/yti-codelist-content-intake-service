@@ -5,6 +5,7 @@ import java.util.*;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -257,15 +258,16 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         } else {
             existingCodeScheme.setDefaultCode(null);
         }
+
         Set<CodeScheme> variants = new LinkedHashSet<>();
-        for (CodeSchemeDTO variant : fromCodeScheme.getVariants()) {
+        for (CodeSchemeListItem variant : fromCodeScheme.getVariantsOfThisCodeScheme()) {
             CodeScheme codeScheme = this.findById(variant.getId());
             variants.add(codeScheme);
         }
         existingCodeScheme.setVariants(variants);
 
         Set<CodeScheme> variantMothers = new LinkedHashSet<>();
-        for (CodeSchemeDTO variantMother : fromCodeScheme.getVariantMothers()) {
+        for (CodeSchemeListItem variantMother : fromCodeScheme.getVariantMothersOfThisCodeScheme()) {
             CodeScheme codeScheme = this.findById(variantMother.getId());
             variantMothers.add(codeScheme);
         }
@@ -318,14 +320,14 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeScheme.setCreated(timeStamp);
         codeScheme.setModified(timeStamp);
         Set<CodeScheme> variants = new LinkedHashSet<>();
-        for (CodeSchemeDTO variant : fromCodeScheme.getVariants()) {
+        for (CodeSchemeListItem variant : fromCodeScheme.getVariantsOfThisCodeScheme()) {
             CodeScheme variantCodeScheme = this.findById(variant.getId());
             variants.add(variantCodeScheme);
         }
         codeScheme.setVariants(variants);
 
         Set<CodeScheme> variantMothers = new LinkedHashSet<>();
-        for (CodeSchemeDTO variantMother : fromCodeScheme.getVariantMothers()) {
+        for (CodeSchemeListItem variantMother : fromCodeScheme.getVariantMothersOfThisCodeScheme()) {
             CodeScheme variantMotherEntity = this.findById(variantMother.getId());
             variantMothers.add(variantMotherEntity);
         }

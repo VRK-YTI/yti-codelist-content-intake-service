@@ -107,25 +107,9 @@ public class IndexingImpl implements Indexing {
     private boolean indexCodeSchemes(final String indexName) {
         final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.findAll();
 
-        LinkedHashSet<UUID> parentsOfVariants = new LinkedHashSet<>();
-        LinkedHashSet<UUID> childrenOfVariants = new LinkedHashSet<>();
         for (CodeSchemeDTO currentCodeScheme : codeSchemes) {
-            if (!currentCodeScheme.getVariants().isEmpty()) {
-                parentsOfVariants.add(currentCodeScheme.getId());
-            }
-            if (!currentCodeScheme.getVariantMothers().isEmpty()) {
-                childrenOfVariants.add(currentCodeScheme.getId());
-            }
             if (currentCodeScheme.getLastCodeschemeId() != null) {
                 codeSchemeService.populateAllVersionsToCodeSchemeDTO(currentCodeScheme);
-            }
-        }
-        for (CodeSchemeDTO currentCodeScheme : codeSchemes) {
-            if (parentsOfVariants.contains(currentCodeScheme.getId())) {
-                codeSchemeService.populateVariantInfoToCodeSchemeDTO(currentCodeScheme);
-            }
-            if (childrenOfVariants.contains(currentCodeScheme.getId())) {
-                codeSchemeService.populateVariantMotherInfoToCodeSchemeDTO(currentCodeScheme);
             }
         }
         return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);

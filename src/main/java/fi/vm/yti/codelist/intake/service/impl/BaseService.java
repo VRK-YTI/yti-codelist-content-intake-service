@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.transaction.Transactional;
@@ -13,6 +14,7 @@ import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
+import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
@@ -121,13 +123,14 @@ public abstract class BaseService {
             if (codeScheme.getExtensionSchemes() != null) {
                 codeSchemeDto.setExtensionSchemes(mapExtensionSchemeDtos(codeScheme.getExtensionSchemes(), false));
             }
-            if (!codeScheme.getVariants().isEmpty()) {
-                codeSchemeDto.setVariants(mapVariantDtos(codeScheme.getVariants()));
-            }
-            if (!codeScheme.getVariantMothers().isEmpty()) {
-                codeSchemeDto.setVariantMothers(mapVariantMotherDtos(codeScheme.getVariantMothers()));
-            }
         }
+        if (!codeScheme.getVariants().isEmpty()) {
+            codeSchemeDto.setVariantsOfThisCodeScheme(getVariantsOfCodeSchemeAsListItems(codeScheme));
+        }
+        if (!codeScheme.getVariantMothers().isEmpty()) {
+            codeSchemeDto.setVariantMothersOfThisCodeScheme(getVariantMothersOfCodeSchemeAsListItems(codeScheme));
+        }
+
         codeSchemeDto.setUrl(apiUtils.createCodeSchemeUrl(codeSchemeDto));
         codeSchemeDto.setCreated(codeScheme.getCreated());
         codeSchemeDto.setModified(codeScheme.getModified());
@@ -135,6 +138,32 @@ public abstract class BaseService {
         codeSchemeDto.setNextCodeschemeId(codeScheme.getNextCodeschemeId());
         codeSchemeDto.setLastCodeschemeId(codeScheme.getLastCodeschemeId());
         return codeSchemeDto;
+    }
+
+    @Transactional
+    public LinkedHashSet<CodeSchemeListItem> getVariantsOfCodeSchemeAsListItems(CodeScheme codeScheme) {
+        LinkedHashSet<CodeSchemeListItem> result = new LinkedHashSet<>();
+        if (!codeScheme.getVariants().isEmpty()) {
+            for (CodeScheme variant : codeScheme.getVariants()) {
+                CodeSchemeListItem item = new CodeSchemeListItem(variant.getId(), variant.getPrefLabel(),
+                        variant.getUri(), variant.getStartDate(), variant.getEndDate(), variant.getStatus());
+                result.add(item);
+            }
+        }
+        return result;
+    }
+
+    @Transactional
+    public LinkedHashSet<CodeSchemeListItem> getVariantMothersOfCodeSchemeAsListItems(CodeScheme codeScheme) {
+        LinkedHashSet<CodeSchemeListItem> result = new LinkedHashSet<>();
+        if (!codeScheme.getVariantMothers().isEmpty()) {
+            for (CodeScheme variantMother : codeScheme.getVariantMothers()) {
+                CodeSchemeListItem item = new CodeSchemeListItem(variantMother.getId(), variantMother.getPrefLabel(),
+                        variantMother.getUri(), variantMother.getStartDate(), variantMother.getEndDate(), variantMother.getStatus());
+                result.add(item);
+            }
+        }
+        return result;
     }
 
     @Transactional
