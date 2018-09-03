@@ -103,6 +103,13 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 if (relationCodeValue != null) {
                     extension.setExtension(createExtensionWithCodeValue(relationCodeValue));
                 }
+                if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
+                    extension.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                }
+                if (record.isMapped(CONTENT_HEADER_ENDDATE)) {
+                    extension.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                }
+                validateStartDateIsBeforeEndDate(extension);
                 extensionSchemes.add(extension);
             }
         } catch (final IllegalArgumentException e) {
@@ -181,6 +188,13 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                         extension.setExtension(createExtensionWithCodeValue(relationCodeValue));
                     }
                 }
+                if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
+                    extension.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
+                    extension.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
+                }
+                validateStartDateIsBeforeEndDate(extension);
                 extensions.add(extension);
             }
         }
@@ -253,5 +267,11 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
 
     private String parseExtensionRelationFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_RELATION);
+    }
+
+    private void validateStartDateIsBeforeEndDate(final ExtensionDTO extension) {
+        if (!startDateIsBeforeEndDateSanityCheck(extension.getStartDate(), extension.getEndDate())) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_END_BEFORE_START_DATE));
+        }
     }
 }

@@ -279,6 +279,12 @@ public class ExtensionDaoImpl implements ExtensionDao {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
+        if (!Objects.equals(existingExtension.getStartDate(), fromExtension.getStartDate())) {
+            existingExtension.setStartDate(fromExtension.getStartDate());
+        }
+        if (!Objects.equals(existingExtension.getEndDate(), fromExtension.getEndDate())) {
+            existingExtension.setEndDate(fromExtension.getEndDate());
+        }
         existingExtension.setModified(new Date(System.currentTimeMillis()));
         return existingExtension;
     }
@@ -312,6 +318,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, extensionScheme, fromExtension);
             extension.setCode(code);
         }
+        extension.setStartDate(fromExtension.getStartDate());
+        extension.setEndDate(fromExtension.getEndDate());
         setRelatedExtension(fromExtension, extension);
         extension.setExtensionScheme(extensionScheme);
         final Date timeStamp = new Date(System.currentTimeMillis());

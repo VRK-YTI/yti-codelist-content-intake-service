@@ -156,17 +156,6 @@ public abstract class BaseService {
     }
 
     @Transactional
-    public Set<ExtensionSchemeDTO> mapExtensiondSchemeDtos(final Set<ExtensionScheme> extensionSchemes,
-                                                          final boolean deep) {
-        final Set<ExtensionSchemeDTO> extensionSchemeDtos = new HashSet<>();
-        if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
-            extensionSchemes.forEach(extensionScheme -> extensionSchemeDtos.add(mapExtensionSchemeDto(extensionScheme, deep)));
-        }
-        return extensionSchemeDtos;
-    }
-
-
-    @Transactional
     public Set<CodeSchemeDTO> mapDeepCodeSchemeDtos(final Set<CodeScheme> codeSchemes) {
         return mapCodeSchemeDtos(codeSchemes, true);
     }
@@ -301,6 +290,8 @@ public abstract class BaseService {
             }
         }
         extensionDto.setUrl(apiUtils.createExtensionUrl(extensionDto));
+        extensionDto.setStartDate(extension.getStartDate());
+        extensionDto.setEndDate(extension.getEndDate());
         extensionDto.setCreated(extension.getCreated());
         extensionDto.setModified(extension.getModified());
         return extensionDto;

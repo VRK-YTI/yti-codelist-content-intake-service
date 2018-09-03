@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.model;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,21 +16,25 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import fi.vm.yti.codelist.common.dto.Views;
 import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
 @JsonFilter("extension")
 @Table(name = "extension")
 @XmlRootElement
-@XmlType(propOrder = { "id", "code", "prefLabel", "extensionValue", "order", "extensionScheme", "extension" })
+@XmlType(propOrder = { "id", "code", "prefLabel", "startDate", "endDate", "extensionValue", "order", "extensionScheme", "extension" })
 @ApiModel(value = "Extension", description = "Extension model that represents data for one extension element.")
 public class Extension extends AbstractIdentifyableTimestampedCode implements Serializable {
 
@@ -41,7 +46,8 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
     private ExtensionScheme extensionScheme;
     private Extension extension;
     private Map<String, String> prefLabel;
-
+    private Date startDate;
+    private Date endDate;
 
     @Column(name = "extensionvalue")
     @JsonView(Views.Normal.class)
@@ -131,5 +137,45 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
             prefLabel.remove(language);
         }
         setPrefLabel(prefLabel);
+    }
+
+    @ApiModelProperty(dataType = "dateTime")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @Temporal(TemporalType.DATE)
+    @Column(name = "startdate")
+    @JsonView(Views.Normal.class)
+    public Date getStartDate() {
+        if (startDate != null) {
+            return new Date(startDate.getTime());
+        }
+        return null;
+    }
+
+    public void setStartDate(final Date startDate) {
+        if (startDate != null) {
+            this.startDate = new Date(startDate.getTime());
+        } else {
+            this.startDate = null;
+        }
+    }
+
+    @ApiModelProperty(dataType = "dateTime")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @Temporal(TemporalType.DATE)
+    @Column(name = "enddate")
+    @JsonView(Views.Normal.class)
+    public Date getEndDate() {
+        if (endDate != null) {
+            return new Date(endDate.getTime());
+        }
+        return null;
+    }
+
+    public void setEndDate(final Date endDate) {
+        if (endDate != null) {
+            this.endDate = new Date(endDate.getTime());
+        } else {
+            this.endDate = null;
+        }
     }
 }
