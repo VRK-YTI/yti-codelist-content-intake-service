@@ -258,45 +258,10 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     @Transactional
     public CodeSchemeDTO deleteCodeScheme(final String codeRegistryCodeValue,
                                           final String codeSchemeCodeValue,
-                                          final HashSet codeSchemeDTOsToIndex) {
+                                          final LinkedHashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (authorizationManager.canCodeSchemeBeDeleted(codeScheme)) {
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
-            LinkedHashSet<CodeSchemeListItem> variantsOfCodeSchemeToBeDeleted = codeSchemeDto.getVariantsOfThisCodeScheme();
-            if (!variantsOfCodeSchemeToBeDeleted.isEmpty()) {
-                variantsOfCodeSchemeToBeDeleted.forEach( variant -> {
-                    CodeSchemeDTO variantDTO = this.findById(variant.getId());
-                    LinkedHashSet<CodeSchemeListItem> variantsVariantMothers = variantDTO.getVariantMothersOfThisCodeScheme();
-                    LinkedHashSet<CodeSchemeListItem> variantMothersToRemove = new LinkedHashSet<>();
-                    variantsVariantMothers.forEach( variantMother -> {
-                        if (variantMother.getId().compareTo(codeSchemeDto.getId()) == 0) {
-                            variantMothersToRemove.add(variantMother);
-                            codeSchemeDTOsToIndex.add(variantDTO);
-                        }
-                    });
-                    variantDTO.getVariantMothersOfThisCodeScheme().removeAll(variantMothersToRemove);
-                });
-
-            }
-
-
-            LinkedHashSet<CodeSchemeListItem> variantMothersOfCodeSchemeToBeDeleted = codeSchemeDto.getVariantMothersOfThisCodeScheme();
-
-            if (!variantMothersOfCodeSchemeToBeDeleted.isEmpty()) {
-                variantMothersOfCodeSchemeToBeDeleted.forEach( variantMother -> {
-                    CodeSchemeDTO variantMotherDTO = this.findById(variantMother.getId());
-                    LinkedHashSet<CodeSchemeListItem> variantMothersVariants = variantMotherDTO.getVariantsOfThisCodeScheme();
-                    LinkedHashSet<CodeSchemeListItem> variantsToRemove = new LinkedHashSet<>();
-                    variantMothersVariants.forEach( variant -> {
-                        if (variant.getId().compareTo(codeSchemeDto.getId()) == 0) {
-                            variantsToRemove.add(variant);
-                            codeSchemeDTOsToIndex.add(variantMotherDTO);
-                        }
-                    });
-                    variantMotherDTO.getVariantsOfThisCodeScheme().removeAll(variantsToRemove);
-                });
-            }
-
             dealWithPossibleVersionHierarchyBeforeDeleting(codeSchemeDto, codeSchemeDTOsToIndex);
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
             if (!externalReferences.isEmpty()) {
@@ -407,7 +372,6 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         prev.setNextCodeschemeId(null);
         prev = this.updateCodeSchemeFromDto(prev.getCodeRegistry().getCodeValue(), prev);
         this.populateAllVersionsToCodeSchemeDTO(prev);
-        //TODO - do variants need to be populated also?
         codeSchemeDTOsToIndex.add(prev);
 
         LinkedHashSet<CodeSchemeDTO> previousVersions = new LinkedHashSet<>();
@@ -416,7 +380,6 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             prevVersion.setLastCodeschemeId(prev.getId());
             prevVersion = this.updateCodeSchemeFromDto(prevVersion.getCodeRegistry().getCodeValue(), prevVersion);
             this.populateAllVersionsToCodeSchemeDTO(prevVersion);
-            //TODO - do variants need to be populated also?
             codeSchemeDTOsToIndex.add(prevVersion);
         }
     }
@@ -439,7 +402,6 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         for (CodeSchemeDTO olderVersion : olderVersions) {
             this.populateAllVersionsToCodeSchemeDTO(olderVersion);
         }
-        //TODO - do variants need to be populated also?
         codeSchemeDTOsToIndex.add(prev);
         codeSchemeDTOsToIndex.addAll(olderVersions);
         codeSchemeDTOsToIndex.add(next);
@@ -451,7 +413,6 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         next.setPrevCodeschemeId(null);
         next = this.updateCodeSchemeFromDto(next.getCodeRegistry().getCodeValue(), next);
         this.populateAllVersionsToCodeSchemeDTO(next);
-        //TODO - do variants need to be populated also?
         codeSchemeDTOsToIndex.add(next);
     }
 }

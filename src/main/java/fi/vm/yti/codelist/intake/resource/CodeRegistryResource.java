@@ -17,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
+import fi.vm.yti.codelist.common.util.YtiCollectionUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -174,7 +175,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
                 final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
                 final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeSchemeId);
                 final Set<ExtensionDTO> extensions = extensionService.findByExtensionSchemeId(codeSchemeId);
-                HashSet<CodeSchemeDTO> codeSchemesToIndexButRedundantHereBecauseTheWholeRegistryIsGettingDeletedInThisLoop = new LinkedHashSet<>();
+                LinkedHashSet<CodeSchemeDTO> codeSchemesToIndexButRedundantHereBecauseTheWholeRegistryIsGettingDeletedInThisLoop = new LinkedHashSet<>();
                 final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue(), codeSchemesToIndexButRedundantHereBecauseTheWholeRegistryIsGettingDeletedInThisLoop);
                 indexing.deleteCodeScheme(codeScheme);
                 if (codes != null) {
@@ -361,31 +362,27 @@ public class CodeRegistryResource extends AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response detachAVariantFromCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                @PathParam("idOfVariantToDetach") final String idOfVariantToDetach,
-                                               @ApiParam(value = "JSON playload for the mother CodeScheme data.", required = true) final String jsonPayload) {
+                                               @ApiParam(value = "JSON playload for the mother CodeScheme data.", required = true) final String jsonPayload) throws Exception {
         CodeSchemeDTO motherCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
         CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(UUID.fromString(idOfVariantToDetach));
 
-        motherCodeScheme.getVariantsOfThisCodeScheme().forEach( variant -> {
-            if (variant.getId().compareTo(variantCodeScheme.getId()) == 0) {
-                motherCodeScheme.getVariantsOfThisCodeScheme().remove(variant);
+        for (Iterator<CodeSchemeListItem> iterator = motherCodeScheme.getVariantsOfThisCodeScheme().iterator(); iterator.hasNext();) {
+            CodeSchemeListItem item = iterator.next();
+            if (item.getId().compareTo(variantCodeScheme.getId()) == 0) {
+                iterator.remove();
             }
-        });
+        }
 
         codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, motherCodeScheme);
 
-        variantCodeScheme.getVariantMothersOfThisCodeScheme().forEach( mother -> {
-            if (mother.getId().compareTo(motherCodeScheme.getId()) == 0) {
-                variantCodeScheme.getVariantMothersOfThisCodeScheme().remove(mother);
+        for (Iterator<CodeSchemeListItem> iterator = variantCodeScheme.getVariantMothersOfThisCodeScheme().iterator(); iterator.hasNext();) {
+            CodeSchemeListItem item = iterator.next();
+            if (item.getId().compareTo(motherCodeScheme.getId()) == 0) {
+                iterator.remove();
             }
-        });
+        }
 
         codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, variantCodeScheme);
-
-        variantCodeScheme.getVariantMothersOfThisCodeScheme().forEach( mother -> {
-            if (mother.getId().compareTo(motherCodeScheme.getId()) == 0) {
-                variantCodeScheme.getVariantMothersOfThisCodeScheme().remove(mother);
-            }
-        });
 
         return indexCodeschemesAfterVariantAttachmentOrDetachment(motherCodeScheme, variantCodeScheme);
     }
@@ -499,8 +496,36 @@ public class CodeRegistryResource extends AbstractBaseResource {
             final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
             final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeSchemeId);
             final Set<ExtensionDTO> extensions = extensionService.findByExtensionSchemeId(codeSchemeId);
-            HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex = new LinkedHashSet<>();
+            LinkedHashSet<CodeSchemeDTO> codeSchemeDTOsToIndex = new LinkedHashSet<>();
             final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue(), codeSchemeDTOsToIndex);
+
+            LinkedHashSet<CodeSchemeDTO> affectedCodeSchemes = new LinkedHashSet<>();
+            for (CodeSchemeListItem item : codeScheme.getVariantsOfThisCodeScheme()) {
+                affectedCodeSchemes.add(codeSchemeService.findById(item.getId()));
+            }
+            for (CodeSchemeListItem item : codeScheme.getVariantMothersOfThisCodeScheme()) {
+                affectedCodeSchemes.add(codeSchemeService.findById(item.getId()));
+            }
+
+            for (CodeSchemeDTO dto : affectedCodeSchemes) {
+                for (Iterator<CodeSchemeListItem> iterator = dto.getVariantsOfThisCodeScheme().iterator(); iterator.hasNext();) {
+                    CodeSchemeListItem item = iterator.next();
+                    if(item.getId().compareTo(codeScheme.getId()) == 0) {
+                        iterator.remove();
+                    }
+                }
+                for (Iterator<CodeSchemeListItem> iterator = dto.getVariantMothersOfThisCodeScheme().iterator(); iterator.hasNext();) {
+                    CodeSchemeListItem item = iterator.next();
+                    if(item.getId().compareTo(codeScheme.getId()) == 0) {
+                        iterator.remove();
+                    }
+                }
+
+                if (!YtiCollectionUtils.containsItemWithSameId(codeSchemeDTOsToIndex,dto)) {
+                    codeSchemeDTOsToIndex.add(dto);
+                }
+            }
+
             indexing.updateCodeSchemes(codeSchemeDTOsToIndex);
             indexing.deleteCodeScheme(codeScheme);
             if (codes != null) {
