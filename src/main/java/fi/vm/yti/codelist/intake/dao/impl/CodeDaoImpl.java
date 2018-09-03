@@ -84,7 +84,7 @@ public class CodeDaoImpl implements CodeDao {
     }
 
     public void delete(final Set<Code> codes) {
-        codes.forEach(entityChangeLogger::logCodeChange);
+        entityChangeLogger.logCodesChange(codes);
         codeRepository.delete(codes);
     }
 
