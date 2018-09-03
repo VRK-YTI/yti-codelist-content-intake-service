@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -61,13 +62,20 @@ public class CodeDaoImpl implements CodeDao {
     }
 
     public void save(final Code code) {
+        save(code, true);
+    }
+
+    public void save(final Code code,
+                     final boolean logData) {
         codeRepository.save(code);
-        entityChangeLogger.logCodeChange(code);
+        if (logData) {
+            entityChangeLogger.logCodeChange(code);
+        }
     }
 
     public void save(final Set<Code> codes) {
         codeRepository.save(codes);
-        codes.forEach(entityChangeLogger::logCodeChange);
+        entityChangeLogger.logCodesChange(codes);
     }
 
     public void delete(final Code code) {
@@ -124,11 +132,9 @@ public class CodeDaoImpl implements CodeDao {
                                        final CodeDTO codeDto) {
         final Set<Code> codes = new HashSet<>();
         Code code = null;
-        if (codeScheme != null) {
-            code = createOrUpdateCode(codeScheme, codeDto, codes);
-            codes.add(code);
-            updateExternalReferences(codeScheme, code, codeDto);
-        }
+        code = createOrUpdateCode(codeScheme, codeDto, null, codes, null);
+        codes.add(code);
+        updateExternalReferences(codeScheme, code, codeDto);
         save(code);
         codeSchemeRepository.save(codeScheme);
         return codes;
@@ -140,20 +146,20 @@ public class CodeDaoImpl implements CodeDao {
                                          final Map<String, String> broaderCodeMapping,
                                          final boolean updateExternalReferences) {
         final Set<Code> codes = new HashSet<>();
-        if (codeScheme != null) {
-            for (final CodeDTO codeDto : codeDtos) {
-                final Code code = createOrUpdateCode(codeScheme, codeDto, codes);
-                save(code);
-                if (updateExternalReferences) {
-                    updateExternalReferences(codeScheme, code, codeDto);
-                }
-                if (code != null) {
-                    codes.add(code);
-                    save(code);
-                }
+        MutableInt nextOrder = new MutableInt(getNextOrderInSequence(codeScheme));
+        final Set<Code> existingCodes = codeRepository.findByCodeSchemeId(codeScheme.getId());
+        for (final CodeDTO codeDto : codeDtos) {
+            final Code code = createOrUpdateCode(codeScheme, codeDto, existingCodes, codes, nextOrder);
+            save(code, false);
+            if (updateExternalReferences) {
+                updateExternalReferences(codeScheme, code, codeDto);
             }
-            setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes);
+            if (code != null) {
+                codes.add(code);
+                save(code, false);
+            }
         }
+        setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes);
         if (!codes.isEmpty()) {
             save(codes);
             codeSchemeRepository.save(codeScheme);
@@ -168,10 +174,22 @@ public class CodeDaoImpl implements CodeDao {
         code.setExternalReferences(externalReferences);
     }
 
+    private Code findExistingCodeFromSet(final Set<Code> existingCodes,
+                                         final String codeValue) {
+        for (final Code code : existingCodes) {
+            if (code.getCodeValue().equalsIgnoreCase(codeValue)) {
+                return code;
+            }
+        }
+        return null;
+    }
+
     @Transactional
     public Code createOrUpdateCode(final CodeScheme codeScheme,
                                    final CodeDTO codeDto,
-                                   final Set<Code> codes) {
+                                   final Set<Code> existingCodes,
+                                   final Set<Code> codes,
+                                   MutableInt nextOrder) {
         validateCodeForCodeScheme(codeDto);
         final Code existingCode;
         if (codeDto.getId() != null) {
@@ -179,23 +197,25 @@ public class CodeDaoImpl implements CodeDao {
             if (existingCode == null) {
                 checkForExistingCodeInCodeScheme(codeScheme, codeDto);
             }
+        } else if (existingCodes != null) {
+            existingCode = findExistingCodeFromSet(existingCodes, codeDto.getCodeValue());
         } else {
             existingCode = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
         }
         final Code code;
         if (existingCode != null) {
-            code = updateCode(codeScheme, existingCode, codeDto, codes);
+            code = updateCode(codeScheme, existingCode, codeDto, codes, nextOrder);
         } else {
-            code = createCode(codeScheme, codeDto, codes);
+            code = createCode(codeScheme, codeDto, codes, nextOrder);
         }
         return code;
     }
 
     private void checkOrderAndShiftExistingCodeOrderIfInUse(final CodeScheme codeScheme,
-                                                            final Integer order,
+                                                            final CodeDTO fromCode,
                                                             final Set<Code> codes) {
-        final Code code = codeRepository.findByCodeSchemeAndOrder(codeScheme, order);
-        if (code != null) {
+        final Code code = codeRepository.findByCodeSchemeAndOrder(codeScheme, fromCode.getOrder());
+        if (code != null && !code.getCodeValue().equalsIgnoreCase(fromCode.getCodeValue())) {
             code.setOrder(getNextOrderInSequence(codeScheme));
             save(code);
             codes.add(code);
@@ -205,7 +225,8 @@ public class CodeDaoImpl implements CodeDao {
     private Code updateCode(final CodeScheme codeScheme,
                             final Code existingCode,
                             final CodeDTO fromCode,
-                            final Set<Code> codes) {
+                            final Set<Code> codes,
+                            MutableInt nextOrder) {
         final String uri = apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, existingCode);
         if (!Objects.equals(existingCode.getStatus(), fromCode.getStatus())) {
             if (!authorizationManager.isSuperUser() && Status.valueOf(existingCode.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCode.getStatus()).ordinal() < Status.VALID.ordinal()) {
@@ -227,10 +248,18 @@ public class CodeDaoImpl implements CodeDao {
         }
         if (!Objects.equals(existingCode.getOrder(), fromCode.getOrder())) {
             if (fromCode.getOrder() != null) {
-                checkOrderAndShiftExistingCodeOrderIfInUse(codeScheme, fromCode.getOrder(), codes);
+                checkOrderAndShiftExistingCodeOrderIfInUse(codeScheme, fromCode, codes);
                 existingCode.setOrder(fromCode.getOrder());
+                if (fromCode.getOrder() > nextOrder.getValue()) {
+                    nextOrder = new MutableInt(fromCode.getOrder() + 1);
+                }
             } else if (fromCode.getOrder() == null && existingCode.getOrder() == null) {
-                existingCode.setOrder(getNextOrderInSequence(codeScheme));
+                final Integer next = getNextOrderInSequence(codeScheme);
+                existingCode.setOrder(next);
+                nextOrder = new MutableInt(next + 1);
+            } else {
+                existingCode.setOrder(nextOrder.getValue());
+                nextOrder = new MutableInt(nextOrder.getValue() + 1);
             }
         }
         if (!Objects.equals(existingCode.getBroaderCodeId(), fromCode.getBroaderCodeId())) {
@@ -272,7 +301,8 @@ public class CodeDaoImpl implements CodeDao {
 
     private Code createCode(final CodeScheme codeScheme,
                             final CodeDTO fromCode,
-                            final Set<Code> codes) {
+                            final Set<Code> codes,
+                            MutableInt nextOrder) {
         final Code code = new Code();
         if (fromCode.getId() != null) {
             code.setId(fromCode.getId());
@@ -289,10 +319,18 @@ public class CodeDaoImpl implements CodeDao {
         code.setHierarchyLevel(fromCode.getHierarchyLevel());
         code.setBroaderCodeId(fromCode.getBroaderCodeId());
         if (fromCode.getOrder() != null) {
-            checkOrderAndShiftExistingCodeOrderIfInUse(codeScheme, fromCode.getOrder(), codes);
+            checkOrderAndShiftExistingCodeOrderIfInUse(codeScheme, fromCode, codes);
             code.setOrder(fromCode.getOrder());
+            if (fromCode.getOrder() > nextOrder.getValue()) {
+                nextOrder = new MutableInt(fromCode.getOrder() + 1);
+            }
+        } else if (nextOrder == null) {
+            final int order = getNextOrderInSequence(codeScheme);
+            code.setOrder(order);
+            nextOrder = new MutableInt(order + 1);
         } else {
-            code.setOrder(getNextOrderInSequence(codeScheme));
+            code.setOrder(nextOrder.getValue());
+            nextOrder = new MutableInt(nextOrder.getValue() + 1);
         }
         for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             code.setPrefLabel(entry.getKey(), entry.getValue());

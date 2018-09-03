@@ -1,5 +1,7 @@
 package fi.vm.yti.codelist.intake.log;
 
+import java.util.Set;
+
 import javax.inject.Inject;
 import javax.sql.DataSource;
 
@@ -60,6 +62,16 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         final EditedEntity editedEntity = new EditedEntity(createCommit());
         editedEntity.setCodeScheme(codeScheme);
         editedEntityRepository.save(editedEntity);
+    }
+
+    public void logCodesChange(final Set<Code> codes) {
+        final Commit commit = createCommit();
+        codes.forEach(code -> {
+            entityPayloadLogger.logCode(code);
+            final EditedEntity editedEntity = new EditedEntity(commit);
+            editedEntity.setCode(code);
+            editedEntityRepository.save(editedEntity);
+        });
     }
 
     public void logCodeChange(final Code code) {
