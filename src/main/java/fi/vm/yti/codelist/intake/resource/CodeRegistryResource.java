@@ -246,11 +246,9 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
         final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
         if (codeScheme != null) {
-            if (!codeScheme.getVariantMothers().isEmpty()) {
-                for (CodeSchemeDTO mother : codeScheme.getVariantMothers()) {
+            if (!codeScheme.getVariantMothersOfThisCodeScheme().isEmpty()) {
+                for (CodeSchemeListItem mother : codeScheme.getVariantMothersOfThisCodeScheme()) {
                     CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(mother.getId());
-                    codeSchemeService.populateVariantInfoToCodeSchemeDTO(motherCodeScheme);
-                    codeSchemeService.populateAllVersionsToCodeSchemeDTO(motherCodeScheme);
                     LinkedHashSet<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
                     for (CodeSchemeListItem item : variantsOfTheMother) {
                         if (item.getId().equals(codeScheme.getId())) {
@@ -290,7 +288,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                     indexing.updateExtensions(extensionService.findByExtensionSchemeId(extensionScheme.getId()));
                 });
             }
-            codeSchemeService.populateVariantInfoToCodeSchemeDTO(codeScheme);
         }
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
@@ -326,37 +323,34 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                             @ApiParam(value = "JSON playload for the mother CodeScheme data.", required = true) final String jsonPayload) {
         CodeSchemeDTO motherCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
         CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(UUID.fromString(variantCodeSchemeId));
-        codeSchemeService.populateVariantMotherInfoToCodeSchemeDTO(variantCodeScheme);
-        codeSchemeService.populateVariantInfoToCodeSchemeDTO(variantCodeScheme);
-        codeSchemeService.populateVariantMotherInfoToCodeSchemeDTO(motherCodeScheme);
-        codeSchemeService.populateVariantInfoToCodeSchemeDTO(motherCodeScheme);
 
         boolean found = false;
-        for (CodeSchemeDTO variant : motherCodeScheme.getVariants()) {
+        for (CodeSchemeListItem variant : motherCodeScheme.getVariantsOfThisCodeScheme()) {
             if (variant.getId().compareTo(variantCodeScheme.getId()) == 0) {
                 found = true;
             }
         }
         if (!found) {
-            motherCodeScheme.getVariants().add(variantCodeScheme);
+            motherCodeScheme.getVariantsOfThisCodeScheme().add(
+                    new CodeSchemeListItem(variantCodeScheme.getId(), variantCodeScheme.getPrefLabel(),
+                            variantCodeScheme.getUri(), variantCodeScheme.getStartDate(),
+                            variantCodeScheme.getEndDate(), variantCodeScheme.getStatus()));
+            codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, motherCodeScheme);
         }
-
-        codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, motherCodeScheme);
-        CodeSchemeListItem variant = new CodeSchemeListItem(variantCodeScheme.getId(), variantCodeScheme.getPrefLabel(), variantCodeScheme.getUri(), variantCodeScheme.getStartDate(), variantCodeScheme.getEndDate(), variantCodeScheme.getStatus());
-        motherCodeScheme.getVariantsOfThisCodeScheme().add(variant);
-        variantCodeScheme.getVariantMothers().add(motherCodeScheme);
-        codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, variantCodeScheme);
-        CodeSchemeListItem variantMother = new CodeSchemeListItem(motherCodeScheme.getId(), motherCodeScheme.getPrefLabel(), motherCodeScheme.getUri(), motherCodeScheme.getStartDate(), motherCodeScheme.getEndDate(), motherCodeScheme.getStatus());
 
         found = false;
         for (CodeSchemeListItem variantMotha : variantCodeScheme.getVariantMothersOfThisCodeScheme()) {
-            if (variantMotha.getId().compareTo(variantMother.getId()) == 0) {
+            if (variantMotha.getId().compareTo(motherCodeScheme.getId()) == 0) {
                 found = true;
             }
         }
         if (!found) {
-            variantCodeScheme.getVariantMothersOfThisCodeScheme().add(variantMother);
+            variantCodeScheme.getVariantMothersOfThisCodeScheme().add(
+                    new CodeSchemeListItem(motherCodeScheme.getId(), motherCodeScheme.getPrefLabel(),
+                            motherCodeScheme.getUri(), motherCodeScheme.getStartDate(),
+                            motherCodeScheme.getEndDate(), motherCodeScheme.getStatus()));
         }
+        codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, variantCodeScheme);
 
         return indexCodeschemesAfterVariantAttachmentOrDetachment(motherCodeScheme, variantCodeScheme);
     }
@@ -371,22 +365,17 @@ public class CodeRegistryResource extends AbstractBaseResource {
         CodeSchemeDTO motherCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
         CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(UUID.fromString(idOfVariantToDetach));
 
-        motherCodeScheme.getVariants().forEach( variant -> {
-            if (variant.getId().compareTo(variantCodeScheme.getId()) == 0) {
-                motherCodeScheme.getVariants().remove(variant);
-            }
-        });
-
-        codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, motherCodeScheme);
         motherCodeScheme.getVariantsOfThisCodeScheme().forEach( variant -> {
             if (variant.getId().compareTo(variantCodeScheme.getId()) == 0) {
                 motherCodeScheme.getVariantsOfThisCodeScheme().remove(variant);
             }
         });
 
-        variantCodeScheme.getVariantMothers().forEach( mother -> {
+        codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, motherCodeScheme);
+
+        variantCodeScheme.getVariantMothersOfThisCodeScheme().forEach( mother -> {
             if (mother.getId().compareTo(motherCodeScheme.getId()) == 0) {
-                variantCodeScheme.getVariantMothers().remove(mother);
+                variantCodeScheme.getVariantMothersOfThisCodeScheme().remove(mother);
             }
         });
 
@@ -788,8 +777,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
 
     private Response indexCodeschemesAfterVariantAttachmentOrDetachment(final CodeSchemeDTO motherCodeScheme, final CodeSchemeDTO variantCodeScheme) {
         final HashSet<CodeSchemeDTO> codeSchemes = new HashSet<>();
-        codeSchemeService.populateVariantInfoToCodeSchemeDTO(motherCodeScheme);
-        codeSchemeService.populateVariantMotherInfoToCodeSchemeDTO(variantCodeScheme);
         codeSchemeService.populateAllVersionsToCodeSchemeDTO(variantCodeScheme);
         codeSchemes.add(variantCodeScheme);
         codeSchemes.add(motherCodeScheme);
@@ -807,7 +794,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
                                                          final String codeRegistryCodeValue) {
         final HashSet<CodeSchemeDTO> codeSchemes = new HashSet<>();
         codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
-        codeSchemeService.populateVariantInfoToCodeSchemeDTO(codeScheme);
         codeSchemes.add(codeScheme);
         LinkedHashSet<CodeSchemeDTO> previousVersions = new LinkedHashSet<>();
         previousVersions = codeSchemeService.getPreviousVersions(codeScheme.getPrevCodeschemeId(), previousVersions);
