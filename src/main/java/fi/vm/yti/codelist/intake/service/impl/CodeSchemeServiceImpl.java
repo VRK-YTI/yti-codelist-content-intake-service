@@ -372,6 +372,10 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         prev.setNextCodeschemeId(null);
         prev = this.updateCodeSchemeFromDto(prev.getCodeRegistry().getCodeValue(), prev);
         this.populateAllVersionsToCodeSchemeDTO(prev);
+        if (prev.getAllVersions().size() <= 1) { //if there is only one left, the version "stack" should be empty.
+            prev.setAllVersions(new LinkedHashSet<CodeSchemeListItem>());
+
+        }
         codeSchemeDTOsToIndex.add(prev);
 
         LinkedHashSet<CodeSchemeDTO> previousVersions = new LinkedHashSet<>();
@@ -380,6 +384,10 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             prevVersion.setLastCodeschemeId(prev.getId());
             prevVersion = this.updateCodeSchemeFromDto(prevVersion.getCodeRegistry().getCodeValue(), prevVersion);
             this.populateAllVersionsToCodeSchemeDTO(prevVersion);
+            if (prevVersion.getAllVersions().size() <= 1) { //if there is only one left, the version "stack" should be empty.
+                prevVersion.setAllVersions(new LinkedHashSet<CodeSchemeListItem>());
+
+            }
             codeSchemeDTOsToIndex.add(prevVersion);
         }
     }
