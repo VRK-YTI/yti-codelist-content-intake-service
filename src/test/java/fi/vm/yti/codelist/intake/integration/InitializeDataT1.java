@@ -29,6 +29,6 @@ public class InitializeDataT1 extends AbstractIntegrationTestBase {
     @Test
     public void initializeDataTest() {
         ytiDataAccess.initializeDefaultData();
-        assertEquals(1, codeRegistryRepository.findAll().size());
+        assertEquals(2, codeRegistryRepository.findAll().size());
     }
 }

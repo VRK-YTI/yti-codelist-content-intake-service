@@ -32,6 +32,6 @@ public class CodeRegistryResourceT2 extends AbstractIntegrationTestBase {
     public void postRegistriesTest() {
         final ResponseEntity<String> response = uploadCodeRegistriesFromCsv(TEST_CODEREGISTRY_FILENAME);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(9, codeRegistryRepository.findAll().size());
+        assertEquals(10, codeRegistryRepository.findAll().size());
     }
 }
