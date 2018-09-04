@@ -46,6 +46,7 @@ public class YtiDataAccess {
     private static final String PROPERTYTYPE_IDENTIFIER = "v3";
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
     private static final String DEFAULT_CLASSIFICATIONREGISTRY_FILENAME = "classificationregistries.csv";
+    private static final String DEFAULT_INTEROPERABILITYREGISTRY_FILENAME = "interoperabilityplatformregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
     private static final String DEFAULT_TESTREGISTRY_FILENAME = "testcoderegistries.csv";
     private static final String SERVICE_CLASSIFICATION_P9 = "P9";
@@ -103,8 +104,9 @@ public class YtiDataAccess {
     public void initializeDefaultData() {
         loadDefaultPropertyTypes();
         loadDefaultExternalReferences();
-        loadRegistryContent(DEFAULT_CLASSIFICATIONREGISTRY_FILENAME, "V3_CLASSIFICATION");
+        loadRegistryContent(DEFAULT_CLASSIFICATIONREGISTRY_FILENAME, "V2_CLASSIFICATION");
         classifyServiceClassification();
+        loadRegistryContent(DEFAULT_INTEROPERABILITYREGISTRY_FILENAME, "V1_INTEROPERABILITY");
     }
 
     private void loadRegistryContent(final String filename,
