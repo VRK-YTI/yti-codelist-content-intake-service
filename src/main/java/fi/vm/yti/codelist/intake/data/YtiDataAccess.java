@@ -103,7 +103,7 @@ public class YtiDataAccess {
     public void initializeDefaultData() {
         loadDefaultPropertyTypes();
         loadDefaultExternalReferences();
-        loadRegistryContent(DEFAULT_CLASSIFICATIONREGISTRY_FILENAME, "V2_CLASSIFICATION");
+        loadRegistryContent(DEFAULT_CLASSIFICATIONREGISTRY_FILENAME, "V3_CLASSIFICATION");
         classifyServiceClassification();
     }
 

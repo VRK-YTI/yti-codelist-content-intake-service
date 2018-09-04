@@ -190,6 +190,7 @@ public abstract class AbstractBaseParser {
     public void checkForDuplicateCodeValueInImportData(final Set<String> values,
                                                        final String codeValue) {
         if (values.contains(codeValue.toLowerCase())) {
+            LOG.warn("Duplicate code: " + codeValue);
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_DUPLICATE_CODE_VALUE));
         }
     }
