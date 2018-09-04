@@ -98,7 +98,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 if (requiresExtensionValue) {
                     extension.setExtensionValue(parseExtensionValueFromCsvRecord(record));
                 }
-                extension.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record)));
+                extension.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 final String relationCodeValue = parseExtensionRelationFromCsvRecord(record);
                 if (relationCodeValue != null) {
                     extension.setExtension(createExtensionWithCodeValue(relationCodeValue));
@@ -172,8 +172,8 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
             } else {
                 final ExtensionDTO extension = new ExtensionDTO();
                 final String codeIdentifier = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
+                extension.setCode(createCodeUsingIdentifier(codeIdentifier, String.valueOf(row.getRowNum())));
                 validateRequiredDataOnRow(requireExtensionValue, row, headerMap, formatter);
-                extension.setCode(createCodeUsingIdentifier(codeIdentifier));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     extension.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
@@ -249,10 +249,11 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         return parseStringFromCsvRecord(record, CONTENT_HEADER_CODE);
     }
 
-    private CodeDTO createCodeUsingIdentifier(final String identifier) {
+    private CodeDTO createCodeUsingIdentifier(final String identifier,
+                                              final String rowIdentifier) {
         final CodeDTO code = new CodeDTO();
         if (identifier == null || identifier.isEmpty()) {
-            throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_CODE));
+            throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_CODE, rowIdentifier));
         } else if (identifier.startsWith("http://uri.suomi.fi/codelist/")) {
             code.setUri(identifier);
         } else {
