@@ -57,6 +57,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         final ExtensionDTO extension;
         try {
             extension = mapper.readValue(jsonPayload, ExtensionDTO.class);
+            validateStartDateIsBeforeEndDate(extension);
         } catch (final IOException e) {
             LOG.error("Extension parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
@@ -74,6 +75,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
             LOG.error("Extension parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
+        extensions.forEach(this::validateStartDateIsBeforeEndDate);
         return extensions;
     }
 
