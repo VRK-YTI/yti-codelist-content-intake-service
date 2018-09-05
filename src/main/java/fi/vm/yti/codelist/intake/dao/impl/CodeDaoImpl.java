@@ -251,15 +251,15 @@ public class CodeDaoImpl implements CodeDao {
                 checkOrderAndShiftExistingCodeOrderIfInUse(codeScheme, fromCode, codes);
                 existingCode.setOrder(fromCode.getOrder());
                 if (fromCode.getOrder() > nextOrder.getValue()) {
-                    nextOrder = new MutableInt(fromCode.getOrder() + 1);
+                    nextOrder.setValue(fromCode.getOrder() + 1);
                 }
             } else if (fromCode.getOrder() == null && existingCode.getOrder() == null) {
                 final Integer next = getNextOrderInSequence(codeScheme);
                 existingCode.setOrder(next);
-                nextOrder = new MutableInt(next + 1);
+                nextOrder.setValue(next + 1);
             } else {
                 existingCode.setOrder(nextOrder.getValue());
-                nextOrder = new MutableInt(nextOrder.getValue() + 1);
+                nextOrder.setValue(nextOrder.getValue() + 1);
             }
         }
         if (!Objects.equals(existingCode.getBroaderCodeId(), fromCode.getBroaderCodeId())) {
@@ -322,15 +322,15 @@ public class CodeDaoImpl implements CodeDao {
             checkOrderAndShiftExistingCodeOrderIfInUse(codeScheme, fromCode, codes);
             code.setOrder(fromCode.getOrder());
             if (fromCode.getOrder() > nextOrder.getValue()) {
-                nextOrder = new MutableInt(fromCode.getOrder() + 1);
+                nextOrder.setValue(fromCode.getOrder() + 1);
             }
         } else if (nextOrder == null) {
             final int order = getNextOrderInSequence(codeScheme);
             code.setOrder(order);
-            nextOrder = new MutableInt(order + 1);
+            nextOrder.setValue(order + 1);
         } else {
             code.setOrder(nextOrder.getValue());
-            nextOrder = new MutableInt(nextOrder.getValue() + 1);
+            nextOrder.setValue(nextOrder.getValue() + 1);
         }
         for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             code.setPrefLabel(entry.getKey(), entry.getValue());
