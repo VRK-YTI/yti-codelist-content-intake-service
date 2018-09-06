@@ -153,7 +153,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_PROPERTYTYPE_NOT_FOUND));
         }
         if (!Objects.equals(existingExtensionScheme.getPropertyType(), propertyType)) {
-            existingExtensionScheme.setPropertyType(propertyType);
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_PROPERTYTYPE_CHANGE_NOT_ALLOWED));
         }
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (fromExtensionScheme.getCodeSchemes() != null && !fromExtensionScheme.getCodeSchemes().isEmpty()) {
