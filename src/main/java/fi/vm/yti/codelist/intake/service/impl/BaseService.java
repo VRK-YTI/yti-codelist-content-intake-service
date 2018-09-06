@@ -102,6 +102,7 @@ public abstract class BaseService {
         codeSchemeDto.setStartDate(codeScheme.getStartDate());
         codeSchemeDto.setEndDate(codeScheme.getEndDate());
         codeSchemeDto.setStatus(codeScheme.getStatus());
+        codeSchemeDto.setSource(codeScheme.getSource());
         codeSchemeDto.setDefinition(codeScheme.getDefinition());
         codeSchemeDto.setPrefLabel(codeScheme.getPrefLabel());
         codeSchemeDto.setDescription(codeScheme.getDescription());
