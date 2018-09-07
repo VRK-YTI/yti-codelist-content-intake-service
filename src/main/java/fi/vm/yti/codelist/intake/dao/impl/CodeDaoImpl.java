@@ -25,6 +25,7 @@ import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
+import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -42,19 +43,22 @@ public class CodeDaoImpl implements CodeDao {
     private final CodeRepository codeRepository;
     private final CodeSchemeRepository codeSchemeRepository;
     private final ExternalReferenceDao externalReferenceDao;
+    private final LanguageService languageService;
 
     public CodeDaoImpl(final EntityChangeLogger entityChangeLogger,
                        final ApiUtils apiUtils,
                        final AuthorizationManager authorizationManager,
                        final CodeRepository codeRepository,
                        final CodeSchemeRepository codeSchemeRepository,
-                       final ExternalReferenceDao externalReferenceDao) {
+                       final ExternalReferenceDao externalReferenceDao,
+                       final LanguageService languageService) {
         this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.authorizationManager = authorizationManager;
         this.codeRepository = codeRepository;
         this.codeSchemeRepository = codeSchemeRepository;
         this.externalReferenceDao = externalReferenceDao;
+        this.languageService = languageService;
     }
 
     public int getCodeCount() {
@@ -100,6 +104,10 @@ public class CodeDaoImpl implements CodeDao {
         return codeRepository.findByUriIgnoreCase(uri);
     }
 
+    public Set<String> findByCodeSchemeAndCodeValue(final UUID codeSchemeId) {
+        return codeRepository.getCodeSchemeCodeValues(codeSchemeId);
+    }
+
     public Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
                                              final String codeValue) {
         return codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeValue);
@@ -109,6 +117,10 @@ public class CodeDaoImpl implements CodeDao {
                                                              final String codeValue,
                                                              final UUID broaderCodeId) {
         return codeRepository.findByCodeSchemeAndCodeValueIgnoreCaseAndBroaderCodeId(codeScheme, codeValue, broaderCodeId);
+    }
+
+    public Set<String> getCodeSchemeCodeValues(final UUID codeSchemeId) {
+        return codeRepository.getCodeSchemeCodeValues(codeSchemeId);
     }
 
     public Code findById(UUID id) {
@@ -267,6 +279,7 @@ public class CodeDaoImpl implements CodeDao {
         }
         for (final Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingCode.getPrefLabel(language), value)) {
                 existingCode.setPrefLabel(language, value);
@@ -274,6 +287,7 @@ public class CodeDaoImpl implements CodeDao {
         }
         for (final Map.Entry<String, String> entry : fromCode.getDescription().entrySet()) {
             final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingCode.getDescription(language), value)) {
                 existingCode.setDescription(language, value);
@@ -281,6 +295,7 @@ public class CodeDaoImpl implements CodeDao {
         }
         for (final Map.Entry<String, String> entry : fromCode.getDefinition().entrySet()) {
             final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingCode.getDefinition(language), value)) {
                 existingCode.setDefinition(language, value);
@@ -333,13 +348,19 @@ public class CodeDaoImpl implements CodeDao {
             nextOrder.setValue(nextOrder.getValue() + 1);
         }
         for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
-            code.setPrefLabel(entry.getKey(), entry.getValue());
+            final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
+            code.setPrefLabel(language, entry.getValue());
         }
         for (Map.Entry<String, String> entry : fromCode.getDescription().entrySet()) {
-            code.setDescription(entry.getKey(), entry.getValue());
+            final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
+            code.setDescription(language, entry.getValue());
         }
         for (Map.Entry<String, String> entry : fromCode.getDefinition().entrySet()) {
-            code.setDefinition(entry.getKey(), entry.getValue());
+            final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
+            code.setDefinition(language, entry.getValue());
         }
         code.setStartDate(fromCode.getStartDate());
         code.setEndDate(fromCode.getEndDate());

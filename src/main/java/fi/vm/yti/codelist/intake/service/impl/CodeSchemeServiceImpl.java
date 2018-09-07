@@ -2,15 +2,18 @@ package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
-import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
-import fi.vm.yti.codelist.intake.exception.InconsistencyInVersionHierarchyException;
 import org.apache.poi.POIXMLException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -24,6 +27,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
@@ -31,6 +35,7 @@ import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
+import fi.vm.yti.codelist.intake.exception.InconsistencyInVersionHierarchyException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
@@ -291,14 +296,14 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                                  final CodeSchemeDTO codeSchemeDto) {
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         final CodeScheme codeScheme = codeSchemeDao.updateCodeSchemeFromDto(codeRegistry, codeSchemeDto);
-        CodeSchemeDTO result =  mapCodeSchemeDto(codeScheme, true);
+        CodeSchemeDTO result = mapCodeSchemeDto(codeScheme, true);
         result.setVariantsOfThisCodeScheme(result.getVariantsOfThisCodeScheme());
         result.setVariantMothersOfThisCodeScheme(result.getVariantMothersOfThisCodeScheme());
         return result;
     }
 
     @Transactional
-    public void populateAllVersionsToCodeSchemeDTO(CodeSchemeDTO currentCodeScheme) {
+    public void populateAllVersionsToCodeSchemeDTO(final CodeSchemeDTO currentCodeScheme) {
         if (currentCodeScheme.getLastCodeschemeId() == null) {
             return;
         }
@@ -307,7 +312,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
         allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
         LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
-        for (CodeSchemeDTO version: allVersions) {
+        for (CodeSchemeDTO version : allVersions) {
             CodeSchemeListItem listItem = new CodeSchemeListItem(version.getId(), version.getPrefLabel(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
             versionHistory.add(listItem);
         }
@@ -315,7 +320,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     }
 
     @Transactional
-    public LinkedHashSet<CodeSchemeDTO> getPreviousVersions(UUID uuid, LinkedHashSet result) {
+    public LinkedHashSet<CodeSchemeDTO> getPreviousVersions(final UUID uuid,
+                                                            final LinkedHashSet result) {
         CodeSchemeDTO prevVersion = this.findById(uuid);
         if (prevVersion == null) {
             return result;
@@ -329,44 +335,46 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         }
     }
 
-    private void dealWithPossibleVersionHierarchyBeforeDeleting(CodeSchemeDTO currentCodeScheme, HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
+    private void dealWithPossibleVersionHierarchyBeforeDeleting(final CodeSchemeDTO currentCodeScheme,
+                                                                final HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
         if (currentCodeScheme.getLastCodeschemeId() == null) {
             return; // the codescheme about to get deleted is not part of a version hierarchy, no need for actions
         }
         if (currentCodeSchemeIsOnTopOfVersionHierarchy(currentCodeScheme) && currentCodeScheme.getPrevCodeschemeId() != null) {
-            dealWithTopPositionInVersionHierarchyBeforeDeletion(currentCodeScheme,codeSchemeDTOsToIndex);
+            dealWithTopPositionInVersionHierarchyBeforeDeletion(currentCodeScheme, codeSchemeDTOsToIndex);
         } else if (currentCodeSchemeIsSomewhereInTheMiddleOfVersionHierarchy(currentCodeScheme)) {
-            dealWithMiddlePositionInVersionHierarchyBeforeDeletion(currentCodeScheme,codeSchemeDTOsToIndex);
-        } else if (currentCodeSchemeIsAtTheBottomOfVersionHierarchy(currentCodeScheme)){
+            dealWithMiddlePositionInVersionHierarchyBeforeDeletion(currentCodeScheme, codeSchemeDTOsToIndex);
+        } else if (currentCodeSchemeIsAtTheBottomOfVersionHierarchy(currentCodeScheme)) {
             if (currentCodeScheme.getNextCodeschemeId() != null) {
-                dealWithBottomPositionInVersionHierarchyBeforeDeletion(currentCodeScheme,codeSchemeDTOsToIndex);
+                dealWithBottomPositionInVersionHierarchyBeforeDeletion(currentCodeScheme, codeSchemeDTOsToIndex);
             }
         } else {
             //should never end up here, if we do, there is a bug somewhere.
             InconsistencyInVersionHierarchyException e = new InconsistencyInVersionHierarchyException(
-                    new ErrorModel (HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                            "Inconsistent version hierarchy when trying to delete codescheme.",
-                            currentCodeScheme.getId().toString()));
+                new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "Inconsistent version hierarchy when trying to delete codescheme.",
+                    currentCodeScheme.getId().toString()));
             LOG.error("Inconsistent version hierarchy when trying to delete codescheme "
-                    + currentCodeScheme.getCodeValue() + " with UUID "
-                    + currentCodeScheme.getId() + " .", e);
+                + currentCodeScheme.getCodeValue() + " with UUID "
+                + currentCodeScheme.getId() + " .", e);
         }
     }
 
-    private boolean currentCodeSchemeIsOnTopOfVersionHierarchy(CodeSchemeDTO currentCodeScheme) {
+    private boolean currentCodeSchemeIsOnTopOfVersionHierarchy(final CodeSchemeDTO currentCodeScheme) {
         return currentCodeScheme.getLastCodeschemeId().compareTo(currentCodeScheme.getId()) == 0;
     }
 
-    private boolean currentCodeSchemeIsSomewhereInTheMiddleOfVersionHierarchy(CodeSchemeDTO currentCodeScheme) {
-        return currentCodeScheme.getLastCodeschemeId().compareTo(currentCodeScheme.getId()) != 0  &&
-                currentCodeScheme.getPrevCodeschemeId() != null;
+    private boolean currentCodeSchemeIsSomewhereInTheMiddleOfVersionHierarchy(final CodeSchemeDTO currentCodeScheme) {
+        return currentCodeScheme.getLastCodeschemeId().compareTo(currentCodeScheme.getId()) != 0 &&
+            currentCodeScheme.getPrevCodeschemeId() != null;
     }
 
-    private boolean currentCodeSchemeIsAtTheBottomOfVersionHierarchy(CodeSchemeDTO currentCodeScheme) {
+    private boolean currentCodeSchemeIsAtTheBottomOfVersionHierarchy(final CodeSchemeDTO currentCodeScheme) {
         return currentCodeScheme.getPrevCodeschemeId() == null;
     }
 
-    private void dealWithTopPositionInVersionHierarchyBeforeDeletion(CodeSchemeDTO currentCodeScheme, HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
+    private void dealWithTopPositionInVersionHierarchyBeforeDeletion(final CodeSchemeDTO currentCodeScheme,
+                                                                     final HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
         CodeSchemeDTO prev = this.findById(currentCodeScheme.getPrevCodeschemeId());
         prev.setLastCodeschemeId(prev.getId());
         prev.setNextCodeschemeId(null);
@@ -392,7 +400,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         }
     }
 
-    private void dealWithMiddlePositionInVersionHierarchyBeforeDeletion(CodeSchemeDTO currentCodeScheme, HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
+    private void dealWithMiddlePositionInVersionHierarchyBeforeDeletion(final CodeSchemeDTO currentCodeScheme,
+                                                                        final HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
 
         CodeSchemeDTO prev = this.findById(currentCodeScheme.getPrevCodeschemeId());
         prev.setNextCodeschemeId(currentCodeScheme.getNextCodeschemeId());
@@ -416,7 +425,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
 
     }
 
-    private void dealWithBottomPositionInVersionHierarchyBeforeDeletion(CodeSchemeDTO currentCodeScheme, HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
+    private void dealWithBottomPositionInVersionHierarchyBeforeDeletion(final CodeSchemeDTO currentCodeScheme,
+                                                                        final HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
         CodeSchemeDTO next = this.findById(currentCodeScheme.getNextCodeschemeId());
         next.setPrevCodeschemeId(null);
         next = this.updateCodeSchemeFromDto(next.getCodeRegistry().getCodeValue(), next);

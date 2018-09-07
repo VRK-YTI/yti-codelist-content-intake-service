@@ -92,31 +92,6 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     }
 
     @Transactional
-    public Set<CodeDTO> parseAndPersistCodesFromExcelWorkbook(final String codeRegistryCodeValue,
-                                                              final String codeSchemeCodeValue,
-                                                              final Workbook workbook,
-                                                              final String sheetName) {
-        Set<Code> codes;
-        final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
-        if (codeRegistry != null) {
-            if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
-            }
-            final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
-            final HashMap<String, String> broaderCodeMapping = new HashMap<>();
-            if (codeScheme != null) {
-                final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelWorkbook(workbook, sheetName, broaderCodeMapping);
-                codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, false);
-            } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
-            }
-        } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
-        }
-        return mapDeepCodeDtos(codes);
-    }
-
-    @Transactional
     public Set<CodeDTO> parseAndPersistCodesFromExcelWorkbook(final Workbook workbook,
                                                               final String sheetName,
                                                               final CodeScheme codeScheme) {
@@ -263,7 +238,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                 codeScheme.setDefaultCode(null);
                 codeSchemeDao.save(codeScheme);
             }
-            final CodeDTO codeDto = mapCodeDto(code, true);
+            final CodeDTO codeDto = mapCodeDto(code, true, true);
             codeDao.delete(code);
             return codeDto;
         } else {
@@ -283,13 +258,5 @@ public class CodeServiceImpl extends BaseService implements CodeService {
             return null;
         }
         return mapDeepCodeDto(code);
-    }
-
-    @Transactional
-    public Set<Code> updateCodesFromDtos(final CodeScheme codeScheme,
-                                         final Set<CodeDTO> codeDtos,
-                                         final Map<String, String> broaderCodeMapping,
-                                         final boolean updateExternalReferences) {
-        return codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, updateExternalReferences);
     }
 }

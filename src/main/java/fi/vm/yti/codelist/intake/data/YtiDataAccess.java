@@ -35,8 +35,7 @@ import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import fi.vm.yti.codelist.intake.update.UpdateManager;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.JUPO_REGISTRY;
-import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
+import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.*;
 
 @Service
 public class YtiDataAccess {
@@ -106,7 +105,26 @@ public class YtiDataAccess {
         loadDefaultExternalReferences();
         loadRegistryContent(DEFAULT_CLASSIFICATIONREGISTRY_FILENAME, "V2_CLASSIFICATION");
         classifyServiceClassification();
-        loadRegistryContent(DEFAULT_INTEROPERABILITYREGISTRY_FILENAME, "V1_INTEROPERABILITY");
+        loadRegistryContent(DEFAULT_INTEROPERABILITYREGISTRY_FILENAME, "V2_INTEROPERABILITY");
+        setLanguageCodesToEarlierCodeSchemes();
+    }
+
+    @Transactional
+    public void setLanguageCodesToEarlierCodeSchemes() {
+        final CodeScheme languageCodeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(YTI_REGISTRY, YTI_LANGUAGECODE_CODESCHEME);
+        final Set<Code> defaultLanguageCodes = new HashSet<>();
+        defaultLanguageCodes.add(codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, "fi"));
+        defaultLanguageCodes.add(codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, "sv"));
+        defaultLanguageCodes.add(codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, "en"));
+        final Set<CodeScheme> codeSchemes = codeSchemeDao.findAll();
+        if (codeSchemes != null) {
+            codeSchemes.forEach(codeScheme -> {
+                if (codeScheme.getLanguageCodes() == null || codeScheme.getLanguageCodes().isEmpty()) {
+                    codeScheme.setLanguageCodes(defaultLanguageCodes);
+                    codeSchemeDao.save(codeScheme);
+                }
+            });
+        }
     }
 
     private void loadRegistryContent(final String filename,

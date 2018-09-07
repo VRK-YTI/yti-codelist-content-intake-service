@@ -1,17 +1,23 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
@@ -21,6 +27,7 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
+import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
@@ -40,6 +47,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     private final CodeRepository codeRepository;
     private final AuthorizationManager authorizationManager;
     private final ExternalReferenceDao externalReferenceDao;
+    private final LanguageService languageService;
 
     @Inject
     public CodeSchemeDaoImpl(final EntityChangeLogger entityChangeLogger,
@@ -48,7 +56,8 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                              final CodeSchemeRepository codeSchemeRepository,
                              final CodeRepository codeRepository,
                              final AuthorizationManager authorizationManager,
-                             final ExternalReferenceDao externalReferenceDao) {
+                             final ExternalReferenceDao externalReferenceDao,
+                             final LanguageService languageService) {
         this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.codeRegistryRepository = codeRegistryRepository;
@@ -56,6 +65,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         this.codeRepository = codeRepository;
         this.authorizationManager = authorizationManager;
         this.externalReferenceDao = externalReferenceDao;
+        this.languageService = languageService;
     }
 
     public void delete(final CodeScheme codeScheme) {
@@ -197,6 +207,8 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                 existingCodeScheme.setDataClassifications(null);
             }
         }
+        final Set<Code> languageCodes = resolveLanguageCodesFromDtos(fromCodeScheme.getLanguageCodes());
+        existingCodeScheme.setLanguageCodes(languageCodes);
         final String uri = apiUtils.createCodeSchemeUri(codeRegistry, existingCodeScheme);
         if (!Objects.equals(existingCodeScheme.getUri(), uri)) {
             existingCodeScheme.setUri(uri);
@@ -212,6 +224,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
+            languageService.validateInputLanguage(existingCodeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingCodeScheme.getPrefLabel(language), value)) {
                 existingCodeScheme.setPrefLabel(language, value);
@@ -219,6 +232,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getDescription().entrySet()) {
             final String language = entry.getKey();
+            languageService.validateInputLanguage(existingCodeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingCodeScheme.getDescription(language), value)) {
                 existingCodeScheme.setDescription(language, value);
@@ -226,6 +240,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getDefinition().entrySet()) {
             final String language = entry.getKey();
+            languageService.validateInputLanguage(existingCodeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingCodeScheme.getDefinition(language), value)) {
                 existingCodeScheme.setDefinition(language, value);
@@ -233,6 +248,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getChangeNote().entrySet()) {
             final String language = entry.getKey();
+            languageService.validateInputLanguage(existingCodeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingCodeScheme.getChangeNote(language), value)) {
                 existingCodeScheme.setChangeNote(language, value);
@@ -286,6 +302,8 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         final CodeScheme codeScheme = new CodeScheme();
         codeScheme.setCodeRegistry(codeRegistry);
         codeScheme.setDataClassifications(resolveDataClassificationsFromDtos(fromCodeScheme.getDataClassifications()));
+        final Set<Code> languageCodes = resolveLanguageCodesFromDtos(fromCodeScheme.getLanguageCodes());
+        codeScheme.setLanguageCodes(languageCodes);
         if (fromCodeScheme.getId() != null) {
             codeScheme.setId(fromCodeScheme.getId());
         } else {
@@ -299,16 +317,24 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeScheme.setLegalBase(fromCodeScheme.getLegalBase());
         codeScheme.setGovernancePolicy(fromCodeScheme.getGovernancePolicy());
         for (final Map.Entry<String, String> entry : fromCodeScheme.getPrefLabel().entrySet()) {
-            codeScheme.setPrefLabel(entry.getKey(), entry.getValue());
+            final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
+            codeScheme.setPrefLabel(language, entry.getValue());
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getDescription().entrySet()) {
-            codeScheme.setDescription(entry.getKey(), entry.getValue());
+            final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
+            codeScheme.setDescription(language, entry.getValue());
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getDefinition().entrySet()) {
-            codeScheme.setDefinition(entry.getKey(), entry.getValue());
+            final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
+            codeScheme.setDefinition(language, entry.getValue());
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getChangeNote().entrySet()) {
-            codeScheme.setChangeNote(entry.getKey(), entry.getValue());
+            final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
+            codeScheme.setChangeNote(language, entry.getValue());
         }
         codeScheme.setVersion(fromCodeScheme.getVersion());
         codeScheme.setStatus(fromCodeScheme.getStatus());
@@ -351,6 +377,26 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                     codes.add(code);
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_CLASSIFICATION));
+                }
+            });
+        } else {
+            codes = null;
+        }
+        return codes;
+    }
+
+    private Set<Code> resolveLanguageCodesFromDtos(final Set<CodeDTO> codeDtos) {
+        final Set<Code> codes;
+        if (codeDtos != null && !codeDtos.isEmpty()) {
+            codes = new HashSet<>();
+            final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(YTI_REGISTRY);
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, YTI_LANGUAGECODE_CODESCHEME);
+            codeDtos.forEach(codeDto -> {
+                final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
+                if (code != null) {
+                    codes.add(code);
+                } else {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_LANGUAGECODE));
                 }
             });
         } else {

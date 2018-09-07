@@ -34,7 +34,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeScheme")
 @Table(name = "codescheme")
 @XmlRootElement
-@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies", "variants", "variantMothers", "nextCodeschemeId", "prevCodeschemeId", "lastCodeschemeId" })
+@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "languageCodes", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies", "variants", "variantMothers", "nextCodeschemeId", "prevCodeschemeId", "lastCodeschemeId" })
 @ApiModel(value = "CodeScheme", description = "CodeScheme model that represents data for one single codescheme.")
 public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
@@ -52,7 +52,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private Set<Code> codes;
     private Set<Code> dataClassifications;
     private Set<ExternalReference> externalReferences;
-
+    private Set<Code> languageCodes;
     private Set<ExtensionScheme> extensionSchemes;
     private String conceptUriInVocabularies;
     private Code defaultCode;
@@ -326,6 +326,21 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     public void setDataClassifications(final Set<Code> dataClassifications) {
         this.dataClassifications = dataClassifications;
+    }
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "languagecode_codescheme_code",
+        joinColumns = {
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
+        inverseJoinColumns = {
+            @JoinColumn(name = "code_id", referencedColumnName = "id", nullable = false, updatable = false) })
+    @JsonView(Views.ExtendedCodeScheme.class)
+    public Set<Code> getLanguageCodes() {
+        return languageCodes;
+    }
+
+    public void setLanguageCodes(final Set<Code> languageCodes) {
+        this.languageCodes = languageCodes;
     }
 
     @Column(name = "vocabularies_uri")

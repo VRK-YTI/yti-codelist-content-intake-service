@@ -22,6 +22,7 @@ import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.ExtensionRepository;
+import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -39,18 +40,21 @@ public class ExtensionDaoImpl implements ExtensionDao {
     private final CodeDao codeDao;
     private final ExtensionSchemeDao extensionSchemeDao;
     private final UriSuomiProperties uriSuomiProperties;
+    private final LanguageService languageService;
 
     @Inject
     public ExtensionDaoImpl(final EntityChangeLogger entityChangeLogger,
                             final ExtensionRepository extensionRepository,
                             final CodeDao codeDao,
                             final ExtensionSchemeDao extensionSchemeDao,
-                            final UriSuomiProperties uriSuomiProperties) {
+                            final UriSuomiProperties uriSuomiProperties,
+                            final LanguageService languageService) {
         this.entityChangeLogger = entityChangeLogger;
         this.extensionRepository = extensionRepository;
         this.codeDao = codeDao;
         this.extensionSchemeDao = extensionSchemeDao;
         this.uriSuomiProperties = uriSuomiProperties;
+        this.languageService = languageService;
     }
 
     public void delete(final Extension extension) {
@@ -95,7 +99,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
     @Transactional
     public Set<Extension> updateExtensionEntityFromDto(final ExtensionScheme extensionScheme,
-                                                  final ExtensionDTO fromExtensionDto) {
+                                                       final ExtensionDTO fromExtensionDto) {
         final Set<Extension> extensions = new HashSet<>();
         final Extension extension = createOrUpdateExtension(extensionScheme, fromExtensionDto, extensions);
         fromExtensionDto.setId(extension.getId());
@@ -259,6 +263,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
         for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingExtension.getPrefLabel(language), value)) {
                 existingExtension.setPrefLabel(language, value);
@@ -306,7 +311,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
             extension.setExtensionValue(extensionValue);
         }
         for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
-            extension.setPrefLabel(entry.getKey(), entry.getValue());
+            final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
+            extension.setPrefLabel(language, entry.getValue());
         }
         if (fromExtension.getOrder() != null) {
             checkOrderAndShiftExistingExtensionOrderIfInUse(extensionScheme, fromExtension.getOrder(), extensions);

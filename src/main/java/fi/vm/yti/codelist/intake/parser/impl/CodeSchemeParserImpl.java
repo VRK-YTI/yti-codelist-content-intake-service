@@ -119,6 +119,9 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 if (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                     codeScheme.setDataClassifications(resolveDataClassificationsFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_CLASSIFICATION)));
                 }
+                if (!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) {
+                    codeScheme.setLanguageCodes(resolveLanguageCodesFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_LANGUAGECODE)));
+                }
                 codeScheme.setStatus(parseStatusValueFromString(record.get(CONTENT_HEADER_STATUS)));
                 codeScheme.setVersion(parseVersionFromCsvRecord(record));
                 codeScheme.setLegalBase(parseLegalBaseFromCsvRecord(record));
@@ -201,6 +204,9 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 if (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                     codeScheme.setDataClassifications(resolveDataClassificationsFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CLASSIFICATION)))));
                 }
+                if (!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) {
+                    codeScheme.setLanguageCodes(resolveLanguageCodesFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LANGUAGECODE)))));
+                }
                 codeScheme.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 codeScheme.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
                 codeScheme.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
@@ -267,6 +273,22 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
             }
         });
         return classifications;
+    }
+
+    private Set<CodeDTO> resolveLanguageCodesFromString(final String languageCodes) {
+        final Set<CodeDTO> languages = new HashSet<>();
+        if (languageCodes == null || languageCodes.isEmpty()) {
+            throw new BadClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_LANGUAGECODE));
+        }
+        final List<String> codes = Arrays.asList(languageCodes.split(";"));
+        codes.forEach(code -> {
+            if (!code.isEmpty()) {
+                final CodeDTO languageCode = new CodeDTO();
+                languageCode.setCodeValue(code);
+                languages.add(languageCode);
+            }
+        });
+        return languages;
     }
 
     private void validateStartDateIsBeforeEndDate(final CodeSchemeDTO codeScheme) {

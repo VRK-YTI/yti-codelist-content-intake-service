@@ -142,9 +142,6 @@ public class ApiUtils {
         return createCodeUri(code.getCodeScheme().getCodeRegistry(), code.getCodeScheme(), code);
     }
 
-    public String createCodeUrl(final CodeDTO code) {
-        return createCodeUrl(code.getCodeScheme().getCodeRegistry(), code.getCodeScheme(), code);
-    }
 
     public String createCodeUri(final CodeRegistry codeRegistry,
                                 final CodeScheme codeScheme,
@@ -152,10 +149,14 @@ public class ApiUtils {
         return createResourceUri(codeRegistry.getCodeValue() + "/" + codeScheme.getCodeValue() + "/" + urlEncodeString(code.getCodeValue()));
     }
 
-    private String createCodeUrl(final CodeRegistryDTO codeRegistry,
-                                 final CodeSchemeDTO codeScheme,
-                                 final CodeDTO code) {
-        return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistry.getCodeValue() + API_PATH_CODESCHEMES + "/" + codeScheme.getCodeValue() + API_PATH_CODES, urlEncodeString(code.getCodeValue()));
+    public String createCodeUrl(final CodeDTO code) {
+        return createCodeUrl(code.getCodeScheme().getCodeRegistry().getCodeValue(), code.getCodeScheme().getCodeValue(), code.getCodeValue());
+    }
+
+    public String createCodeUrl(final String codeRegistryCodeValue,
+                                 final String codeSchemeCodeValue,
+                                 final String codeValue) {
+        return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES, urlEncodeString(codeValue));
     }
 
     public String createExternalReferenceUrl(final ExternalReferenceDTO externalReference) {

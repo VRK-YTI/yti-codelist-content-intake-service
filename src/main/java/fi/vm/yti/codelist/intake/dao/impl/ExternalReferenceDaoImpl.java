@@ -18,6 +18,7 @@ import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
+import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
@@ -33,13 +34,16 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     private final EntityChangeLogger entityChangeLogger;
     private final ExternalReferenceRepository externalReferenceRepository;
     private final PropertyTypeRepository propertyTypeRepository;
+    private final LanguageService languageService;
 
     public ExternalReferenceDaoImpl(final EntityChangeLogger entityChangeLogger,
                                     final ExternalReferenceRepository externalReferenceRepository,
-                                    final PropertyTypeRepository propertyTypeRepository) {
+                                    final PropertyTypeRepository propertyTypeRepository,
+                                    final LanguageService languageService) {
         this.entityChangeLogger = entityChangeLogger;
         this.externalReferenceRepository = externalReferenceRepository;
         this.propertyTypeRepository = propertyTypeRepository;
+        this.languageService = languageService;
     }
 
     @Transactional
@@ -163,6 +167,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         }
         for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
             final String language = entry.getKey();
+            languageService.validateInputLanguage(parentCodeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingExternalReference.getTitle(language), value)) {
                 existingExternalReference.setTitle(language, value);
@@ -170,6 +175,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         }
         for (final Map.Entry<String, String> entry : fromExternalReference.getDescription().entrySet()) {
             final String language = entry.getKey();
+            languageService.validateInputLanguage(parentCodeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingExternalReference.getDescription(language), value)) {
                 existingExternalReference.setDescription(language, value);
@@ -197,10 +203,14 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         }
         externalReference.setPropertyType(propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, fromExternalReference.getPropertyType().getLocalName()));
         for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
-            externalReference.setTitle(entry.getKey(), entry.getValue());
+            final String language = entry.getKey();
+            languageService.validateInputLanguage(parentCodeScheme, language);
+            externalReference.setTitle(language, entry.getValue());
         }
         for (final Map.Entry<String, String> entry : fromExternalReference.getDescription().entrySet()) {
-            externalReference.setDescription(entry.getKey(), entry.getValue());
+            final String language = entry.getKey();
+            languageService.validateInputLanguage(parentCodeScheme, language);
+            externalReference.setDescription(language, entry.getValue());
         }
         final Date timeStamp = new Date(System.currentTimeMillis());
         externalReference.setCreated(timeStamp);

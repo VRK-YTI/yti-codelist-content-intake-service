@@ -17,11 +17,13 @@ import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.model.Status;
+import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.ExtensionSchemeRepository;
+import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
@@ -39,18 +41,22 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
     private final ExtensionSchemeRepository extensionSchemeRepository;
     private final PropertyTypeDao propertyTypeDao;
     private final CodeSchemeDao codeSchemeDao;
+    private final LanguageService languageService;
 
     @Inject
     public ExtensionSchemeDaoImpl(final AuthorizationManager authorizationManager,
                                   final EntityChangeLogger entityChangeLogger,
                                   final ExtensionSchemeRepository extensionSchemeRepository,
                                   final PropertyTypeDao propertyTypeDao,
-                                  final CodeSchemeDao codeSchemeDao) {
+                                  final CodeSchemeDao codeSchemeDao,
+                                  final CodeDao codeDao,
+                                  final LanguageService languageService) {
         this.authorizationManager = authorizationManager;
         this.entityChangeLogger = entityChangeLogger;
         this.extensionSchemeRepository = extensionSchemeRepository;
         this.propertyTypeDao = propertyTypeDao;
         this.codeSchemeDao = codeSchemeDao;
+        this.languageService = languageService;
     }
 
     public void delete(final ExtensionScheme extensionScheme) {
@@ -171,6 +177,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         existingExtensionScheme.setCodeSchemes(codeSchemes);
         for (final Map.Entry<String, String> entry : fromExtensionScheme.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
+            languageService.validateInputLanguage(existingExtensionScheme.getParentCodeScheme(), language);
             final String value = entry.getValue();
             if (!Objects.equals(existingExtensionScheme.getPrefLabel(language), value)) {
                 existingExtensionScheme.setPrefLabel(language, value);
@@ -205,7 +212,9 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         }
         extensionScheme.setPropertyType(propertyType);
         for (final Map.Entry<String, String> entry : fromExtensionScheme.getPrefLabel().entrySet()) {
-            extensionScheme.setPrefLabel(entry.getKey(), entry.getValue());
+            final String language = entry.getKey();
+            languageService.validateInputLanguage(codeScheme, language);
+            extensionScheme.setPrefLabel(language, entry.getValue());
         }
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (fromExtensionScheme.getCodeSchemes() != null && !fromExtensionScheme.getCodeSchemes().isEmpty()) {

@@ -22,11 +22,6 @@ public interface CodeService {
 
     Set<CodeDTO> findByCodeSchemeId(final UUID codeSchemeId);
 
-    Set<CodeDTO> parseAndPersistCodesFromExcelWorkbook(final String codeRegistryCodeValue,
-                                                       final String codeSchemeCodeValue,
-                                                       final Workbook workbook,
-                                                       final String sheetName);
-
     Set<CodeDTO> parseAndPersistCodesFromExcelWorkbook(final Workbook workbook,
                                                        final String sheetName,
                                                        final CodeScheme codeScheme);
@@ -58,9 +53,4 @@ public interface CodeService {
     CodeDTO findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                                           final String codeSchemeCodeValue,
                                                                           final String codeCodeValue);
-
-    Set<Code> updateCodesFromDtos(final CodeScheme codeScheme,
-                                  final Set<CodeDTO> codeDtos,
-                                  final Map<String, String> broaderCodeMapping,
-                                  final boolean updateExternalReferences);
 }

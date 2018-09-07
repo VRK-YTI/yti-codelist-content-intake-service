@@ -1,6 +1,9 @@
 package fi.vm.yti.codelist.intake.indexing.impl;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

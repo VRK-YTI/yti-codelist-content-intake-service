@@ -36,7 +36,9 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 public abstract class AbstractBaseParser {
 
     public static final String JUPO_REGISTRY = "jupo";
+    public static final String YTI_REGISTRY = "interoperabilityplatform";
     public static final String YTI_DATACLASSIFICATION_CODESCHEME = "serviceclassification";
+    public static final String YTI_LANGUAGECODE_CODESCHEME = "languagecodes";
     private static final Logger LOG = LoggerFactory.getLogger(AbstractBaseParser.class);
     private static final String CODE_CODEVALUE_VALIDATOR = "^[a-zA-Z0-9_\\-\\.\\+\\&\\#\\*]*$";
     private static final String CODESCHEME_CODEVALUE_VALIDATOR = "^[a-zA-Z0-9_\\-]*$";
@@ -212,12 +214,17 @@ public abstract class AbstractBaseParser {
     public String parseStringFromCsvRecord(final CSVRecord record,
                                            final String columnName) {
         final String value;
-        if (record.isMapped(columnName)) {
-            value = record.get(columnName);
-        } else {
-            value = null;
+        try {
+            if (record.isMapped(columnName)) {
+                value = record.get(columnName);
+            } else {
+                value = null;
+            }
+            return value;
+        } catch (final Exception e) {
+            LOG.error("error in row: " + record.getRecordNumber() + 1);
         }
-        return value;
+        return null;
     }
 
     public UUID parseUUIDFromString(final String uuidString) {

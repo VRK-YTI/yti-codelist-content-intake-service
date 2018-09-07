@@ -35,12 +35,13 @@ public abstract class BaseService {
 
     @Transactional
     public CodeDTO mapDeepCodeDto(final Code code) {
-        return mapCodeDto(code, true);
+        return mapCodeDto(code, true, true);
     }
 
     @Transactional
     public CodeDTO mapCodeDto(final Code code,
-                              final boolean deep) {
+                              final boolean deep,
+                              final boolean includeCodeScheme) {
         final CodeDTO codeDto = new CodeDTO();
         codeDto.setId(code.getId());
         codeDto.setCodeValue(code.getCodeValue());
@@ -53,7 +54,12 @@ public abstract class BaseService {
         codeDto.setShortName(code.getShortName());
         codeDto.setPrefLabel(code.getPrefLabel());
         codeDto.setDefinition(code.getDefinition());
-        codeDto.setCodeScheme(mapCodeSchemeDto(code.getCodeScheme(), false));
+        if (includeCodeScheme) {
+            codeDto.setCodeScheme(mapCodeSchemeDto(code.getCodeScheme(), false));
+            codeDto.setUrl(apiUtils.createCodeUrl(codeDto));
+        } else {
+            codeDto.setUrl(apiUtils.createCodeUrl(code.getCodeScheme().getCodeRegistry().getCodeValue(), code.getCodeScheme().getCodeValue(), codeDto.getCodeValue()));
+        }
         codeDto.setConceptUriInVocabularies(code.getConceptUriInVocabularies());
         if (deep) {
             if (code.getExternalReferences() != null) {
@@ -65,7 +71,6 @@ public abstract class BaseService {
         }
         codeDto.setDescription(code.getDescription());
         codeDto.setOrder(code.getOrder());
-        codeDto.setUrl(apiUtils.createCodeUrl(codeDto));
         codeDto.setCreated(code.getCreated());
         codeDto.setModified(code.getModified());
         return codeDto;
@@ -73,15 +78,16 @@ public abstract class BaseService {
 
     @Transactional
     public Set<CodeDTO> mapDeepCodeDtos(final Set<Code> codes) {
-        return mapCodeDtos(codes, true);
+        return mapCodeDtos(codes, true, true);
     }
 
     @Transactional
     public Set<CodeDTO> mapCodeDtos(final Set<Code> codes,
-                                    final boolean deep) {
+                                    final boolean deep,
+                                    final boolean includeCodeScheme) {
         final Set<CodeDTO> codeDtos = new HashSet<>();
         if (codes != null && !codes.isEmpty()) {
-            codes.forEach(code -> codeDtos.add(mapCodeDto(code, deep)));
+            codes.forEach(code -> codeDtos.add(mapCodeDto(code, deep, includeCodeScheme)));
         }
         return codeDtos;
     }
@@ -111,12 +117,15 @@ public abstract class BaseService {
         codeSchemeDto.setGovernancePolicy(codeScheme.getGovernancePolicy());
         codeSchemeDto.setLegalBase(codeScheme.getLegalBase());
         codeSchemeDto.setConceptUriInVocabularies(codeScheme.getConceptUriInVocabularies());
+        if (codeScheme.getLanguageCodes() != null) {
+            codeSchemeDto.setLanguageCodes(mapCodeDtos(codeScheme.getLanguageCodes(), false, false));
+        }
         if (deep) {
             if (codeScheme.getDefaultCode() != null) {
-                codeSchemeDto.setDefaultCode(mapCodeDto(codeScheme.getDefaultCode(), false));
+                codeSchemeDto.setDefaultCode(mapCodeDto(codeScheme.getDefaultCode(), false, true));
             }
             if (codeScheme.getDataClassifications() != null) {
-                codeSchemeDto.setDataClassifications(mapCodeDtos(codeScheme.getDataClassifications(), false));
+                codeSchemeDto.setDataClassifications(mapCodeDtos(codeScheme.getDataClassifications(), false, true));
             }
             if (codeScheme.getExternalReferences() != null) {
                 codeSchemeDto.setExternalReferences(mapExternalReferenceDtos(codeScheme.getExternalReferences(), false));
@@ -142,7 +151,7 @@ public abstract class BaseService {
     }
 
     @Transactional
-    public LinkedHashSet<CodeSchemeListItem> getVariantsOfCodeSchemeAsListItems(CodeScheme codeScheme) {
+    public LinkedHashSet<CodeSchemeListItem> getVariantsOfCodeSchemeAsListItems(final CodeScheme codeScheme) {
         LinkedHashSet<CodeSchemeListItem> result = new LinkedHashSet<>();
         if (!codeScheme.getVariants().isEmpty()) {
             for (CodeScheme variant : codeScheme.getVariants()) {
@@ -155,7 +164,7 @@ public abstract class BaseService {
     }
 
     @Transactional
-    public LinkedHashSet<CodeSchemeListItem> getVariantMothersOfCodeSchemeAsListItems(CodeScheme codeScheme) {
+    public LinkedHashSet<CodeSchemeListItem> getVariantMothersOfCodeSchemeAsListItems(final CodeScheme codeScheme) {
         LinkedHashSet<CodeSchemeListItem> result = new LinkedHashSet<>();
         if (!codeScheme.getVariantMothers().isEmpty()) {
             for (CodeScheme variantMother : codeScheme.getVariantMothers()) {
@@ -248,7 +257,7 @@ public abstract class BaseService {
                 externalReferenceDto.setCodeSchemes(mapCodeSchemeDtos(externalReference.getCodeSchemes(), false));
             }
             if (externalReference.getCodes() != null) {
-                externalReferenceDto.setCodes(mapCodeDtos(externalReference.getCodes(), false));
+                externalReferenceDto.setCodes(mapCodeDtos(externalReference.getCodes(), false, true));
             }
         }
         externalReferenceDto.setUrl(apiUtils.createExternalReferenceUrl(externalReferenceDto));
@@ -309,7 +318,7 @@ public abstract class BaseService {
         extensionDto.setId(extension.getId());
         extensionDto.setOrder(extension.getOrder());
         extensionDto.setExtensionValue(extension.getExtensionValue());
-        extensionDto.setCode(mapCodeDto(extension.getCode(), false));
+        extensionDto.setCode(mapCodeDto(extension.getCode(), false, false));
         extensionDto.setPrefLabel(extension.getPrefLabel());
         if (deep) {
             if (extension.getExtension() != null) {
