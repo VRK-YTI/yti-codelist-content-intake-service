@@ -119,7 +119,8 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 if (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                     codeScheme.setDataClassifications(resolveDataClassificationsFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_CLASSIFICATION)));
                 }
-                if (!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) {
+                if ((!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) &&
+                    (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY))) {
                     codeScheme.setLanguageCodes(resolveLanguageCodesFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_LANGUAGECODE)));
                 }
                 codeScheme.setStatus(parseStatusValueFromString(record.get(CONTENT_HEADER_STATUS)));
@@ -204,7 +205,8 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 if (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                     codeScheme.setDataClassifications(resolveDataClassificationsFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CLASSIFICATION)))));
                 }
-                if (!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) {
+                if ((!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) &&
+                    (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY))) {
                     codeScheme.setLanguageCodes(resolveLanguageCodesFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LANGUAGECODE)))));
                 }
                 codeScheme.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
@@ -331,6 +333,10 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         if (!headerMap.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
             throw new MissingHeaderClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
+        }
+        if (!headerMap.containsKey(CONTENT_HEADER_LANGUAGECODE)) {
+            throw new MissingHeaderClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_MISSING_HEADER_LANGUAGECODE));
         }
         if (!headerMap.containsKey(CONTENT_HEADER_STATUS)) {
             throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),

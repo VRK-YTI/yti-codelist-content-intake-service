@@ -105,10 +105,10 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     public CodeScheme findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                               final String codeSchemeCodeValue) {
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(codeRegistryCodeValue);
-        if (codeRegistry == null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_404));
+        if (codeRegistry != null) {
+            return codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, codeSchemeCodeValue);
         }
-        return codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, codeSchemeCodeValue);
+        return null;
     }
 
     public Set<CodeScheme> findAll() {

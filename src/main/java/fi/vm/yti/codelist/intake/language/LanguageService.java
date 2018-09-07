@@ -30,31 +30,32 @@ public class LanguageService {
         this.codeSchemeDao = codeSchemeDao;
     }
 
-    private Set<String> getAllLanguageCodes() {
-        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(YTI_REGISTRY, YTI_LANGUAGECODE_CODESCHEME);
-        return codeDao.getCodeSchemeCodeValues(codeScheme.getId());
+    private Set<String> getAllLanguageCodes(final CodeScheme languageCodeScheme) {
+        return codeDao.getCodeSchemeCodeValues(languageCodeScheme.getId());
     }
 
     public void validateInputLanguage(final CodeScheme codeScheme,
                                       final String languageCodeCodeValue) {
         final CodeScheme languageCodeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(YTI_REGISTRY, YTI_LANGUAGECODE_CODESCHEME);
-        final Code inputLanguageCode = codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, languageCodeCodeValue);
-        if (!getAllLanguageCodes().contains(languageCodeCodeValue)) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_LANGUAGECODE));
-        }
-        boolean found = false;
-        Set<Code> codeSchemeLanguageCodes = codeScheme.getLanguageCodes();
-        if (codeSchemeLanguageCodes == null) {
-            codeSchemeLanguageCodes = new HashSet<>();
-        }
-        for (final Code languageCode : codeSchemeLanguageCodes) {
-            if (languageCode.getCodeValue().equals(languageCodeCodeValue)) {
-                found = true;
+        if (languageCodeScheme != null && languageCodeScheme.getCodes() != null) {
+            final Code inputLanguageCode = codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, languageCodeCodeValue);
+            if (!getAllLanguageCodes(languageCodeScheme).contains(languageCodeCodeValue)) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_LANGUAGECODE));
             }
-        }
-        if (!found) {
-            codeSchemeLanguageCodes.add(inputLanguageCode);
-            codeSchemeDao.save(codeScheme);
+            boolean found = false;
+            Set<Code> codeSchemeLanguageCodes = codeScheme.getLanguageCodes();
+            if (codeSchemeLanguageCodes == null) {
+                codeSchemeLanguageCodes = new HashSet<>();
+            }
+            for (final Code languageCode : codeSchemeLanguageCodes) {
+                if (languageCode.getCodeValue().equals(languageCodeCodeValue)) {
+                    found = true;
+                }
+            }
+            if (!found) {
+                codeSchemeLanguageCodes.add(inputLanguageCode);
+                codeSchemeDao.save(codeScheme);
+            }
         }
     }
 
