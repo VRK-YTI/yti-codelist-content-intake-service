@@ -36,6 +36,12 @@ public class LanguageService {
 
     public void validateInputLanguage(final CodeScheme codeScheme,
                                       final String languageCodeCodeValue) {
+        validateInputLanguage(codeScheme, languageCodeCodeValue, true);
+    }
+
+    public void validateInputLanguage(final CodeScheme codeScheme,
+                                      final String languageCodeCodeValue,
+                                      final boolean saveCodeScheme) {
         final CodeScheme languageCodeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(YTI_REGISTRY, YTI_LANGUAGECODE_CODESCHEME);
         if (languageCodeScheme != null && languageCodeScheme.getCodes() != null) {
             final Code inputLanguageCode = codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, languageCodeCodeValue);
@@ -48,13 +54,16 @@ public class LanguageService {
                 codeSchemeLanguageCodes = new HashSet<>();
             }
             for (final Code languageCode : codeSchemeLanguageCodes) {
-                if (languageCode.getCodeValue().equals(languageCodeCodeValue)) {
+                if (languageCode.getCodeValue().equalsIgnoreCase(languageCodeCodeValue)) {
                     found = true;
                 }
             }
             if (!found) {
                 codeSchemeLanguageCodes.add(inputLanguageCode);
-                codeSchemeDao.save(codeScheme);
+                codeScheme.setLanguageCodes(codeSchemeLanguageCodes);
+                if (saveCodeScheme) {
+                    codeSchemeDao.save(codeScheme);
+                }
             }
         }
     }
