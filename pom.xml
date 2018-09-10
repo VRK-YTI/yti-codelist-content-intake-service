@@ -608,11 +608,11 @@
         <swagger.version>1.5.18</swagger.version>
         <swagger-ui.version>3.1.6</swagger-ui.version>
         <swagger-maven-plugin.version>3.1.6</swagger-maven-plugin.version>
-        <postgresql.version>42.2.1</postgresql.version>
-        <flyway.version>5.0.5</flyway.version>
+        <postgresql.version>42.2.5</postgresql.version>
+        <flyway.version>5.1.4</flyway.version>
         <elastic.version>6.1.2</elastic.version>
         <apache.poi.version>3.17</apache.poi.version>
-        <apache.httpclient.version>4.5.4</apache.httpclient.version>
+        <apache.httpclient.version>4.5.6</apache.httpclient.version>
         <psql.host>localhost</psql.host>
         <psql.port>5432</psql.port>
         <project.db.name>yti_codelist</project.db.name>
