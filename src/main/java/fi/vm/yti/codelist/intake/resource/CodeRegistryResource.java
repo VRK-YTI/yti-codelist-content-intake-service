@@ -173,28 +173,6 @@ public class CodeRegistryResource extends AbstractBaseResource {
             if (codeSchemes != null && !codeSchemes.isEmpty()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_EMPTY));
             }
-            codeSchemes.forEach(existingCodeScheme -> {
-                final UUID codeSchemeId = existingCodeScheme.getId();
-                final Set<CodeDTO> codes = codeService.findByCodeSchemeId(codeSchemeId);
-                final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
-                final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeSchemeId);
-                final Set<ExtensionDTO> extensions = extensionService.findByExtensionSchemeId(codeSchemeId);
-                LinkedHashSet<CodeSchemeDTO> codeSchemesToIndexButRedundantHereBecauseTheWholeRegistryIsGettingDeletedInThisLoop = new LinkedHashSet<>();
-                final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue(), codeSchemesToIndexButRedundantHereBecauseTheWholeRegistryIsGettingDeletedInThisLoop);
-                indexing.deleteCodeScheme(codeScheme);
-                if (codes != null) {
-                    indexing.deleteCodes(codes);
-                }
-                if (externalReferences != null) {
-                    indexing.deleteExternalReferences(externalReferences);
-                }
-                if (extensionSchemes != null) {
-                    indexing.deleteExtensionSchemes(extensionSchemes);
-                }
-                if (extensions != null) {
-                    indexing.deleteExtensions(extensions);
-                }
-            });
             final CodeRegistryDTO codeRegistry = codeRegistryService.deleteCodeRegistry(codeRegistryCodeValue);
             indexing.deleteCodeRegistry(codeRegistry);
         } else {
