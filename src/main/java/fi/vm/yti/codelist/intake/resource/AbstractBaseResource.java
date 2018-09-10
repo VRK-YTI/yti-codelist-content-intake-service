@@ -60,7 +60,7 @@ public interface AbstractBaseResource {
         return mapper;
     }
 
-    static class FilterModifier extends ObjectWriterModifier {
+    class FilterModifier extends ObjectWriterModifier {
 
         private final FilterProvider provider;
 
