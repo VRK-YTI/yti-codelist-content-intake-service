@@ -50,10 +50,10 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     }
 
     private ObjectMapper createMapper() {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-        return mapper;
+        final ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        return objectMapper;
     }
 
     public void logCodeRegistry(final CodeRegistry codeRegistry) {
