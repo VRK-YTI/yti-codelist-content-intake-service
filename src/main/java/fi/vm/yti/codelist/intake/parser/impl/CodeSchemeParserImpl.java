@@ -124,7 +124,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) &&
                         headerMap.get(CONTENT_HEADER_LANGUAGECODE) != null) {
                     final Set<CodeDTO> languageCodes = resolveLanguageCodesFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_LANGUAGECODE));
-                    if (languageCodes != null) {
+                    if (!languageCodes.isEmpty()) {
                         codeScheme.setLanguageCodes(languageCodes);
                     }
                 }
@@ -214,7 +214,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) &&
                     headerMap.get(CONTENT_HEADER_LANGUAGECODE) != null) {
                     final Set<CodeDTO> languageCodes = resolveLanguageCodesFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LANGUAGECODE))));
-                    if (languageCodes != null) {
+                    if (!languageCodes.isEmpty()) {
                         codeScheme.setLanguageCodes(languageCodes);
                     }
                 }
@@ -290,7 +290,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
     private Set<CodeDTO> resolveLanguageCodesFromString(final String languageCodes) {
         final Set<CodeDTO> languages = new HashSet<>();
         if (languageCodes == null || languageCodes.isEmpty()) {
-            return null;
+            return languages;
         }
         final List<String> codes = Arrays.asList(languageCodes.split(";"));
         codes.forEach(code -> {
