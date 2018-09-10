@@ -222,7 +222,7 @@ public abstract class AbstractBaseParser {
             }
             return value;
         } catch (final Exception e) {
-            LOG.error("error in row: " + record.getRecordNumber() + 1);
+            LOG.error("error in row: " + record.getRecordNumber() + 1, e);
         }
         return null;
     }
