@@ -328,16 +328,22 @@ public class IndexingToolsImpl implements IndexingTools {
             } catch (final IOException e) {
                 LOG.error("Error parsing index request settings JSON!", e);
             }
-            if (ELASTIC_TYPE_CODESCHEME.equals(type)) {
-                builder.addMapping(type, CODESCHEME_MAPPING, XContentType.JSON);
-            } else if (ELASTIC_TYPE_CODE.equals(type)) {
-                builder.addMapping(type, CODE_MAPPING, XContentType.JSON);
-            } else if (ELASTIC_TYPE_EXTENSIONSCHEME.equals(type)) {
-                builder.addMapping(type, EXTENSIONSCHEME_MAPPING, XContentType.JSON);
-            } else if (ELASTIC_TYPE_EXTENSION.equals(type)) {
-                builder.addMapping(type, EXTENSION_MAPPING, XContentType.JSON);
-            } else {
-                builder.addMapping(type, NESTED_PREFLABEL_MAPPING_JSON, XContentType.JSON);
+            switch (type) {
+                case ELASTIC_TYPE_CODESCHEME:
+                    builder.addMapping(type, CODESCHEME_MAPPING, XContentType.JSON);
+                    break;
+                case ELASTIC_TYPE_CODE:
+                    builder.addMapping(type, CODE_MAPPING, XContentType.JSON);
+                    break;
+                case ELASTIC_TYPE_EXTENSIONSCHEME:
+                    builder.addMapping(type, EXTENSIONSCHEME_MAPPING, XContentType.JSON);
+                    break;
+                case ELASTIC_TYPE_EXTENSION:
+                    builder.addMapping(type, EXTENSION_MAPPING, XContentType.JSON);
+                    break;
+                default:
+                    builder.addMapping(type, NESTED_PREFLABEL_MAPPING_JSON, XContentType.JSON);
+                    break;
             }
             final CreateIndexResponse response = builder.get();
             if (!response.isAcknowledged()) {
