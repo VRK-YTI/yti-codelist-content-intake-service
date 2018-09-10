@@ -168,6 +168,7 @@ public abstract class AbstractBaseParser {
             startDateWithoutTime = sdf.parse(sdf.format(startDate));
             endDateWithoutTime = sdf.parse(sdf.format(endDate));
         } catch (final ParseException e) {
+            LOG.error("Parsing exception in date comparison.", e);
             return true; // should never ever happen, dates are never null here and are coming from datepicker
         }
         return startDateWithoutTime.compareTo(endDateWithoutTime) == 0;
@@ -282,8 +283,8 @@ public abstract class AbstractBaseParser {
     }
 
     public Integer resolveOrderFromExcelRow(final Map<String, Integer> headerMap,
-                                             final Row row,
-                                             final DataFormatter formatter) {
+                                            final Row row,
+                                            final DataFormatter formatter) {
         final Integer order;
         if (headerMap.containsKey(CONTENT_HEADER_ORDER)) {
             order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER))));

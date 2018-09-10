@@ -10,6 +10,8 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -33,8 +35,10 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Component
 public class ExtensionDaoImpl implements ExtensionDao {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ExtensionDaoImpl.class);
     private static final int MAX_LEVEL = 10;
     private static final String CALCULATION_HIERARCHY = "calculationHierarchy";
+
     private final EntityChangeLogger entityChangeLogger;
     private final ExtensionRepository extensionRepository;
     private final CodeDao codeDao;
@@ -129,6 +133,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         try {
             return UUID.fromString(uuid);
         } catch (final IllegalArgumentException e) {
+            LOG.error("Error parsing UUID from string.", e);
             return null;
         }
     }
