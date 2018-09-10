@@ -94,9 +94,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
 
         final CodeScheme newCodeScheme = codeSchemeDao.findById(codeSchemeWithUserChangesFromUi.getId());
 
-        LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
+        final Set<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
 
-        LinkedHashSet<CodeScheme> previousVersions = new LinkedHashSet<>();
+        Set<CodeScheme> previousVersions = new LinkedHashSet<>();
         previousVersions = getPreviousVersions(originalCodeScheme.getId(), previousVersions);
         for (CodeScheme codeScheme : previousVersions) {
             codeScheme.setLastCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
@@ -110,7 +110,7 @@ public class CloningServiceImpl extends BaseService implements CloningService {
             codeSchemeWithUserChangesFromUi.getEndDate(), codeSchemeWithUserChangesFromUi.getStatus());
         codeSchemeWithUserChangesFromUi.setLastCodeschemeId(newCodeScheme.getId());
 
-        LinkedHashSet<CodeSchemeListItem> allVersions = new LinkedHashSet<>();
+        Set<CodeSchemeListItem> allVersions = new LinkedHashSet<>();
         allVersions.add(newVersionListItem);
         allVersions.addAll(versionHistory);
         codeSchemeWithUserChangesFromUi.setAllVersions(allVersions);
@@ -133,8 +133,8 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     }
 
     @Transactional
-    public LinkedHashSet<CodeScheme> getPreviousVersions(final UUID uuid,
-                                                         final LinkedHashSet result) {
+    public Set<CodeScheme> getPreviousVersions(final UUID uuid,
+                                               final Set result) {
         CodeScheme prevVersion = codeSchemeDao.findById(uuid);
         if (prevVersion == null) {
             return result;

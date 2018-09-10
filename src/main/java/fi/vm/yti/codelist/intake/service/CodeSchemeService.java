@@ -1,7 +1,6 @@
 package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -35,7 +34,7 @@ public interface CodeSchemeService {
 
     CodeSchemeDTO deleteCodeScheme(final String codeRegistryCodeValue,
                                    final String codeSchemeCodeValue,
-                                   final LinkedHashSet<CodeSchemeDTO> codeSchemeDTOsToIndex);
+                                   final Set<CodeSchemeDTO> codeSchemeDTOsToIndex);
 
     CodeSchemeDTO updateCodeSchemeFromDto(final String codeRegistryCodeValue,
                                           final CodeSchemeDTO codeSchemeDTO);
@@ -46,6 +45,6 @@ public interface CodeSchemeService {
 
     void populateAllVersionsToCodeSchemeDTO(final CodeSchemeDTO codeSchemeDTO);
 
-    LinkedHashSet<CodeSchemeDTO> getPreviousVersions(final UUID uuid,
-                                                     final LinkedHashSet result);
+    Set<CodeSchemeDTO> getPreviousVersions(final UUID uuid,
+                                           final Set result);
 }

@@ -259,7 +259,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     @Transactional
     public CodeSchemeDTO deleteCodeScheme(final String codeRegistryCodeValue,
                                           final String codeSchemeCodeValue,
-                                          final LinkedHashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
+                                          final Set<CodeSchemeDTO> codeSchemeDTOsToIndex) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (authorizationManager.canCodeSchemeBeDeleted(codeScheme)) {
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
@@ -310,11 +310,11 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         if (currentCodeScheme.getLastCodeschemeId() == null) {
             return;
         }
-        LinkedHashSet<CodeSchemeDTO> allVersions = new LinkedHashSet<>();
+        Set<CodeSchemeDTO> allVersions = new LinkedHashSet<>();
         CodeSchemeDTO latestVersion;
         latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
         allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
-        LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
+        Set<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
         for (CodeSchemeDTO version : allVersions) {
             CodeSchemeListItem listItem = new CodeSchemeListItem(version.getId(), version.getPrefLabel(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
             versionHistory.add(listItem);
@@ -323,8 +323,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     }
 
     @Transactional
-    public LinkedHashSet<CodeSchemeDTO> getPreviousVersions(final UUID uuid,
-                                                            final LinkedHashSet result) {
+    public Set<CodeSchemeDTO> getPreviousVersions(final UUID uuid,
+                                                  final Set result) {
         CodeSchemeDTO prevVersion = this.findById(uuid);
         if (prevVersion == null) {
             return result;
@@ -339,7 +339,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     }
 
     private void dealWithPossibleVersionHierarchyBeforeDeleting(final CodeSchemeDTO currentCodeScheme,
-                                                                final HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
+                                                                final Set<CodeSchemeDTO> codeSchemeDTOsToIndex) {
         if (currentCodeScheme.getLastCodeschemeId() == null) {
             return; // the codescheme about to get deleted is not part of a version hierarchy, no need for actions
         }
@@ -377,7 +377,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     }
 
     private void dealWithTopPositionInVersionHierarchyBeforeDeletion(final CodeSchemeDTO currentCodeScheme,
-                                                                     final HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
+                                                                     final Set<CodeSchemeDTO> codeSchemeDTOsToIndex) {
         CodeSchemeDTO prev = this.findById(currentCodeScheme.getPrevCodeschemeId());
         prev.setLastCodeschemeId(prev.getId());
         prev.setNextCodeschemeId(null);
@@ -389,7 +389,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         }
         codeSchemeDTOsToIndex.add(prev);
 
-        LinkedHashSet<CodeSchemeDTO> previousVersions = new LinkedHashSet<>();
+        Set<CodeSchemeDTO> previousVersions = new LinkedHashSet<>();
         previousVersions = this.getPreviousVersions(prev.getId(), previousVersions);
         for (CodeSchemeDTO prevVersion : previousVersions) {
             prevVersion.setLastCodeschemeId(prev.getId());
@@ -404,13 +404,13 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     }
 
     private void dealWithMiddlePositionInVersionHierarchyBeforeDeletion(final CodeSchemeDTO currentCodeScheme,
-                                                                        final HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
+                                                                        final Set<CodeSchemeDTO> codeSchemeDTOsToIndex) {
 
         CodeSchemeDTO prev = this.findById(currentCodeScheme.getPrevCodeschemeId());
         prev.setNextCodeschemeId(currentCodeScheme.getNextCodeschemeId());
         prev = this.updateCodeSchemeFromDto(prev.getCodeRegistry().getCodeValue(), prev);
 
-        LinkedHashSet<CodeSchemeDTO> olderVersions = new LinkedHashSet<>();
+        Set<CodeSchemeDTO> olderVersions = new LinkedHashSet<>();
         olderVersions = this.getPreviousVersions(prev.getId(), olderVersions);
 
         CodeSchemeDTO next = this.findById(currentCodeScheme.getNextCodeschemeId());
@@ -429,7 +429,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     }
 
     private void dealWithBottomPositionInVersionHierarchyBeforeDeletion(final CodeSchemeDTO currentCodeScheme,
-                                                                        final HashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
+                                                                        final Set<CodeSchemeDTO> codeSchemeDTOsToIndex) {
         CodeSchemeDTO next = this.findById(currentCodeScheme.getNextCodeschemeId());
         next.setPrevCodeschemeId(null);
         next = this.updateCodeSchemeFromDto(next.getCodeRegistry().getCodeValue(), next);

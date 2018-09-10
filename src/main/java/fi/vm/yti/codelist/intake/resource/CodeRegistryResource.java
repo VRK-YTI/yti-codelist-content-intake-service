@@ -231,7 +231,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             if (!codeScheme.getVariantMothersOfThisCodeScheme().isEmpty()) {
                 for (CodeSchemeListItem mother : codeScheme.getVariantMothersOfThisCodeScheme()) {
                     CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(mother.getId());
-                    LinkedHashSet<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
+                    Set<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
                     for (CodeSchemeListItem item : variantsOfTheMother) {
                         if (item.getId().equals(codeScheme.getId())) {
                             populateCodeSchemeListItem(codeScheme,
@@ -243,14 +243,14 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
             }
             if (codeScheme.getLastCodeschemeId() != null) {
-                LinkedHashSet<CodeSchemeListItem> allVersions = codeScheme.getAllVersions();
+                Set<CodeSchemeListItem> allVersions = codeScheme.getAllVersions();
                 for (CodeSchemeListItem listItem : allVersions) {
                     if (listItem.getId().equals(codeScheme.getId())) {
                         populateCodeSchemeListItem(codeScheme,
                             listItem);
                     }
                 }
-                LinkedHashSet<CodeSchemeDTO> versionsToReIndex = new LinkedHashSet<>();
+                Set<CodeSchemeDTO> versionsToReIndex = new LinkedHashSet<>();
                 for (CodeSchemeListItem listItem : allVersions) {
                     CodeSchemeDTO currentVersion = codeSchemeService.findById(listItem.getId());
                     currentVersion.setAllVersions(allVersions);
@@ -466,10 +466,10 @@ public class CodeRegistryResource implements AbstractBaseResource {
             final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
             final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeSchemeId);
             final Set<ExtensionDTO> extensions = extensionService.findByExtensionSchemeId(codeSchemeId);
-            LinkedHashSet<CodeSchemeDTO> codeSchemeDTOsToIndex = new LinkedHashSet<>();
+            Set<CodeSchemeDTO> codeSchemeDTOsToIndex = new LinkedHashSet<>();
             final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue(), codeSchemeDTOsToIndex);
 
-            LinkedHashSet<CodeSchemeDTO> affectedCodeSchemes = new LinkedHashSet<>();
+            Set<CodeSchemeDTO> affectedCodeSchemes = new LinkedHashSet<>();
             for (CodeSchemeListItem item : codeScheme.getVariantsOfThisCodeScheme()) {
                 affectedCodeSchemes.add(codeSchemeService.findById(item.getId()));
             }
@@ -781,7 +781,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         final HashSet<CodeSchemeDTO> codeSchemes = new HashSet<>();
         codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
         codeSchemes.add(codeScheme);
-        LinkedHashSet<CodeSchemeDTO> previousVersions = new LinkedHashSet<>();
+        Set<CodeSchemeDTO> previousVersions = new LinkedHashSet<>();
         previousVersions = codeSchemeService.getPreviousVersions(codeScheme.getPrevCodeschemeId(), previousVersions);
         for (CodeSchemeDTO prevVersion : previousVersions) {
             codeSchemeService.populateAllVersionsToCodeSchemeDTO(prevVersion);
