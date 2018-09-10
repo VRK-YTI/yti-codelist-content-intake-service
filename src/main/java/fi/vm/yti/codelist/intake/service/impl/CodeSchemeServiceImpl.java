@@ -384,7 +384,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         prev = this.updateCodeSchemeFromDto(prev.getCodeRegistry().getCodeValue(), prev);
         this.populateAllVersionsToCodeSchemeDTO(prev);
         if (prev.getAllVersions().size() <= 1) { //if there is only one left, the version "stack" should be empty.
-            prev.setAllVersions(new LinkedHashSet<CodeSchemeListItem>());
+            prev.setAllVersions(new LinkedHashSet<>());
 
         }
         codeSchemeDTOsToIndex.add(prev);
@@ -396,7 +396,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             prevVersion = this.updateCodeSchemeFromDto(prevVersion.getCodeRegistry().getCodeValue(), prevVersion);
             this.populateAllVersionsToCodeSchemeDTO(prevVersion);
             if (prevVersion.getAllVersions().size() <= 1) { //if there is only one left, the version "stack" should be empty.
-                prevVersion.setAllVersions(new LinkedHashSet<CodeSchemeListItem>());
+                prevVersion.setAllVersions(new LinkedHashSet<>());
 
             }
             codeSchemeDTOsToIndex.add(prevVersion);
