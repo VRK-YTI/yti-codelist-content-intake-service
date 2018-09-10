@@ -113,11 +113,11 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                                                                                  final String jsonPayload,
                                                                                  final String sheetName) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-        if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
-            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
-        }
-        Set<ExtensionScheme> extensionSchemes;
         if (codeScheme != null) {
+            if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+            }
+            Set<ExtensionScheme> extensionSchemes;
             switch (format.toLowerCase()) {
                 case FORMAT_JSON:
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
