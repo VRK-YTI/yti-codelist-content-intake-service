@@ -234,10 +234,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
 
     @Transactional
     protected void handleCodes(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
-                               final Set<Code> originalCodesParam,
+                               final Set<Code> originalCodes,
                                final CodeScheme newCodeScheme,
                                final Map<UUID, ExternalReference> externalReferenceMap) {
-        final Set<Code> originalCodes = originalCodesParam;
         final Set<Code> clonedCodes = new HashSet<>();
 
         final Map<UUID, Code> originalCodesMap = originalCodes.stream().collect(Collectors.toMap(Code::getId,
