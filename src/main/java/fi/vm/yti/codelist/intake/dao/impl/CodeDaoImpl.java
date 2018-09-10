@@ -209,6 +209,7 @@ public class CodeDaoImpl implements CodeDao {
             if (existingCode == null) {
                 checkForExistingCodeInCodeScheme(codeScheme, codeDto);
             }
+            validateCodeScheme(existingCode, codeScheme);
         } else if (existingCodes != null) {
             existingCode = findExistingCodeFromSet(existingCodes, codeDto.getCodeValue());
         } else {
@@ -221,6 +222,13 @@ public class CodeDaoImpl implements CodeDao {
             code = createCode(codeScheme, codeDto, codes, nextOrder);
         }
         return code;
+    }
+
+    private void validateCodeScheme(final Code code,
+                                    final CodeScheme codeScheme) {
+         if (code != null && code.getCodeScheme() != codeScheme) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
     }
 
     private void checkOrderAndShiftExistingCodeOrderIfInUse(final CodeScheme codeScheme,

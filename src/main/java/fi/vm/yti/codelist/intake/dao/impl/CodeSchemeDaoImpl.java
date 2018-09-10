@@ -188,6 +188,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             if (existingCodeScheme == null) {
                 checkForExistingCodeSchemeInRegistry(codeRegistry, fromCodeScheme);
             }
+            validateCodeRegistry(existingCodeScheme, codeRegistry);
         } else {
             existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, fromCodeScheme.getCodeValue());
         }
@@ -204,6 +205,13 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             codeScheme = createCodeScheme(codeRegistry, fromCodeScheme);
         }
         return codeScheme;
+    }
+
+    private void validateCodeRegistry(final CodeScheme codeScheme,
+                                      final CodeRegistry codeRegistry) {
+         if (codeScheme != null && codeScheme.getCodeRegistry() != codeRegistry) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
     }
 
     private void checkForExistingCodeSchemeInRegistry(final CodeRegistry codeRegistry,

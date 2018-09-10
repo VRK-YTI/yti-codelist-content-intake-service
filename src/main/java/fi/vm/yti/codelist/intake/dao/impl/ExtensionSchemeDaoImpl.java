@@ -17,7 +17,6 @@ import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.model.Status;
-import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
@@ -49,7 +48,6 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
                                   final ExtensionSchemeRepository extensionSchemeRepository,
                                   final PropertyTypeDao propertyTypeDao,
                                   final CodeSchemeDao codeSchemeDao,
-                                  final CodeDao codeDao,
                                   final LanguageService languageService) {
         this.authorizationManager = authorizationManager;
         this.entityChangeLogger = entityChangeLogger;
@@ -132,6 +130,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
         ExtensionScheme existingExtensionScheme = null;
         if (fromExtensionScheme.getId() != null) {
             existingExtensionScheme = extensionSchemeRepository.findById(fromExtensionScheme.getId());
+            validateParentCodeScheme(existingExtensionScheme, codeScheme);
         } else {
             existingExtensionScheme = extensionSchemeRepository.findByParentCodeSchemeAndCodeValueIgnoreCase(codeScheme, fromExtensionScheme.getCodeValue());
         }
@@ -142,6 +141,13 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
             extensionScheme = createExtensionScheme(fromExtensionScheme, codeScheme);
         }
         return extensionScheme;
+    }
+
+    private void validateParentCodeScheme(final ExtensionScheme extensionScheme,
+                                          final CodeScheme codeScheme) {
+        if (extensionScheme != null && extensionScheme.getParentCodeScheme() != codeScheme) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
     }
 
     private ExtensionScheme updateExtensionScheme(final ExtensionScheme existingExtensionScheme,

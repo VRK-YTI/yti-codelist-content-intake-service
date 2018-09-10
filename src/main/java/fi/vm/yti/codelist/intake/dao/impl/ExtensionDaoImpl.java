@@ -234,6 +234,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (extensionScheme != null) {
             if (fromExtension.getId() != null) {
                 existingExtension = extensionRepository.findByExtensionSchemeAndId(extensionScheme, fromExtension.getId());
+                validateExtensionScheme(existingExtension, extensionScheme);
             } else {
                 existingExtension = null;
             }
@@ -245,6 +246,13 @@ public class ExtensionDaoImpl implements ExtensionDao {
             }
             return extension;
         } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
+    }
+
+    private void validateExtensionScheme(final Extension extension,
+                                         final ExtensionScheme extensionScheme) {
+        if (extension.getExtensionScheme() != extensionScheme) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
     }
