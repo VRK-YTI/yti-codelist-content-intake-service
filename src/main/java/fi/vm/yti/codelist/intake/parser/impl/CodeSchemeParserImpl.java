@@ -116,6 +116,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 codeScheme.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                 codeScheme.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
                 codeScheme.setChangeNote(parseLocalizedValueFromCsvRecord(changeNoteHeaders, record));
+                codeScheme.setOrganizations(resolveOrganizations(record.get(CONTENT_HEADER_ORGANIZATION)));
                 if (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                     codeScheme.setDataClassifications(resolveDataClassificationsFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_CLASSIFICATION)));
                 }
@@ -217,6 +218,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                         codeScheme.setLanguageCodes(languageCodes);
                     }
                 }
+                codeScheme.setOrganizations(resolveOrganizations(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORGANIZATION)))));
                 codeScheme.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 codeScheme.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
                 codeScheme.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));

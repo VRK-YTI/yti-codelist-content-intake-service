@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -318,5 +319,17 @@ public abstract class AbstractBaseParser {
             order = null;
         }
         return order;
+    }
+
+    public Set<OrganizationDTO> resolveOrganizations(final String organizationsString) {
+        final Set<OrganizationDTO> organizations = new HashSet<>();
+        if (organizationsString != null && !organizationsString.isEmpty()) {
+            for (final String organizationId : organizationsString.split(";")) {
+                final OrganizationDTO organization = new OrganizationDTO();
+                organization.setId(UUID.fromString(organizationId));
+                organizations.add(organization);
+            }
+        }
+        return organizations;
     }
 }

@@ -167,16 +167,4 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
                 ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
         }
     }
-
-    private Set<OrganizationDTO> resolveOrganizations(final String organizationsString) {
-        final Set<OrganizationDTO> organizations = new HashSet<>();
-        if (organizationsString != null && !organizationsString.isEmpty()) {
-            for (final String organizationId : organizationsString.split(";")) {
-                final OrganizationDTO organization = new OrganizationDTO();
-                organization.setId(UUID.fromString(organizationId));
-                organizations.add(organization);
-            }
-        }
-        return organizations;
-    }
 }

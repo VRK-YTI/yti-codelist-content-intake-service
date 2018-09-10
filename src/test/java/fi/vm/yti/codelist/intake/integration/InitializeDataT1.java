@@ -11,6 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import fi.vm.yti.codelist.intake.ContentIntakeServiceApplication;
 import fi.vm.yti.codelist.intake.data.YtiDataAccess;
+import fi.vm.yti.codelist.intake.groupmanagement.OrganizationUpdater;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import static org.junit.Assert.assertEquals;
 
@@ -24,10 +25,14 @@ public class InitializeDataT1 extends AbstractIntegrationTestBase {
     private YtiDataAccess ytiDataAccess;
 
     @Inject
+    private OrganizationUpdater organizationUpdater;
+
+    @Inject
     private CodeRegistryRepository codeRegistryRepository;
 
     @Test
     public void initializeDataTest() {
+        organizationUpdater.updateOrganizations();
         ytiDataAccess.initializeDefaultData();
         assertEquals(2, codeRegistryRepository.findAll().size());
     }
