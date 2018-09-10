@@ -417,10 +417,8 @@ public abstract class BaseService {
         organizationDto.setUrl(organization.getUrl());
         organizationDto.setDescription(organization.getDescription());
         organizationDto.setPrefLabel(organization.getPrefLabel());
-        if (deep) {
-            if (organization.getCodeRegistries() != null) {
-                organizationDto.setCodeRegistries(mapCodeRegistryDtos(organization.getCodeRegistries()));
-            }
+        if (deep && organization.getCodeRegistries() != null) {
+            organizationDto.setCodeRegistries(mapCodeRegistryDtos(organization.getCodeRegistries()));
         }
         return organizationDto;
     }
