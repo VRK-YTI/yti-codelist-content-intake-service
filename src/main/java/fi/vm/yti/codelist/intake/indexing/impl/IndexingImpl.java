@@ -242,10 +242,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean deleteCodes(final Set<CodeDTO> codes) {
-        if (!codes.isEmpty()) {
-            return deleteData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES);
-        }
-        return true;
+        return codes.isEmpty() || deleteData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES);
     }
 
     public boolean deleteCodeRegistry(final CodeRegistryDTO codeRegistry) {
@@ -255,10 +252,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean deleteCodeRegistries(final Set<CodeRegistryDTO> codeRegistries) {
-        if (!codeRegistries.isEmpty()) {
-            return deleteData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES);
-        }
-        return true;
+        return codeRegistries.isEmpty() || deleteData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES);
     }
 
     public boolean deleteCodeScheme(final CodeSchemeDTO codeScheme) {
@@ -268,17 +262,11 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean deleteCodeSchemes(final Set<CodeSchemeDTO> codeSchemes) {
-        if (!codeSchemes.isEmpty()) {
-            return deleteData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
-        }
-        return true;
+        return codeSchemes.isEmpty() || deleteData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
     }
 
     public boolean deleteExternalReferences(final Set<ExternalReferenceDTO> externalReferences) {
-        if (!externalReferences.isEmpty()) {
-            return deleteData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES);
-        }
-        return true;
+        return externalReferences.isEmpty() || deleteData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES);
     }
 
     public boolean deleteExtensionScheme(final ExtensionSchemeDTO extensionScheme) {
@@ -288,10 +276,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean deleteExtensionSchemes(final Set<ExtensionSchemeDTO> extensionSchemes) {
-        if (!extensionSchemes.isEmpty()) {
-            return deleteData(extensionSchemes, ELASTIC_INDEX_EXTENSIONSCHEME, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES);
-        }
-        return true;
+        return extensionSchemes.isEmpty() || deleteData(extensionSchemes, ELASTIC_INDEX_EXTENSIONSCHEME, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES);
     }
 
     public boolean deleteExtension(final ExtensionDTO extension) {
@@ -301,10 +286,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean deleteExtensions(final Set<ExtensionDTO> extensions) {
-        if (!extensions.isEmpty()) {
-            return deleteData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS);
-        }
-        return true;
+        return extensions.isEmpty() || deleteData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS);
     }
 
     public boolean updateCode(final CodeDTO code) {
@@ -314,10 +296,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateCodes(final Set<CodeDTO> codes) {
-        if (!codes.isEmpty()) {
-            return indexData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
-        }
-        return true;
+        return codes.isEmpty() || indexData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
     }
 
     public boolean updateCodeScheme(final CodeSchemeDTO codeScheme) {
@@ -327,10 +306,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateCodeSchemes(final Set<CodeSchemeDTO> codeSchemes) {
-        if (!codeSchemes.isEmpty()) {
-            return indexData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
-        }
-        return true;
+        return codeSchemes.isEmpty() || indexData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
     }
 
     public boolean updateCodeRegistry(final CodeRegistryDTO codeRegistry) {
@@ -340,10 +316,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateCodeRegistries(final Set<CodeRegistryDTO> codeRegistries) {
-        if (!codeRegistries.isEmpty()) {
-            return indexData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
-        }
-        return true;
+        return codeRegistries.isEmpty() || indexData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
     }
 
     public boolean updatePropertyType(final PropertyTypeDTO propertyType) {
@@ -353,10 +326,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes) {
-        if (!propertyTypes.isEmpty()) {
-            return indexData(propertyTypes, ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
-        }
-        return true;
+        return propertyTypes.isEmpty() || indexData(propertyTypes, ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
     }
 
     public boolean updateExternalReference(final ExternalReferenceDTO externalReference) {
@@ -366,10 +336,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateExternalReferences(final Set<ExternalReferenceDTO> externalReferences) {
-        if (!externalReferences.isEmpty()) {
-            return indexData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
-        }
-        return true;
+        return externalReferences.isEmpty() || indexData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
     }
 
     public boolean updateExtensionScheme(final ExtensionSchemeDTO extensionScheme) {
@@ -379,10 +346,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateExtensionSchemes(final Set<ExtensionSchemeDTO> extensionSchemes) {
-        if (!extensionSchemes.isEmpty()) {
-            return indexData(extensionSchemes, ELASTIC_INDEX_EXTENSIONSCHEME, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES, Views.ExtendedExtensionScheme.class);
-        }
-        return true;
+        return extensionSchemes.isEmpty() || indexData(extensionSchemes, ELASTIC_INDEX_EXTENSIONSCHEME, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES, Views.ExtendedExtensionScheme.class);
     }
 
     public boolean updateExtension(final ExtensionDTO extension) {
@@ -392,10 +356,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateExtensions(final Set<ExtensionDTO> extensions) {
-        if (!extensions.isEmpty()) {
-            return indexData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
-        }
-        return true;
+        return extensions.isEmpty() || indexData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
     }
 
     public void reIndexEverythingIfNecessary() {

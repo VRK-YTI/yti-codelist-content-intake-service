@@ -150,10 +150,8 @@ public abstract class AbstractBaseParser {
 
     protected boolean startDateIsBeforeEndDateSanityCheck(final Date startDate,
                                                           final Date endDate) {
-        if (startDate == null || endDate == null) {
-            return true; // if either one is null, everything is OK
-        }
-        return startDate.before(endDate) || startAndEndDatesAreOnTheSameDay(startDate, endDate);
+        // if either one is null, everything is OK
+        return startDate == null || endDate == null || startDate.before(endDate) || startAndEndDatesAreOnTheSameDay(startDate, endDate);
     }
 
     /**
