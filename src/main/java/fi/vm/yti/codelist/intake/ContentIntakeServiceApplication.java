@@ -1,7 +1,6 @@
 package fi.vm.yti.codelist.intake;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.ApplicationContext;
@@ -13,7 +12,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories("fi.vm.yti.codelist.*")
 @EnableTransactionManagement
 @EntityScan("fi.vm.yti.codelist.*")
-@ComponentScan({"fi.vm.yti.codelist.*"})
+@ComponentScan({ "fi.vm.yti.codelist.*" })
 public class ContentIntakeServiceApplication {
 
     public static void main(final String[] args) {
