@@ -54,7 +54,7 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_DATAC
 @Path("/v1/dataclassifications")
 @Api(value = "dataclassifications")
 @Produces(MediaType.APPLICATION_JSON)
-public class DataClassificationResource extends AbstractBaseResource {
+public class DataClassificationResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(DataClassificationResource.class);
     private final CodeRegistryDao codeRegistryDao;

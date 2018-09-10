@@ -43,7 +43,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_40
 @Component
 @Path("/v1/terminology")
 @Api(value = "terminology")
-public class TerminologyProxyResource extends AbstractBaseResource {
+public class TerminologyProxyResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(TerminologyProxyResource.class);
     private final RestTemplate restTemplate;
@@ -71,7 +71,7 @@ public class TerminologyProxyResource extends AbstractBaseResource {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
 
-        String response;
+        final String response;
         try {
             response = restTemplate.getForObject(createTerminologyVocabulariesApiUrl(), String.class);
         } catch (final Exception e) {

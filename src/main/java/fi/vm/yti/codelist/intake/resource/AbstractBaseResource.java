@@ -19,16 +19,16 @@ import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterModifier;
 
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 
-public abstract class AbstractBaseResource {
+public interface AbstractBaseResource {
 
-    public SimpleFilterProvider createSimpleFilterProvider(final String baseFilter,
+    default SimpleFilterProvider createSimpleFilterProvider(final String baseFilter,
                                                            final String expand) {
         final List<String> baseFilters = new ArrayList<>();
         baseFilters.add(baseFilter);
         return createSimpleFilterProvider(baseFilters, expand);
     }
 
-    public SimpleFilterProvider createSimpleFilterProvider(final List<String> baseFilters,
+    default SimpleFilterProvider createSimpleFilterProvider(final List<String> baseFilters,
                                                            final String expand) {
         final SimpleFilterProvider filterProvider = new SimpleFilterProvider();
         filterProvider.addFilter(FILTER_NAME_CODEREGISTRY, SimpleBeanPropertyFilter.filterOutAllExcept(FIELD_NAME_URI, FIELD_NAME_URL));
@@ -53,7 +53,7 @@ public abstract class AbstractBaseResource {
         return filterProvider;
     }
 
-    public ObjectMapper createObjectMapper() {
+    default ObjectMapper createObjectMapper() {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);

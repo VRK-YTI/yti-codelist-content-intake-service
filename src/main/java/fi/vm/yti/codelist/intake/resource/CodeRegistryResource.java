@@ -64,7 +64,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_CO
 @Path("/v1/coderegistries")
 @Api(value = "coderegistries")
 @Produces("text/plain")
-public class CodeRegistryResource extends AbstractBaseResource {
+public class CodeRegistryResource implements AbstractBaseResource {
 
     private final CodeService codeService;
     private final CodeSchemeService codeSchemeService;

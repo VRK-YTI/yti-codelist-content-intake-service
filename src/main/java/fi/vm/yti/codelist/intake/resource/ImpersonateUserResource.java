@@ -19,7 +19,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_IMPERSON
 @Path(API_PATH_IMPERSONABLE_USERS)
 @Produces(MediaType.APPLICATION_JSON)
 @Api(value = "fakeableUsers")
-public class ImpersonateUserResource extends AbstractBaseResource {
+public class ImpersonateUserResource implements AbstractBaseResource {
 
     private ImpersonateUserService impersonateUserService;
 

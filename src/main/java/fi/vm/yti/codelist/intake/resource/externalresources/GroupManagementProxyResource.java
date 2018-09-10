@@ -47,7 +47,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_40
 @Component
 @Path("/v1/groupmanagement")
 @Api(value = "groupmanagement")
-public class GroupManagementProxyResource extends AbstractBaseResource {
+public class GroupManagementProxyResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(GroupManagementProxyResource.class);
     private AuthenticatedUserProvider authenticatedUserProvider;

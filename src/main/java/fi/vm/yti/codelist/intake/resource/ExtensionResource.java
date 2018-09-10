@@ -36,7 +36,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_EXTEN
 @Path("/v1/extensions")
 @Api(value = "extensions")
 @Produces(MediaType.APPLICATION_JSON)
-public class ExtensionResource extends AbstractBaseResource {
+public class ExtensionResource implements AbstractBaseResource {
 
     private final Indexing indexing;
     private final ExtensionService extensionService;

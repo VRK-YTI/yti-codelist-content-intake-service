@@ -21,7 +21,7 @@ import io.swagger.annotations.ApiResponse;
 @Path("/configuration")
 @Api(value = "configuration")
 @Produces("text/plain")
-public class ConfigurationResource extends AbstractBaseResource {
+public class ConfigurationResource implements AbstractBaseResource {
 
     private final ApiUtils apiUtils;
 

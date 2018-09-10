@@ -38,7 +38,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_JSON;
 @Path("/v1/propertytypes")
 @Api(value = "propertytypes")
 @Produces(MediaType.APPLICATION_JSON)
-public class PropertyTypeResource extends AbstractBaseResource {
+public class PropertyTypeResource implements AbstractBaseResource {
 
     private final PropertyTypeService propertyTypeService;
     private final Indexing indexing;

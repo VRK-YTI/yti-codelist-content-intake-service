@@ -31,7 +31,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_ORGAN
 @Path("/v1/organizations")
 @Api(value = "organizations")
 @Produces(MediaType.APPLICATION_JSON)
-public class OrganizationResource extends AbstractBaseResource {
+public class OrganizationResource implements AbstractBaseResource {
 
     private final OrganizationService organizationService;
 

@@ -20,7 +20,7 @@ import static fi.vm.yti.codelist.intake.ServiceInitializer.LOCAL_SWAGGER_DATA_DI
 @Path("/swagger.json")
 @Api(value = "swagger.json")
 @Produces("text/plain")
-public class SwaggerResource extends AbstractBaseResource {
+public class SwaggerResource implements AbstractBaseResource {
 
     @GET
     @ApiOperation(value = "Get Swagger JSON", response = String.class)

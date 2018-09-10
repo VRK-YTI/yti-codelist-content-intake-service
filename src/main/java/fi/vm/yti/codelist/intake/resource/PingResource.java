@@ -15,7 +15,7 @@ import io.swagger.annotations.ApiResponse;
 @Path("/ping")
 @Api(value = "ping")
 @Produces("text/plain")
-public class PingResource extends AbstractBaseResource {
+public class PingResource implements AbstractBaseResource {
 
     @GET
     @ApiOperation(value = "Ping pong health check API.", response = String.class)

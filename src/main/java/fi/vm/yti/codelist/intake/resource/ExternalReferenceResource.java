@@ -38,7 +38,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_JSON;
 @Path("/v1/externalreferences")
 @Api(value = "externalreferences")
 @Produces(MediaType.APPLICATION_JSON)
-public class ExternalReferenceResource extends AbstractBaseResource {
+public class ExternalReferenceResource implements AbstractBaseResource {
 
     private final ExternalReferenceService externalReferenceService;
     private final Indexing indexing;

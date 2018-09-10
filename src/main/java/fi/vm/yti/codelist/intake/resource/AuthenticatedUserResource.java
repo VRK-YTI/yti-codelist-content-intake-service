@@ -16,7 +16,7 @@ import io.swagger.annotations.Api;
 @Path("/authenticated-user")
 @Api(value = "authenticated-user")
 @Produces(MediaType.APPLICATION_JSON)
-public class AuthenticatedUserResource extends AbstractBaseResource {
+public class AuthenticatedUserResource implements AbstractBaseResource {
 
     private final AuthenticatedUserProvider userProvider;
 

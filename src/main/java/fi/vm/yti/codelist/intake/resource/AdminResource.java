@@ -42,7 +42,7 @@ import static fi.vm.yti.codelist.intake.data.YtiDataAccess.DEFAULT_PROPERTYTYPE_
 @Path("/admin")
 @Api(value = "admin")
 @Produces("text/plain")
-public class AdminResource extends AbstractBaseResource {
+public class AdminResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(AdminResource.class);
     private final AuthorizationManager authorizationManager;

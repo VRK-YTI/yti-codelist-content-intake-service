@@ -15,7 +15,7 @@ import io.swagger.annotations.ApiResponse;
 @Path("/version")
 @Api(value = "version")
 @Produces("text/plain")
-public class VersionResource extends AbstractBaseResource {
+public class VersionResource implements AbstractBaseResource {
 
     private VersionInformation versionInformation;
 
