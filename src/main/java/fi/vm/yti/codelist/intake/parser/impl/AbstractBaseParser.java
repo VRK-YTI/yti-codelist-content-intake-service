@@ -276,10 +276,7 @@ public abstract class AbstractBaseParser {
 
     public boolean skipEmptyLine(final String codeValue,
                                  final String status) {
-        if ((codeValue == null || codeValue.trim().isEmpty()) && (status == null || status.trim().isEmpty())) {
-            return true;
-        }
-        return false;
+        return (codeValue == null || codeValue.trim().isEmpty()) && (status == null || status.trim().isEmpty());
     }
 
     public Integer resolveOrderFromExcelRow(final Map<String, Integer> headerMap,
