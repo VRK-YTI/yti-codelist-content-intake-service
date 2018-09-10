@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -97,7 +98,7 @@ public class DataClassificationResource extends AbstractBaseResource {
         });
         if (language != null && !language.isEmpty()) {
             final List<DataClassification> sortedClassifications = new ArrayList<>(dataClassifications);
-            Collections.sort(sortedClassifications, (dataClassification1, dataClassification2) -> dataClassification1.getPrefLabel(language).compareTo(dataClassification2.getPrefLabel(language)));
+            sortedClassifications.sort(Comparator.comparing(dataClassification -> dataClassification.getPrefLabel(language)));
             final Set<DataClassification> sortedSet = new LinkedHashSet<>(sortedClassifications);
             wrapper.setResults(sortedSet);
         } else {

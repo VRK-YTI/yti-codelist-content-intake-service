@@ -191,7 +191,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                 }
             }
         }
-        linkedExtensions.forEach(linkedExtension -> checkExtensionHierarchyLevels(linkedExtension));
+        linkedExtensions.forEach(this::checkExtensionHierarchyLevels);
         save(linkedExtensions);
     }
 

@@ -267,9 +267,7 @@ public class CodeRegistryResource extends AbstractBaseResource {
             final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeScheme.getId());
             if (extensionSchemes != null) {
                 indexing.updateExtensionSchemes(extensionSchemes);
-                extensionSchemes.forEach(extensionScheme -> {
-                    indexing.updateExtensions(extensionService.findByExtensionSchemeId(extensionScheme.getId()));
-                });
+                extensionSchemes.forEach(extensionScheme -> indexing.updateExtensions(extensionService.findByExtensionSchemeId(extensionScheme.getId())));
             }
         }
         final Meta meta = new Meta();
@@ -349,21 +347,11 @@ public class CodeRegistryResource extends AbstractBaseResource {
         CodeSchemeDTO motherCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
         CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(UUID.fromString(idOfVariantToDetach));
 
-        for (Iterator<CodeSchemeListItem> iterator = motherCodeScheme.getVariantsOfThisCodeScheme().iterator(); iterator.hasNext(); ) {
-            CodeSchemeListItem item = iterator.next();
-            if (item.getId().compareTo(variantCodeScheme.getId()) == 0) {
-                iterator.remove();
-            }
-        }
+        motherCodeScheme.getVariantsOfThisCodeScheme().removeIf(item -> item.getId().compareTo(variantCodeScheme.getId()) == 0);
 
         codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, motherCodeScheme);
 
-        for (Iterator<CodeSchemeListItem> iterator = variantCodeScheme.getVariantMothersOfThisCodeScheme().iterator(); iterator.hasNext(); ) {
-            CodeSchemeListItem item = iterator.next();
-            if (item.getId().compareTo(motherCodeScheme.getId()) == 0) {
-                iterator.remove();
-            }
-        }
+        variantCodeScheme.getVariantMothersOfThisCodeScheme().removeIf(item -> item.getId().compareTo(motherCodeScheme.getId()) == 0);
 
         codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, variantCodeScheme);
 
@@ -491,18 +479,8 @@ public class CodeRegistryResource extends AbstractBaseResource {
             }
 
             for (CodeSchemeDTO dto : affectedCodeSchemes) {
-                for (Iterator<CodeSchemeListItem> iterator = dto.getVariantsOfThisCodeScheme().iterator(); iterator.hasNext(); ) {
-                    CodeSchemeListItem item = iterator.next();
-                    if (item.getId().compareTo(codeScheme.getId()) == 0) {
-                        iterator.remove();
-                    }
-                }
-                for (Iterator<CodeSchemeListItem> iterator = dto.getVariantMothersOfThisCodeScheme().iterator(); iterator.hasNext(); ) {
-                    CodeSchemeListItem item = iterator.next();
-                    if (item.getId().compareTo(codeScheme.getId()) == 0) {
-                        iterator.remove();
-                    }
-                }
+                dto.getVariantsOfThisCodeScheme().removeIf(item -> item.getId().compareTo(codeScheme.getId()) == 0);
+                dto.getVariantMothersOfThisCodeScheme().removeIf(item -> item.getId().compareTo(codeScheme.getId()) == 0);
 
                 if (!YtiCollectionUtils.containsItemWithSameId(codeSchemeDTOsToIndex, dto)) {
                     codeSchemeDTOsToIndex.add(dto);
