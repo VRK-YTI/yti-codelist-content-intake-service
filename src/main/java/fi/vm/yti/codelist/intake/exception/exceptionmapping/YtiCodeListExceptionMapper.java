@@ -7,7 +7,7 @@ import javax.ws.rs.ext.Provider;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 
 @Provider
-public class YtiCodeListExceptionMapper extends BaseExceptionMapper implements ExceptionMapper<YtiCodeListException> {
+public class YtiCodeListExceptionMapper implements BaseExceptionMapper, ExceptionMapper<YtiCodeListException> {
 
     @Override
     public Response toResponse(final YtiCodeListException e) {
