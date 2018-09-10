@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
-@EnableAutoConfiguration
 @EnableJpaRepositories("fi.vm.yti.codelist.*")
 @EnableTransactionManagement
 @EntityScan("fi.vm.yti.codelist.*")
