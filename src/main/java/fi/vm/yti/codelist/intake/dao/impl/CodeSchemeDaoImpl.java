@@ -125,6 +125,13 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     @Transactional
     public CodeScheme updateCodeSchemeFromDto(final CodeRegistry codeRegistry,
                                               final CodeSchemeDTO codeSchemeDto) {
+        return updateCodeSchemeFromDto(false, codeRegistry, codeSchemeDto);
+    }
+
+    @Transactional
+    public CodeScheme updateCodeSchemeFromDto(final boolean isAuthorized,
+                                              final CodeRegistry codeRegistry,
+                                              final CodeSchemeDTO codeSchemeDto) {
         CodeScheme codeScheme = null;
         if (codeRegistry != null) {
             codeScheme = createOrUpdateCodeScheme(codeRegistry, codeSchemeDto);
@@ -136,14 +143,14 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     }
 
     @Transactional
-    public Set<CodeScheme> updateCodeSchemesFromDtos(final CodeRegistry codeRegistry,
+    public Set<CodeScheme> updateCodeSchemesFromDtos(final boolean isAuthorized,
+                                                     final CodeRegistry codeRegistry,
                                                      final Set<CodeSchemeDTO> codeSchemeDtos,
-                                                     final boolean updateExternalReferences,
-                                                     final boolean internal) {
+                                                     final boolean updateExternalReferences) {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (codeRegistry != null) {
             for (final CodeSchemeDTO codeSchemeDto : codeSchemeDtos) {
-                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, codeSchemeDto, internal);
+                final CodeScheme codeScheme = createOrUpdateCodeScheme(isAuthorized, codeRegistry, codeSchemeDto);
                 save(codeScheme);
                 if (updateExternalReferences) {
                     updateExternalReferences(codeScheme, codeSchemeDto);
@@ -167,13 +174,13 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     @Transactional
     public CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
                                                final CodeSchemeDTO fromCodeScheme) {
-        return createOrUpdateCodeScheme(codeRegistry, fromCodeScheme, false);
+        return createOrUpdateCodeScheme(false, codeRegistry, fromCodeScheme);
     }
 
     @Transactional
-    public CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
-                                               final CodeSchemeDTO fromCodeScheme,
-                                               final boolean internal) {
+    public CodeScheme createOrUpdateCodeScheme(final boolean isAuthorized,
+                                               final CodeRegistry codeRegistry,
+                                               final CodeSchemeDTO fromCodeScheme) {
         validateCodeSchemeForCodeRegistry(fromCodeScheme);
         final CodeScheme existingCodeScheme;
         if (fromCodeScheme.getId() != null) {
@@ -186,12 +193,12 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         }
         final CodeScheme codeScheme;
         if (existingCodeScheme != null) {
-            if (!internal && !authorizationManager.canBeModifiedByUserInOrganization(existingCodeScheme.getOrganizations())) {
+            if (!isAuthorized && !authorizationManager.canBeModifiedByUserInOrganization(existingCodeScheme.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
             codeScheme = updateCodeScheme(codeRegistry, existingCodeScheme, fromCodeScheme);
         } else {
-            if (!internal && !authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
+            if (!isAuthorized && !authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
             codeScheme = createCodeScheme(codeRegistry, fromCodeScheme);

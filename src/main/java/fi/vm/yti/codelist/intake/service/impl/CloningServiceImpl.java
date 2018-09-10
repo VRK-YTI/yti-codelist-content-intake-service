@@ -12,10 +12,12 @@ import java.util.stream.Collectors;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
@@ -25,14 +27,17 @@ import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
+import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
+import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CloningService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_401;
 
 @Singleton
 @Service
@@ -44,6 +49,7 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     private final CodeDao codeDao;
     private final ExternalReferenceDao externalReferenceDao;
     private final ExtensionSchemeDao extensionSchemeDao;
+    private final AuthorizationManager authorizationManager;
 
     public CloningServiceImpl(final CodeSchemeRepository codeSchemeRepository,
                               final CodeSchemeService codeSchemeService,
@@ -51,7 +57,8 @@ public class CloningServiceImpl extends BaseService implements CloningService {
                               final CodeDao codeDao,
                               final ExternalReferenceDao externalReferenceDao,
                               final ExtensionSchemeDao extensionSchemeDao,
-                              final ApiUtils apiUtils) {
+                              final ApiUtils apiUtils,
+                              final AuthorizationManager authorizationManager) {
         super(apiUtils);
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeSchemeService = codeSchemeService;
@@ -59,6 +66,7 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         this.codeDao = codeDao;
         this.externalReferenceDao = externalReferenceDao;
         this.extensionSchemeDao = extensionSchemeDao;
+        this.authorizationManager = authorizationManager;
     }
 
     @Transactional
@@ -67,6 +75,10 @@ public class CloningServiceImpl extends BaseService implements CloningService {
                                                            final String originalCodeSchemeUuid) {
 
         final CodeScheme originalCodeScheme = findCodeSchemeAndEagerFetchTheChildren(UUID.fromString(originalCodeSchemeUuid));
+
+        if (!authorizationManager.canBeModifiedByUserInOrganization(originalCodeScheme.getOrganizations())) {
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+        }
 
         codeSchemeWithUserChangesFromUi.setStatus(Status.DRAFT.toString());
         codeSchemeWithUserChangesFromUi.setNextCodeschemeId(null);
@@ -117,12 +129,12 @@ public class CloningServiceImpl extends BaseService implements CloningService {
             newCodeScheme,
             originalCodeScheme);
 
-        return codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
+        return codeSchemeService.updateCodeSchemeFromDto(true, codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
     }
 
     @Transactional
-    public LinkedHashSet<CodeScheme> getPreviousVersions(UUID uuid,
-                                                         LinkedHashSet result) {
+    public LinkedHashSet<CodeScheme> getPreviousVersions(final UUID uuid,
+                                                         final LinkedHashSet result) {
         CodeScheme prevVersion = codeSchemeDao.findById(uuid);
         if (prevVersion == null) {
             return result;

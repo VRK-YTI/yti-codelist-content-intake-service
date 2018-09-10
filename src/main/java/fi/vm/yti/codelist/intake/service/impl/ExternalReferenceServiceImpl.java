@@ -67,28 +67,28 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
     }
 
     @Transactional
-    public Set<ExternalReferenceDTO> parseAndPersistExternalReferencesFromSourceData(final boolean internal,
+    public Set<ExternalReferenceDTO> parseAndPersistExternalReferencesFromSourceData(final boolean isAuthorized,
                                                                                      final String format,
                                                                                      final InputStream inputStream,
                                                                                      final String jsonPayload,
                                                                                      final CodeScheme codeScheme) {
-        if (!internal && !authorizationManager.isSuperUser()) {
+        if (!isAuthorized && !authorizationManager.isSuperUser()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         Set<ExternalReference> externalReferences;
         switch (format.toLowerCase()) {
             case FORMAT_JSON:
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                    externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(internal, externalReferenceParser.parseExternalReferencesFromJson(jsonPayload), codeScheme);
+                    externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(isAuthorized, externalReferenceParser.parseExternalReferencesFromJson(jsonPayload), codeScheme);
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                 }
                 break;
             case FORMAT_EXCEL:
-                externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(internal, externalReferenceParser.parseExternalReferencesFromExcelInputStream(inputStream), codeScheme);
+                externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(isAuthorized, externalReferenceParser.parseExternalReferencesFromExcelInputStream(inputStream), codeScheme);
                 break;
             case FORMAT_CSV:
-                externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(internal, externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream), codeScheme);
+                externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(isAuthorized, externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream), codeScheme);
                 break;
             default:
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));

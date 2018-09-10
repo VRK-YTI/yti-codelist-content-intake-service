@@ -29,11 +29,15 @@ public interface CodeSchemeDao {
     CodeScheme findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                        final String codeSchemeCodeValue);
 
+    CodeScheme updateCodeSchemeFromDto(final boolean isAuthorized,
+                                       final CodeRegistry codeRegistry,
+                                       final CodeSchemeDTO codeSchemeDto);
+
     CodeScheme updateCodeSchemeFromDto(final CodeRegistry codeRegistry,
                                        final CodeSchemeDTO codeSchemeDto);
 
-    Set<CodeScheme> updateCodeSchemesFromDtos(final CodeRegistry codeRegistry,
+    Set<CodeScheme> updateCodeSchemesFromDtos(final boolean isAuthorized,
+                                              final CodeRegistry codeRegistry,
                                               final Set<CodeSchemeDTO> codeSchemeDtos,
-                                              final boolean updateExternalReferences,
-                                              final boolean internal);
+                                              final boolean updateExternalReferences);
 }

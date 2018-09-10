@@ -119,7 +119,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     }
 
     @Transactional
-    public Set<CodeDTO> parseAndPersistCodesFromSourceData(final boolean internal,
+    public Set<CodeDTO> parseAndPersistCodesFromSourceData(final boolean isAuthorized,
                                                            final String codeRegistryCodeValue,
                                                            final String codeSchemeCodeValue,
                                                            final String format,
@@ -131,7 +131,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             final HashMap<String, String> broaderCodeMapping = new HashMap<>();
             if (codeScheme != null) {
-                if (!internal && !authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
+                if (!isAuthorized && !authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
                     throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                 }
                 switch (format.toLowerCase()) {

@@ -26,7 +26,7 @@ public interface CodeService {
                                                        final String sheetName,
                                                        final CodeScheme codeScheme);
 
-    Set<CodeDTO> parseAndPersistCodesFromSourceData(final boolean internal,
+    Set<CodeDTO> parseAndPersistCodesFromSourceData(final boolean isAuthorized,
                                                     final String codeRegistryCodeValue,
                                                     final String codeSchemeCodeValue,
                                                     final String format,

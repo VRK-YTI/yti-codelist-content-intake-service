@@ -37,10 +37,15 @@ public interface CodeSchemeService {
                                    final String codeSchemeCodeValue,
                                    final LinkedHashSet<CodeSchemeDTO> codeSchemeDTOsToIndex);
 
-    CodeSchemeDTO updateCodeSchemeFromDto(String codeRegistryCodeValue,
-                                          CodeSchemeDTO codeSchemeDTO);
+    CodeSchemeDTO updateCodeSchemeFromDto(final String codeRegistryCodeValue,
+                                          final CodeSchemeDTO codeSchemeDTO);
 
-    void populateAllVersionsToCodeSchemeDTO(CodeSchemeDTO codeSchemeDTO);
+    CodeSchemeDTO updateCodeSchemeFromDto(final boolean internal,
+                                          final String codeRegistryCodeValue,
+                                          final CodeSchemeDTO codeSchemeDTO);
 
-    LinkedHashSet<CodeSchemeDTO> getPreviousVersions(UUID uuid, LinkedHashSet result);
+    void populateAllVersionsToCodeSchemeDTO(final CodeSchemeDTO codeSchemeDTO);
+
+    LinkedHashSet<CodeSchemeDTO> getPreviousVersions(final UUID uuid,
+                                                     final LinkedHashSet result);
 }

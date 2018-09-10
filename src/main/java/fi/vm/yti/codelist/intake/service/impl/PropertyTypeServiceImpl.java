@@ -64,12 +64,12 @@ public class PropertyTypeServiceImpl extends BaseService implements PropertyType
     }
 
     @Transactional
-    public Set<PropertyTypeDTO> parseAndPersistPropertyTypesFromSourceData(final boolean internal,
+    public Set<PropertyTypeDTO> parseAndPersistPropertyTypesFromSourceData(final boolean isAuthorized,
                                                                            final String format,
                                                                            final InputStream inputStream,
                                                                            final String jsonPayload) {
         Set<PropertyType> propertyTypes;
-        if (!internal && !authorizationManager.isSuperUser()) {
+        if (!isAuthorized && !authorizationManager.isSuperUser()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         switch (format.toLowerCase()) {

@@ -130,7 +130,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     }
 
     @Transactional
-    public Set<CodeSchemeDTO> parseAndPersistCodeSchemesFromSourceData(final boolean internal,
+    public Set<CodeSchemeDTO> parseAndPersistCodeSchemesFromSourceData(final boolean isAuthorized,
                                                                        final String codeRegistryCodeValue,
                                                                        final String format,
                                                                        final InputStream inputStream,
@@ -142,7 +142,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                 case FORMAT_JSON:
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromJsonData(jsonPayload);
-                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeDtos, true, internal);
+                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, true);
                     } else {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                     }
@@ -152,7 +152,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> extensionSchemesSheetNames = new HashMap<>();
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionSchemesSheetNames);
-                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeDtos, false, internal);
+                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, false);
                         if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
                             final CodeScheme codeScheme = codeSchemes.iterator().next();
                             codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeScheme);
@@ -184,7 +184,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                     }
                     break;
                 case FORMAT_CSV:
-                    codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream), false, internal);
+                    codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream), false);
                     break;
                 default:
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
@@ -287,8 +287,15 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     @Transactional
     public CodeSchemeDTO updateCodeSchemeFromDto(final String codeRegistryCodeValue,
                                                  final CodeSchemeDTO codeSchemeDto) {
+        return updateCodeSchemeFromDto(false, codeRegistryCodeValue, codeSchemeDto);
+    }
+
+    @Transactional
+    public CodeSchemeDTO updateCodeSchemeFromDto(final boolean isAuthorized,
+                                                 final String codeRegistryCodeValue,
+                                                 final CodeSchemeDTO codeSchemeDto) {
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
-        final CodeScheme codeScheme = codeSchemeDao.updateCodeSchemeFromDto(codeRegistry, codeSchemeDto);
+        final CodeScheme codeScheme = codeSchemeDao.updateCodeSchemeFromDto(isAuthorized, codeRegistry, codeSchemeDto);
         CodeSchemeDTO result = mapCodeSchemeDto(codeScheme, true);
         result.setVariantsOfThisCodeScheme(result.getVariantsOfThisCodeScheme());
         result.setVariantMothersOfThisCodeScheme(result.getVariantMothersOfThisCodeScheme());
