@@ -71,7 +71,7 @@ public class TerminologyProxyResource extends AbstractBaseResource {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
 
-        String response = null;
+        String response;
         try {
             response = restTemplate.getForObject(createTerminologyVocabulariesApiUrl(), String.class);
         } catch (final Exception e) {
@@ -116,7 +116,7 @@ public class TerminologyProxyResource extends AbstractBaseResource {
 
         final Meta meta = new Meta();
         final ResponseWrapper<Concept> wrapper = new ResponseWrapper<>(meta);
-        String response = "";
+        String response;
         try {
             response = restTemplate.getForObject(createTerminologyConceptsApiUrl(searchTerm, vocabularyId), String.class);
         } catch (HttpClientErrorException e) {

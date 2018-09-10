@@ -227,7 +227,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     public CodeSchemeDTO parseAndPersistCodeSchemeFromJson(final String codeRegistryCodeValue,
                                                            final String codeSchemeCodeValue,
                                                            final String jsonPayload) {
-        CodeScheme codeScheme = null;
+        CodeScheme codeScheme;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             try {
@@ -311,7 +311,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             return;
         }
         LinkedHashSet<CodeSchemeDTO> allVersions = new LinkedHashSet<>();
-        CodeSchemeDTO latestVersion = null;
+        CodeSchemeDTO latestVersion;
         latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
         allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
         LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();

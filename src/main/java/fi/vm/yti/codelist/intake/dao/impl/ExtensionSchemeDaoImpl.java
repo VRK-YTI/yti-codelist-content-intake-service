@@ -127,7 +127,7 @@ public class ExtensionSchemeDaoImpl implements ExtensionSchemeDao {
 
     private ExtensionScheme createOrUpdateExtensionScheme(final CodeScheme codeScheme,
                                                           final ExtensionSchemeDTO fromExtensionScheme) {
-        ExtensionScheme existingExtensionScheme = null;
+        ExtensionScheme existingExtensionScheme;
         if (fromExtensionScheme.getId() != null) {
             existingExtensionScheme = extensionSchemeRepository.findById(fromExtensionScheme.getId());
             validateParentCodeScheme(existingExtensionScheme, codeScheme);
