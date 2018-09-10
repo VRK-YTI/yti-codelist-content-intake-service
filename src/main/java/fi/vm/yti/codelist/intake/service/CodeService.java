@@ -1,7 +1,6 @@
 package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -9,7 +8,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.data.domain.PageRequest;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
-import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 
 public interface CodeService {
