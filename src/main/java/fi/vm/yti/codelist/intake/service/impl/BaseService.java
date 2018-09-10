@@ -147,6 +147,7 @@ public abstract class BaseService {
         codeSchemeDto.setPrevCodeschemeId(codeScheme.getPrevCodeschemeId());
         codeSchemeDto.setNextCodeschemeId(codeScheme.getNextCodeschemeId());
         codeSchemeDto.setLastCodeschemeId(codeScheme.getLastCodeschemeId());
+        codeSchemeDto.setOrganizations(mapOrganizationDtos(codeScheme.getOrganizations(), false));
         return codeSchemeDto;
     }
 
@@ -218,8 +219,8 @@ public abstract class BaseService {
         codeRegistryDto.setUri(codeRegistry.getUri());
         codeRegistryDto.setPrefLabel(codeRegistry.getPrefLabel());
         codeRegistryDto.setDefinition(codeRegistry.getDefinition());
-        codeRegistryDto.setOrganizations(mapOrganizationDtos(codeRegistry.getOrganizations(), false));
         codeRegistryDto.setUrl(apiUtils.createCodeRegistryUrl(codeRegistryDto));
+        codeRegistryDto.setOrganizations(mapOrganizationDtos(codeRegistry.getOrganizations(), false));
         codeRegistryDto.setCreated(codeRegistry.getCreated());
         codeRegistryDto.setModified(codeRegistry.getModified());
         return codeRegistryDto;

@@ -55,14 +55,14 @@ public class AuthorizationManagerImpl implements AuthorizationManager {
     }
 
     public boolean canExtensionSchemeBeDeleted(final ExtensionScheme extensionScheme) {
-        final Collection<UUID> organizationIds = extensionScheme.getParentCodeScheme().getCodeRegistry().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
+        final Collection<UUID> organizationIds = extensionScheme.getParentCodeScheme().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(extensionScheme.getStatus()).ordinal() <= Status.VALID.ordinal());
     }
 
     public boolean canExtensionBeDeleted(final Extension extension) {
         final ExtensionScheme extensionScheme = extension.getExtensionScheme();
-        final Collection<UUID> organizationIds = extensionScheme.getParentCodeScheme().getCodeRegistry().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
+        final Collection<UUID> organizationIds = extensionScheme.getParentCodeScheme().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(extensionScheme.getStatus()).ordinal() <= Status.VALID.ordinal());
     }
@@ -73,14 +73,14 @@ public class AuthorizationManagerImpl implements AuthorizationManager {
     }
 
     public boolean canCodeSchemeBeDeleted(final CodeScheme codeScheme) {
-        final Collection<UUID> organizationIds = codeScheme.getCodeRegistry().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
+        final Collection<UUID> organizationIds = codeScheme.getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(codeScheme.getStatus()).ordinal() <= Status.VALID.ordinal());
     }
 
     public boolean canCodeBeDeleted(final Code code) {
         final CodeScheme codeScheme = code.getCodeScheme();
-        final Collection<UUID> organizationIds = codeScheme.getCodeRegistry().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
+        final Collection<UUID> organizationIds = codeScheme.getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(codeScheme.getStatus()).ordinal() <= Status.VALID.ordinal());
     }

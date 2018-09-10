@@ -23,11 +23,17 @@ public interface CodeSchemeDao {
 
     Set<CodeScheme> findByCodeRegistryCodeValue(final String codeRegistryCodeValue);
 
-    CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry, final String codeValue);
+    CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry,
+                                              final String codeValue);
 
-    CodeScheme findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue, final String codeSchemeCodeValue);
+    CodeScheme findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
+                                                       final String codeSchemeCodeValue);
 
-    CodeScheme updateCodeSchemeFromDto(final CodeRegistry codeRegistry, final CodeSchemeDTO codeSchemeDto);
+    CodeScheme updateCodeSchemeFromDto(final CodeRegistry codeRegistry,
+                                       final CodeSchemeDTO codeSchemeDto);
 
-    Set<CodeScheme> updateCodeSchemesFromDtos(final CodeRegistry codeRegistry, final Set<CodeSchemeDTO> codeSchemeDtos, final boolean updateExternalReferences);
+    Set<CodeScheme> updateCodeSchemesFromDtos(final CodeRegistry codeRegistry,
+                                              final Set<CodeSchemeDTO> codeSchemeDtos,
+                                              final boolean updateExternalReferences,
+                                              final boolean internal);
 }

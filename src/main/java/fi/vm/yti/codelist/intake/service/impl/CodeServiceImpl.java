@@ -97,7 +97,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                                                               final CodeScheme codeScheme) {
         Set<Code> codes;
         if (codeScheme != null) {
-            if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations())) {
+            if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
             final HashMap<String, String> broaderCodeMapping = new HashMap<>();
@@ -128,12 +128,12 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         Set<Code> codes;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            if (!internal && !authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
-            }
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             final HashMap<String, String> broaderCodeMapping = new HashMap<>();
             if (codeScheme != null) {
+                if (!internal && !authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
+                    throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+                }
                 switch (format.toLowerCase()) {
                     case FORMAT_JSON:
                         if (jsonPayload != null && !jsonPayload.isEmpty()) {
@@ -169,11 +169,11 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         final Set<Code> codes;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
-            }
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             if (codeScheme != null) {
+                if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
+                    throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+                }
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         final CodeDTO codeDto = codeParser.parseCodeFromJsonData(jsonPayload);

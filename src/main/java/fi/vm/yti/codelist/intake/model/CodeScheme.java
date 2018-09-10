@@ -34,7 +34,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeScheme")
 @Table(name = "codescheme")
 @XmlRootElement
-@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "languageCodes", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies", "variants", "variantMothers", "nextCodeschemeId", "prevCodeschemeId", "lastCodeschemeId" })
+@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "languageCodes", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies", "variants", "variantMothers", "nextCodeschemeId", "prevCodeschemeId", "lastCodeschemeId", "organizations"})
 @ApiModel(value = "CodeScheme", description = "CodeScheme model that represents data for one single codescheme.")
 public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
@@ -61,6 +61,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private UUID nextCodeschemeId;
     private UUID prevCodeschemeId;
     private UUID lastCodeschemeId;
+    private Set<Organization> organizations;
 
     public CodeScheme() {
         prefLabel = new HashMap<>();
@@ -421,5 +422,20 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     public void setVariantMothers(final Set<CodeScheme> variantMothers) {
         this.variantMothers = variantMothers;
+    }
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "codescheme_organization",
+        joinColumns = {
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false)},
+        inverseJoinColumns = {
+            @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false)})
+    @JsonView(Views.Normal.class)
+    public Set<Organization> getOrganizations() {
+        return organizations;
+    }
+
+    public void setOrganizations(final Set<Organization> organizations) {
+        this.organizations = organizations;
     }
 }

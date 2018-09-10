@@ -120,7 +120,7 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
                                                                      final String jsonPayload,
                                                                      final String sheetName) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-        if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations())) {
+        if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         Set<Extension> extensions;

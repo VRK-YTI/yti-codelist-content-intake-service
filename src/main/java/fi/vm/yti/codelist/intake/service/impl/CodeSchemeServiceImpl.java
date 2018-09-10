@@ -138,14 +138,11 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         final Set<CodeScheme> codeSchemes;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            if (!internal && !authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
-            }
             switch (format.toLowerCase()) {
                 case FORMAT_JSON:
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromJsonData(jsonPayload);
-                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeDtos, true);
+                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeDtos, true, internal);
                     } else {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                     }
@@ -155,7 +152,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> extensionSchemesSheetNames = new HashMap<>();
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionSchemesSheetNames);
-                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeDtos, false);
+                        codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeDtos, false, internal);
                         if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
                             final CodeScheme codeScheme = codeSchemes.iterator().next();
                             codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeScheme);
@@ -187,7 +184,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                     }
                     break;
                 case FORMAT_CSV:
-                    codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream), false);
+                    codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(codeRegistry, codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream), false, internal);
                     break;
                 default:
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
@@ -204,7 +201,6 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                        final CodeScheme codeScheme) {
         if (workbook.getSheet(sheetName) != null) {
             final Map<ExtensionSchemeDTO, String> extensionsSheetNames = new HashMap<>();
-            final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromExcelWorkbook(codeScheme, workbook, sheetName, extensionsSheetNames);
             extensionsSheetNames.forEach((extensionSchemeDto, extensionSheetName) -> {
                 final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeDto.getId());
                 if (extensionScheme != null) {
@@ -231,9 +227,6 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         CodeScheme codeScheme = null;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
-            if (!authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
-                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
-            }
             try {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     final CodeSchemeDTO codeSchemeDto = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);

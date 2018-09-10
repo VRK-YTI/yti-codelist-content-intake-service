@@ -17,22 +17,26 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
+import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
+import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
+import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.*;
@@ -48,6 +52,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     private final AuthorizationManager authorizationManager;
     private final ExternalReferenceDao externalReferenceDao;
     private final LanguageService languageService;
+    private final OrganizationRepository organizationRepository;
 
     @Inject
     public CodeSchemeDaoImpl(final EntityChangeLogger entityChangeLogger,
@@ -57,7 +62,8 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                              final CodeRepository codeRepository,
                              final AuthorizationManager authorizationManager,
                              final ExternalReferenceDao externalReferenceDao,
-                             final LanguageService languageService) {
+                             final LanguageService languageService,
+                             final OrganizationRepository organizationRepository) {
         this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.codeRegistryRepository = codeRegistryRepository;
@@ -66,6 +72,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         this.authorizationManager = authorizationManager;
         this.externalReferenceDao = externalReferenceDao;
         this.languageService = languageService;
+        this.organizationRepository = organizationRepository;
     }
 
     public void delete(final CodeScheme codeScheme) {
@@ -131,11 +138,12 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     @Transactional
     public Set<CodeScheme> updateCodeSchemesFromDtos(final CodeRegistry codeRegistry,
                                                      final Set<CodeSchemeDTO> codeSchemeDtos,
-                                                     final boolean updateExternalReferences) {
+                                                     final boolean updateExternalReferences,
+                                                     final boolean internal) {
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (codeRegistry != null) {
             for (final CodeSchemeDTO codeSchemeDto : codeSchemeDtos) {
-                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, codeSchemeDto);
+                final CodeScheme codeScheme = createOrUpdateCodeScheme(codeRegistry, codeSchemeDto, internal);
                 save(codeScheme);
                 if (updateExternalReferences) {
                     updateExternalReferences(codeScheme, codeSchemeDto);
@@ -159,6 +167,13 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     @Transactional
     public CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
                                                final CodeSchemeDTO fromCodeScheme) {
+        return createOrUpdateCodeScheme(codeRegistry, fromCodeScheme, false);
+    }
+
+    @Transactional
+    public CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
+                                               final CodeSchemeDTO fromCodeScheme,
+                                               final boolean internal) {
         validateCodeSchemeForCodeRegistry(fromCodeScheme);
         final CodeScheme existingCodeScheme;
         if (fromCodeScheme.getId() != null) {
@@ -171,8 +186,14 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         }
         final CodeScheme codeScheme;
         if (existingCodeScheme != null) {
+            if (!internal && !authorizationManager.canBeModifiedByUserInOrganization(existingCodeScheme.getOrganizations())) {
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+            }
             codeScheme = updateCodeScheme(codeRegistry, existingCodeScheme, fromCodeScheme);
         } else {
+            if (!internal && !authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+            }
             codeScheme = createCodeScheme(codeRegistry, fromCodeScheme);
         }
         return codeScheme;
@@ -199,6 +220,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         if (!Objects.equals(existingCodeScheme.getCodeRegistry(), codeRegistry)) {
             existingCodeScheme.setCodeRegistry(codeRegistry);
         }
+        existingCodeScheme.setOrganizations(resolveOrganizationsFromDtos(fromCodeScheme.getOrganizations()));
         final Set<Code> classifications = resolveDataClassificationsFromDtos(fromCodeScheme.getDataClassifications());
         if (!Objects.equals(existingCodeScheme.getDataClassifications(), classifications)) {
             if (classifications != null && !classifications.isEmpty()) {
@@ -310,6 +332,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             final UUID uuid = UUID.randomUUID();
             codeScheme.setId(uuid);
         }
+        codeScheme.setOrganizations(resolveOrganizationsFromDtos(fromCodeScheme.getOrganizations()));
         final String codeValue = fromCodeScheme.getCodeValue();
         validateCodeValue(codeValue);
         codeScheme.setCodeValue(codeValue);
@@ -413,4 +436,20 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             }
         }
     }
+
+    private Set<Organization> resolveOrganizationsFromDtos(final Set<OrganizationDTO> organizationDtos) {
+        final Set<Organization> organizations = new HashSet<>();
+        organizationDtos.forEach(organizationDto -> {
+            final Organization organization = organizationRepository.findById(organizationDto.getId());
+            if (organization != null) {
+                organizations.add(organization);
+            }
+        });
+        if (organizations.isEmpty()) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NO_ORGANIZATION));
+        }
+        return organizations;
+    }
 }
+
+

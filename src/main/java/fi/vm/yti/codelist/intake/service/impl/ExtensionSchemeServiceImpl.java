@@ -113,7 +113,7 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                                                                                  final String jsonPayload,
                                                                                  final String sheetName) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-        if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations())) {
+        if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         Set<ExtensionScheme> extensionSchemes;
@@ -160,7 +160,7 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                                                                                     final Workbook workbook,
                                                                                     final String sheetName,
                                                                                     final Map<ExtensionSchemeDTO, String> extensionsSheetNames) {
-        if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations())) {
+        if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         final Set<ExtensionSchemeDTO> extensionSchemeDtos = extensionSchemeParser.parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, extensionsSheetNames);
@@ -221,7 +221,7 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
                     }
                     final CodeScheme codeScheme = codeSchemeDao.findById(extensionSchemeDTO.getId());
-                    if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getCodeRegistry().getOrganizations())) {
+                    if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
                         throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                     }
                     extensionScheme = extensionSchemeDao.updateExtensionSchemeEntityFromDtos(null, extensionSchemeDTO);
