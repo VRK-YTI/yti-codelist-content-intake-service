@@ -2,7 +2,6 @@ package fi.vm.yti.codelist.intake.resource;
 
 import java.io.InputStream;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
