@@ -64,7 +64,7 @@ public class IndexingImpl implements Indexing {
     private static final String NAME_EXTENSIONSCHEMES = "ExtensionSchemes";
     private static final String NAME_EXTENSIONS = "Extensions";
     private static final String BULK = "ElasticSearch bulk: ";
-    private static int MAX_PAGE_COUNT = 2000;
+    private static final int MAX_PAGE_COUNT = 2000;
 
     private final IndexStatusRepository indexStatusRepository;
     private final CodeSchemeService codeSchemeService;
