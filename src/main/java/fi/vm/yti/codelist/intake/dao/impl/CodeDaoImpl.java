@@ -143,8 +143,7 @@ public class CodeDaoImpl implements CodeDao {
     public Set<Code> updateCodeFromDto(final CodeScheme codeScheme,
                                        final CodeDTO codeDto) {
         final Set<Code> codes = new HashSet<>();
-        Code code = null;
-        code = createOrUpdateCode(codeScheme, codeDto, null, codes, null);
+        final Code code = createOrUpdateCode(codeScheme, codeDto, null, codes, null);
         codes.add(code);
         updateExternalReferences(codeScheme, code, codeDto);
         save(code);
@@ -201,7 +200,7 @@ public class CodeDaoImpl implements CodeDao {
                                    final CodeDTO codeDto,
                                    final Set<Code> existingCodes,
                                    final Set<Code> codes,
-                                   MutableInt nextOrder) {
+                                   final MutableInt nextOrder) {
         validateCodeForCodeScheme(codeDto);
         final Code existingCode;
         if (codeDto.getId() != null) {
@@ -246,7 +245,7 @@ public class CodeDaoImpl implements CodeDao {
                             final Code existingCode,
                             final CodeDTO fromCode,
                             final Set<Code> codes,
-                            MutableInt nextOrder) {
+                            final MutableInt nextOrder) {
         final String uri = apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, existingCode);
         if (!Objects.equals(existingCode.getStatus(), fromCode.getStatus())) {
             if (!authorizationManager.isSuperUser() && Status.valueOf(existingCode.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCode.getStatus()).ordinal() < Status.VALID.ordinal()) {
@@ -325,7 +324,7 @@ public class CodeDaoImpl implements CodeDao {
     private Code createCode(final CodeScheme codeScheme,
                             final CodeDTO fromCode,
                             final Set<Code> codes,
-                            MutableInt nextOrder) {
+                            final MutableInt nextOrder) {
         final Code code = new Code();
         if (fromCode.getId() != null) {
             code.setId(fromCode.getId());
@@ -350,7 +349,6 @@ public class CodeDaoImpl implements CodeDao {
         } else if (nextOrder == null) {
             final int order = getNextOrderInSequence(codeScheme);
             code.setOrder(order);
-            nextOrder.setValue(order + 1);
         } else {
             code.setOrder(nextOrder.getValue());
             nextOrder.setValue(nextOrder.getValue() + 1);
