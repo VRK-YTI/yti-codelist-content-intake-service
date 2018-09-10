@@ -201,12 +201,15 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                        final CodeScheme codeScheme) {
         if (workbook.getSheet(sheetName) != null) {
             final Map<ExtensionSchemeDTO, String> extensionsSheetNames = new HashMap<>();
-            extensionsSheetNames.forEach((extensionSchemeDto, extensionSheetName) -> {
-                final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeDto.getId());
-                if (extensionScheme != null) {
-                    parseExtensions(workbook, extensionSheetName, extensionScheme);
-                }
-            });
+            final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromExcelWorkbook(codeScheme, workbook, sheetName, extensionsSheetNames);
+            if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
+                extensionsSheetNames.forEach((extensionSchemeDto, extensionSheetName) -> {
+                    final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeDto.getId());
+                    if (extensionScheme != null) {
+                        parseExtensions(workbook, extensionSheetName, extensionScheme);
+                    }
+                });
+            }
         }
     }
 
