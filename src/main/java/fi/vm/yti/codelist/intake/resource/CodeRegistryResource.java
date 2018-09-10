@@ -342,7 +342,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response detachAVariantFromCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                  @PathParam("idOfVariantToDetach") final String idOfVariantToDetach,
-                                                 @ApiParam(value = "JSON playload for the mother CodeScheme data.", required = true) final String jsonPayload) throws Exception {
+                                                 @ApiParam(value = "JSON playload for the mother CodeScheme data.", required = true) final String jsonPayload) {
         CodeSchemeDTO motherCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
         CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(UUID.fromString(idOfVariantToDetach));
 
