@@ -157,7 +157,7 @@ public abstract class BaseService {
         if (!codeScheme.getVariants().isEmpty()) {
             for (CodeScheme variant : codeScheme.getVariants()) {
                 CodeSchemeListItem item = new CodeSchemeListItem(variant.getId(), variant.getPrefLabel(),
-                        variant.getUri(), variant.getStartDate(), variant.getEndDate(), variant.getStatus());
+                    variant.getUri(), variant.getStartDate(), variant.getEndDate(), variant.getStatus());
                 result.add(item);
             }
         }
@@ -170,7 +170,7 @@ public abstract class BaseService {
         if (!codeScheme.getVariantMothers().isEmpty()) {
             for (CodeScheme variantMother : codeScheme.getVariantMothers()) {
                 CodeSchemeListItem item = new CodeSchemeListItem(variantMother.getId(), variantMother.getPrefLabel(),
-                        variantMother.getUri(), variantMother.getStartDate(), variantMother.getEndDate(), variantMother.getStatus());
+                    variantMother.getUri(), variantMother.getStartDate(), variantMother.getEndDate(), variantMother.getStatus());
                 result.add(item);
             }
         }
@@ -377,21 +377,15 @@ public abstract class BaseService {
         extensionSchemeDto.setCodeValue(codeValue);
         extensionSchemeDto.setStartDate(extensionScheme.getStartDate());
         extensionSchemeDto.setEndDate(extensionScheme.getEndDate());
-        if (deep || includeParentCodeScheme) {
-            if (extensionScheme.getParentCodeScheme() != null) {
-                extensionSchemeDto.setParentCodeScheme(mapCodeSchemeDto(extensionScheme.getParentCodeScheme(), false));
-            }
+        if ((deep || includeParentCodeScheme) && extensionScheme.getParentCodeScheme() != null) {
+            extensionSchemeDto.setParentCodeScheme(mapCodeSchemeDto(extensionScheme.getParentCodeScheme(), false));
         }
-        if (deep || includeCodeSchemes) {
-            if (extensionScheme.getCodeSchemes() != null) {
-                extensionSchemeDto.setCodeSchemes(mapCodeSchemeDtos(extensionScheme.getCodeSchemes(), false));
-            }
+        if ((deep || includeCodeSchemes) && extensionScheme.getCodeSchemes() != null) {
+            extensionSchemeDto.setCodeSchemes(mapCodeSchemeDtos(extensionScheme.getCodeSchemes(), false));
         }
 
-        if (deep) {
-            if (extensionScheme.getExtensions() != null) {
-                extensionSchemeDto.setExtensions(mapExtensionDtos(extensionScheme.getExtensions(), false));
-            }
+        if (deep && extensionScheme.getExtensions() != null) {
+            extensionSchemeDto.setExtensions(mapExtensionDtos(extensionScheme.getExtensions(), false));
         }
         extensionSchemeDto.setUrl(apiUtils.createExtensionSchemeUrl(extensionScheme.getParentCodeScheme().getCodeRegistry().getCodeValue(), extensionScheme.getParentCodeScheme().getCodeValue(), codeValue));
         extensionSchemeDto.setCreated(extensionScheme.getCreated());
