@@ -21,6 +21,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
@@ -28,8 +29,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
+import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.IndexingTools;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 @Singleton
@@ -280,8 +284,11 @@ public class IndexingToolsImpl implements IndexingTools {
                 } else {
                     logDeleteSuccessful(indexName);
                 }
-            } catch (InterruptedException | ExecutionException e) {
+            } catch (final ExecutionException e) {
                 LOG.error("Deleting ElasticSearch index failed for: " + indexName, e);
+            } catch (final InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
             }
         } else {
             logIndexDoesNotExist(indexName);
