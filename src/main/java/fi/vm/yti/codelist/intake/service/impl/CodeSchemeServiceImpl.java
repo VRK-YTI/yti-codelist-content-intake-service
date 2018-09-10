@@ -3,7 +3,6 @@ package fi.vm.yti.codelist.intake.service.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
