@@ -1,8 +1,6 @@
 package fi.vm.yti.codelist.intake.resource;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -22,14 +20,14 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 public interface AbstractBaseResource {
 
     default SimpleFilterProvider createSimpleFilterProvider(final String baseFilter,
-                                                           final String expand) {
+                                                            final String expand) {
         final List<String> baseFilters = new ArrayList<>();
         baseFilters.add(baseFilter);
         return createSimpleFilterProvider(baseFilters, expand);
     }
 
     default SimpleFilterProvider createSimpleFilterProvider(final List<String> baseFilters,
-                                                           final String expand) {
+                                                            final String expand) {
         final SimpleFilterProvider filterProvider = new SimpleFilterProvider();
         filterProvider.addFilter(FILTER_NAME_CODEREGISTRY, SimpleBeanPropertyFilter.filterOutAllExcept(FIELD_NAME_URI, FIELD_NAME_URL));
         filterProvider.addFilter(FILTER_NAME_CODESCHEME, SimpleBeanPropertyFilter.filterOutAllExcept(FIELD_NAME_URI, FIELD_NAME_URL));
