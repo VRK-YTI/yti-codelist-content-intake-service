@@ -323,7 +323,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
 
     @Transactional
     public LinkedHashSet<CodeSchemeDTO> getPreviousVersions(final UUID uuid,
-                                                            final LinkedHashSet result) {
+                                                            final LinkedHashSet<CodeSchemeDTO> result) {
         CodeSchemeDTO prevVersion = this.findById(uuid);
         if (prevVersion == null) {
             return result;

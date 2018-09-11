@@ -47,5 +47,5 @@ public interface CodeSchemeService {
     void populateAllVersionsToCodeSchemeDTO(final CodeSchemeDTO codeSchemeDTO);
 
     LinkedHashSet<CodeSchemeDTO> getPreviousVersions(final UUID uuid,
-                                                     final LinkedHashSet result);
+                                                     final LinkedHashSet<CodeSchemeDTO> result);
 }

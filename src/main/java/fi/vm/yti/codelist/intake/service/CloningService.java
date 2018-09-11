@@ -24,5 +24,5 @@ public interface CloningService {
                                                     final String originalCodeSchemeUuid);
 
     LinkedHashSet<CodeScheme> getPreviousVersions(final UUID uuid,
-                                                  final LinkedHashSet result);
+                                                  final LinkedHashSet<CodeScheme> result);
 }
