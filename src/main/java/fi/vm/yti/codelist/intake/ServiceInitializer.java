@@ -15,6 +15,8 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,7 +38,7 @@ import fi.vm.yti.codelist.intake.util.FileUtils;
  * Class that initializes and possibly refreshes domain data at application startup.
  */
 @Component
-public class ServiceInitializer {
+public class ServiceInitializer implements ApplicationRunner {
 
     public static final String LOCAL_SWAGGER_DATA_DIR = "/data/yti/yti-codelist-intake/swagger/";
     private static final Logger LOG = LoggerFactory.getLogger(ServiceInitializer.class);
@@ -62,12 +64,13 @@ public class ServiceInitializer {
         this.publicApiServiceProperties = publicApiServiceProperties;
     }
 
-    /**
-     * Initialize the application, load data for services.
-     * <p>
-     * No top level transaction in use, transactions handled by method level.
-     */
-    public void initialize() {
+    @Override
+    public void run(final ApplicationArguments applicationArguments) throws Exception {
+        initialize();
+    }
+
+    void initialize() {
+        printLogo();
         updateSwaggerHost();
         LOG.info("*** Initializing data. ***");
         indexing.cleanRunningIndexingBookkeeping();
@@ -75,17 +78,17 @@ public class ServiceInitializer {
         organizationUpdater.updateOrganizations();
         final Stopwatch watch = Stopwatch.createStarted();
         ytiDataAccess.initializeOrRefresh();
-        LOG.info("*** Database population took: " + watch + ". ***");
+        LOG.info(String.format("*** Database population took: %s. ***", watch));
         final Stopwatch indexWatch = Stopwatch.createStarted();
         indexing.reIndexEverything();
-        LOG.info("*** Elastic indexing took: " + indexWatch + ". ***");
-        LOG.info("*** Data initialization complete, took " + watch + ". ***");
+        LOG.info(String.format("*** Elastic indexing took: %s. ***", indexWatch));
+        LOG.info(String.format("*** Data initialization complete, took %s. ***", watch));
     }
 
     /**
      * Application logo printout to log.
      */
-    public void printLogo() {
+    void printLogo() {
         LOG.info("");
         LOG.info("          __  .__          .__        __          __           ");
         LOG.info(" ___.__._/  |_|__|         |__| _____/  |______  |  | __ ____  ");
@@ -100,7 +103,7 @@ public class ServiceInitializer {
         LOG.info("/____  >\\___  >__|    \\_/ |__|\\___  >___  >");
         LOG.info("     \\/     \\/                    \\/    \\/ ");
         LOG.info("");
-        LOG.info("                --- Version " + versionInformation.getVersion() + " starting up. --- ");
+        LOG.info(String.format("                --- Version %s starting up. --- ", versionInformation.getVersion()));
         LOG.info("");
     }
 
@@ -124,7 +127,7 @@ public class ServiceInitializer {
             final File file = new File(LOCAL_SWAGGER_DATA_DIR + "swagger.json");
             Files.createDirectories(Paths.get(file.getParentFile().getPath()));
             final String fileLocation = file.toString();
-            LOG.info("Storing modified swagger.json description with hostname: " + hostname + " to: " + fileLocation);
+            LOG.info(String.format("Storing modified swagger.json description with hostname: %s to: %s", hostname, fileLocation));
             try (FileOutputStream fos = new FileOutputStream(fileLocation, false)) {
                 mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
                 fos.write(mapper.writeValueAsString(jsonObject).getBytes(StandardCharsets.UTF_8));
@@ -133,5 +136,4 @@ public class ServiceInitializer {
             LOG.error("Swagger JSON parsing failed: ", e);
         }
     }
-
 }

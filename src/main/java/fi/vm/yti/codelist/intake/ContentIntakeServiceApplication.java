@@ -3,7 +3,6 @@ package fi.vm.yti.codelist.intake;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -14,9 +13,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class ContentIntakeServiceApplication {
 
     public static void main(final String[] args) {
-        final ApplicationContext context = SpringApplication.run(ContentIntakeServiceApplication.class, args);
-        final ServiceInitializer serviceInitializer = context.getBean(ServiceInitializer.class);
-        serviceInitializer.printLogo();
-        serviceInitializer.initialize();
+        SpringApplication.run(ContentIntakeServiceApplication.class, args);
     }
 }
