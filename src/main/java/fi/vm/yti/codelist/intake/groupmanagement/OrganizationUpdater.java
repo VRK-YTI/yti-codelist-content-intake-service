@@ -47,7 +47,7 @@ public class OrganizationUpdater {
         try {
             final String response = restTemplate.getForObject(getGroupManagementOrganizationsApiUrl(), String.class, vars);
             final Set<OrganizationDTO> organizations = organizationService.parseAndPersistGroupManagementOrganizationsFromJson(response);
-            LOG.info("Successfully synced " + organizations.size() + " from groupmanagement service!");
+            LOG.info(String.format("Successfully synced %d from groupmanagement service!", organizations.size()));
         } catch (final Exception e) {
             LOG.error("Organization fetching failed due to exception.", e);
         }

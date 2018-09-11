@@ -10,21 +10,29 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.Organization;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_CODEREGISTRY_NO_ORGANIZATION;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateCodeValue;
 
 @Component
 public class CodeRegistryDaoImpl implements CodeRegistryDao {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryDaoImpl.class);
 
     private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
@@ -76,6 +84,7 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
 
     @Transactional
     public CodeRegistry createOrUpdateCodeRegistry(final CodeRegistryDTO fromCodeRegistry) {
+        LOG.warn("Adding registry: " + fromCodeRegistry.getCodeValue());
         final CodeRegistry codeRegistry;
         final CodeRegistry existingCodeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(fromCodeRegistry.getCodeValue());
         if (existingCodeRegistry != null) {
@@ -139,6 +148,9 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
                 organizations.add(organization);
             }
         });
+        if (organizations.isEmpty()) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NO_ORGANIZATION));
+        }
         return organizations;
     }
 }

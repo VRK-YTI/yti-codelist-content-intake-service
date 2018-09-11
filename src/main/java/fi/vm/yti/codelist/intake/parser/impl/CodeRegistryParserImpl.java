@@ -160,6 +160,10 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
     }
 
     private void validateRequiredHeaders(final Map<String, Integer> headerMap) {
+        if (!headerMap.containsKey(CONTENT_HEADER_ORGANIZATION)) {
+            throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_MISSING_HEADER_ORGANIZATION));
+        }
         if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_CODEVALUE));

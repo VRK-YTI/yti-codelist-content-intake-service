@@ -235,7 +235,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         if (!Objects.equals(existingCodeScheme.getCodeRegistry(), codeRegistry)) {
             existingCodeScheme.setCodeRegistry(codeRegistry);
         }
-        existingCodeScheme.setOrganizations(resolveOrganizationsFromDtos(fromCodeScheme.getOrganizations()));
+        existingCodeScheme.setOrganizations(resolveOrganizationsFromDtosOrCodeRegistry(fromCodeScheme.getOrganizations(), codeRegistry));
         final Set<Code> classifications = resolveDataClassificationsFromDtos(fromCodeScheme.getDataClassifications());
         if (!Objects.equals(existingCodeScheme.getDataClassifications(), classifications)) {
             if (classifications != null && !classifications.isEmpty()) {
@@ -347,7 +347,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             final UUID uuid = UUID.randomUUID();
             codeScheme.setId(uuid);
         }
-        codeScheme.setOrganizations(resolveOrganizationsFromDtos(fromCodeScheme.getOrganizations()));
+        codeScheme.setOrganizations(resolveOrganizationsFromDtosOrCodeRegistry(fromCodeScheme.getOrganizations(), codeRegistry));
         final String codeValue = fromCodeScheme.getCodeValue();
         validateCodeValue(codeValue);
         codeScheme.setCodeValue(codeValue);
@@ -452,7 +452,8 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         }
     }
 
-    private Set<Organization> resolveOrganizationsFromDtos(final Set<OrganizationDTO> organizationDtos) {
+    private Set<Organization> resolveOrganizationsFromDtosOrCodeRegistry(final Set<OrganizationDTO> organizationDtos,
+                                                                         final CodeRegistry codeRegistry) {
         final Set<Organization> organizations = new HashSet<>();
         organizationDtos.forEach(organizationDto -> {
             final Organization organization = organizationRepository.findById(organizationDto.getId());
@@ -460,6 +461,9 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                 organizations.add(organization);
             }
         });
+        if (organizations.isEmpty()) {
+            organizations.addAll(codeRegistry.getOrganizations());
+        }
         if (organizations.isEmpty()) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NO_ORGANIZATION));
         }

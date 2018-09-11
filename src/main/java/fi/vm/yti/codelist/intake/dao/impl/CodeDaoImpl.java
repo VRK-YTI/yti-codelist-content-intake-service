@@ -225,7 +225,7 @@ public class CodeDaoImpl implements CodeDao {
 
     private void validateCodeScheme(final Code code,
                                     final CodeScheme codeScheme) {
-         if (code != null && code.getCodeScheme() != codeScheme) {
+        if (code != null && code.getCodeScheme() != codeScheme) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
     }
