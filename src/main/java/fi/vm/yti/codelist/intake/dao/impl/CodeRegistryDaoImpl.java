@@ -10,8 +10,6 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -31,8 +29,6 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateC
 
 @Component
 public class CodeRegistryDaoImpl implements CodeRegistryDao {
-
-    private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryDaoImpl.class);
 
     private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
@@ -84,7 +80,6 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
 
     @Transactional
     public CodeRegistry createOrUpdateCodeRegistry(final CodeRegistryDTO fromCodeRegistry) {
-        LOG.warn("Adding registry: " + fromCodeRegistry.getCodeValue());
         final CodeRegistry codeRegistry;
         final CodeRegistry existingCodeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(fromCodeRegistry.getCodeValue());
         if (existingCodeRegistry != null) {
