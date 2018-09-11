@@ -229,9 +229,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
         final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
         if (codeScheme != null) {
             if (!codeScheme.getVariantMothersOfThisCodeScheme().isEmpty()) {
-                for (CodeSchemeListItem mother : codeScheme.getVariantMothersOfThisCodeScheme()) {
+                for (final CodeSchemeListItem mother : codeScheme.getVariantMothersOfThisCodeScheme()) {
                     CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(mother.getId());
-                    Set<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
+                    final LinkedHashSet<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
                     for (CodeSchemeListItem item : variantsOfTheMother) {
                         if (item.getId().equals(codeScheme.getId())) {
                             populateCodeSchemeListItem(codeScheme,
@@ -243,15 +243,15 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
             }
             if (codeScheme.getLastCodeschemeId() != null) {
-                LinkedHashSet<CodeSchemeListItem> allVersions = codeScheme.getAllVersions();
-                for (CodeSchemeListItem listItem : allVersions) {
+                final LinkedHashSet<CodeSchemeListItem> allVersions = codeScheme.getAllVersions();
+                for (final CodeSchemeListItem listItem : allVersions) {
                     if (listItem.getId().equals(codeScheme.getId())) {
                         populateCodeSchemeListItem(codeScheme,
                             listItem);
                     }
                 }
-                Set<CodeSchemeDTO> versionsToReIndex = new LinkedHashSet<>();
-                for (CodeSchemeListItem listItem : allVersions) {
+                final Set<CodeSchemeDTO> versionsToReIndex = new LinkedHashSet<>();
+                for (final CodeSchemeListItem listItem : allVersions) {
                     CodeSchemeDTO currentVersion = codeSchemeService.findById(listItem.getId());
                     currentVersion.setAllVersions(allVersions);
                     codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, currentVersion);
@@ -466,18 +466,18 @@ public class CodeRegistryResource implements AbstractBaseResource {
             final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
             final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeSchemeId);
             final Set<ExtensionDTO> extensions = extensionService.findByExtensionSchemeId(codeSchemeId);
-            Set<CodeSchemeDTO> codeSchemeDTOsToIndex = new LinkedHashSet<>();
+            final Set<CodeSchemeDTO> codeSchemeDTOsToIndex = new LinkedHashSet<>();
             final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue(), codeSchemeDTOsToIndex);
 
-            Set<CodeSchemeDTO> affectedCodeSchemes = new LinkedHashSet<>();
-            for (CodeSchemeListItem item : codeScheme.getVariantsOfThisCodeScheme()) {
+            final Set<CodeSchemeDTO> affectedCodeSchemes = new LinkedHashSet<>();
+            for (final CodeSchemeListItem item : codeScheme.getVariantsOfThisCodeScheme()) {
                 affectedCodeSchemes.add(codeSchemeService.findById(item.getId()));
             }
-            for (CodeSchemeListItem item : codeScheme.getVariantMothersOfThisCodeScheme()) {
+            for (final CodeSchemeListItem item : codeScheme.getVariantMothersOfThisCodeScheme()) {
                 affectedCodeSchemes.add(codeSchemeService.findById(item.getId()));
             }
 
-            for (CodeSchemeDTO dto : affectedCodeSchemes) {
+            for (final CodeSchemeDTO dto : affectedCodeSchemes) {
                 dto.getVariantsOfThisCodeScheme().removeIf(item -> item.getId().compareTo(codeScheme.getId()) == 0);
                 dto.getVariantMothersOfThisCodeScheme().removeIf(item -> item.getId().compareTo(codeScheme.getId()) == 0);
 

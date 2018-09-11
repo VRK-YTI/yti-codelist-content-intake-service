@@ -152,8 +152,8 @@ public abstract class BaseService {
     }
 
     @Transactional
-    public Set<CodeSchemeListItem> getVariantsOfCodeSchemeAsListItems(final CodeScheme codeScheme) {
-        Set<CodeSchemeListItem> result = new LinkedHashSet<>();
+    public LinkedHashSet<CodeSchemeListItem> getVariantsOfCodeSchemeAsListItems(final CodeScheme codeScheme) {
+        final LinkedHashSet<CodeSchemeListItem> result = new LinkedHashSet<>();
         if (!codeScheme.getVariants().isEmpty()) {
             for (CodeScheme variant : codeScheme.getVariants()) {
                 CodeSchemeListItem item = new CodeSchemeListItem(variant.getId(), variant.getPrefLabel(),
@@ -165,8 +165,8 @@ public abstract class BaseService {
     }
 
     @Transactional
-    public Set<CodeSchemeListItem> getVariantMothersOfCodeSchemeAsListItems(final CodeScheme codeScheme) {
-        Set<CodeSchemeListItem> result = new LinkedHashSet<>();
+    public LinkedHashSet<CodeSchemeListItem> getVariantMothersOfCodeSchemeAsListItems(final CodeScheme codeScheme) {
+        final LinkedHashSet<CodeSchemeListItem> result = new LinkedHashSet<>();
         if (!codeScheme.getVariantMothers().isEmpty()) {
             for (CodeScheme variantMother : codeScheme.getVariantMothers()) {
                 CodeSchemeListItem item = new CodeSchemeListItem(variantMother.getId(), variantMother.getPrefLabel(),

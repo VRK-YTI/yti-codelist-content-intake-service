@@ -312,15 +312,15 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             existingCodeScheme.setDefaultCode(null);
         }
 
-        Set<CodeScheme> variants = new LinkedHashSet<>();
-        for (CodeSchemeListItem variant : fromCodeScheme.getVariantsOfThisCodeScheme()) {
+        final LinkedHashSet<CodeScheme> variants = new LinkedHashSet<>();
+        for (final CodeSchemeListItem variant : fromCodeScheme.getVariantsOfThisCodeScheme()) {
             CodeScheme codeScheme = this.findById(variant.getId());
             variants.add(codeScheme);
         }
         existingCodeScheme.setVariants(variants);
 
-        Set<CodeScheme> variantMothers = new LinkedHashSet<>();
-        for (CodeSchemeListItem variantMother : fromCodeScheme.getVariantMothersOfThisCodeScheme()) {
+        final LinkedHashSet<CodeScheme> variantMothers = new LinkedHashSet<>();
+        for (final CodeSchemeListItem variantMother : fromCodeScheme.getVariantMothersOfThisCodeScheme()) {
             CodeScheme codeScheme = this.findById(variantMother.getId());
             variantMothers.add(codeScheme);
         }

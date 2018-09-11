@@ -418,7 +418,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
 
         this.populateAllVersionsToCodeSchemeDTO(prev);
         this.populateAllVersionsToCodeSchemeDTO(next);
-        for (CodeSchemeDTO olderVersion : olderVersions) {
+        for (final CodeSchemeDTO olderVersion : olderVersions) {
             this.populateAllVersionsToCodeSchemeDTO(olderVersion);
         }
         codeSchemeDTOsToIndex.add(prev);
