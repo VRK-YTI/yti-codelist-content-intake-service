@@ -119,7 +119,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "coderegistry_id", nullable = false, insertable = true, updatable = false)
+    @JoinColumn(name = "coderegistry_id", nullable = false, updatable = false)
     @JsonView(Views.ExtendedCodeScheme.class)
     public CodeRegistry getCodeRegistry() {
         return codeRegistry;
@@ -130,7 +130,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "defaultcode_id", nullable = true, insertable = true, updatable = true)
+    @JoinColumn(name = "defaultcode_id")
     @JsonView(Views.ExtendedCodeScheme.class)
     public Code getDefaultCode() {
         return defaultCode;

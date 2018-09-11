@@ -161,7 +161,7 @@ public class ExternalReference extends AbstractIdentifyableTimestampedCode imple
     }
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "propertytype_id", nullable = false, insertable = true, updatable = true)
+    @JoinColumn(name = "propertytype_id", nullable = false)
     @JsonView(Views.Normal.class)
     public PropertyType getPropertyType() {
         return propertyType;
@@ -172,7 +172,7 @@ public class ExternalReference extends AbstractIdentifyableTimestampedCode imple
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parentcodescheme_id", nullable = true, insertable = true, updatable = false)
+    @JoinColumn(name = "parentcodescheme_id", updatable = false)
     @JsonView(Views.ExtendedExternalReference.class)
     public CodeScheme getParentCodeScheme() {
         return parentCodeScheme;

@@ -71,7 +71,7 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JsonView(Views.ExtendedExtension.class)
-    @JoinColumn(name = "code_id", nullable = true, insertable = true, updatable = false)
+    @JoinColumn(name = "code_id", updatable = false)
     public Code getCode() {
         return code;
     }
@@ -81,7 +81,7 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinColumn(name = "extensionscheme_id", nullable = true, insertable = true, updatable = false)
+    @JoinColumn(name = "extensionscheme_id", updatable = false)
     @JsonView(Views.ExtendedExtension.class)
     public ExtensionScheme getExtensionScheme() {
         return extensionScheme;
@@ -92,7 +92,7 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinColumn(name = "extension_id", nullable = true, insertable = true, updatable = true)
+    @JoinColumn(name = "extension_id")
     @JsonView(Views.ExtendedExtension.class)
     public Extension getExtension() {
         return extension;

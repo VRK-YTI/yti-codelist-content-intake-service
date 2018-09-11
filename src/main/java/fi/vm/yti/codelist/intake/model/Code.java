@@ -63,7 +63,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinColumn(name = "codescheme_id", nullable = false, insertable = true, updatable = false)
+    @JoinColumn(name = "codescheme_id", nullable = false, updatable = false)
     @JsonView(Views.ExtendedCode.class)
     public CodeScheme getCodeScheme() {
         return codeSheme;

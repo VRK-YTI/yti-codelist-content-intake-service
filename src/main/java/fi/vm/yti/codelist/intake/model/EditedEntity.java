@@ -47,7 +47,7 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "commit_id", nullable = true, insertable = true, updatable = false)
+    @JoinColumn(name = "commit_id", updatable = false)
     public Commit getCommit() {
         return commit;
     }
@@ -57,7 +57,7 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "coderegistry_id", nullable = true, insertable = true, updatable = true)
+    @JoinColumn(name = "coderegistry_id")
     public CodeRegistry getCodeRegistry() {
         return codeRegistry;
     }
@@ -67,7 +67,7 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "codescheme_id", nullable = true, insertable = true, updatable = true)
+    @JoinColumn(name = "codescheme_id")
     public CodeScheme getCodeScheme() {
         return codeScheme;
     }
@@ -77,7 +77,7 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "code_id", nullable = true, insertable = true, updatable = true)
+    @JoinColumn(name = "code_id")
     public Code getCode() {
         return code;
     }
@@ -87,7 +87,7 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "externalreference_id", nullable = true, insertable = true, updatable = true)
+    @JoinColumn(name = "externalreference_id")
     public ExternalReference getExternalReference() {
         return externalReference;
     }
@@ -97,7 +97,7 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "propertytype_id", nullable = true, insertable = true, updatable = true)
+    @JoinColumn(name = "propertytype_id")
     public PropertyType getPropertyType() {
         return propertyType;
     }
@@ -107,7 +107,7 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "extensionscheme_id", nullable = true, insertable = true, updatable = true)
+    @JoinColumn(name = "extensionscheme_id")
     public ExtensionScheme getExtensionScheme() {
         return extensionScheme;
     }
@@ -117,7 +117,7 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "extension_id", nullable = true, insertable = true, updatable = true)
+    @JoinColumn(name = "extension_id")
     public Extension getExtension() {
         return extension;
     }
