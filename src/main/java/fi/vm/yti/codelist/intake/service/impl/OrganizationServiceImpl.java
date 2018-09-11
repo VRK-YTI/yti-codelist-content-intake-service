@@ -31,7 +31,7 @@ import fi.vm.yti.codelist.intake.service.OrganizationService;
 public class OrganizationServiceImpl extends BaseService implements OrganizationService {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrganizationServiceImpl.class);
-    private OrganizationRepository organizationRepository;
+    private final OrganizationRepository organizationRepository;
 
     @Inject
     public OrganizationServiceImpl(final OrganizationRepository organizationRepository,

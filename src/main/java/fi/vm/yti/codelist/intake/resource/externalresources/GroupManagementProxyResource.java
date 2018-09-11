@@ -50,9 +50,9 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_40
 public class GroupManagementProxyResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(GroupManagementProxyResource.class);
-    private AuthenticatedUserProvider authenticatedUserProvider;
-    private GroupManagementProperties groupManagementProperties;
-    private RestTemplate restTemplate;
+    private final AuthenticatedUserProvider authenticatedUserProvider;
+    private final GroupManagementProperties groupManagementProperties;
+    private final RestTemplate restTemplate;
 
     @Inject
     public GroupManagementProxyResource(final GroupManagementProperties groupManagementProperties,

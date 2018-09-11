@@ -47,8 +47,8 @@ public class TerminologyProxyResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(TerminologyProxyResource.class);
     private final RestTemplate restTemplate;
-    private AuthenticatedUserProvider authenticatedUserProvider;
-    private TerminologyProperties terminologyProperties;
+    private final AuthenticatedUserProvider authenticatedUserProvider;
+    private final TerminologyProperties terminologyProperties;
 
     @Inject
     public TerminologyProxyResource(final TerminologyProperties terminologyProperties,

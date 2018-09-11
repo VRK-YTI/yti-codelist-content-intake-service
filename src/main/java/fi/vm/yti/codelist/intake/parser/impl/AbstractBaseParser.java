@@ -44,32 +44,18 @@ public abstract class AbstractBaseParser {
     private static final String CODE_CODEVALUE_VALIDATOR = "^[a-zA-Z0-9_\\-\\.\\+\\&\\#\\*]*$";
     private static final String CODESCHEME_CODEVALUE_VALIDATOR = "^[a-zA-Z0-9_\\-]*$";
 
-    public static boolean isRowEmpty(final Row row) {
-        for (int cellIndex = row.getFirstCellNum(); cellIndex < row.getLastCellNum(); cellIndex++) {
-            final Cell cell = row.getCell(cellIndex);
-            if (cell != null && cell.getCellTypeEnum() != CellType.BLANK)
-                return false;
-        }
-        return true;
-    }
-
     public static void validateCodeCodeValue(final String codeValue) {
         if (codeValue == null || !codeValue.matches(CODE_CODEVALUE_VALIDATOR)) {
-            LOG.error("Error with code: " + codeValue);
+            LOG.error(String.format("Error with code: %s", codeValue));
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODE_CODEVALUE));
         }
     }
 
     public static void validateCodeValue(final String codeValue) {
         if (!codeValue.matches(CODESCHEME_CODEVALUE_VALIDATOR)) {
-            LOG.error("Error with code: " + codeValue);
+            LOG.error(String.format("Error with code: %s", codeValue));
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODEVALUE));
         }
-    }
-
-    public String resolveLanguageFromHeader(final String prefix,
-                                            final String header) {
-        return header.substring(header.indexOf(prefix) + prefix.length()).toLowerCase();
     }
 
     public ObjectMapper createObjectMapper() {
@@ -79,15 +65,29 @@ public abstract class AbstractBaseParser {
         return mapper;
     }
 
-    public Date parseStartDateFromString(final String dateString,
-                                         final String rowIdentifier) {
+    boolean isRowEmpty(final Row row) {
+        for (int cellIndex = row.getFirstCellNum(); cellIndex < row.getLastCellNum(); cellIndex++) {
+            final Cell cell = row.getCell(cellIndex);
+            if (cell != null && cell.getCellTypeEnum() != CellType.BLANK)
+                return false;
+        }
+        return true;
+    }
+
+    private String resolveLanguageFromHeader(final String prefix,
+                                             final String header) {
+        return header.substring(header.indexOf(prefix) + prefix.length()).toLowerCase();
+    }
+
+    Date parseStartDateFromString(final String dateString,
+                                  final String rowIdentifier) {
         Date date = null;
         final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
         if (!dateString.isEmpty()) {
             try {
                 date = dateFormat.parse(dateString);
             } catch (final ParseException e) {
-                LOG.error("Parsing startDate failed from string: " + dateString);
+                LOG.error(String.format("Parsing startDate failed from string: %s", dateString));
                 throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                     ERR_MSG_USER_ERRONEOUS_START_DATE, rowIdentifier));
             }
@@ -95,15 +95,15 @@ public abstract class AbstractBaseParser {
         return date;
     }
 
-    public Date parseEndDateFromString(final String dateString,
-                                       final String rowIdentifier) {
+    Date parseEndDateFromString(final String dateString,
+                                final String rowIdentifier) {
         Date date = null;
         final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
         if (!dateString.isEmpty()) {
             try {
                 date = dateFormat.parse(dateString);
             } catch (final ParseException e) {
-                LOG.error("Parsing endDate failed from string: " + dateString);
+                LOG.error(String.format("Parsing endDate failed from string: %s", dateString));
                 throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                     ERR_MSG_USER_ERRONEOUS_END_DATE, rowIdentifier));
             }
@@ -111,7 +111,7 @@ public abstract class AbstractBaseParser {
         return date;
     }
 
-    public String parseStatusValueFromString(final String statusString) {
+    String parseStatusValueFromString(final String statusString) {
         try {
             return Status.valueOf(statusString).toString();
         } catch (final Exception e) {
@@ -120,16 +120,16 @@ public abstract class AbstractBaseParser {
         }
     }
 
-    public Map<String, String> parseLocalizedValueFromCsvRecord(final Map<String, Integer> valueHeaders,
-                                                                final CSVRecord record) {
+    Map<String, String> parseLocalizedValueFromCsvRecord(final Map<String, Integer> valueHeaders,
+                                                         final CSVRecord record) {
         final Map<String, String> value = new LinkedHashMap<>();
         valueHeaders.forEach((language, header) ->
             value.put(language, record.get(header)));
         return value;
     }
 
-    public Map<String, Integer> parseHeadersWithPrefix(final Map<String, Integer> headerMap,
-                                                       final String headerPrefix) {
+    Map<String, Integer> parseHeadersWithPrefix(final Map<String, Integer> headerMap,
+                                                final String headerPrefix) {
         final Map<String, Integer> valueHeaders = new LinkedHashMap<>();
         headerMap.forEach((header, index) -> {
             if (header.startsWith(headerPrefix)) {
@@ -139,17 +139,17 @@ public abstract class AbstractBaseParser {
         return valueHeaders;
     }
 
-    public Map<String, String> parseLocalizedValueFromExcelRow(final Map<String, Integer> valueHeaders,
-                                                               final Row row,
-                                                               final DataFormatter formatter) {
+    Map<String, String> parseLocalizedValueFromExcelRow(final Map<String, Integer> valueHeaders,
+                                                        final Row row,
+                                                        final DataFormatter formatter) {
         final Map<String, String> value = new LinkedHashMap<>();
         valueHeaders.forEach((language, header) ->
             value.put(language, formatter.formatCellValue(row.getCell(header))));
         return value;
     }
 
-    protected boolean startDateIsBeforeEndDateSanityCheck(final Date startDate,
-                                                          final Date endDate) {
+    boolean startDateIsBeforeEndDateSanityCheck(final Date startDate,
+                                                final Date endDate) {
         // if either one is null, everything is OK
         return startDate == null || endDate == null || startDate.before(endDate) || startAndEndDatesAreOnTheSameDay(startDate, endDate);
     }
@@ -174,7 +174,7 @@ public abstract class AbstractBaseParser {
         return startDateWithoutTime.compareTo(endDateWithoutTime) == 0;
     }
 
-    public Map<String, Integer> resolveHeaderMap(final Row row) {
+    Map<String, Integer> resolveHeaderMap(final Row row) {
         final Map<String, Integer> headerMap = new LinkedHashMap<>();
         final Iterator<Cell> cellIterator = row.cellIterator();
         while (cellIterator.hasNext()) {
@@ -189,15 +189,15 @@ public abstract class AbstractBaseParser {
         return headerMap;
     }
 
-    public void checkForDuplicateCodeValueInImportData(final Set<String> values,
-                                                       final String codeValue) {
+    void checkForDuplicateCodeValueInImportData(final Set<String> values,
+                                                final String codeValue) {
         if (values.contains(codeValue.toLowerCase())) {
-            LOG.warn("Duplicate code: " + codeValue);
+            LOG.warn(String.format("Duplicate code: %s", codeValue));
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_DUPLICATE_CODE_VALUE));
         }
     }
 
-    public void checkOrdersForDuplicateValues(final Set<CodeDTO> codes) {
+    void checkOrdersForDuplicateValues(final Set<CodeDTO> codes) {
         final Set<Integer> orders = new HashSet<>();
         codes.forEach(code -> {
             final Integer order = code.getOrder();
@@ -211,8 +211,8 @@ public abstract class AbstractBaseParser {
         });
     }
 
-    public String parseStringFromCsvRecord(final CSVRecord record,
-                                           final String columnName) {
+    String parseStringFromCsvRecord(final CSVRecord record,
+                                    final String columnName) {
         final String value;
         try {
             if (record.isMapped(columnName)) {
@@ -227,7 +227,7 @@ public abstract class AbstractBaseParser {
         return null;
     }
 
-    public UUID parseUUIDFromString(final String uuidString) {
+    UUID parseUUIDFromString(final String uuidString) {
         final UUID uuid;
         if (uuidString == null || uuidString.isEmpty()) {
             uuid = null;
@@ -242,7 +242,7 @@ public abstract class AbstractBaseParser {
         return uuid;
     }
 
-    public UUID parseIdFromRecord(final CSVRecord record) {
+    UUID parseIdFromRecord(final CSVRecord record) {
         final UUID id;
         if (record.isMapped(CONTENT_HEADER_ID)) {
             id = parseUUIDFromString(record.get(CONTENT_HEADER_ID));
@@ -252,7 +252,7 @@ public abstract class AbstractBaseParser {
         return id;
     }
 
-    public String parseCodeValueFromRecord(final CSVRecord record) {
+    String parseCodeValueFromRecord(final CSVRecord record) {
         final String codeValue;
         if (record.isMapped(CONTENT_HEADER_CODEVALUE)) {
             codeValue = parseStringFromCsvRecord(record, CONTENT_HEADER_CODEVALUE).trim();
@@ -262,26 +262,26 @@ public abstract class AbstractBaseParser {
         return codeValue;
     }
 
-    public String parseStartDateStringFromCsvRecord(final CSVRecord record) {
+    String parseStartDateStringFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_STARTDATE);
     }
 
-    public String parseEndDateStringFromCsvRecord(final CSVRecord record) {
+    String parseEndDateStringFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_ENDDATE);
     }
 
-    public String parseConceptUriFromCsvRecord(final CSVRecord record) {
+    String parseConceptUriFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_CONCEPTURI);
     }
 
-    public boolean skipEmptyLine(final String codeValue,
-                                 final String status) {
+    boolean skipEmptyLine(final String codeValue,
+                          final String status) {
         return (codeValue == null || codeValue.trim().isEmpty()) && (status == null || status.trim().isEmpty());
     }
 
-    public Integer resolveOrderFromExcelRow(final Map<String, Integer> headerMap,
-                                            final Row row,
-                                            final DataFormatter formatter) {
+    Integer resolveOrderFromExcelRow(final Map<String, Integer> headerMap,
+                                     final Row row,
+                                     final DataFormatter formatter) {
         final Integer order;
         if (headerMap.containsKey(CONTENT_HEADER_ORDER)) {
             order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER))));
@@ -291,7 +291,7 @@ public abstract class AbstractBaseParser {
         return order;
     }
 
-    public Integer resolveOrderFromCsvRecord(final CSVRecord record) {
+    Integer resolveOrderFromCsvRecord(final CSVRecord record) {
         final Integer order;
         if (record.isMapped(CONTENT_HEADER_ORDER)) {
             order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER));
@@ -317,7 +317,7 @@ public abstract class AbstractBaseParser {
         return order;
     }
 
-    public Set<OrganizationDTO> resolveOrganizations(final String organizationsString) {
+    Set<OrganizationDTO> resolveOrganizations(final String organizationsString) {
         final Set<OrganizationDTO> organizations = new HashSet<>();
         if (organizationsString != null && !organizationsString.isEmpty()) {
             for (final String organizationId : organizationsString.split(";")) {

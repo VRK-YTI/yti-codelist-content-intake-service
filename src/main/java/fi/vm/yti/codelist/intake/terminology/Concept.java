@@ -1,8 +1,10 @@
 package fi.vm.yti.codelist.intake.terminology;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Collections;
+import java.util.Map;
+import java.util.UUID;
 
-import java.util.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import static java.util.UUID.randomUUID;
 
@@ -11,9 +13,9 @@ public final class Concept {
 
     private final UUID id;
     private final UUID vocabularyId;
-    private final Map<String, String> prefLabel;
-    private final Map<String, String> definition;
-    private final Map<String, String> vocabularyPrefLabel;
+    private final Map prefLabel;
+    private final Map definition;
+    private final Map vocabularyPrefLabel;
     private final String uri;
 
     // Jackson constructor
@@ -21,7 +23,12 @@ public final class Concept {
         this(randomUUID(), randomUUID(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), "");
     }
 
-    public Concept(final UUID id, final UUID vocabularyId, final Map prefLabel, final Map definition, final Map vocabularyPrefLabel, final String uri) {
+    public Concept(final UUID id,
+                   final UUID vocabularyId,
+                   final Map prefLabel,
+                   final Map definition,
+                   final Map vocabularyPrefLabel,
+                   final String uri) {
         this.id = id;
         this.vocabularyId = vocabularyId;
         this.prefLabel = prefLabel;
@@ -46,7 +53,7 @@ public final class Concept {
         return definition;
     }
 
-    public Map<String, String> getVocabularyPrefLabel() {
+    public Map getVocabularyPrefLabel() {
         return vocabularyPrefLabel;
     }
 

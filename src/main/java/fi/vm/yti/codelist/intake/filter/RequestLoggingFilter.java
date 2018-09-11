@@ -85,7 +85,7 @@ public class RequestLoggingFilter implements ContainerRequestFilter, ContainerRe
     private Long getExecutionTime() {
         final String startTimeString = MDC.get("startTime");
         if (startTimeString != null && !startTimeString.isEmpty()) {
-            final Long startTime = Long.parseLong(startTimeString);
+            final long startTime = Long.parseLong(startTimeString);
             return System.currentTimeMillis() - startTime;
         }
         return null;

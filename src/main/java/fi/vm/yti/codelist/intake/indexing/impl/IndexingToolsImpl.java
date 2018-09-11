@@ -227,7 +227,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "  }\n" +
         "}\n}";
 
-    private Client client;
+    private final Client client;
 
     @Inject
     public IndexingToolsImpl(final Client client) {

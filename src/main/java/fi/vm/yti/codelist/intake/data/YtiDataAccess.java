@@ -140,16 +140,16 @@ public class YtiDataAccess {
 
     private Set<CodeRegistryDTO> loadDefaultCodeRegistries(final String filename,
                                                            final String identifier) {
-        LOG.info("Loading default CodeRegistries from file: " + filename);
+        LOG.info(String.format("Loading default CodeRegistries from file: %s", filename));
         final Set<CodeRegistryDTO> codeRegistries = new HashSet<>();
         final Stopwatch watch = Stopwatch.createStarted();
         if (updateManager.shouldUpdateData(DATA_CODEREGISTRIES, identifier, filename)) {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODEREGISTRIES, identifier, SOURCE_INTERNAL, filename, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODEREGISTRIES + "/" + filename)) {
                 codeRegistries.addAll(codeRegistryService.parseAndPersistCodeRegistriesFromSourceData(true, FORMAT_CSV, inputStream, null));
-                LOG.info("CodeRegistry data loaded: " + codeRegistries.size() + " CodeRegistries in " + watch);
+                LOG.info(String.format("CodeRegistry data loaded: %d CodeRegistries in %s", codeRegistries.size(), watch));
                 watch.reset().start();
-                LOG.info("CodeRegistry data persisted in: " + watch);
+                LOG.info(String.format("CodeRegistry data persisted in: %s", watch));
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
                 }
@@ -170,12 +170,12 @@ public class YtiDataAccess {
             final Stopwatch watch = Stopwatch.createStarted();
             final String identifier = codeRegistry.getCodeValue();
             if (updateManager.shouldUpdateData(DATA_CODESCHEMES, identifier, identifier + ".csv")) {
-                LOG.info("Loading CodeSchemes from CodeRegistry: " + identifier);
+                LOG.info(String.format("Loading CodeSchemes from CodeRegistry: %s", identifier));
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, identifier, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODESCHEMES + "/" + identifier + ".csv")) {
                     watch.reset().start();
                     codeSchemes.addAll(codeSchemeService.parseAndPersistCodeSchemesFromSourceData(true, codeRegistry.getCodeValue(), FORMAT_CSV, inputStream, null));
-                    LOG.info("CodeScheme data parsed and persisted in: " + watch);
+                    LOG.info(String.format("CodeScheme data parsed and persisted in: %s", watch));
                 } catch (final IOException e) {
                     LOG.error("Issue with parsing CodeScheme file. ", e);
                     updateManager.updateFailedStatus(updateStatus);
@@ -200,11 +200,11 @@ public class YtiDataAccess {
             final Stopwatch watch = Stopwatch.createStarted();
             final String identifier = codeScheme.getCodeRegistry().getCodeValue() + "_" + codeScheme.getCodeValue();
             if (updateManager.shouldUpdateData(DATA_CODES, identifier, identifier + ".csv")) {
-                LOG.info("Loading Codes from CodeScheme: " + identifier);
+                LOG.info(String.format("Loading Codes from CodeScheme: %s", identifier));
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODES, identifier, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODES + "/" + identifier + ".csv")) {
                     final Set<CodeDTO> codes = codeService.parseAndPersistCodesFromSourceData(true, codeScheme.getCodeRegistry().getCodeValue(), codeScheme.getCodeValue(), FORMAT_CSV, inputStream, null);
-                    LOG.info("Code data loaded: " + codes.size() + " Codes in " + watch);
+                    LOG.info(String.format("Code data loaded: %d Codes in %s", codes.size(), watch));
                 } catch (final IOException e) {
                     LOG.error("Issue with parsing Code file. ", e);
                     updateManager.updateFailedStatus(updateStatus);
@@ -229,7 +229,7 @@ public class YtiDataAccess {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_PROPERTYTYPES, PROPERTYTYPE_IDENTIFIER, SOURCE_INTERNAL, DEFAULT_PROPERTYTYPE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME)) {
                 final Set<PropertyTypeDTO> propertyTypes = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(true, FORMAT_CSV, inputStream, null);
-                LOG.info("PropertyType data loaded and persisted " + propertyTypes.size() + " PropertyTypes in " + watch);
+                LOG.info(String.format("PropertyType data loaded and persisted %d PropertyTypes in %s", propertyTypes.size(), watch));
                 watch.reset().start();
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);
@@ -250,7 +250,7 @@ public class YtiDataAccess {
             final UpdateStatus updateStatus = updateManager.createStatus(DATA_EXTERNALREFERENCES, DEFAULT_IDENTIFIER, SOURCE_INTERNAL, DEFAULT_EXTERNALREFERENCE_FILENAME, UpdateManager.UPDATE_RUNNING);
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_EXTERNALREFERENCES + "/" + DEFAULT_EXTERNALREFERENCE_FILENAME)) {
                 final Set<ExternalReferenceDTO> externalReferenceDtos = externalReferenceService.parseAndPersistExternalReferencesFromSourceData(true, FORMAT_CSV, inputStream, null, null);
-                LOG.info("ExternalReference data loaded and persisted " + externalReferenceDtos.size() + " ExternalReferences in " + watch);
+                LOG.info(String.format("ExternalReference data loaded and persisted %d ExternalReferences in %s", externalReferenceDtos.size(), watch));
                 watch.reset().start();
                 if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
                     updateManager.updateSuccessStatus(updateStatus);

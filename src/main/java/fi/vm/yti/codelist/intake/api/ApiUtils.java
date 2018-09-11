@@ -39,13 +39,13 @@ public class ApiUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApiUtils.class);
 
-    private PublicApiServiceProperties publicApiServiceProperties;
-    private UriSuomiProperties uriSuomiProperties;
-    private ContentIntakeServiceProperties contentIntakeServiceProperties;
-    private GroupManagementProperties groupManagementProperties;
-    private TerminologyProperties terminologyProperties;
-    private DataModelProperties dataModelProperties;
-    private FrontendProperties frontendProperties;
+    private final PublicApiServiceProperties publicApiServiceProperties;
+    private final UriSuomiProperties uriSuomiProperties;
+    private final ContentIntakeServiceProperties contentIntakeServiceProperties;
+    private final GroupManagementProperties groupManagementProperties;
+    private final TerminologyProperties terminologyProperties;
+    private final DataModelProperties dataModelProperties;
+    private final FrontendProperties frontendProperties;
 
     @Inject
     public ApiUtils(final PublicApiServiceProperties publicApiServiceProperties,
@@ -75,8 +75,8 @@ public class ApiUtils {
      * @param resourceId ID of the REST resource.
      * @return Fully concatenated resource URL that can be used in API responses as a link to the resource.
      */
-    public String createResourceUrl(final String apiPath,
-                                    final String resourceId) {
+    private String createResourceUrl(final String apiPath,
+                                     final String resourceId) {
         final String port = publicApiServiceProperties.getPort();
         final StringBuilder builder = new StringBuilder();
         builder.append(publicApiServiceProperties.getScheme());

@@ -21,25 +21,25 @@ abstract public class AbstractIntegrationTestBase {
     private static final String CODES_FOLDER_NAME = "codes";
     private static final String PARAMETER_FILE = "file";
 
-    private TestRestTemplate restTemplate = new TestRestTemplate();
+    private final TestRestTemplate restTemplate = new TestRestTemplate();
 
     @LocalServerPort
     private int randomServerPort;
 
-    public String createApiUrl(final int serverPort,
-                               final String apiPath) {
+    private String createApiUrl(final int serverPort,
+                                final String apiPath) {
         return TEST_BASE_URL + ":" + serverPort + API_CONTEXT_PATH_INTAKE + API_BASE_PATH + API_PATH_VERSION_V1 + apiPath + "/";
     }
 
-    public ResponseEntity<String> uploadCodesToCodeSchemeFromCsv(final String codeRegistryCodeValue,
-                                                                 final String codeSchemeCodeValue,
-                                                                 final String codesFilename) {
+    ResponseEntity<String> uploadCodesToCodeSchemeFromCsv(final String codeRegistryCodeValue,
+                                                          final String codeSchemeCodeValue,
+                                                          final String codesFilename) {
         return uploadCodesToCodeScheme(codeRegistryCodeValue, codeSchemeCodeValue, codesFilename, FORMAT_CSV);
     }
 
-    public ResponseEntity<String> uploadCodesToCodeSchemeFromExcel(final String codeRegistryCodeValue,
-                                                                   final String codeSchemeCodeValue,
-                                                                   final String codesFilename) {
+    ResponseEntity<String> uploadCodesToCodeSchemeFromExcel(final String codeRegistryCodeValue,
+                                                            final String codeSchemeCodeValue,
+                                                            final String codesFilename) {
         return uploadCodesToCodeScheme(codeRegistryCodeValue, codeSchemeCodeValue, codesFilename, FORMAT_EXCEL);
     }
 
@@ -52,13 +52,13 @@ abstract public class AbstractIntegrationTestBase {
         return uploadFile(apiUrl, filePath);
     }
 
-    public ResponseEntity<String> uploadCodeSchemesToCodeRegistryFromCsv(final String codeRegistryCodeValue,
-                                                                         final String codeSchemesFilename) {
+    ResponseEntity<String> uploadCodeSchemesToCodeRegistryFromCsv(final String codeRegistryCodeValue,
+                                                                  final String codeSchemesFilename) {
         return uploadCodeSchemesToCodeRegistry(codeRegistryCodeValue, codeSchemesFilename, FORMAT_CSV);
     }
 
-    public ResponseEntity<String> uploadCodeSchemesToCodeRegistryFromExcel(final String codeRegistryCodeValue,
-                                                                           final String codeSchemesFilename) {
+    ResponseEntity<String> uploadCodeSchemesToCodeRegistryFromExcel(final String codeRegistryCodeValue,
+                                                                    final String codeSchemesFilename) {
         return uploadCodeSchemesToCodeRegistry(codeRegistryCodeValue, codeSchemesFilename, FORMAT_EXCEL);
     }
 
@@ -70,7 +70,7 @@ abstract public class AbstractIntegrationTestBase {
         return uploadFile(apiUrl, filePath);
     }
 
-    public ResponseEntity<String> uploadCodeRegistriesFromCsv(final String codeRegistriesFilename) {
+    ResponseEntity<String> uploadCodeRegistriesFromCsv(final String codeRegistriesFilename) {
         return uploadCodeRegistries(codeRegistriesFilename, FORMAT_CSV);
     }
 

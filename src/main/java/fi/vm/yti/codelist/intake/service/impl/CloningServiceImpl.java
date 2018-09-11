@@ -135,7 +135,7 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     @Transactional
     public Set<CodeScheme> getPreviousVersions(final UUID uuid,
                                                final Set result) {
-        CodeScheme prevVersion = codeSchemeDao.findById(uuid);
+        final CodeScheme prevVersion = codeSchemeDao.findById(uuid);
         if (prevVersion == null) {
             return result;
         } else {

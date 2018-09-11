@@ -21,7 +21,7 @@ public class UpdateManager {
     public static final String UPDATE_FAILED = "failed";
     public static final String UPDATE_CANCELED = "canceled";
     public static final String UPDATE_RUNNING = "running";
-    private UpdateStatusRepository updateStatusRepository;
+    private final UpdateStatusRepository updateStatusRepository;
 
     @Inject
     public UpdateManager(final UpdateStatusRepository updateStatusRepository) {
@@ -32,9 +32,7 @@ public class UpdateManager {
         final List<UpdateStatus> list = updateStatusRepository.getLatestSuccessfulUpdatesForType(dataType, identifier);
         if (!list.isEmpty()) {
             final UpdateStatus status = list.get(0);
-            if (status.getVersion().equals(version)) {
-                return false;
-            }
+            return !status.getVersion().equals(version);
         }
         return true;
     }

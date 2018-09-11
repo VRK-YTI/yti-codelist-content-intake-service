@@ -75,7 +75,7 @@ public class IndexingImpl implements Indexing {
     private final ExtensionSchemeService extensionSchemeService;
     private final ExtensionService extensionService;
     private final Client client;
-    private IndexingTools indexingTools;
+    private final IndexingTools indexingTools;
     private boolean hasError;
     private boolean fullIndexInProgress;
 

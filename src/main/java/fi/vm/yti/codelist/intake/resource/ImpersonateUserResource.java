@@ -21,7 +21,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_IMPERSON
 @Api(value = "fakeableUsers")
 public class ImpersonateUserResource implements AbstractBaseResource {
 
-    private ImpersonateUserService impersonateUserService;
+    private final ImpersonateUserService impersonateUserService;
 
     @Inject
     public ImpersonateUserResource(ImpersonateUserService impersonateUserService) {

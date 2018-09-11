@@ -45,7 +45,7 @@ public interface AbstractBaseResource {
             filterProvider.removeFilter(baseFilter);
         }
         if (expand != null && !expand.isEmpty()) {
-            final List<String> filterOptions = Arrays.asList(expand.split(","));
+            final String[] filterOptions = expand.split(",");
             for (final String filter : filterOptions) {
                 filterProvider.removeFilter(filter);
             }
@@ -64,7 +64,7 @@ public interface AbstractBaseResource {
 
         private final FilterProvider provider;
 
-        protected FilterModifier(final FilterProvider provider) {
+        FilterModifier(final FilterProvider provider) {
             this.provider = provider;
         }
 

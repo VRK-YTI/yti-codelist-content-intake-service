@@ -20,8 +20,8 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_REGIS
 @Component
 public class LanguageService {
 
-    private CodeDao codeDao;
-    private CodeSchemeDao codeSchemeDao;
+    private final CodeDao codeDao;
+    private final CodeSchemeDao codeSchemeDao;
 
     public LanguageService(@Lazy final CodeDao codeDao,
                            @Lazy final CodeSchemeDao codeSchemeDao) {

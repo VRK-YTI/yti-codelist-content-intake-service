@@ -25,7 +25,7 @@ public class OrganizationUpdater {
     private static final Logger LOG = LoggerFactory.getLogger(OrganizationUpdater.class);
     private final OrganizationService organizationService;
     private final RestTemplate restTemplate;
-    private GroupManagementProperties groupManagementProperties;
+    private final GroupManagementProperties groupManagementProperties;
 
     @Inject
     public OrganizationUpdater(final GroupManagementProperties groupManagementProperties,
