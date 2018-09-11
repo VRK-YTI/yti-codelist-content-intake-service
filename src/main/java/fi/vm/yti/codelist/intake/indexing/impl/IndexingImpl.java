@@ -127,7 +127,7 @@ public class IndexingImpl implements Indexing {
         final Stopwatch watch = Stopwatch.createStarted();
         final int codeCount = codeService.getCodeCount();
         final int pageCount = getCodePageCount(codeCount);
-        LOG.info("ElasticSearch indexing: Starting to index " + pageCount + " pages of codes " + codeCount + " codes.");
+        LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of codes %d codes.", pageCount, codeCount));
         int page = 0;
         boolean success = true;
         while (page + 1 <= pageCount) {
@@ -140,7 +140,7 @@ public class IndexingImpl implements Indexing {
             page++;
         }
         if (success) {
-            LOG.info("ElasticSearch indexing: Successfully indexed " + codeCount + " codes in " + watch);
+            LOG.info(String.format("ElasticSearch indexing: Successfully indexed %d codes in %s", codeCount, watch));
         }
         return success;
     }
@@ -216,23 +216,23 @@ public class IndexingImpl implements Indexing {
     private void handleBulkErrorWithException(final String name,
                                               final JsonProcessingException e) {
         hasError = true;
-        LOG.error("Indexing " + name + " failed.", e);
+        LOG.error(String.format("Indexing %s failed.", name), e);
     }
 
     private boolean handleBulkResponse(final String type,
                                        final BulkResponse response) {
         if (response.hasFailures()) {
             hasError = true;
-            LOG.error(BULK + type + " operation failed with errors: " + response.buildFailureMessage());
+            LOG.error(String.format("%s%s operation failed with errors: %s", BULK, type, response.buildFailureMessage()));
             return false;
         } else {
-            LOG.info(BULK + type + " operation successfully indexed " + response.getItems().length + " items in " + response.getTook().millis() + " ms.");
+            LOG.info(String.format("%s%s operation successfully indexed %d items in %d ms.", BULK, type, response.getItems().length, response.getTook().millis()));
             return true;
         }
     }
 
     private void noContent(final String type) {
-        LOG.info(BULK + type + " operation ran, but there was no content to be indexed!");
+        LOG.info(String.format("%s%s operation ran, but there was no content to be indexed!", BULK, type));
     }
 
     public boolean deleteCode(final CodeDTO code) {
@@ -408,7 +408,7 @@ public class IndexingImpl implements Indexing {
             reIndexData(indexName, type);
             return true;
         } else {
-            LOG.info("Indexing is already running for index: " + indexName);
+            LOG.info(String.format("Indexing is already running for index: %s", indexName));
             return false;
         }
     }
@@ -453,7 +453,7 @@ public class IndexingImpl implements Indexing {
                 success = indexExtensions(indexName);
                 break;
             default:
-                LOG.error("Index type: " + indexAlias + " not supported.");
+                LOG.error(String.format("Index type: %s not supported.", indexAlias));
                 success = false;
                 break;
         }
