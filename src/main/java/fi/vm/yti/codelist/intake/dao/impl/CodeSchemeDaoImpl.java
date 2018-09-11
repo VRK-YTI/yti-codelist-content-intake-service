@@ -455,12 +455,14 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     private Set<Organization> resolveOrganizationsFromDtosOrCodeRegistry(final Set<OrganizationDTO> organizationDtos,
                                                                          final CodeRegistry codeRegistry) {
         final Set<Organization> organizations = new HashSet<>();
-        organizationDtos.forEach(organizationDto -> {
-            final Organization organization = organizationRepository.findById(organizationDto.getId());
-            if (organization != null) {
-                organizations.add(organization);
-            }
-        });
+        if (organizationDtos != null && !organizationDtos.isEmpty()) {
+            organizationDtos.forEach(organizationDto -> {
+                final Organization organization = organizationRepository.findById(organizationDto.getId());
+                if (organization != null) {
+                    organizations.add(organization);
+                }
+            });
+        }
         if (organizations.isEmpty()) {
             organizations.addAll(codeRegistry.getOrganizations());
         }
