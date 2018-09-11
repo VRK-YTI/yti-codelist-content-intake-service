@@ -1,7 +1,7 @@
 package fi.vm.yti.codelist.intake.service;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
@@ -23,6 +23,6 @@ public interface CloningService {
                                                     final String codeRegistryCodeValue,
                                                     final String originalCodeSchemeUuid);
 
-    Set<CodeScheme> getPreviousVersions(final UUID uuid,
-                                        final Set result);
+    LinkedHashSet<CodeScheme> getPreviousVersions(final UUID uuid,
+                                                  final LinkedHashSet result);
 }

@@ -309,11 +309,11 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         if (currentCodeScheme.getLastCodeschemeId() == null) {
             return;
         }
-        Set<CodeSchemeDTO> allVersions = new LinkedHashSet<>();
+        LinkedHashSet<CodeSchemeDTO> allVersions = new LinkedHashSet<>();
         CodeSchemeDTO latestVersion;
         latestVersion = this.findById(currentCodeScheme.getLastCodeschemeId());
         allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
-        Set<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
+        LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
         for (CodeSchemeDTO version : allVersions) {
             CodeSchemeListItem listItem = new CodeSchemeListItem(version.getId(), version.getPrefLabel(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
             versionHistory.add(listItem);
@@ -322,8 +322,8 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     }
 
     @Transactional
-    public Set<CodeSchemeDTO> getPreviousVersions(final UUID uuid,
-                                                  final Set result) {
+    public LinkedHashSet<CodeSchemeDTO> getPreviousVersions(final UUID uuid,
+                                                            final LinkedHashSet result) {
         CodeSchemeDTO prevVersion = this.findById(uuid);
         if (prevVersion == null) {
             return result;
@@ -388,7 +388,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         }
         codeSchemeDTOsToIndex.add(prev);
 
-        Set<CodeSchemeDTO> previousVersions = new LinkedHashSet<>();
+        LinkedHashSet<CodeSchemeDTO> previousVersions = new LinkedHashSet<>();
         previousVersions = this.getPreviousVersions(prev.getId(), previousVersions);
         for (CodeSchemeDTO prevVersion : previousVersions) {
             prevVersion.setLastCodeschemeId(prev.getId());
@@ -409,7 +409,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         prev.setNextCodeschemeId(currentCodeScheme.getNextCodeschemeId());
         prev = this.updateCodeSchemeFromDto(prev.getCodeRegistry().getCodeValue(), prev);
 
-        Set<CodeSchemeDTO> olderVersions = new LinkedHashSet<>();
+        LinkedHashSet<CodeSchemeDTO> olderVersions = new LinkedHashSet<>();
         olderVersions = this.getPreviousVersions(prev.getId(), olderVersions);
 
         CodeSchemeDTO next = this.findById(currentCodeScheme.getNextCodeschemeId());

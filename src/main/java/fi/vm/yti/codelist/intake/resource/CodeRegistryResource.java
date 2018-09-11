@@ -243,7 +243,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
             }
             if (codeScheme.getLastCodeschemeId() != null) {
-                Set<CodeSchemeListItem> allVersions = codeScheme.getAllVersions();
+                LinkedHashSet<CodeSchemeListItem> allVersions = codeScheme.getAllVersions();
                 for (CodeSchemeListItem listItem : allVersions) {
                     if (listItem.getId().equals(codeScheme.getId())) {
                         populateCodeSchemeListItem(codeScheme,
@@ -781,7 +781,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         final HashSet<CodeSchemeDTO> codeSchemes = new HashSet<>();
         codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
         codeSchemes.add(codeScheme);
-        Set<CodeSchemeDTO> previousVersions = new LinkedHashSet<>();
+        LinkedHashSet<CodeSchemeDTO> previousVersions = new LinkedHashSet<>();
         previousVersions = codeSchemeService.getPreviousVersions(codeScheme.getPrevCodeschemeId(), previousVersions);
         for (CodeSchemeDTO prevVersion : previousVersions) {
             codeSchemeService.populateAllVersionsToCodeSchemeDTO(prevVersion);
