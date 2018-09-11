@@ -12,7 +12,7 @@ public class CacheFilter implements ContainerResponseFilter {
 
     @Override
     public void filter(final ContainerRequestContext request,
-                       final ContainerResponseContext response) throws IOException {
+                       final ContainerResponseContext response) {
         response.getHeaders().add("Cache-Control", "no-cache");
     }
 }
