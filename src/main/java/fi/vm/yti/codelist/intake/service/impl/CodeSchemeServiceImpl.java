@@ -267,11 +267,11 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
             dealWithPossibleVersionHierarchyBeforeDeleting(codeSchemeDto, codeSchemeDTOsToIndex);
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
-            if (!externalReferences.isEmpty()) {
+            if (externalReferences != null && !externalReferences.isEmpty()) {
                 externalReferences.forEach(externalReference -> externalReference.setParentCodeScheme(null));
+                externalReferenceDao.save(externalReferences);
+                externalReferenceDao.delete(externalReferences);
             }
-            externalReferenceDao.save(externalReferences);
-            externalReferenceDao.delete(externalReferences);
             codeSchemeDao.delete(codeScheme);
             return codeSchemeDto;
         } else {
