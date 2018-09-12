@@ -24,6 +24,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import fi.vm.yti.codelist.common.dto.Views;
@@ -34,8 +35,9 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeScheme")
 @Table(name = "codescheme")
 @XmlRootElement
-@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "languageCodes", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies", "variants", "variantMothers", "nextCodeschemeId", "prevCodeschemeId", "lastCodeschemeId", "organizations"})
+@XmlType(propOrder = { "id", "codeValue", "uri", "codes", "prefLabel", "definition", "description", "changeNote", "startDate", "endDate", "status", "version", "source", "legalBase", "governancePolicy", "dataClassifications", "languageCodes", "defaultCode", "externalReferences", "extensionSchemes", "conceptUriInVocabularies", "variants", "variantMothers", "nextCodeschemeId", "prevCodeschemeId", "lastCodeschemeId", "organizations" })
 @ApiModel(value = "CodeScheme", description = "CodeScheme model that represents data for one single codescheme.")
+@JsonIgnoreProperties({ "relatedExtensionSchemes" })
 public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -54,6 +56,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private Set<ExternalReference> externalReferences;
     private Set<Code> languageCodes;
     private Set<ExtensionScheme> extensionSchemes;
+    private Set<ExtensionScheme> relatedExtensionSchemes;
     private String conceptUriInVocabularies;
     private Code defaultCode;
     private Set<CodeScheme> variants;
@@ -396,10 +399,10 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "codescheme_variant",
-            joinColumns = {
-                    @JoinColumn(name = "codescheme_id", referencedColumnName = "id") },
-            inverseJoinColumns = {
-                    @JoinColumn(name = "variant_codescheme_id", referencedColumnName = "id") })
+        joinColumns = {
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id") },
+        inverseJoinColumns = {
+            @JoinColumn(name = "variant_codescheme_id", referencedColumnName = "id") })
     @JsonView(Views.Extended.class)
     public Set<CodeScheme> getVariants() {
         return variants;
@@ -411,10 +414,10 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "codescheme_variant",
-            joinColumns = {
-                    @JoinColumn(name = "variant_codescheme_id", referencedColumnName = "id") },
-            inverseJoinColumns = {
-                    @JoinColumn(name = "codescheme_id", referencedColumnName = "id") })
+        joinColumns = {
+            @JoinColumn(name = "variant_codescheme_id", referencedColumnName = "id") },
+        inverseJoinColumns = {
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id") })
     @JsonView(Views.Extended.class)
     public Set<CodeScheme> getVariantMothers() {
         return variantMothers;
@@ -427,9 +430,9 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "codescheme_organization",
         joinColumns = {
-            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false)},
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
         inverseJoinColumns = {
-            @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false)})
+            @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false) })
     @JsonView(Views.Normal.class)
     public Set<Organization> getOrganizations() {
         return organizations;
@@ -437,5 +440,19 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     public void setOrganizations(final Set<Organization> organizations) {
         this.organizations = organizations;
+    }
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @JoinTable(name = "extensionscheme_codescheme",
+        joinColumns = {
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
+        inverseJoinColumns = {
+            @JoinColumn(name = "extensionscheme_id", referencedColumnName = "id", nullable = false, updatable = false) })
+    public Set<ExtensionScheme> getRelatedExtensionSchemes() {
+        return relatedExtensionSchemes;
+    }
+
+    public void setRelatedExtensionSchemes(final Set<ExtensionScheme> relatedExtensionSchemes) {
+        this.relatedExtensionSchemes = relatedExtensionSchemes;
     }
 }

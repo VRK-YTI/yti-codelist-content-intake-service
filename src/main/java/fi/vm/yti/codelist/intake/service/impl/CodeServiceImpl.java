@@ -231,18 +231,26 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                               final String codeSchemeCodeValue,
                               final String codeCodeValue) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-        final Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
-        if (authorizationManager.canCodeBeDeleted(code)) {
-            if (codeScheme.getDefaultCode() != null && code != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
-                codeScheme.setDefaultCode(null);
-                codeSchemeDao.save(codeScheme);
+        if (codeScheme != null) {
+            final Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
+            if (code != null) {
+                if (authorizationManager.canCodeBeDeleted(code)) {
+                    if (code.getExtensions() != null && !code.getExtensions().isEmpty()) {
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_IN_USE));
+                    }
+                    if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
+                        codeScheme.setDefaultCode(null);
+                        codeSchemeDao.save(codeScheme);
+                    }
+                    final CodeDTO codeDto = mapCodeDto(code, true, true);
+                    codeDao.delete(code);
+                    return codeDto;
+                } else {
+                    throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+                }
             }
-            final CodeDTO codeDto = mapCodeDto(code, true, true);
-            codeDao.delete(code);
-            return codeDto;
-        } else {
-            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
+        return null;
     }
 
     @Transactional

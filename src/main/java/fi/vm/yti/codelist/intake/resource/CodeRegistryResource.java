@@ -453,7 +453,8 @@ public class CodeRegistryResource implements AbstractBaseResource {
     @ApiOperation(value = "Deletes a single existing CodeScheme.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "CodeScheme deleted."),
-        @ApiResponse(code = 404, message = "CodeScheme not found.")
+        @ApiResponse(code = 404, message = "CodeScheme not found."),
+        @ApiResponse(code = 406, message = "CodeScheme delete failed.")
     })
     public Response deleteCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue) {
@@ -485,7 +486,6 @@ public class CodeRegistryResource implements AbstractBaseResource {
                     codeSchemeDTOsToIndex.add(dto);
                 }
             }
-
             indexing.updateCodeSchemes(codeSchemeDTOsToIndex);
             indexing.deleteCodeScheme(codeScheme);
             if (codes != null) {
@@ -504,6 +504,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             return Response.status(404).build();
         }
         final Meta meta = new Meta();
+        meta.setCode(200);
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
     }
@@ -633,29 +634,35 @@ public class CodeRegistryResource implements AbstractBaseResource {
     @ApiOperation(value = "Deletes a single existing Code.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Code deleted."),
-        @ApiResponse(code = 404, message = "Code not found.")
+        @ApiResponse(code = 404, message = "Code not found."),
+        @ApiResponse(code = 406, message = "Code delete failed.")
     })
     public Response deleteCode(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue) {
         final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-        final CodeDTO code = codeService.deleteCode(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
-        if (code != null && codeScheme != null) {
-            final Set<CodeDTO> referencedCodes = codeService.removeBroaderCodeId(code.getId());
-            if (referencedCodes != null && !referencedCodes.isEmpty()) {
-                indexing.updateCodes(referencedCodes);
+        if (codeScheme != null) {
+            final CodeDTO code = codeService.deleteCode(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
+            if (code != null) {
+                final Set<CodeDTO> referencedCodes = codeService.removeBroaderCodeId(code.getId());
+                if (referencedCodes != null && !referencedCodes.isEmpty()) {
+                    indexing.updateCodes(referencedCodes);
+                }
+                final Set<ExtensionDTO> extensions = code.getExtensions();
+                if (extensions != null && !extensions.isEmpty()) {
+                    indexing.deleteExtensions(extensions);
+                }
+                indexing.deleteCode(code);
+                indexing.updateCodeScheme(codeScheme);
+                final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeScheme.getId());
+                indexing.updateExtensionSchemes(extensionSchemes);
+                final Meta meta = new Meta();
+                meta.setCode(200);
+                final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
+                return Response.ok(responseWrapper).build();
+            } else {
+                return Response.status(404).build();
             }
-            final Set<ExtensionDTO> extensions = code.getExtensions();
-            if (extensions != null && !extensions.isEmpty()) {
-                indexing.deleteExtensions(extensions);
-            }
-            indexing.deleteCode(code);
-            indexing.updateCodeScheme(codeScheme);
-            final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findByCodeSchemeId(codeScheme.getId());
-            indexing.updateExtensionSchemes(extensionSchemes);
-            final Meta meta = new Meta();
-            final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
-            return Response.ok(responseWrapper).build();
         } else {
             return Response.status(404).build();
         }

@@ -71,7 +71,7 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JsonView(Views.ExtendedExtension.class)
-    @JoinColumn(name = "code_id", updatable = false)
+    @JoinColumn(name = "code_id", nullable = false)
     public Code getCode() {
         return code;
     }

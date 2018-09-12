@@ -236,7 +236,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
         this.conceptUriInVocabularies = conceptUriInVocabularies;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "code", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "code", cascade = CascadeType.DETACH)
     @JsonView(Views.ExtendedCode.class)
     public Set<Extension> getExtensions() {
         return extensions;

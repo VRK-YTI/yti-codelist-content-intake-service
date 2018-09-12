@@ -261,6 +261,9 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                           final Set<CodeSchemeDTO> codeSchemeDTOsToIndex) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (authorizationManager.canCodeSchemeBeDeleted(codeScheme)) {
+            if (codeScheme.getRelatedExtensionSchemes() != null && !codeScheme.getRelatedExtensionSchemes().isEmpty()) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE));
+            }
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
             dealWithPossibleVersionHierarchyBeforeDeleting(codeSchemeDto, codeSchemeDTOsToIndex);
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
