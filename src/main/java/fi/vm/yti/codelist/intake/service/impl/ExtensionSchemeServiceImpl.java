@@ -189,7 +189,7 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                         if (!authorizationManager.canBeModifiedByUserInOrganization(parentCodeScheme.getCodeRegistry().getOrganizations())) {
                             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                         }
-                        extensionScheme = extensionSchemeDao.updateExtensionSchemeEntityFromDtos(null, extensionSchemeDTO);
+                        extensionScheme = extensionSchemeDao.updateExtensionSchemeEntityFromDtos(parentCodeScheme, extensionSchemeDTO);
                     } else {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                     }
@@ -216,15 +216,18 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
         if (existingExtensionScheme != null) {
             try {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                    final ExtensionSchemeDTO extensionSchemeDTO = extensionSchemeParser.parseExtensionSchemeFromJson(jsonPayload);
-                    if (extensionSchemeDTO.getId() != extensionSchemeId) {
+                    final ExtensionSchemeDTO extensionSchemeDto = extensionSchemeParser.parseExtensionSchemeFromJson(jsonPayload);
+                    if (extensionSchemeDto.getId() != extensionSchemeId) {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
                     }
-                    final CodeScheme codeScheme = codeSchemeDao.findById(extensionSchemeDTO.getId());
+                    final CodeScheme codeScheme = codeSchemeDao.findById(extensionSchemeDto.getParentCodeScheme().getId());
+                    if (codeScheme == null) {
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    }
                     if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
                         throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                     }
-                    extensionScheme = extensionSchemeDao.updateExtensionSchemeEntityFromDtos(null, extensionSchemeDTO);
+                    extensionScheme = extensionSchemeDao.updateExtensionSchemeEntityFromDtos(codeScheme, extensionSchemeDto);
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                 }
