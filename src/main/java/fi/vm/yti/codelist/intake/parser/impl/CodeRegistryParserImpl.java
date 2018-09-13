@@ -88,7 +88,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
             final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
-            final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
+            final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
             final List<CSVRecord> records = csvParser.getRecords();
             records.forEach(record -> {
                 final CodeRegistryDTO fromCodeRegistry = new CodeRegistryDTO();
@@ -99,7 +99,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
                 fromCodeRegistry.setCodeValue(codeValue);
                 fromCodeRegistry.setOrganizations(resolveOrganizations(record.get(CONTENT_HEADER_ORGANIZATION)));
                 fromCodeRegistry.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
-                fromCodeRegistry.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
+                fromCodeRegistry.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
                 codeRegistries.add(fromCodeRegistry);
             });
         } catch (final IllegalArgumentException e) {
@@ -127,14 +127,14 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
             final Iterator<Row> rowIterator = sheet.rowIterator();
             Map<String, Integer> headerMap = null;
             Map<String, Integer> prefLabelHeaders = null;
-            Map<String, Integer> definitionHeaders = null;
+            Map<String, Integer> descriptionHeaders = null;
             while (rowIterator.hasNext()) {
                 final Row row = rowIterator.next();
                 if (firstRow) {
                     firstRow = false;
                     headerMap = resolveHeaderMap(row);
                     prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
-                    definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
+                    descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
                     validateRequiredHeaders(headerMap);
                 } else {
                     final CodeRegistryDTO fromCodeRegistry = new CodeRegistryDTO();
@@ -148,7 +148,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
                     fromCodeRegistry.setCodeValue(codeValue);
                     fromCodeRegistry.setOrganizations(resolveOrganizations(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORGANIZATION)))));
                     fromCodeRegistry.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
-                    fromCodeRegistry.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
+                    fromCodeRegistry.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
                     codeRegistries.add(fromCodeRegistry);
                 }
             }
