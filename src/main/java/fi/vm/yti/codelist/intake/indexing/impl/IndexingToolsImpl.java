@@ -152,6 +152,9 @@ public class IndexingToolsImpl implements IndexingTools {
         "        \"type\": \"text\",\n" +
         "        \"analyzer\": \"text_analyzer\"\n" +
         "      },\n" +
+        "      \"organizations\": {\n" +
+        "        \"type\": \"nested\"\n" +
+        "      },\n" +
         "      \"codeRegistry\": {\n" +
         "        \"properties\": {\n" +
         "          \"codeValue\": {\n" +

@@ -21,28 +21,30 @@ import com.google.common.base.Stopwatch;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
-import fi.vm.yti.codelist.intake.groupmanagement.GroupManagementOrganizationDTO;
+import fi.vm.yti.codelist.intake.dto.GroupManagementOrganizationDTO;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.service.OrganizationService;
 
 @Singleton
 @Service
-public class OrganizationServiceImpl extends BaseService implements OrganizationService {
+public class OrganizationServiceImpl implements OrganizationService {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrganizationServiceImpl.class);
     private final OrganizationRepository organizationRepository;
+    private final DtoMapperService dtoMapperService;
 
     @Inject
     public OrganizationServiceImpl(final OrganizationRepository organizationRepository,
-                                   final ApiUtils apiUtils) {
-        super(apiUtils);
+                                   final ApiUtils apiUtils,
+                                   final DtoMapperService dtoMapperService) {
         this.organizationRepository = organizationRepository;
+        this.dtoMapperService = dtoMapperService;
     }
 
     @Transactional
     public Set<OrganizationDTO> findAll() {
-        return mapOrganizationDtos(organizationRepository.findAll(), true);
+        return dtoMapperService.mapOrganizationDtos(organizationRepository.findAll(), true);
     }
 
     @Transactional
@@ -53,12 +55,12 @@ public class OrganizationServiceImpl extends BaseService implements Organization
         } else {
             organizations = organizationRepository.findByRemovedIsFalse();
         }
-        return mapOrganizationDtos(organizations, true);
+        return dtoMapperService.mapOrganizationDtos(organizations, true);
     }
 
     @Transactional
     public OrganizationDTO findById(final UUID organizationId) {
-        return mapOrganizationDto(organizationRepository.findById(organizationId), true);
+        return dtoMapperService.mapOrganizationDto(organizationRepository.findById(organizationId), true);
     }
 
     @Transactional
@@ -88,7 +90,7 @@ public class OrganizationServiceImpl extends BaseService implements Organization
         if (!organizations.isEmpty()) {
             organizationRepository.save(organizations);
         }
-        return mapOrganizationDtos(organizations, true);
+        return dtoMapperService.mapOrganizationDtos(organizations, true);
     }
 
     private Organization createOrUpdateOrganizationFromGroupManagementOrganizationDto(final GroupManagementOrganizationDTO groupManagementOrganizationDto) {

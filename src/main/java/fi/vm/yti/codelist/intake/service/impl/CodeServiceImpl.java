@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
@@ -38,7 +37,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Singleton
 @Service
-public class CodeServiceImpl extends BaseService implements CodeService {
+public class CodeServiceImpl implements CodeService {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeServiceImpl.class);
     private final AuthorizationManager authorizationManager;
@@ -46,6 +45,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
     private final CodeSchemeDao codeSchemeDao;
     private final CodeDao codeDao;
     private final CodeParserImpl codeParser;
+    private final DtoMapperService dtoMapperService;
 
     @Inject
     public CodeServiceImpl(final AuthorizationManager authorizationManager,
@@ -53,19 +53,19 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                            final CodeSchemeDao codeSchemeDao,
                            final CodeParserImpl codeParser,
                            final CodeDao codeDao,
-                           final ApiUtils apiUtils) {
-        super(apiUtils);
+                           final DtoMapperService dtoMapperService) {
         this.authorizationManager = authorizationManager;
         this.codeRegistryDao = codeRegistryDao;
         this.codeSchemeDao = codeSchemeDao;
         this.codeParser = codeParser;
         this.codeDao = codeDao;
+        this.dtoMapperService = dtoMapperService;
     }
 
     @Transactional
     public Set<CodeDTO> findAll(final PageRequest pageRequest) {
         final Set<Code> codes = codeDao.findAll(pageRequest);
-        return mapDeepCodeDtos(codes);
+        return dtoMapperService.mapDeepCodeDtos(codes);
     }
 
     @Transactional
@@ -75,19 +75,19 @@ public class CodeServiceImpl extends BaseService implements CodeService {
 
     @Transactional
     public Set<CodeDTO> findAll() {
-        return mapDeepCodeDtos(codeDao.findAll());
+        return dtoMapperService.mapDeepCodeDtos(codeDao.findAll());
     }
 
     @Transactional
     public CodeDTO findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme,
                                                                 final String codeValue,
                                                                 final UUID broaderCodeId) {
-        return mapDeepCodeDto(codeDao.findByCodeSchemeAndCodeValueAndBroaderCodeId(codeScheme, codeValue, broaderCodeId));
+        return dtoMapperService.mapDeepCodeDto(codeDao.findByCodeSchemeAndCodeValueAndBroaderCodeId(codeScheme, codeValue, broaderCodeId));
     }
 
     @Transactional
     public Set<CodeDTO> findByCodeSchemeId(final UUID codeSchemeId) {
-        return mapDeepCodeDtos(codeDao.findByCodeSchemeId(codeSchemeId));
+        return dtoMapperService.mapDeepCodeDtos(codeDao.findByCodeSchemeId(codeSchemeId));
     }
 
     @Transactional
@@ -105,7 +105,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return mapDeepCodeDtos(codes);
+        return dtoMapperService.mapDeepCodeDtos(codes);
     }
 
     @Transactional
@@ -157,7 +157,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return mapDeepCodeDtos(codes);
+        return dtoMapperService.mapDeepCodeDtos(codes);
     }
 
     @Transactional
@@ -195,7 +195,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return mapDeepCodeDtos(codes);
+        return dtoMapperService.mapDeepCodeDtos(codes);
     }
 
     private Set<CodeDTO> decreaseChildHierarchyLevel(final UUID broaderCodeId) {
@@ -207,7 +207,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
             }
         });
         codeDao.save(childCodes);
-        return mapDeepCodeDtos(childCodes);
+        return dtoMapperService.mapDeepCodeDtos(childCodes);
     }
 
     @Transactional
@@ -220,7 +220,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                 code.setHierarchyLevel(1);
                 updateCodes.addAll(decreaseChildHierarchyLevel(code.getId()));
             });
-            updateCodes.addAll(mapDeepCodeDtos(childCodes));
+            updateCodes.addAll(dtoMapperService.mapDeepCodeDtos(childCodes));
             codeDao.save(childCodes);
         }
         return updateCodes;
@@ -242,7 +242,7 @@ public class CodeServiceImpl extends BaseService implements CodeService {
                         codeScheme.setDefaultCode(null);
                         codeSchemeDao.save(codeScheme);
                     }
-                    final CodeDTO codeDto = mapCodeDto(code, true, true);
+                    final CodeDTO codeDto = dtoMapperService.mapCodeDto(code, true, true);
                     codeDao.delete(code);
                     return codeDto;
                 } else {
@@ -264,6 +264,6 @@ public class CodeServiceImpl extends BaseService implements CodeService {
         if (code == null) {
             return null;
         }
-        return mapDeepCodeDto(code);
+        return dtoMapperService.mapDeepCodeDto(code);
     }
 }

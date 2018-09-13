@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -28,32 +27,33 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Singleton
 @Service
-public class PropertyTypeServiceImpl extends BaseService implements PropertyTypeService {
+public class PropertyTypeServiceImpl implements PropertyTypeService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PropertyTypeServiceImpl.class);
     private final AuthorizationManager authorizationManager;
     private final PropertyTypeDao propertyTypeDao;
     private final PropertyTypeParserImpl propertyTypeParser;
+    private final DtoMapperService dtoMapperService;
 
     @Inject
     public PropertyTypeServiceImpl(final AuthorizationManager authorizationManager,
                                    final PropertyTypeDao propertyTypeRepository,
                                    final PropertyTypeParserImpl propertyTypeParser,
-                                   final ApiUtils apiUtils) {
-        super(apiUtils);
+                                   final DtoMapperService dtoMapperService) {
         this.authorizationManager = authorizationManager;
         this.propertyTypeDao = propertyTypeRepository;
         this.propertyTypeParser = propertyTypeParser;
+        this.dtoMapperService = dtoMapperService;
     }
 
     @Transactional
     public Set<PropertyTypeDTO> findAll() {
-        return mapPropertyTypeDtos(propertyTypeDao.findAll());
+        return dtoMapperService.mapPropertyTypeDtos(propertyTypeDao.findAll());
     }
 
     @Transactional
     public PropertyTypeDTO findByLocalName(final String propertyTypeLocalName) {
-        return mapPropertyTypeDto(propertyTypeDao.findByLocalName(propertyTypeLocalName));
+        return dtoMapperService.mapPropertyTypeDto(propertyTypeDao.findByLocalName(propertyTypeLocalName));
     }
 
     @Transactional
@@ -89,7 +89,7 @@ public class PropertyTypeServiceImpl extends BaseService implements PropertyType
             default:
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
         }
-        return mapPropertyTypeDtos(propertyTypes);
+        return dtoMapperService.mapPropertyTypeDtos(propertyTypes);
     }
 
     @Transactional
@@ -120,6 +120,6 @@ public class PropertyTypeServiceImpl extends BaseService implements PropertyType
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return mapPropertyTypeDto(propertyType);
+        return dtoMapperService.mapPropertyTypeDto(propertyType);
     }
 }

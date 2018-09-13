@@ -1,4 +1,4 @@
-package fi.vm.yti.codelist.intake.groupmanagement;
+package fi.vm.yti.codelist.intake.dto;
 
 import java.util.Map;
 import java.util.UUID;

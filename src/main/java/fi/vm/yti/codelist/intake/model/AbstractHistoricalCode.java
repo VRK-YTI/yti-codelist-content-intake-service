@@ -84,7 +84,7 @@ public abstract class AbstractHistoricalCode extends AbstractCommonCode {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(theDate);
         calendar.add(Calendar.HOUR_OF_DAY,
-                4);
+            4);
         return calendar.getTime();
     }
 }

@@ -29,33 +29,34 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Singleton
 @Service
-public class ExternalReferenceServiceImpl extends BaseService implements ExternalReferenceService {
+public class ExternalReferenceServiceImpl implements ExternalReferenceService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceServiceImpl.class);
 
     private final AuthorizationManager authorizationManager;
     private final ExternalReferenceParserImpl externalReferenceParser;
     private final ExternalReferenceDao externalReferenceDao;
+    private final DtoMapperService dtoMapperService;
 
     @Inject
     public ExternalReferenceServiceImpl(final AuthorizationManager authorizationManager,
                                         final ExternalReferenceParserImpl externalReferenceParser,
                                         final ExternalReferenceDao externalReferenceDao,
-                                        final ApiUtils apiUtils) {
-        super(apiUtils);
+                                        final DtoMapperService dtoMapperService) {
         this.authorizationManager = authorizationManager;
         this.externalReferenceParser = externalReferenceParser;
         this.externalReferenceDao = externalReferenceDao;
+        this.dtoMapperService = dtoMapperService;
     }
 
     @Transactional
     public Set<ExternalReferenceDTO> findAll() {
-        return mapDeepExternalReferenceDtos(externalReferenceDao.findAll());
+        return dtoMapperService.mapDeepExternalReferenceDtos(externalReferenceDao.findAll());
     }
 
     @Transactional
     public Set<ExternalReferenceDTO> findByParentCodeSchemeId(final UUID codeSchemeId) {
-        return mapDeepExternalReferenceDtos(externalReferenceDao.findByParentCodeSchemeId(codeSchemeId));
+        return dtoMapperService.mapDeepExternalReferenceDtos(externalReferenceDao.findByParentCodeSchemeId(codeSchemeId));
     }
 
     @Transactional
@@ -93,7 +94,7 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
             default:
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
         }
-        return mapDeepExternalReferenceDtos(externalReferences);
+        return dtoMapperService.mapDeepExternalReferenceDtos(externalReferences);
     }
 
     @Transactional
@@ -125,6 +126,6 @@ public class ExternalReferenceServiceImpl extends BaseService implements Externa
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return mapDeepExternalReferenceDto(externalReference);
+        return dtoMapperService.mapDeepExternalReferenceDto(externalReference);
     }
 }

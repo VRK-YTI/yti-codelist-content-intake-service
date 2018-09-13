@@ -20,7 +20,7 @@ import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
-import fi.vm.yti.codelist.intake.model.Meta;
+import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.service.OrganizationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

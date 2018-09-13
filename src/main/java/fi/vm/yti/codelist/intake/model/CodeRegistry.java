@@ -21,19 +21,12 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonView;
-
-import fi.vm.yti.codelist.common.dto.Views;
-import io.swagger.annotations.ApiModel;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
-@JsonFilter("codeRegistry")
 @Table(name = "coderegistry")
 @XmlRootElement
 @XmlType(propOrder = { "id", "codeValue", "uri", "prefLabel", "description", "codeSchemes", "organizations" })
-@ApiModel(value = "CodeRegistry", description = "CodeRegistry model that represents data for one single registry.")
 public class CodeRegistry extends AbstractCommonCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -48,7 +41,6 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
-    @JsonView(Views.Normal.class)
     public Map<String, String> getPrefLabel() {
         if (prefLabel == null) {
             prefLabel = new HashMap<>();
@@ -86,7 +78,6 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
     @MapKeyColumn(name = "language")
     @Column(name = "description")
     @OrderColumn
-    @JsonView(Views.Normal.class)
     public Map<String, String> getDescription() {
         if (description == null) {
             description = new HashMap<>();
@@ -125,7 +116,6 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
             @JoinColumn(name = "coderegistry_id", referencedColumnName = "id", nullable = false, updatable = false) },
         inverseJoinColumns = {
             @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false) })
-    @JsonView(Views.Normal.class)
     public Set<Organization> getOrganizations() {
         return organizations;
     }
@@ -135,7 +125,6 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "codeRegistry", cascade = CascadeType.ALL)
-    @JsonView(Views.ExtendedCodeRegistry.class)
     public Set<CodeScheme> getCodeSchemes() {
         return codeSchemes;
     }

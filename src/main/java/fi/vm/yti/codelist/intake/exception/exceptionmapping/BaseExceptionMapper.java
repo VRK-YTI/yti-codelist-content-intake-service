@@ -2,9 +2,9 @@ package fi.vm.yti.codelist.intake.exception.exceptionmapping;
 
 import javax.ws.rs.core.Response;
 
+import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.model.Meta;
 
 interface BaseExceptionMapper {
 

@@ -28,27 +28,28 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Singleton
 @Service
-public class CodeRegistryServiceImpl extends BaseService implements CodeRegistryService {
+public class CodeRegistryServiceImpl implements CodeRegistryService {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryServiceImpl.class);
     private final AuthorizationManager authorizationManager;
     private final CodeRegistryParserImpl codeRegistryParser;
     private final CodeRegistryDao codeRegistryDao;
+    private final DtoMapperService dtoMapperService;
 
     @Inject
     public CodeRegistryServiceImpl(final AuthorizationManager authorizationManager,
                                    final CodeRegistryParserImpl codeRegistryParser,
                                    final CodeRegistryDao codeRegistryDao,
-                                   final ApiUtils apiUtils) {
-        super(apiUtils);
+                                   final DtoMapperService dtoMapperService) {
         this.authorizationManager = authorizationManager;
         this.codeRegistryParser = codeRegistryParser;
         this.codeRegistryDao = codeRegistryDao;
+        this.dtoMapperService = dtoMapperService;
     }
 
     @Transactional
     public Set<CodeRegistryDTO> findAll() {
-        return mapCodeRegistryDtos(codeRegistryDao.findAll());
+        return dtoMapperService.mapCodeRegistryDtos(codeRegistryDao.findAll());
     }
 
     @Transactional
@@ -58,7 +59,7 @@ public class CodeRegistryServiceImpl extends BaseService implements CodeRegistry
         if (registry == null) {
             return null;
         }
-        return mapCodeRegistryDto(registry);
+        return dtoMapperService.mapCodeRegistryDto(registry);
     }
 
     @Transactional
@@ -94,7 +95,7 @@ public class CodeRegistryServiceImpl extends BaseService implements CodeRegistry
             default:
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return mapCodeRegistryDtos(codeRegistries);
+        return dtoMapperService.mapCodeRegistryDtos(codeRegistries);
     }
 
     @Transactional
@@ -125,14 +126,14 @@ public class CodeRegistryServiceImpl extends BaseService implements CodeRegistry
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeRegistry with CodeValue: " + codeRegistryCodeValue + " does not exist yet, please create registry first."));
         }
-        return mapCodeRegistryDto(codeRegistry);
+        return dtoMapperService.mapCodeRegistryDto(codeRegistry);
     }
 
     @Transactional
     public CodeRegistryDTO deleteCodeRegistry(final String codeRegistryCodeValue) {
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (authorizationManager.canCodeRegistryBeDeleted(codeRegistry)) {
-            final CodeRegistryDTO codeRegistryDto = mapCodeRegistryDto(codeRegistry);
+            final CodeRegistryDTO codeRegistryDto = dtoMapperService.mapCodeRegistryDto(codeRegistry);
             codeRegistryDao.delete(codeRegistry);
             return codeRegistryDto;
         } else {

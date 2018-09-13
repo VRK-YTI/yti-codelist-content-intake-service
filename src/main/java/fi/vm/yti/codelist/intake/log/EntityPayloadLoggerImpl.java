@@ -24,6 +24,7 @@ import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
+import fi.vm.yti.codelist.intake.service.impl.DtoMapperService;
 
 @Service
 public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
@@ -40,12 +41,15 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     private final AuthorizationManager authorizationManager;
     private final Tracer tracer;
     private final ObjectMapper mapper;
+    private final DtoMapperService baseService;
 
     @Inject
     public EntityPayloadLoggerImpl(final AuthorizationManager authorizationManager,
-                                   final Tracer tracer) {
+                                   final Tracer tracer,
+                                   final DtoMapperService baseService) {
         this.authorizationManager = authorizationManager;
         this.tracer = tracer;
+        this.baseService = baseService;
         this.mapper = createMapper();
     }
 
@@ -59,7 +63,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     public void logCodeRegistry(final CodeRegistry codeRegistry) {
         beginPayloadLogging(CODEREGISTRY, codeRegistry.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(codeRegistry));
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapCodeRegistryDto(codeRegistry)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for codeRegistry: %s", codeRegistry.getId()), e);
         }
@@ -69,7 +73,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     public void logCodeScheme(final CodeScheme codeScheme) {
         beginPayloadLogging(CODESCHEME, codeScheme.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.ExtendedCodeScheme.class).writeValueAsString(codeScheme));
+            LOG.debug(mapper.writerWithView(Views.ExtendedCodeScheme.class).writeValueAsString(baseService.mapCodeSchemeDto(codeScheme)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for codeScheme: %s", codeScheme.getId()), e);
         }
@@ -79,7 +83,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     public void logCode(final Code code) {
         beginPayloadLogging(CODE, code.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.ExtendedCode.class).writeValueAsString(code));
+            LOG.debug(mapper.writerWithView(Views.ExtendedCode.class).writeValueAsString(baseService.mapCodeDto(code)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for code: %s", code.getId()), e);
         }
@@ -89,7 +93,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     public void logExternalReference(final ExternalReference externalReference) {
         beginPayloadLogging(EXTERNALREFERENCE, externalReference.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.ExtendedExternalReference.class).writeValueAsString(externalReference));
+            LOG.debug(mapper.writerWithView(Views.ExtendedExternalReference.class).writeValueAsString(baseService.mapExternalReferenceDto(externalReference)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for externalReference: %s", externalReference.getId()), e);
         }
@@ -99,7 +103,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     public void logPropertyType(final PropertyType propertyType) {
         beginPayloadLogging(PROPERTYTYPE, propertyType.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(propertyType));
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapPropertyTypeDto(propertyType)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for propertyType: %s", propertyType.getId()), e);
         }
@@ -109,7 +113,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     public void logExtensionScheme(final ExtensionScheme extensionScheme) {
         beginPayloadLogging(EXTENSIONSCHEME, extensionScheme.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(extensionScheme));
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapExtensionSchemeDto(extensionScheme)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for extensionScheme: %s", extensionScheme.getId()), e);
         }
@@ -119,7 +123,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     public void logExtension(final Extension extension) {
         beginPayloadLogging(EXTENSION, extension.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(extension));
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapExtensionDto(extension)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for extension: %s", extension.getId()), e);
         }

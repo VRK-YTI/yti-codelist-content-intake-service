@@ -32,7 +32,7 @@ import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.groupmanagement.GroupManagementUserRequest;
-import fi.vm.yti.codelist.intake.model.Meta;
+import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.resource.AbstractBaseResource;
 import fi.vm.yti.security.AuthenticatedUserProvider;
 import fi.vm.yti.security.Role;

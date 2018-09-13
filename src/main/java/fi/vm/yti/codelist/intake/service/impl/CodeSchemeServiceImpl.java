@@ -27,7 +27,6 @@ import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
@@ -53,7 +52,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Singleton
 @Service
-public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeService {
+public class CodeSchemeServiceImpl implements CodeSchemeService {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeServiceImpl.class);
     private final AuthorizationManager authorizationManager;
@@ -66,6 +65,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
     private final CodeDao codeDao;
     private final ExtensionSchemeDao extensionSchemeDao;
     private final ExternalReferenceDao externalReferenceDao;
+    private final DtoMapperService dtoMapperService;
 
     @Inject
     public CodeSchemeServiceImpl(final AuthorizationManager authorizationManager,
@@ -76,10 +76,9 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                  final ExtensionSchemeService extensionSchemeService,
                                  final ExtensionService extensionService,
                                  final CodeDao codeDao,
-                                 final ApiUtils apiUtils,
                                  final ExtensionSchemeDao extensionSchemeDao,
-                                 final ExternalReferenceDao externalReferenceDao) {
-        super(apiUtils);
+                                 final ExternalReferenceDao externalReferenceDao,
+                                 final DtoMapperService dtoMapperService) {
         this.codeRegistryDao = codeRegistryDao;
         this.authorizationManager = authorizationManager;
         this.codeSchemeParser = codeSchemeParser;
@@ -90,23 +89,24 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         this.codeDao = codeDao;
         this.extensionSchemeDao = extensionSchemeDao;
         this.externalReferenceDao = externalReferenceDao;
+        this.dtoMapperService = dtoMapperService;
     }
 
     @Transactional
     public Set<CodeSchemeDTO> findAll() {
-        return mapDeepCodeSchemeDtos(codeSchemeDao.findAll());
+        return dtoMapperService.mapDeepCodeSchemeDtos(codeSchemeDao.findAll());
     }
 
     @Transactional
     public CodeSchemeDTO findById(final UUID id) {
-        return mapDeepCodeSchemeDto(codeSchemeDao.findById(id));
+        return dtoMapperService.mapDeepCodeSchemeDto(codeSchemeDao.findById(id));
     }
 
     @Transactional
     @Nullable
     public Set<CodeSchemeDTO> findByCodeRegistryCodeValue(final String codeRegistryCodeValue) {
         final Set<CodeScheme> codeSchemes = codeSchemeDao.findByCodeRegistryCodeValue(codeRegistryCodeValue);
-        return mapDeepCodeSchemeDtos(codeSchemes);
+        return dtoMapperService.mapDeepCodeSchemeDtos(codeSchemes);
     }
 
     @Transactional
@@ -117,7 +117,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         if (codeScheme == null) {
             return null;
         }
-        return mapDeepCodeSchemeDto(codeScheme);
+        return dtoMapperService.mapDeepCodeSchemeDto(codeScheme);
     }
 
     @Transactional
@@ -191,7 +191,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return mapCodeSchemeDtos(codeSchemes, true);
+        return dtoMapperService.mapCodeSchemeDtos(codeSchemes, true);
     }
 
     @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
@@ -248,7 +248,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        CodeSchemeDTO codeSchemeDTO = mapCodeSchemeDto(codeScheme, true);
+        CodeSchemeDTO codeSchemeDTO = dtoMapperService.mapCodeSchemeDto(codeScheme, true);
         if (codeSchemeDTO.getId() != null && codeSchemeDTO.getLastCodeschemeId() != null) {
             this.populateAllVersionsToCodeSchemeDTO(codeSchemeDTO);
         }
@@ -275,7 +275,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                     }
                 });
             }
-            final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
+            final CodeSchemeDTO codeSchemeDto = dtoMapperService.mapCodeSchemeDto(codeScheme, false);
             dealWithPossibleVersionHierarchyBeforeDeleting(codeSchemeDto, codeSchemeDTOsToIndex);
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
             if (externalReferences != null && !externalReferences.isEmpty()) {
@@ -312,7 +312,7 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                                  final CodeSchemeDTO codeSchemeDto) {
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         final CodeScheme codeScheme = codeSchemeDao.updateCodeSchemeFromDto(isAuthorized, codeRegistry, codeSchemeDto);
-        CodeSchemeDTO result = mapCodeSchemeDto(codeScheme, true);
+        CodeSchemeDTO result = dtoMapperService.mapCodeSchemeDto(codeScheme, true);
         result.setVariantsOfThisCodeScheme(result.getVariantsOfThisCodeScheme());
         result.setVariantMothersOfThisCodeScheme(result.getVariantMothersOfThisCodeScheme());
         return result;

@@ -6,10 +6,6 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
-import com.fasterxml.jackson.annotation.JsonView;
-
-import fi.vm.yti.codelist.common.dto.Views;
-
 @MappedSuperclass
 public abstract class AbstractIdentifyableCode {
 
@@ -17,7 +13,6 @@ public abstract class AbstractIdentifyableCode {
 
     @Id
     @Column(name = "id", unique = true)
-    @JsonView(Views.Normal.class)
     public UUID getId() {
         return id;
     }

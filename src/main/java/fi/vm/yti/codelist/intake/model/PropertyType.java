@@ -16,19 +16,12 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonView;
-
-import fi.vm.yti.codelist.common.dto.Views;
-import io.swagger.annotations.ApiModel;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
-@JsonFilter("propertyType")
 @Table(name = "propertytype")
 @XmlRootElement
 @XmlType(propOrder = {"id", "context", "propertyUri", "localName", "type", "prefLabel", "definition"})
-@ApiModel(value = "PropertyType", description = "PropertyType model for data relation typing.")
 public class PropertyType extends AbstractIdentifyableTimestampedCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -41,7 +34,6 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
     private Map<String, String> definition;
 
     @Column(name = "localname")
-    @JsonView(Views.Normal.class)
     public String getLocalName() {
         return localName;
     }
@@ -51,7 +43,6 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
     }
 
     @Column(name = "context")
-    @JsonView(Views.Normal.class)
     public String getContext() {
         return context;
     }
@@ -61,7 +52,6 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
     }
 
     @Column(name = "type")
-    @JsonView(Views.Normal.class)
     public String getType() {
         return type;
     }
@@ -71,7 +61,6 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
     }
 
     @Column(name = "propertyuri")
-    @JsonView(Views.Normal.class)
     public String getPropertyUri() {
         return propertyUri;
     }
@@ -85,7 +74,6 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
-    @JsonView(Views.Normal.class)
     public Map<String, String> getPrefLabel() {
         if (prefLabel == null) {
             prefLabel = new HashMap<>();
@@ -105,7 +93,8 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
         return prefLabelValue;
     }
 
-    public void setPrefLabel(final String language, final String value) {
+    public void setPrefLabel(final String language,
+                             final String value) {
         if (prefLabel == null) {
             prefLabel = new HashMap<>();
         }
@@ -122,7 +111,6 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
     @MapKeyColumn(name = "language")
     @Column(name = "definition")
     @OrderColumn
-    @JsonView(Views.Normal.class)
     public Map<String, String> getDefinition() {
         if (definition == null) {
             definition = new HashMap<>();
@@ -142,7 +130,8 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
         return definitionValue;
     }
 
-    public void setDefinition(final String language, final String value) {
+    public void setDefinition(final String language,
+                              final String value) {
         if (definition == null) {
             definition = new HashMap<>();
         }

@@ -7,12 +7,6 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonView;
-
-import fi.vm.yti.codelist.common.dto.Views;
-import io.swagger.annotations.ApiModelProperty;
-
 @MappedSuperclass
 public abstract class AbstractIdentifyableTimestampedCode extends AbstractIdentifyableCode {
 
@@ -20,10 +14,7 @@ public abstract class AbstractIdentifyableTimestampedCode extends AbstractIdenti
     private Date modified;
 
     @Column(name = "modified")
-    @ApiModelProperty(dataType = "dateTime")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonView(Views.Normal.class)
     public Date getModified() {
         if (modified != null) {
             return new Date(modified.getTime());
@@ -40,10 +31,7 @@ public abstract class AbstractIdentifyableTimestampedCode extends AbstractIdenti
     }
 
     @Column(name = "created")
-    @ApiModelProperty(dataType = "dateTime")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonView(Views.Normal.class)
     public Date getCreated() {
         if (created != null) {
             return new Date(created.getTime());

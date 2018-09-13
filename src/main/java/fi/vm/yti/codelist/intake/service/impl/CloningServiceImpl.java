@@ -41,7 +41,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_40
 
 @Singleton
 @Service
-public class CloningServiceImpl extends BaseService implements CloningService {
+public class CloningServiceImpl implements CloningService {
 
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeSchemeService codeSchemeService;
@@ -50,6 +50,8 @@ public class CloningServiceImpl extends BaseService implements CloningService {
     private final ExternalReferenceDao externalReferenceDao;
     private final ExtensionSchemeDao extensionSchemeDao;
     private final AuthorizationManager authorizationManager;
+    private final DtoMapperService dtoMapperService;
+    private final ApiUtils apiUtils;
 
     public CloningServiceImpl(final CodeSchemeRepository codeSchemeRepository,
                               final CodeSchemeService codeSchemeService,
@@ -57,9 +59,9 @@ public class CloningServiceImpl extends BaseService implements CloningService {
                               final CodeDao codeDao,
                               final ExternalReferenceDao externalReferenceDao,
                               final ExtensionSchemeDao extensionSchemeDao,
-                              final ApiUtils apiUtils,
-                              final AuthorizationManager authorizationManager) {
-        super(apiUtils);
+                              final AuthorizationManager authorizationManager,
+                              final DtoMapperService dtoMapperService,
+                              final ApiUtils apiUtils) {
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeSchemeService = codeSchemeService;
         this.codeSchemeDao = codeSchemeDao;
@@ -67,6 +69,8 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         this.externalReferenceDao = externalReferenceDao;
         this.extensionSchemeDao = extensionSchemeDao;
         this.authorizationManager = authorizationManager;
+        this.dtoMapperService = dtoMapperService;
+        this.apiUtils = apiUtils;
     }
 
     @Transactional
@@ -160,7 +164,7 @@ public class CloningServiceImpl extends BaseService implements CloningService {
         extensionSchemeDao.save(clonedExtensionSchemes);
         final Set<ExtensionSchemeDTO> extensionSchemeDTOS = new HashSet<>();
         for (final ExtensionScheme e : clonedExtensionSchemes) {
-            ExtensionSchemeDTO dto = mapExtensionSchemeDto(e, true);
+            ExtensionSchemeDTO dto = dtoMapperService.mapExtensionSchemeDto(e, true);
             extensionSchemeDTOS.add(dto);
         }
         codeSchemeWithUserChangesFromUi.setExtensionSchemes(extensionSchemeDTOS);
@@ -228,7 +232,7 @@ public class CloningServiceImpl extends BaseService implements CloningService {
                 newExternalReferences.add(originalExternalReference);
             }
         });
-        final Set<ExternalReferenceDTO> extRefDtos = mapExternalReferenceDtos(newExternalReferences, true);
+        final Set<ExternalReferenceDTO> extRefDtos = dtoMapperService.mapExternalReferenceDtos(newExternalReferences, true);
         codeSchemeWithUserChangesFromUi.setExternalReferences(extRefDtos);
     }
 
@@ -265,7 +269,7 @@ public class CloningServiceImpl extends BaseService implements CloningService {
                 clonedCode.setBroaderCodeId(parentCode.getId());
             }
             codeDao.save(clonedCode);
-            final CodeDTO clonedCodeDTO = mapDeepCodeDto(clonedCode);
+            final CodeDTO clonedCodeDTO = dtoMapperService.mapDeepCodeDto(clonedCode);
             clonedCodeDTOs.add(clonedCodeDTO);
         }
 

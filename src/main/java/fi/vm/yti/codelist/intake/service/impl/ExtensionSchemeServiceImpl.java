@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
@@ -39,7 +38,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Singleton
 @Service
-public class ExtensionSchemeServiceImpl extends BaseService implements ExtensionSchemeService {
+public class ExtensionSchemeServiceImpl implements ExtensionSchemeService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExtensionSchemeServiceImpl.class);
 
@@ -49,26 +48,27 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
     private final ExtensionSchemeParser extensionSchemeParser;
     private final ExtensionParser extensionParser;
     private final AuthorizationManager authorizationManager;
+    private final DtoMapperService dtoMapperService;
 
     public ExtensionSchemeServiceImpl(final ExtensionSchemeDao extensionSchemeDao,
                                       final ExtensionDao extensionDao,
                                       final CodeSchemeDao codeSchemeDao,
                                       final ExtensionSchemeParser extensionSchemeParser,
                                       final AuthorizationManager authorizationManager,
-                                      final ApiUtils apiUtils,
-                                      final ExtensionParser extensionParser) {
-        super(apiUtils);
+                                      final ExtensionParser extensionParser,
+                                      final DtoMapperService dtoMapperService) {
         this.extensionSchemeDao = extensionSchemeDao;
         this.extensionDao = extensionDao;
         this.codeSchemeDao = codeSchemeDao;
         this.extensionSchemeParser = extensionSchemeParser;
         this.authorizationManager = authorizationManager;
         this.extensionParser = extensionParser;
+        this.dtoMapperService = dtoMapperService;
     }
 
     @Transactional
     public Set<ExtensionSchemeDTO> findAll() {
-        return mapDeepExtensionSchemeDtos(extensionSchemeDao.findAll());
+        return dtoMapperService.mapDeepExtensionSchemeDtos(extensionSchemeDao.findAll());
     }
 
     @Transactional
@@ -77,12 +77,12 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
         if (extensionScheme == null) {
             return null;
         }
-        return mapDeepExtensionSchemeDto(extensionSchemeDao.findById(id));
+        return dtoMapperService.mapDeepExtensionSchemeDto(extensionSchemeDao.findById(id));
     }
 
     @Transactional
     public Set<ExtensionSchemeDTO> findByCodeSchemeId(final UUID codeSchemeId) {
-        return mapDeepExtensionSchemeDtos(extensionSchemeDao.findByParentCodeSchemeId(codeSchemeId));
+        return dtoMapperService.mapDeepExtensionSchemeDtos(extensionSchemeDao.findByParentCodeSchemeId(codeSchemeId));
     }
 
     @Transactional
@@ -92,7 +92,7 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
         if (extensionScheme == null) {
             return null;
         }
-        return mapDeepExtensionSchemeDto(extensionScheme);
+        return dtoMapperService.mapDeepExtensionSchemeDto(extensionScheme);
     }
 
     @Transactional
@@ -102,7 +102,7 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
         if (extensionScheme == null) {
             return null;
         }
-        return mapDeepExtensionSchemeDto(extensionScheme);
+        return dtoMapperService.mapDeepExtensionSchemeDto(extensionScheme);
     }
 
     @Transactional
@@ -149,7 +149,7 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                 default:
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
             }
-            return mapDeepExtensionSchemeDtos(extensionSchemes);
+            return dtoMapperService.mapDeepExtensionSchemeDtos(extensionSchemes);
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
@@ -170,7 +170,7 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
                 extensionSchemeDto.setId(extensionScheme.getId());
             }
         }));
-        return mapDeepExtensionSchemeDtos(extensionSchemes);
+        return dtoMapperService.mapDeepExtensionSchemeDtos(extensionSchemes);
     }
 
     @Transactional
@@ -202,7 +202,7 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
             }
-            return mapDeepExtensionSchemeDto(extensionScheme);
+            return dtoMapperService.mapDeepExtensionSchemeDto(extensionScheme);
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
@@ -240,14 +240,14 @@ public class ExtensionSchemeServiceImpl extends BaseService implements Extension
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return mapDeepExtensionSchemeDto(extensionScheme);
+        return dtoMapperService.mapDeepExtensionSchemeDto(extensionScheme);
     }
 
     @Transactional
     public ExtensionSchemeDTO deleteExtensionScheme(final UUID extensionSchemeId) {
         final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeId);
         if (authorizationManager.canExtensionSchemeBeDeleted(extensionScheme)) {
-            final ExtensionSchemeDTO extensionSchemeDto = mapExtensionSchemeDto(extensionScheme, false);
+            final ExtensionSchemeDTO extensionSchemeDto = dtoMapperService.mapExtensionSchemeDto(extensionScheme, false);
             extensionSchemeDao.delete(extensionScheme);
             return extensionSchemeDto;
         } else {

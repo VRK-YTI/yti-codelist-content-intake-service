@@ -23,19 +23,12 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonView;
-
-import fi.vm.yti.codelist.common.dto.Views;
-import io.swagger.annotations.ApiModel;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
-@JsonFilter("code")
 @Table(name = "code")
 @XmlRootElement
-@XmlType(propOrder = {"id", "codeValue", "uri", "status", "hierarchyLevel", "startDate", "endDate", "prefLabel", "description", "definition", "codeScheme", "shortName", "externalReferences", "broaderCodeId",  "order", "extensions", "conceptUriInVocabularies"})
-@ApiModel(value = "Code", description = "Code model that represents data for one single generic registeritem.")
+@XmlType(propOrder = { "id", "codeValue", "uri", "status", "hierarchyLevel", "startDate", "endDate", "prefLabel", "description", "definition", "codeScheme", "shortName", "externalReferences", "broaderCodeId", "order", "extensions", "conceptUriInVocabularies" })
 public class Code extends AbstractHistoricalCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -53,7 +46,6 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     private String conceptUriInVocabularies;
 
     @Column(name = "broadercode_id")
-    @JsonView(Views.Normal.class)
     public UUID getBroaderCodeId() {
         return broaderCodeId;
     }
@@ -64,7 +56,6 @@ public class Code extends AbstractHistoricalCode implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "codescheme_id", nullable = false, updatable = false)
-    @JsonView(Views.ExtendedCode.class)
     public CodeScheme getCodeScheme() {
         return codeSheme;
     }
@@ -74,7 +65,6 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     }
 
     @Column(name = "hierarchylevel")
-    @JsonView(Views.Normal.class)
     public Integer getHierarchyLevel() {
         return hierarchyLevel;
     }
@@ -84,7 +74,6 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     }
 
     @Column(name = "shortname")
-    @JsonView(Views.Normal.class)
     public String getShortName() {
         return shortName;
     }
@@ -98,7 +87,6 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
-    @JsonView(Views.Normal.class)
     public Map<String, String> getPrefLabel() {
         return prefLabel;
     }
@@ -115,7 +103,8 @@ public class Code extends AbstractHistoricalCode implements Serializable {
         return prefLabelValue;
     }
 
-    public void setPrefLabel(final String language, final String value) {
+    public void setPrefLabel(final String language,
+                             final String value) {
         if (this.prefLabel == null) {
             this.prefLabel = new HashMap<>();
         }
@@ -132,7 +121,6 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     @MapKeyColumn(name = "language")
     @Column(name = "definition")
     @OrderColumn
-    @JsonView(Views.Normal.class)
     public Map<String, String> getDefinition() {
         if (definition == null) {
             definition = new HashMap<>();
@@ -152,7 +140,8 @@ public class Code extends AbstractHistoricalCode implements Serializable {
         return definitionValue;
     }
 
-    public void setDefinition(final String language, final String value) {
+    public void setDefinition(final String language,
+                              final String value) {
         if (this.definition == null) {
             this.definition = new HashMap<>();
         }
@@ -169,7 +158,6 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     @MapKeyColumn(name = "language")
     @Column(name = "description")
     @OrderColumn
-    @JsonView(Views.Normal.class)
     public Map<String, String> getDescription() {
         if (description == null) {
             description = new HashMap<>();
@@ -189,7 +177,8 @@ public class Code extends AbstractHistoricalCode implements Serializable {
         return descriptionValue;
     }
 
-    public void setDescription(final String language, final String value) {
+    public void setDescription(final String language,
+                               final String value) {
         if (this.description == null) {
             this.description = new HashMap<>();
         }
@@ -204,10 +193,9 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "code_externalreference",
         joinColumns = {
-            @JoinColumn(name = "code_id", referencedColumnName = "id", nullable = false, updatable = false)},
+            @JoinColumn(name = "code_id", referencedColumnName = "id", nullable = false, updatable = false) },
         inverseJoinColumns = {
-            @JoinColumn(name = "externalreference_id", referencedColumnName = "id", nullable = false, updatable = false)})
-    @JsonView(Views.ExtendedCode.class)
+            @JoinColumn(name = "externalreference_id", referencedColumnName = "id", nullable = false, updatable = false) })
     public Set<ExternalReference> getExternalReferences() {
         return this.externalReferences;
     }
@@ -217,7 +205,6 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     }
 
     @Column(name = "flatorder")
-    @JsonView(Views.Normal.class)
     public Integer getOrder() {
         return order;
     }
@@ -227,7 +214,6 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     }
 
     @Column(name = "vocabularies_uri")
-    @JsonView(Views.Normal.class)
     public String getConceptUriInVocabularies() {
         return conceptUriInVocabularies;
     }
@@ -237,7 +223,6 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "code", cascade = CascadeType.ALL)
-    @JsonView(Views.ExtendedCode.class)
     public Set<Extension> getExtensions() {
         return extensions;
     }

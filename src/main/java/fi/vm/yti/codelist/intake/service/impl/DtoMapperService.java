@@ -4,7 +4,10 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javax.inject.Inject;
 import javax.transaction.Transactional;
+
+import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
@@ -25,11 +28,13 @@ import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 
-public abstract class BaseService {
+@Component
+public class DtoMapperService {
 
-    protected final ApiUtils apiUtils;
+    private final ApiUtils apiUtils;
 
-    public BaseService(final ApiUtils apiUtils) {
+    @Inject
+    public DtoMapperService(final ApiUtils apiUtils) {
         this.apiUtils = apiUtils;
     }
 
@@ -37,6 +42,12 @@ public abstract class BaseService {
     public CodeDTO mapDeepCodeDto(final Code code) {
         return mapCodeDto(code, true, true);
     }
+
+    @Transactional
+    public CodeDTO mapCodeDto(final Code code) {
+        return mapCodeDto(code, false, false);
+    }
+
 
     @Transactional
     public CodeDTO mapCodeDto(final Code code,
@@ -95,6 +106,11 @@ public abstract class BaseService {
     @Transactional
     public CodeSchemeDTO mapDeepCodeSchemeDto(final CodeScheme codeScheme) {
         return mapCodeSchemeDto(codeScheme, true);
+    }
+
+    @Transactional
+    public CodeSchemeDTO mapCodeSchemeDto(final CodeScheme codeScheme) {
+        return mapCodeSchemeDto(codeScheme, false);
     }
 
     @Transactional
@@ -241,6 +257,11 @@ public abstract class BaseService {
     }
 
     @Transactional
+    public ExternalReferenceDTO mapExternalReferenceDto(final ExternalReference externalReference) {
+        return mapExternalReferenceDto(externalReference, false);
+    }
+
+    @Transactional
     public ExternalReferenceDTO mapExternalReferenceDto(final ExternalReference externalReference,
                                                         final boolean deep) {
         final ExternalReferenceDTO externalReferenceDto = new ExternalReferenceDTO();
@@ -313,6 +334,11 @@ public abstract class BaseService {
     }
 
     @Transactional
+    public ExtensionDTO mapExtensionDto(final Extension extension) {
+        return mapExtensionDto(extension, false);
+    }
+
+    @Transactional
     public ExtensionDTO mapExtensionDto(final Extension extension,
                                         final boolean deep) {
         final ExtensionDTO extensionDto = new ExtensionDTO();
@@ -355,6 +381,11 @@ public abstract class BaseService {
     @Transactional
     public ExtensionSchemeDTO mapDeepExtensionSchemeDto(final ExtensionScheme extensionScheme) {
         return mapExtensionSchemeDto(extensionScheme, true);
+    }
+
+    @Transactional
+    public ExtensionSchemeDTO mapExtensionSchemeDto(final ExtensionScheme extensionScheme) {
+        return mapExtensionSchemeDto(extensionScheme, false);
     }
 
     @Transactional

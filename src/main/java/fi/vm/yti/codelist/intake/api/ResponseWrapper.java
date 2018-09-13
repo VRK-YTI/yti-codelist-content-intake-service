@@ -7,8 +7,8 @@ import javax.xml.bind.annotation.XmlType;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
+import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.common.dto.Views;
-import fi.vm.yti.codelist.intake.model.Meta;
 
 @XmlRootElement
 @XmlType(propOrder = {"meta", "results"})

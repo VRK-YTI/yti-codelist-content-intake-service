@@ -31,16 +31,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
+import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
-import fi.vm.yti.codelist.intake.dao.CodeDao;
-import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
-import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
+import fi.vm.yti.codelist.intake.dto.DataClassificationDTO;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.model.Code;
-import fi.vm.yti.codelist.intake.model.CodeRegistry;
-import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.Meta;
+import fi.vm.yti.codelist.intake.service.CodeSchemeService;
+import fi.vm.yti.codelist.intake.service.CodeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -57,19 +56,16 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_DATAC
 public class DataClassificationResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(DataClassificationResource.class);
-    private final CodeRegistryDao codeRegistryDao;
-    private final CodeSchemeDao codeSchemeDao;
-    private final CodeDao codeDao;
+    private final CodeSchemeService codeSchemeService;
+    private final CodeService codeService;
     private final DataSource dataSource;
 
     @Inject
-    public DataClassificationResource(final CodeRegistryDao codeRegistryDao,
-                                      final CodeSchemeDao codeSchemeDao,
-                                      final CodeDao codeDao,
+    public DataClassificationResource(final CodeSchemeService codeSchemeService,
+                                      final CodeService codeService,
                                       final DataSource dataSource) {
-        this.codeRegistryDao = codeRegistryDao;
-        this.codeSchemeDao = codeSchemeDao;
-        this.codeDao = codeDao;
+        this.codeSchemeService = codeSchemeService;
+        this.codeService = codeService;
         this.dataSource = dataSource;
     }
 
@@ -82,23 +78,22 @@ public class DataClassificationResource implements AbstractBaseResource {
                                            @ApiParam(value = "Language code for sorting results.") @QueryParam("language") final String language) {
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_DATACLASSIFICATION, expand)));
         final Meta meta = new Meta();
-        final ResponseWrapper<DataClassification> wrapper = new ResponseWrapper<>();
+        final ResponseWrapper<DataClassificationDTO> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);
         final ObjectMapper mapper = createObjectMapper();
-        final CodeRegistry ytiRegistry = codeRegistryDao.findByCodeValue(JUPO_REGISTRY);
-        final CodeScheme dataClassificationsScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(ytiRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
-        final Set<Code> codes = codeDao.findByCodeSchemeIdAndBroaderCodeIdIsNull(dataClassificationsScheme.getId());
-        final Set<DataClassification> dataClassifications = new LinkedHashSet<>();
+        final CodeSchemeDTO dataClassificationsScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(JUPO_REGISTRY, YTI_DATACLASSIFICATION_CODESCHEME);
+        final Set<CodeDTO> codes = codeService.findByCodeSchemeId(dataClassificationsScheme.getId());
+        final Set<DataClassificationDTO> dataClassifications = new LinkedHashSet<>();
         final Map<String, Integer> statistics = getClassificationCounts();
         codes.forEach(code -> {
             final Integer count = statistics.get(code.getId().toString());
-            final DataClassification dataClassification = new DataClassification(code, count != null ? count : 0);
+            final DataClassificationDTO dataClassification = new DataClassificationDTO(code, count != null ? count : 0);
             dataClassifications.add(dataClassification);
         });
         if (language != null && !language.isEmpty()) {
-            final List<DataClassification> sortedClassifications = new ArrayList<>(dataClassifications);
+            final List<DataClassificationDTO> sortedClassifications = new ArrayList<>(dataClassifications);
             sortedClassifications.sort(Comparator.comparing(dataClassification -> dataClassification.getPrefLabel(language)));
-            final Set<DataClassification> sortedSet = new LinkedHashSet<>(sortedClassifications);
+            final Set<DataClassificationDTO> sortedSet = new LinkedHashSet<>(sortedClassifications);
             wrapper.setResults(sortedSet);
         } else {
             wrapper.setResults(dataClassifications);

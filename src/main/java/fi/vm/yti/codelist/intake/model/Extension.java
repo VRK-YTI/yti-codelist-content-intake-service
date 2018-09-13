@@ -21,21 +21,17 @@ import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import fi.vm.yti.codelist.common.dto.Views;
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
-@JsonFilter("extension")
 @Table(name = "extension")
 @XmlRootElement
 @XmlType(propOrder = { "id", "code", "prefLabel", "startDate", "endDate", "extensionValue", "order", "extensionScheme", "extension" })
-@ApiModel(value = "Extension", description = "Extension model that represents data for one extension element.")
 public class Extension extends AbstractIdentifyableTimestampedCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -50,7 +46,6 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
     private Date endDate;
 
     @Column(name = "extensionvalue")
-    @JsonView(Views.Normal.class)
     public String getExtensionValue() {
         return extensionValue;
     }
@@ -82,7 +77,6 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "extensionscheme_id", updatable = false)
-    @JsonView(Views.ExtendedExtension.class)
     public ExtensionScheme getExtensionScheme() {
         return extensionScheme;
     }
@@ -93,7 +87,6 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "extension_id")
-    @JsonView(Views.ExtendedExtension.class)
     public Extension getExtension() {
         return extension;
     }
@@ -107,7 +100,6 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
-    @JsonView(Views.Normal.class)
     public Map<String, String> getPrefLabel() {
         if (prefLabel == null) {
             prefLabel = new HashMap<>();
@@ -127,7 +119,8 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
         return prefLabelValue;
     }
 
-    public void setPrefLabel(final String language, final String value) {
+    public void setPrefLabel(final String language,
+                             final String value) {
         if (prefLabel == null) {
             prefLabel = new HashMap<>();
         }
@@ -143,7 +136,6 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Temporal(TemporalType.DATE)
     @Column(name = "startdate")
-    @JsonView(Views.Normal.class)
     public Date getStartDate() {
         if (startDate != null) {
             return new Date(startDate.getTime());
@@ -163,7 +155,6 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Temporal(TemporalType.DATE)
     @Column(name = "enddate")
-    @JsonView(Views.Normal.class)
     public Date getEndDate() {
         if (endDate != null) {
             return new Date(endDate.getTime());

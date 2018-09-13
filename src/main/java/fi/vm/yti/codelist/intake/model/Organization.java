@@ -16,22 +16,15 @@ import javax.persistence.ManyToMany;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonView;
-
-import fi.vm.yti.codelist.common.dto.Views;
-import io.swagger.annotations.ApiModel;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
-@JsonFilter("organization")
 @Table(name = "organization")
-@XmlType(propOrder = {"id", "url", "prefLabel", "description", "codeRegistries", "removed"})
-@ApiModel(value = "Organization", description = "Organization model that represents data for one single organization.")
-@JsonIgnoreProperties({"codeSchemes"})
+@XmlRootElement
+@XmlType(propOrder = { "id", "url", "prefLabel", "description", "codeRegistries", "removed" })
 public class Organization extends AbstractIdentifyableCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -44,7 +37,6 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     private Set<CodeScheme> codeSchemes;
 
     @Column(name = "url")
-    @JsonView(Views.Normal.class)
     public String getUrl() {
         return url;
     }
@@ -54,7 +46,6 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     }
 
     @Column(name = "removed")
-    @JsonView(Views.Normal.class)
     public Boolean getRemoved() {
         return removed;
     }
@@ -68,7 +59,6 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
-    @JsonView(Views.Normal.class)
     public Map<String, String> getPrefLabel() {
         return prefLabel;
     }
@@ -85,7 +75,8 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
         return prefLabelValue;
     }
 
-    public void setPrefLabel(final String language, final String value) {
+    public void setPrefLabel(final String language,
+                             final String value) {
         if (this.prefLabel == null) {
             this.prefLabel = new HashMap<>();
         }
@@ -102,7 +93,6 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     @MapKeyColumn(name = "language")
     @Column(name = "description")
     @OrderColumn
-    @JsonView(Views.Normal.class)
     public Map<String, String> getDescription() {
         if (description == null) {
             description = new HashMap<>();
@@ -122,7 +112,8 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
         return descriptionValue;
     }
 
-    public void setDescription(final String language, final String value) {
+    public void setDescription(final String language,
+                               final String value) {
         if (this.description == null) {
             this.description = new HashMap<>();
         }
@@ -137,10 +128,9 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "coderegistry_organization",
         joinColumns = {
-            @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false)},
+            @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false) },
         inverseJoinColumns = {
-            @JoinColumn(name = "coderegistry_id", referencedColumnName = "id", nullable = false, updatable = false)})
-    @JsonView(Views.ExtendedOrganization.class)
+            @JoinColumn(name = "coderegistry_id", referencedColumnName = "id", nullable = false, updatable = false) })
     public Set<CodeRegistry> getCodeRegistries() {
         return codeRegistries;
     }
@@ -151,11 +141,10 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "codescheme_organization",
-            joinColumns = {
-                    @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false) },
-            inverseJoinColumns = {
-                    @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) })
-    @JsonView(Views.ExtendedOrganization.class)
+        joinColumns = {
+            @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false) },
+        inverseJoinColumns = {
+            @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) })
     public Set<CodeScheme> getCodeSchemes() {
         return codeSchemes;
     }

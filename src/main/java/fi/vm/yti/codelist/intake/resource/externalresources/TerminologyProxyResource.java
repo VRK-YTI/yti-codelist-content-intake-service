@@ -28,7 +28,7 @@ import fi.vm.yti.codelist.intake.configuration.TerminologyProperties;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.UnreachableTerminologyApiException;
-import fi.vm.yti.codelist.intake.model.Meta;
+import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.resource.AbstractBaseResource;
 import fi.vm.yti.codelist.intake.terminology.Concept;
 import fi.vm.yti.codelist.intake.terminology.Vocabulary;

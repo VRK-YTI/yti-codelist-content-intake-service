@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
@@ -31,13 +30,14 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Singleton
 @Service
-public class ExtensionServiceImpl extends BaseService implements ExtensionService {
+public class ExtensionServiceImpl implements ExtensionService {
 
     private final AuthorizationManager authorizationManager;
     private final ExtensionDao extensionDao;
     private final ExtensionParser extensionParser;
     private final ExtensionSchemeDao extensionSchemeDao;
     private final CodeSchemeDao codeSchemeDao;
+    private final DtoMapperService dtoMapperService;
 
     @Inject
     public ExtensionServiceImpl(final AuthorizationManager authorizationManager,
@@ -45,13 +45,13 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
                                 final ExtensionParser extensionParser,
                                 final ExtensionSchemeDao extensionSchemeDao,
                                 final CodeSchemeDao codeSchemeDao,
-                                final ApiUtils apiUtils) {
-        super(apiUtils);
+                                final DtoMapperService dtoMapperService) {
         this.authorizationManager = authorizationManager;
         this.extensionDao = extensionDao;
         this.extensionParser = extensionParser;
         this.extensionSchemeDao = extensionSchemeDao;
         this.codeSchemeDao = codeSchemeDao;
+        this.dtoMapperService = dtoMapperService;
     }
 
     @Transactional
@@ -68,24 +68,24 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
                 extensionDao.save(extension);
             }
         });
-        final ExtensionDTO extensionDto = mapExtensionDto(extension, false);
+        final ExtensionDTO extensionDto = dtoMapperService.mapExtensionDto(extension, false);
         extensionDao.delete(extension);
         return extensionDto;
     }
 
     @Transactional
     public Set<ExtensionDTO> findAll() {
-        return mapDeepExtensionDtos(extensionDao.findAll());
+        return dtoMapperService.mapDeepExtensionDtos(extensionDao.findAll());
     }
 
     @Transactional
     public ExtensionDTO findById(final UUID id) {
-        return mapDeepExtensionDto(extensionDao.findById(id));
+        return dtoMapperService.mapDeepExtensionDto(extensionDao.findById(id));
     }
 
     @Transactional
     public Set<ExtensionDTO> findByExtensionSchemeId(final UUID id) {
-        return mapDeepExtensionDtos(extensionDao.findByExtensionSchemeId(id));
+        return dtoMapperService.mapDeepExtensionDtos(extensionDao.findByExtensionSchemeId(id));
     }
 
     @Transactional
@@ -108,7 +108,7 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
         if (extensions == null) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return mapDeepExtensionDtos(extensions);
+        return dtoMapperService.mapDeepExtensionDtos(extensions);
     }
 
     @Transactional
@@ -144,7 +144,7 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
                     default:
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
                 }
-                return mapDeepExtensionDtos(extensions);
+                return dtoMapperService.mapDeepExtensionDtos(extensions);
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
             }
@@ -162,6 +162,6 @@ public class ExtensionServiceImpl extends BaseService implements ExtensionServic
         Set<Extension> extensions;
         final Set<ExtensionDTO> extensionDtos = extensionParser.parseExtensionsFromExcelWorkbook(extensionScheme, workbook, sheetName);
         extensions = extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionDtos);
-        return mapDeepExtensionDtos(extensions);
+        return dtoMapperService.mapDeepExtensionDtos(extensions);
     }
 }

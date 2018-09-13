@@ -8,9 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
+import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
-import fi.vm.yti.codelist.intake.model.Meta;
 
 @Provider
 public class UncaughtExceptionMapper implements ExceptionMapper<Exception> {
