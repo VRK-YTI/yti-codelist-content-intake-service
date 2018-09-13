@@ -261,8 +261,19 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
                                           final Set<CodeSchemeDTO> codeSchemeDTOsToIndex) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (authorizationManager.canCodeSchemeBeDeleted(codeScheme)) {
+            if (isServiceClassificationCodeScheme(codeScheme) || isLanguageCodeCodeScheme(codeScheme)) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_CANNOT_BE_DELETED));
+            }
             if (codeScheme.getRelatedExtensionSchemes() != null && !codeScheme.getRelatedExtensionSchemes().isEmpty()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE));
+            }
+            if (codeScheme.getCodes() != null && !codeScheme.getCodes().isEmpty()) {
+                final Set<Code> codes = codeScheme.getCodes();
+                codes.forEach(code -> {
+                    if (code.getExtensions() != null && !code.getExtensions().isEmpty()) {
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE));
+                    }
+                });
             }
             final CodeSchemeDTO codeSchemeDto = mapCodeSchemeDto(codeScheme, false);
             dealWithPossibleVersionHierarchyBeforeDeleting(codeSchemeDto, codeSchemeDTOsToIndex);
@@ -437,5 +448,19 @@ public class CodeSchemeServiceImpl extends BaseService implements CodeSchemeServ
         next = this.updateCodeSchemeFromDto(next.getCodeRegistry().getCodeValue(), next);
         this.populateAllVersionsToCodeSchemeDTO(next);
         codeSchemeDTOsToIndex.add(next);
+    }
+
+    private boolean isServiceClassificationCodeScheme(final CodeScheme codeScheme) {
+        return isCodeSchemeWithRegistryAndCodeValue(codeScheme, "jupo", "serviceclassification");
+    }
+
+    private boolean isLanguageCodeCodeScheme(final CodeScheme codeScheme) {
+        return isCodeSchemeWithRegistryAndCodeValue(codeScheme, "interoperabilityplatform", "languagecodes");
+    }
+
+    private boolean isCodeSchemeWithRegistryAndCodeValue(final CodeScheme codeScheme,
+                                                         final String codeRegistryCodeValue,
+                                                         final String codeValue) {
+        return codeScheme.getCodeRegistry().getCodeValue().equalsIgnoreCase(codeRegistryCodeValue) && codeScheme.getCodeValue().equalsIgnoreCase(codeValue);
     }
 }
