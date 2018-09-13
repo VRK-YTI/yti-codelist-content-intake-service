@@ -103,6 +103,9 @@ public class IndexingToolsImpl implements IndexingTools {
         "  \"dataClassifications\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  },\n" +
+        "  \"organizations\": {\n" +
+        "    \"type\": \"nested\"\n" +
+        "  },\n" +
         "  \"codeRegistry\": {\n" +
         "    \"properties\": {\n" +
         "      \"codeValue\": {\n" +
