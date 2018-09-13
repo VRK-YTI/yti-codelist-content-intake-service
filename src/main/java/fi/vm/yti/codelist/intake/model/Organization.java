@@ -19,6 +19,7 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import fi.vm.yti.codelist.common.dto.Views;
@@ -30,6 +31,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @Table(name = "organization")
 @XmlType(propOrder = {"id", "url", "prefLabel", "description", "codeRegistries", "removed"})
 @ApiModel(value = "Organization", description = "Organization model that represents data for one single organization.")
+@JsonIgnoreProperties({"codeSchemes"})
 public class Organization extends AbstractIdentifyableCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
