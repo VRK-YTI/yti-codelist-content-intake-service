@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.persistence.Id;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -14,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.Views;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @JsonFilter("dataClassification")
 @XmlRootElement
@@ -41,8 +41,6 @@ public class DataClassificationDTO implements Serializable {
         setCount(count);
     }
 
-
-    @Id
     @JsonView(Views.Normal.class)
     public UUID getId() {
         return id;
@@ -79,7 +77,15 @@ public class DataClassificationDTO implements Serializable {
         this.prefLabel = prefLabel;
     }
 
+    public String getPrefLabel(final String language) {
+        String prefLabelValue = this.prefLabel.get(language);
+        if (prefLabelValue == null) {
+            prefLabelValue = this.prefLabel.get(LANGUAGE_CODE_EN);
+        }
+        return prefLabelValue;
+    }
 
+    @JsonView(Views.Normal.class)
     public Integer getCount() {
         return count;
     }
