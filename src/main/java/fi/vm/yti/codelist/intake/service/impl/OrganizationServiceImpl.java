@@ -46,8 +46,14 @@ public class OrganizationServiceImpl extends BaseService implements Organization
     }
 
     @Transactional
-    public Set<OrganizationDTO> findByRemovedIsFalse() {
-        return mapOrganizationDtos(organizationRepository.findByRemovedIsFalse(), true);
+    public Set<OrganizationDTO> findByRemovedIsFalse(boolean onlyOrganizationsWithCodeSchemes) {
+        Set<Organization> organizations = null;
+        if (onlyOrganizationsWithCodeSchemes) {
+            organizations =organizationRepository.findByRemovedIsFalseAndCodeSchemesIsNotNull();
+        } else {
+            organizations = organizationRepository.findByRemovedIsFalse();
+        }
+        return mapOrganizationDtos(organizations, true);
     }
 
     @Transactional

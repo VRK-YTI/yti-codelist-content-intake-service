@@ -39,6 +39,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     private Map<String, String> prefLabel;
     private Map<String, String> description;
     private Set<CodeRegistry> codeRegistries;
+    private Set<CodeScheme> codeSchemes;
 
     @Column(name = "url")
     @JsonView(Views.Normal.class)
@@ -144,5 +145,20 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
 
     public void setCodeRegistries(final Set<CodeRegistry> codeRegistries) {
         this.codeRegistries = codeRegistries;
+    }
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "codescheme_organization",
+            joinColumns = {
+                    @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false) },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) })
+    @JsonView(Views.ExtendedOrganization.class)
+    public Set<CodeScheme> getCodeSchemes() {
+        return codeSchemes;
+    }
+
+    public void setCodeSchemes(final Set<CodeScheme> codeSchemes) {
+        this.codeSchemes = codeSchemes;
     }
 }

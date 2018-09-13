@@ -9,7 +9,7 @@ public interface OrganizationService {
 
     Set<OrganizationDTO> findAll();
 
-    Set<OrganizationDTO> findByRemovedIsFalse();
+    Set<OrganizationDTO> findByRemovedIsFalse(boolean onlyOrganizationsWithCodeSchemes);
 
     OrganizationDTO findById(final UUID organizationId);
 

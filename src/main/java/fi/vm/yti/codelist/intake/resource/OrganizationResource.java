@@ -11,6 +11,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,13 +46,14 @@ public class OrganizationResource implements AbstractBaseResource {
     @ApiOperation(value = "Organizations API.")
     @ApiResponse(code = 200, message = "Returns organizations.")
     @Transactional
-    public Response getOrganizations(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand) {
+    public Response getOrganizations(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand,
+                                     @ApiParam(value = "A boolean value for only returning organizations with code lists.") @QueryParam("onlyOrganizationsWithCodeSchemes") final boolean onlyOrganizationsWithCodeSchemes) {
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_ORGANIZATION, expand)));
         final Meta meta = new Meta();
         final ResponseWrapper<OrganizationDTO> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);
         final ObjectMapper mapper = createObjectMapper();
-        final Set<OrganizationDTO> organizations = organizationService.findByRemovedIsFalse();
+        final Set<OrganizationDTO> organizations = organizationService.findByRemovedIsFalse(onlyOrganizationsWithCodeSchemes);
         meta.setCode(200);
         meta.setResultCount(organizations.size());
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
