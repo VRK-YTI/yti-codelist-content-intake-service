@@ -104,11 +104,11 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
                 codeRegistry.setPrefLabel(language, value);
             }
         }
-        for (final Map.Entry<String, String> entry : fromCodeRegistry.getDefinition().entrySet()) {
+        for (final Map.Entry<String, String> entry : fromCodeRegistry.getDescription().entrySet()) {
             final String language = entry.getKey();
             final String value = entry.getValue();
-            if (!Objects.equals(codeRegistry.getDefinition(language), value)) {
-                codeRegistry.setDefinition(language, value);
+            if (!Objects.equals(codeRegistry.getDescription(language), value)) {
+                codeRegistry.setDescription(language, value);
             }
         }
         codeRegistry.setModified(new Date(System.currentTimeMillis()));
@@ -125,8 +125,8 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         for (Map.Entry<String, String> entry : fromCodeRegistry.getPrefLabel().entrySet()) {
             codeRegistry.setPrefLabel(entry.getKey(), entry.getValue());
         }
-        for (final Map.Entry<String, String> entry : fromCodeRegistry.getDefinition().entrySet()) {
-            codeRegistry.setDefinition(entry.getKey(), entry.getValue());
+        for (final Map.Entry<String, String> entry : fromCodeRegistry.getDescription().entrySet()) {
+            codeRegistry.setDescription(entry.getKey(), entry.getValue());
         }
         codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
         final Date timeStamp = new Date(System.currentTimeMillis());

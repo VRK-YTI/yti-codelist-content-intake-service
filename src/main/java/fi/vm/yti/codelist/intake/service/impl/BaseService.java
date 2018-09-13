@@ -218,7 +218,7 @@ public abstract class BaseService {
         codeRegistryDto.setCodeValue(codeRegistry.getCodeValue());
         codeRegistryDto.setUri(codeRegistry.getUri());
         codeRegistryDto.setPrefLabel(codeRegistry.getPrefLabel());
-        codeRegistryDto.setDefinition(codeRegistry.getDefinition());
+        codeRegistryDto.setDescription(codeRegistry.getDescription());
         codeRegistryDto.setUrl(apiUtils.createCodeRegistryUrl(codeRegistryDto));
         codeRegistryDto.setOrganizations(mapOrganizationDtos(codeRegistry.getOrganizations(), false));
         codeRegistryDto.setCreated(codeRegistry.getCreated());

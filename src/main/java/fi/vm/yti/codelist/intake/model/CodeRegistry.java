@@ -32,14 +32,14 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 @JsonFilter("codeRegistry")
 @Table(name = "coderegistry")
 @XmlRootElement
-@XmlType(propOrder = {"id", "codeValue", "uri", "prefLabel", "definition", "codeSchemes", "organizations"})
+@XmlType(propOrder = { "id", "codeValue", "uri", "prefLabel", "description", "codeSchemes", "organizations" })
 @ApiModel(value = "CodeRegistry", description = "CodeRegistry model that represents data for one single registry.")
 public class CodeRegistry extends AbstractCommonCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private Map<String, String> prefLabel;
-    private Map<String, String> definition;
+    private Map<String, String> description;
     private Set<CodeScheme> codeSchemes;
     private Set<Organization> organizations;
 
@@ -68,7 +68,8 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
         return prefLabelValue;
     }
 
-    public void setPrefLabel(final String language, final String value) {
+    public void setPrefLabel(final String language,
+                             final String value) {
         if (prefLabel == null) {
             prefLabel = new HashMap<>();
         }
@@ -81,48 +82,49 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
     }
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
-    @CollectionTable(name = "coderegistry_definition", joinColumns = @JoinColumn(name = "coderegistry_id", referencedColumnName = "id"))
+    @CollectionTable(name = "coderegistry_description", joinColumns = @JoinColumn(name = "coderegistry_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
-    @Column(name = "definition")
+    @Column(name = "description")
     @OrderColumn
     @JsonView(Views.Normal.class)
-    public Map<String, String> getDefinition() {
-        if (definition == null) {
-            definition = new HashMap<>();
+    public Map<String, String> getDescription() {
+        if (description == null) {
+            description = new HashMap<>();
         }
-        return definition;
+        return description;
     }
 
-    public void setDefinition(final Map<String, String> definition) {
-        this.definition = definition;
+    public void setDescription(final Map<String, String> description) {
+        this.description = description;
     }
 
-    public String getDefinition(final String language) {
-        String definitionValue = this.definition.get(language);
-        if (definitionValue == null) {
-            definitionValue = this.definition.get(LANGUAGE_CODE_EN);
+    public String getDescription(final String language) {
+        String descriptionValue = this.description.get(language);
+        if (descriptionValue == null) {
+            descriptionValue = this.description.get(LANGUAGE_CODE_EN);
         }
-        return definitionValue;
+        return descriptionValue;
     }
 
-    public void setDefinition(final String language, final String value) {
-        if (definition == null) {
-            definition = new HashMap<>();
+    public void setDescription(final String language,
+                               final String value) {
+        if (description == null) {
+            description = new HashMap<>();
         }
         if (language != null && value != null && !value.isEmpty()) {
-            definition.put(language, value);
+            description.put(language, value);
         } else if (language != null) {
-            definition.remove(language);
+            description.remove(language);
         }
-        setDefinition(definition);
+        setDescription(description);
     }
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "coderegistry_organization",
         joinColumns = {
-            @JoinColumn(name = "coderegistry_id", referencedColumnName = "id", nullable = false, updatable = false)},
+            @JoinColumn(name = "coderegistry_id", referencedColumnName = "id", nullable = false, updatable = false) },
         inverseJoinColumns = {
-            @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false)})
+            @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false, updatable = false) })
     @JsonView(Views.Normal.class)
     public Set<Organization> getOrganizations() {
         return organizations;
