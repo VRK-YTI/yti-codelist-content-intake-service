@@ -16,15 +16,11 @@ import javax.persistence.ManyToMany;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
 @Table(name = "organization")
-@XmlRootElement
-@XmlType(propOrder = { "id", "url", "prefLabel", "description", "codeRegistries", "removed" })
 public class Organization extends AbstractIdentifyableCode implements Serializable {
 
     private static final long serialVersionUID = 1L;

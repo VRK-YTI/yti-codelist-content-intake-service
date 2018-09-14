@@ -18,8 +18,6 @@ import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -30,8 +28,6 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
 @Table(name = "extension")
-@XmlRootElement
-@XmlType(propOrder = { "id", "code", "prefLabel", "startDate", "endDate", "extensionValue", "order", "extensionScheme", "extension" })
 public class Extension extends AbstractIdentifyableTimestampedCode implements Serializable {
 
     private static final long serialVersionUID = 1L;

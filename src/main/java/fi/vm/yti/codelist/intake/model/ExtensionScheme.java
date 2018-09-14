@@ -19,15 +19,11 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
 @Table(name = "extensionscheme")
-@XmlRootElement
-@XmlType(propOrder = { "id", "codeValue", "status", "startDate", "endDate", "prefLabel", "propertyType", "parentCodeScheme", "codeSchemes", "extensions" })
 public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatus implements Serializable {
 
     private static final long serialVersionUID = 1L;
