@@ -331,7 +331,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                     motherCodeScheme.getUri(), motherCodeScheme.getStartDate(),
                     motherCodeScheme.getEndDate(), motherCodeScheme.getStatus()));
         }
-        codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, variantCodeScheme);
+        codeSchemeService.updateCodeSchemeFromDto(variantCodeScheme.getCodeRegistry().getCodeValue(), variantCodeScheme);
 
         return indexCodeschemesAfterVariantAttachmentOrDetachment(motherCodeScheme, variantCodeScheme);
     }
@@ -352,7 +352,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
         variantCodeScheme.getVariantMothersOfThisCodeScheme().removeIf(item -> item.getId().compareTo(motherCodeScheme.getId()) == 0);
 
-        codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, variantCodeScheme);
+        codeSchemeService.updateCodeSchemeFromDto(variantCodeScheme.getCodeRegistry().getCodeValue(), variantCodeScheme);
 
         return indexCodeschemesAfterVariantAttachmentOrDetachment(motherCodeScheme, variantCodeScheme);
     }
