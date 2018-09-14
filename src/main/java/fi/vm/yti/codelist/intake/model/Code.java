@@ -20,15 +20,11 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
 @Table(name = "code")
-@XmlRootElement
-@XmlType(propOrder = { "id", "codeValue", "uri", "status", "hierarchyLevel", "startDate", "endDate", "prefLabel", "description", "definition", "codeScheme", "shortName", "externalReferences", "broaderCodeId", "order", "extensions", "conceptUriInVocabularies" })
 public class Code extends AbstractHistoricalCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
