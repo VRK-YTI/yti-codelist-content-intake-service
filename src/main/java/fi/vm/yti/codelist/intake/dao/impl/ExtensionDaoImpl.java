@@ -338,6 +338,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, extensionScheme, fromExtension);
             extension.setCode(code);
         }
+        setRelatedExtension(fromExtension, extension);
         extension.setStartDate(fromExtension.getStartDate());
         extension.setEndDate(fromExtension.getEndDate());
         setRelatedExtension(fromExtension, extension);
