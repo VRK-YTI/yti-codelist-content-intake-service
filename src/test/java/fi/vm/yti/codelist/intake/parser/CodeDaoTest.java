@@ -33,21 +33,21 @@ public class CodeDaoTest {
         for (final Code code : codes) {
             assertEquals(++i, code.getHierarchyLevel());
         }
-        assertEquals(10, codes.size());
+        assertEquals(8, codes.size());
     }
 
     private Set<Code> createCodes() {
         final Set<Code> codes = new LinkedHashSet<>();
-        UUID earlierCodeId = null;
-        for (int i = 0; i < 10; i++) {
+        Code earlierCode = null;
+        for (int i = 0; i < 8; i++) {
             final Code code = new Code();
             code.setId(UUID.randomUUID());
             code.setCodeValue("codevalue" + i);
             codes.add(code);
-            if (earlierCodeId != null) {
-                code.setBroaderCode(codeDao.findById(earlierCodeId));
+            if (earlierCode != null) {
+                code.setBroaderCode(earlierCode);
             }
-            earlierCodeId = code.getId();
+            earlierCode = code;
         }
         return codes;
     }
