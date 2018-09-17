@@ -161,11 +161,11 @@ public class CodeServiceImpl implements CodeService {
     }
 
     @Transactional
-    public Set<CodeDTO> parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
-                                                    final String codeSchemeCodeValue,
-                                                    final String codeCodeValue,
-                                                    final String jsonPayload) {
-        final Set<Code> codes;
+    public CodeDTO parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
+                                               final String codeSchemeCodeValue,
+                                               final String codeCodeValue,
+                                               final String jsonPayload) {
+        final Code code;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
@@ -179,7 +179,7 @@ public class CodeServiceImpl implements CodeService {
                         if (!codeDto.getCodeValue().equalsIgnoreCase(codeCodeValue)) {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
                         }
-                        codes = codeDao.updateCodeFromDto(codeScheme, codeDto);
+                        code = codeDao.updateCodeFromDto(codeScheme, codeDto);
                     } else {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
                     }
@@ -195,15 +195,15 @@ public class CodeServiceImpl implements CodeService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return dtoMapperService.mapDeepCodeDtos(codes);
+        return dtoMapperService.mapDeepCodeDto(code);
     }
 
     private Set<CodeDTO> decreaseChildHierarchyLevel(final UUID broaderCodeId) {
         final Set<Code> childCodes = codeDao.findByBroaderCodeId(broaderCodeId);
         childCodes.forEach(code -> {
             code.setHierarchyLevel(code.getHierarchyLevel() - 1);
-            if (code.getBroaderCodeId() != null) {
-                decreaseChildHierarchyLevel(code.getBroaderCodeId());
+            if (code.getBroaderCode() != null) {
+                decreaseChildHierarchyLevel(code.getBroaderCode().getId());
             }
         });
         codeDao.save(childCodes);
@@ -216,7 +216,7 @@ public class CodeServiceImpl implements CodeService {
         final Set<Code> childCodes = codeDao.findByBroaderCodeId(broaderCodeId);
         if (childCodes != null && !childCodes.isEmpty()) {
             childCodes.forEach(code -> {
-                code.setBroaderCodeId(null);
+                code.setBroaderCode(null);
                 code.setHierarchyLevel(1);
                 updateCodes.addAll(decreaseChildHierarchyLevel(code.getId()));
             });
@@ -242,7 +242,7 @@ public class CodeServiceImpl implements CodeService {
                         codeScheme.setDefaultCode(null);
                         codeSchemeDao.save(codeScheme);
                     }
-                    final CodeDTO codeDto = dtoMapperService.mapCodeDto(code, true, true);
+                    final CodeDTO codeDto = dtoMapperService.mapCodeDto(code, true, true, true);
                     codeDao.delete(code);
                     return codeDto;
                 } else {

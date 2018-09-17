@@ -37,6 +37,8 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateC
 @Component
 public class CodeDaoImpl implements CodeDao {
 
+    private static final int MAX_LEVEL = 10;
+
     private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
     private final AuthorizationManager authorizationManager;
@@ -140,15 +142,14 @@ public class CodeDaoImpl implements CodeDao {
     }
 
     @Transactional
-    public Set<Code> updateCodeFromDto(final CodeScheme codeScheme,
-                                       final CodeDTO codeDto) {
-        final Set<Code> codes = new HashSet<>();
-        final Code code = createOrUpdateCode(codeScheme, codeDto, null, codes, null);
-        codes.add(code);
+    public Code updateCodeFromDto(final CodeScheme codeScheme,
+                                  final CodeDTO codeDto) {
+        final Code code = createOrUpdateCode(codeScheme, codeDto, null, null, null);
         updateExternalReferences(codeScheme, code, codeDto);
+        checkCodeHierarchyLevels(code);
         save(code);
         codeSchemeRepository.save(codeScheme);
-        return codes;
+        return code;
     }
 
     @Transactional
@@ -170,8 +171,9 @@ public class CodeDaoImpl implements CodeDao {
                 save(code, false);
             }
         }
-        setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes);
+        setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes, codeScheme);
         if (!codes.isEmpty()) {
+            codes.forEach(this::checkCodeHierarchyLevels);
             save(codes);
             codeSchemeRepository.save(codeScheme);
         }
@@ -281,9 +283,7 @@ public class CodeDaoImpl implements CodeDao {
                 nextOrder.setValue(nextOrder.getValue() + 1);
             }
         }
-        if (!Objects.equals(existingCode.getBroaderCodeId(), fromCode.getBroaderCodeId())) {
-            existingCode.setBroaderCodeId(fromCode.getBroaderCodeId());
-        }
+        existingCode.setBroaderCode(resolveBroaderCode(fromCode, codeScheme));
         for (final Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
             languageService.validateInputLanguage(codeScheme, language);
@@ -339,7 +339,7 @@ public class CodeDaoImpl implements CodeDao {
         code.setCodeValue(codeValue);
         code.setShortName(fromCode.getShortName());
         code.setHierarchyLevel(fromCode.getHierarchyLevel());
-        code.setBroaderCodeId(fromCode.getBroaderCodeId());
+        code.setBroaderCode(resolveBroaderCode(fromCode, codeScheme));
         if (fromCode.getOrder() != null) {
             checkOrderAndShiftExistingCodeOrderIfInUse(codeScheme, fromCode, codes);
             code.setOrder(fromCode.getOrder());
@@ -378,6 +378,18 @@ public class CodeDaoImpl implements CodeDao {
         return code;
     }
 
+    private Code resolveBroaderCode(final CodeDTO fromCode,
+                                    final CodeScheme codeScheme) {
+        if (fromCode != null && fromCode.getBroaderCode() != null) {
+            final Code broaderCode = findById(fromCode.getBroaderCode().getId());
+            if (broaderCode != null && broaderCode.getCodeScheme() != codeScheme) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_EXISTING_CODE_MISMATCH));
+            }
+            return broaderCode;
+        }
+        return null;
+    }
+
     private void validateCodeForCodeScheme(final CodeDTO code) {
         if (code.getId() != null) {
             final Code existingCode = codeRepository.findById(code.getId());
@@ -406,11 +418,12 @@ public class CodeDaoImpl implements CodeDao {
     }
 
     private void setBroaderCodesAndEvaluateHierarchyLevels(final Map<String, String> broaderCodeMapping,
-                                                           final Set<Code> codes) {
+                                                           final Set<Code> codes,
+                                                           final CodeScheme codeScheme) {
         final Map<String, Code> codeMap = new HashMap<>();
         codes.forEach(code -> codeMap.put(code.getCodeValue().toLowerCase(), code));
         setBroaderCodes(broaderCodeMapping, codeMap);
-        evaluateAndSetHierarchyLevels(codes);
+        evaluateAndSetHierarchyLevels(codeScheme.getCodes());
     }
 
     private void setBroaderCodes(final Map<String, String> broaderCodeMapping,
@@ -425,7 +438,7 @@ public class CodeDaoImpl implements CodeDao {
             } else if (code == null) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
             } else {
-                code.setBroaderCodeId(broaderCode != null ? broaderCode.getId() : null);
+                code.setBroaderCode(broaderCode);
             }
         });
     }
@@ -445,13 +458,42 @@ public class CodeDaoImpl implements CodeDao {
                                                   final Integer hierarchyLevel) {
         final Set<Code> toRemove = new HashSet<>();
         codesToEvaluate.forEach(code -> {
-            if (hierarchyLevel == 1 && code.getBroaderCodeId() == null || hierarchyLevel > 1 && code.getBroaderCodeId() != null && hierarchyMapping.get(hierarchyLevel - 1).contains(code.getBroaderCodeId())) {
+            if ((hierarchyLevel == 1 && code.getBroaderCode() == null) ||
+                (hierarchyLevel > 1 && code.getBroaderCode() != null && code.getBroaderCode().getId() != null && hierarchyMapping.get(hierarchyLevel - 1) != null && hierarchyMapping.get(hierarchyLevel - 1).contains(code.getBroaderCode().getId()))) {
                 code.setHierarchyLevel(hierarchyLevel);
-                final Set<UUID> uuids = hierarchyMapping.computeIfAbsent(hierarchyLevel, k -> new HashSet<>());
-                uuids.add(code.getId());
+                if (hierarchyMapping.get(hierarchyLevel) != null) {
+                    hierarchyMapping.get(hierarchyLevel).add(code.getId());
+                } else {
+                    final Set<UUID> uuids = new HashSet<>();
+                    uuids.add(code.getId());
+                    hierarchyMapping.put(hierarchyLevel, uuids);
+                }
                 toRemove.add(code);
             }
         });
         codesToEvaluate.removeAll(toRemove);
     }
+
+    private void checkCodeHierarchyLevels(final Code code) {
+        final Set<Code> chainedCodes = new HashSet<>();
+        chainedCodes.add(code);
+        checkCodeHierarchyLevels(chainedCodes, code, 1);
+    }
+
+    private void checkCodeHierarchyLevels(final Set<Code> chainedCodes,
+                                          final Code code,
+                                          final int level) {
+        if (level > MAX_LEVEL) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_HIERARCHY_MAXLEVEL_REACHED));
+        }
+        final Code broaderCode = code.getBroaderCode();
+        if (broaderCode != null) {
+            if (chainedCodes.contains(broaderCode)) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_CYCLIC_DEPENDENCY_ISSUE));
+            }
+            chainedCodes.add(broaderCode);
+            checkCodeHierarchyLevels(chainedCodes, broaderCode, level + 1);
+        }
+    }
+
 }

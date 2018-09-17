@@ -45,8 +45,8 @@ public interface CodeDao {
 
     Set<Code> findAll(final PageRequest pageRequest);
 
-    Set<Code> updateCodeFromDto(final CodeScheme codeScheme,
-                                final CodeDTO codeDto);
+    Code updateCodeFromDto(final CodeScheme codeScheme,
+                           final CodeDTO codeDto);
 
     Set<Code> updateCodesFromDtos(final CodeScheme codeScheme,
                                   final Set<CodeDTO> codes,

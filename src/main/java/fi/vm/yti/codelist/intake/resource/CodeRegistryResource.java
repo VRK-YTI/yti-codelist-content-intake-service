@@ -619,9 +619,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue,
                                @ApiParam(value = "JSON playload for Code data.") final String jsonPayload) {
 
-        final Set<CodeDTO> codes = codeService.parseAndPersistCodeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue, jsonPayload);
-        indexing.updateCodes(codes);
-        codes.forEach(code -> indexing.updateExternalReferences(code.getExternalReferences()));
+        final CodeDTO code = codeService.parseAndPersistCodeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue, jsonPayload);
+        indexing.updateCode(code);
+        indexing.updateExternalReferences(code.getExternalReferences());
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();

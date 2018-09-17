@@ -40,24 +40,27 @@ public class DtoMapperService {
 
     @Transactional
     public CodeDTO mapDeepCodeDto(final Code code) {
-        return mapCodeDto(code, true, true);
+        return mapCodeDto(code, true, true, true);
     }
 
     @Transactional
     public CodeDTO mapCodeDto(final Code code) {
-        return mapCodeDto(code, false, false);
+        return mapCodeDto(code, false, false, true);
     }
 
 
     @Transactional
     public CodeDTO mapCodeDto(final Code code,
                               final boolean deep,
-                              final boolean includeCodeScheme) {
+                              final boolean includeCodeScheme,
+                              final boolean includeBroaderCode) {
         final CodeDTO codeDto = new CodeDTO();
         codeDto.setId(code.getId());
         codeDto.setCodeValue(code.getCodeValue());
         codeDto.setUri(code.getUri());
-        codeDto.setBroaderCodeId(code.getBroaderCodeId());
+        if (includeBroaderCode && code.getBroaderCode() != null) {
+            codeDto.setBroaderCode(mapCodeDto(code.getBroaderCode(), false, false, false));
+        }
         codeDto.setStartDate(code.getStartDate());
         codeDto.setEndDate(code.getEndDate());
         codeDto.setStatus(code.getStatus());
@@ -98,7 +101,7 @@ public class DtoMapperService {
                                     final boolean includeCodeScheme) {
         final Set<CodeDTO> codeDtos = new HashSet<>();
         if (codes != null && !codes.isEmpty()) {
-            codes.forEach(code -> codeDtos.add(mapCodeDto(code, deep, includeCodeScheme)));
+            codes.forEach(code -> codeDtos.add(mapCodeDto(code, deep, includeCodeScheme, true)));
         }
         return codeDtos;
     }
@@ -138,7 +141,7 @@ public class DtoMapperService {
         }
         if (deep) {
             if (codeScheme.getDefaultCode() != null) {
-                codeSchemeDto.setDefaultCode(mapCodeDto(codeScheme.getDefaultCode(), false, true));
+                codeSchemeDto.setDefaultCode(mapCodeDto(codeScheme.getDefaultCode(), false, true, false));
             }
             if (codeScheme.getDataClassifications() != null) {
                 codeSchemeDto.setDataClassifications(mapCodeDtos(codeScheme.getDataClassifications(), false, true));
@@ -345,7 +348,7 @@ public class DtoMapperService {
         extensionDto.setId(extension.getId());
         extensionDto.setOrder(extension.getOrder());
         extensionDto.setExtensionValue(extension.getExtensionValue());
-        extensionDto.setCode(mapCodeDto(extension.getCode(), false, true));
+        extensionDto.setCode(mapCodeDto(extension.getCode(), false, true, false));
         extensionDto.setPrefLabel(extension.getPrefLabel());
         if (deep) {
             if (extension.getExtension() != null) {

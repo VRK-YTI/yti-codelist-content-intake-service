@@ -256,8 +256,8 @@ public class CloningServiceImpl implements CloningService {
 
         for (final Code code : originalCodes) {
             final Code clonedCode = cloneCode(code, newCodeScheme, externalReferenceMap);
-            if (clonedCode.getBroaderCodeId() != null) {
-                childToParentPointerMap.put(clonedCode.getCodeValue(), originalCodesMap.get(clonedCode.getBroaderCodeId()).getCodeValue());
+            if (clonedCode.getBroaderCode() != null) {
+                childToParentPointerMap.put(clonedCode.getCodeValue(), originalCodesMap.get(clonedCode.getBroaderCode().getId()).getCodeValue());
             }
             clonedCodesByCodeValueMap.put(clonedCode.getCodeValue(), clonedCode);
             clonedCodes.add(clonedCode);
@@ -267,7 +267,7 @@ public class CloningServiceImpl implements CloningService {
             if (childToParentPointerMap.keySet().contains(clonedCode.getCodeValue())) {
                 final String parentCodeValue = childToParentPointerMap.get(clonedCode.getCodeValue());
                 final Code parentCode = clonedCodesByCodeValueMap.get(parentCodeValue);
-                clonedCode.setBroaderCodeId(parentCode.getId());
+                clonedCode.setBroaderCode(parentCode);
             }
             codeDao.save(clonedCode);
             final CodeDTO clonedCodeDTO = dtoMapperService.mapDeepCodeDto(clonedCode);
@@ -315,7 +315,7 @@ public class CloningServiceImpl implements CloningService {
         copy.setCodeScheme(newCodeScheme);
         copy.setCodeValue(original.getCodeValue());
         copy.setConceptUriInVocabularies(original.getConceptUriInVocabularies());
-        copy.setBroaderCodeId(original.getBroaderCodeId());
+        copy.setBroaderCode(original.getBroaderCode());
         copy.setHierarchyLevel(original.getHierarchyLevel());
         copy.setDefinition(original.getDefinition());
         copy.setDescription(original.getDescription());

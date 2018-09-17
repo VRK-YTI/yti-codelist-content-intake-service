@@ -45,7 +45,7 @@ public class CodeDaoTest {
             code.setCodeValue("codevalue" + i);
             codes.add(code);
             if (earlierCodeId != null) {
-                code.setBroaderCodeId(earlierCodeId);
+                code.setBroaderCode(codeDao.findById(earlierCodeId));
             }
             earlierCodeId = code.getId();
         }

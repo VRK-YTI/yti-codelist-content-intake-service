@@ -37,10 +37,10 @@ public interface CodeService {
                                                     final InputStream inputStream,
                                                     final String jsonPayload);
 
-    Set<CodeDTO> parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
-                                             final String codeSchemeCodeValue,
-                                             final String codeCodeValue,
-                                             final String jsonPayload);
+    CodeDTO parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
+                                        final String codeSchemeCodeValue,
+                                        final String codeCodeValue,
+                                        final String jsonPayload);
 
     Set<CodeDTO> removeBroaderCodeId(final UUID broaderCodeId);
 
