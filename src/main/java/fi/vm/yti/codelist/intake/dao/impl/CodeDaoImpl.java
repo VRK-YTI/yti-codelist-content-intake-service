@@ -171,7 +171,7 @@ public class CodeDaoImpl implements CodeDao {
                 save(code, false);
             }
         }
-        setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes, codeScheme);
+        setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes);
         if (!codes.isEmpty()) {
             codes.forEach(this::checkCodeHierarchyLevels);
             save(codes);
@@ -418,12 +418,11 @@ public class CodeDaoImpl implements CodeDao {
     }
 
     private void setBroaderCodesAndEvaluateHierarchyLevels(final Map<String, String> broaderCodeMapping,
-                                                           final Set<Code> codes,
-                                                           final CodeScheme codeScheme) {
+                                                           final Set<Code> codes) {
         final Map<String, Code> codeMap = new HashMap<>();
         codes.forEach(code -> codeMap.put(code.getCodeValue().toLowerCase(), code));
         setBroaderCodes(broaderCodeMapping, codeMap);
-        evaluateAndSetHierarchyLevels(codeScheme.getCodes());
+        evaluateAndSetHierarchyLevels(codes);
     }
 
     private void setBroaderCodes(final Map<String, String> broaderCodeMapping,
@@ -444,12 +443,17 @@ public class CodeDaoImpl implements CodeDao {
     }
 
     public void evaluateAndSetHierarchyLevels(final Set<Code> codes) {
-        final Set<Code> codesToEvaluate = new HashSet<>(codes);
-        final Map<Integer, Set<UUID>> hierarchyMapping = new HashMap<>();
-        int hierarchyLevel = 0;
-        while (!codesToEvaluate.isEmpty()) {
-            ++hierarchyLevel;
-            resolveAndSetCodeHierarchyLevels(codesToEvaluate, hierarchyMapping, hierarchyLevel);
+        if (codes != null && !codes.isEmpty()) {
+            final Set<Code> codesToEvaluate = new HashSet<>(codes);
+            final Map<Integer, Set<UUID>> hierarchyMapping = new HashMap<>();
+            int hierarchyLevel = 0;
+            while (!codesToEvaluate.isEmpty()) {
+                ++hierarchyLevel;
+                if (hierarchyLevel > 10) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_HIERARCHY_MAXLEVEL_REACHED));
+                }
+                resolveAndSetCodeHierarchyLevels(codesToEvaluate, hierarchyMapping, hierarchyLevel);
+            }
         }
     }
 
