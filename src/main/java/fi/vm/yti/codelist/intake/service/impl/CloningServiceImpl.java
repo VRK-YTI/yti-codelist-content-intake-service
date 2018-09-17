@@ -192,6 +192,7 @@ public class CloningServiceImpl implements CloningService {
             newExtension.setExtension(orig.getExtension());
             newExtension.setOrder(orig.getOrder());
             newExtension.setExtensionValue(orig.getExtensionValue());
+            newExtension.setPrefLabel(orig.getPrefLabel());
             newExtensions.add(newExtension);
         }
         final Date timeStamp = new Date(System.currentTimeMillis());
