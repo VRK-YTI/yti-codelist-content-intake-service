@@ -124,7 +124,7 @@ public class CodeServiceImpl implements CodeService {
                                                            final String format,
                                                            final InputStream inputStream,
                                                            final String jsonPayload) {
-        Set<Code> codes;
+        final Set<Code> codes;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
@@ -161,11 +161,11 @@ public class CodeServiceImpl implements CodeService {
     }
 
     @Transactional
-    public CodeDTO parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
-                                               final String codeSchemeCodeValue,
-                                               final String codeCodeValue,
-                                               final String jsonPayload) {
-        final Code code;
+    public Set<CodeDTO> parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
+                                                    final String codeSchemeCodeValue,
+                                                    final String codeCodeValue,
+                                                    final String jsonPayload) {
+        final Set<Code> codes;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
@@ -179,7 +179,7 @@ public class CodeServiceImpl implements CodeService {
                         if (!codeDto.getCodeValue().equalsIgnoreCase(codeCodeValue)) {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
                         }
-                        code = codeDao.updateCodeFromDto(codeScheme, codeDto);
+                        codes = codeDao.updateCodeFromDto(codeScheme, codeDto);
                     } else {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
                     }
@@ -195,7 +195,7 @@ public class CodeServiceImpl implements CodeService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return dtoMapperService.mapDeepCodeDto(code);
+        return dtoMapperService.mapDeepCodeDtos(codes);
     }
 
     private Set<CodeDTO> decreaseChildHierarchyLevel(final UUID broaderCodeId) {

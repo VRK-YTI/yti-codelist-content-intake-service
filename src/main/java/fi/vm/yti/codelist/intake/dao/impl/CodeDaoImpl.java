@@ -142,15 +142,17 @@ public class CodeDaoImpl implements CodeDao {
     }
 
     @Transactional
-    public Code updateCodeFromDto(final CodeScheme codeScheme,
-                                  final CodeDTO codeDto) {
+    public Set<Code> updateCodeFromDto(final CodeScheme codeScheme,
+                                       final CodeDTO codeDto) {
         final Code code = createOrUpdateCode(codeScheme, codeDto, null, null, null);
         updateExternalReferences(codeScheme, code, codeDto);
         checkCodeHierarchyLevels(code);
-        evaluateAndSetHierarchyLevels(findByCodeSchemeId(codeScheme.getId()));
+        final Set<Code> codesAffected = new HashSet<>();
+        codesAffected.add(code);
+        evaluateAndSetHierarchyLevels(codesAffected, findByCodeSchemeId(codeScheme.getId()));
         save(code);
         codeSchemeRepository.save(codeScheme);
-        return code;
+        return codesAffected;
     }
 
     @Transactional
@@ -158,27 +160,27 @@ public class CodeDaoImpl implements CodeDao {
                                          final Set<CodeDTO> codeDtos,
                                          final Map<String, String> broaderCodeMapping,
                                          final boolean updateExternalReferences) {
-        final Set<Code> codes = new HashSet<>();
+        final Set<Code> codesAffected = new HashSet<>();
         MutableInt nextOrder = new MutableInt(getNextOrderInSequence(codeScheme));
         final Set<Code> existingCodes = codeRepository.findByCodeSchemeId(codeScheme.getId());
         for (final CodeDTO codeDto : codeDtos) {
-            final Code code = createOrUpdateCode(codeScheme, codeDto, existingCodes, codes, nextOrder);
+            final Code code = createOrUpdateCode(codeScheme, codeDto, existingCodes, codesAffected, nextOrder);
             save(code, false);
             if (updateExternalReferences) {
                 updateExternalReferences(codeScheme, code, codeDto);
             }
             if (code != null) {
-                codes.add(code);
+                codesAffected.add(code);
                 save(code, false);
             }
         }
-        setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codes, codeScheme);
-        if (!codes.isEmpty()) {
-            codes.forEach(this::checkCodeHierarchyLevels);
-            save(codes);
+        if (!codesAffected.isEmpty()) {
+            codesAffected.forEach(this::checkCodeHierarchyLevels);
+            setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codesAffected, codeScheme);
+            save(codesAffected);
             codeSchemeRepository.save(codeScheme);
         }
-        return codes;
+        return codesAffected;
     }
 
     private void updateExternalReferences(final CodeScheme codeScheme,
@@ -419,56 +421,66 @@ public class CodeDaoImpl implements CodeDao {
     }
 
     private void setBroaderCodesAndEvaluateHierarchyLevels(final Map<String, String> broaderCodeMapping,
-                                                           final Set<Code> codes,
+                                                           final Set<Code> codesAffected,
                                                            final CodeScheme codeScheme) {
-        final Map<String, Code> codeMap = new HashMap<>();
-        codes.forEach(code -> codeMap.put(code.getCodeValue().toLowerCase(), code));
-        setBroaderCodes(broaderCodeMapping, codeMap);
-        evaluateAndSetHierarchyLevels(findByCodeSchemeId(codeScheme.getId()));
+        setBroaderCodes(broaderCodeMapping, codesAffected, codeScheme);
+        save(codesAffected);
+        evaluateAndSetHierarchyLevels(codesAffected, findByCodeSchemeId(codeScheme.getId()));
     }
 
     private void setBroaderCodes(final Map<String, String> broaderCodeMapping,
-                                 final Map<String, Code> codes) {
-        broaderCodeMapping.forEach((codeCodeValue, broaderCodeCodeValue) -> {
-            final Code code = codes.get(codeCodeValue);
-            final Code broaderCode = codes.get(broaderCodeCodeValue);
-            if (broaderCode == null && broaderCodeCodeValue != null) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_BROADER_CODE_DOES_NOT_EXIST));
-            } else if (broaderCode != null && broaderCode.getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_BROADER_CODE_SELF_REFERENCE));
-            } else if (code == null) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
-            } else {
+                                 final Set<Code> affectedCodes,
+                                 final CodeScheme codeScheme) {
+        affectedCodes.forEach(code -> {
+            final String broaderCodeCodeValue = broaderCodeMapping.get(code.getCodeValue().toLowerCase());
+            if (broaderCodeCodeValue != null) {
+                final Code broaderCode = findByCodeSchemeAndCodeValue(codeScheme, broaderCodeCodeValue);
+                if (broaderCode == null) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_BROADER_CODE_DOES_NOT_EXIST));
+                } else if (broaderCode.getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_BROADER_CODE_SELF_REFERENCE));
+                }
                 code.setBroaderCode(broaderCode);
             }
         });
     }
 
-    public void evaluateAndSetHierarchyLevels(final Set<Code> codes) {
-        if (codes != null && !codes.isEmpty()) {
-            final Set<Code> codesToEvaluate = new HashSet<>(codes);
+    public void evaluateAndSetHierarchyLevels(final Set<Code> codesToEvaluate,
+                                              final Set<Code> codeSchemeCodes) {
+        if (codeSchemeCodes != null && !codeSchemeCodes.isEmpty()) {
+            final Set<Code> allCodes = new HashSet<>(codeSchemeCodes);
             final Map<Integer, Set<UUID>> hierarchyMapping = new HashMap<>();
             int hierarchyLevel = 0;
-            while (!codesToEvaluate.isEmpty()) {
+            while (!allCodes.isEmpty()) {
                 ++hierarchyLevel;
                 if (hierarchyLevel > 10) {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_HIERARCHY_MAXLEVEL_REACHED));
                 }
-                evaluateAndSetHierarchyLevels(codesToEvaluate, hierarchyMapping, hierarchyLevel);
+                evaluateAndSetHierarchyLevels(allCodes, codesToEvaluate, hierarchyMapping, hierarchyLevel);
             }
         }
     }
 
-    private void evaluateAndSetHierarchyLevels(final Set<Code> codesToEvaluate,
+    private void evaluateAndSetHierarchyLevels(final Set<Code> allCodes,
+                                               final Set<Code> codesAffected,
                                                final Map<Integer, Set<UUID>> hierarchyMapping,
                                                final Integer hierarchyLevel) {
         final Set<Code> toRemove = new HashSet<>();
-        codesToEvaluate.forEach(code -> {
+        allCodes.forEach(code -> {
             if ((hierarchyLevel == 1 && code.getBroaderCode() == null) ||
                 (hierarchyLevel > 1 && code.getBroaderCode() != null && code.getBroaderCode().getId() != null && hierarchyMapping.get(hierarchyLevel - 1) != null && hierarchyMapping.get(hierarchyLevel - 1).contains(code.getBroaderCode().getId()))) {
-                if (code.getHierarchyLevel() != hierarchyLevel) {
-                    code.setHierarchyLevel(hierarchyLevel);
-                    save(code, false);
+                if (!hierarchyLevel.equals(code.getHierarchyLevel())) {
+                    boolean match = false;
+                    for (final Code codeOrig : codesAffected) {
+                        if (codeOrig.getId().equals(code.getId())) {
+                            match = true;
+                            codeOrig.setHierarchyLevel(hierarchyLevel);
+                        }
+                    }
+                    if (!match) {
+                        code.setHierarchyLevel(hierarchyLevel);
+                        codesAffected.add(code);
+                    }
                 }
                 if (hierarchyMapping.get(hierarchyLevel) != null) {
                     hierarchyMapping.get(hierarchyLevel).add(code.getId());
@@ -480,7 +492,7 @@ public class CodeDaoImpl implements CodeDao {
                 toRemove.add(code);
             }
         });
-        codesToEvaluate.removeAll(toRemove);
+        allCodes.removeAll(toRemove);
     }
 
     private void checkCodeHierarchyLevels(final Code code) {
@@ -504,5 +516,4 @@ public class CodeDaoImpl implements CodeDao {
             checkCodeHierarchyLevels(chainedCodes, broaderCode, level + 1);
         }
     }
-
 }
