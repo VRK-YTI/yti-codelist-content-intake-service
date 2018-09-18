@@ -21,7 +21,7 @@ public class EditedEntity {
     private Code code;
     private ExternalReference externalReference;
     private PropertyType propertyType;
-    private ExtensionScheme extensionScheme;
+    private Extension extension;
     private Member member;
 
     public EditedEntity() {
@@ -103,13 +103,13 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "extensionscheme_id")
-    public ExtensionScheme getExtensionScheme() {
-        return extensionScheme;
+    @JoinColumn(name = "extension_id")
+    public Extension getExtension() {
+        return extension;
     }
 
-    public void setExtensionScheme(final ExtensionScheme extensionScheme) {
-        this.extensionScheme = extensionScheme;
+    public void setExtension(final Extension extension) {
+        this.extension = extension;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)

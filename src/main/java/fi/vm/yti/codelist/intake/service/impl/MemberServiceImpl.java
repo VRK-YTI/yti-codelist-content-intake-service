@@ -16,12 +16,12 @@ import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
-import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
+import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
-import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.parser.MemberParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.MemberService;
@@ -35,7 +35,7 @@ public class MemberServiceImpl implements MemberService {
     private final AuthorizationManager authorizationManager;
     private final MemberDao memberDao;
     private final MemberParser memberParser;
-    private final ExtensionSchemeDao extensionSchemeDao;
+    private final ExtensionDao extensionDao;
     private final CodeSchemeDao codeSchemeDao;
     private final DtoMapperService dtoMapperService;
 
@@ -43,13 +43,13 @@ public class MemberServiceImpl implements MemberService {
     public MemberServiceImpl(final AuthorizationManager authorizationManager,
                              final MemberDao memberDao,
                              final MemberParser memberParser,
-                             final ExtensionSchemeDao extensionSchemeDao,
+                             final ExtensionDao extensionDao,
                              final CodeSchemeDao codeSchemeDao,
                              final DtoMapperService dtoMapperService) {
         this.authorizationManager = authorizationManager;
         this.memberDao = memberDao;
         this.memberParser = memberParser;
-        this.extensionSchemeDao = extensionSchemeDao;
+        this.extensionDao = extensionDao;
         this.codeSchemeDao = codeSchemeDao;
         this.dtoMapperService = dtoMapperService;
     }
@@ -60,7 +60,7 @@ public class MemberServiceImpl implements MemberService {
         if (!authorizationManager.canExtensionBeDeleted(member)) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
-        final Set<Member> members = memberDao.findByExtensionSchemeId(member.getExtensionScheme().getId());
+        final Set<Member> members = memberDao.findByExtensionId(member.getExtension().getId());
         members.forEach(extension1 -> {
             final Member broaderMember = member.getBroaderMember();
             if (broaderMember != null && broaderMember.getId() == id) {
@@ -85,7 +85,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Transactional
     public Set<MemberDTO> findByExtensionSchemeId(final UUID id) {
-        return dtoMapperService.mapDeepMemberDtos(memberDao.findByExtensionSchemeId(id));
+        return dtoMapperService.mapDeepMemberDtos(memberDao.findByExtensionId(id));
     }
 
     @Transactional
@@ -93,12 +93,12 @@ public class MemberServiceImpl implements MemberService {
         Set<Member> members;
         if (jsonPayload != null && !jsonPayload.isEmpty()) {
             final MemberDTO memberDto = memberParser.parseMemberFromJson(jsonPayload);
-            if (memberDto.getExtensionScheme() != null) {
-                final ExtensionScheme extensionScheme = extensionSchemeDao.findById(memberDto.getExtensionScheme().getId());
-                if (!authorizationManager.canBeModifiedByUserInOrganization(extensionScheme.getParentCodeScheme().getCodeRegistry().getOrganizations())) {
+            if (memberDto.getExtension() != null) {
+                final Extension extension = extensionDao.findById(memberDto.getExtension().getId());
+                if (!authorizationManager.canBeModifiedByUserInOrganization(extension.getParentCodeScheme().getCodeRegistry().getOrganizations())) {
                     throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                 }
-                members = memberDao.updateMemberEntityFromDto(extensionScheme, memberDto);
+                members = memberDao.updateMemberEntityFromDto(extension, memberDto);
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
             }
@@ -114,7 +114,7 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public Set<MemberDTO> parseAndPersistMembersFromSourceData(final String codeRegistryCodeValue,
                                                                final String codeSchemeCodeValue,
-                                                               final String extensionSchemeCodeValue,
+                                                               final String extensionCodeValue,
                                                                final String format,
                                                                final InputStream inputStream,
                                                                final String jsonPayload,
@@ -125,21 +125,21 @@ public class MemberServiceImpl implements MemberService {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
             Set<Member> members;
-            final ExtensionScheme extensionScheme = extensionSchemeDao.findByParentCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionSchemeCodeValue);
-            if (extensionScheme != null) {
+            final Extension extension = extensionDao.findByParentCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionCodeValue);
+            if (extension != null) {
                 switch (format.toLowerCase()) {
                     case FORMAT_JSON:
                         if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                            members = memberDao.updateMemberEntitiesFromDtos(extensionScheme, memberParser.parseMembersFromJson(jsonPayload));
+                            members = memberDao.updateMemberEntitiesFromDtos(extension, memberParser.parseMembersFromJson(jsonPayload));
                         } else {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                         }
                         break;
                     case FORMAT_EXCEL:
-                        members = memberDao.updateMemberEntitiesFromDtos(extensionScheme, memberParser.parseMembersFromExcelInputStream(extensionScheme, inputStream, sheetName));
+                        members = memberDao.updateMemberEntitiesFromDtos(extension, memberParser.parseMembersFromExcelInputStream(extension, inputStream, sheetName));
                         break;
                     case FORMAT_CSV:
-                        members = memberDao.updateMemberEntitiesFromDtos(extensionScheme, memberParser.parseMembersFromCsvInputStream(extensionScheme, inputStream));
+                        members = memberDao.updateMemberEntitiesFromDtos(extension, memberParser.parseMembersFromCsvInputStream(extension, inputStream));
                         break;
                     default:
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
@@ -153,15 +153,15 @@ public class MemberServiceImpl implements MemberService {
         }
     }
 
-    public Set<MemberDTO> parseAndPersistMembersFromExcelWorkbook(final ExtensionScheme extensionScheme,
+    public Set<MemberDTO> parseAndPersistMembersFromExcelWorkbook(final Extension extension,
                                                                   final Workbook workbook,
                                                                   final String sheetName) {
-        if (!authorizationManager.canBeModifiedByUserInOrganization(extensionScheme.getParentCodeScheme().getCodeRegistry().getOrganizations())) {
+        if (!authorizationManager.canBeModifiedByUserInOrganization(extension.getParentCodeScheme().getCodeRegistry().getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         Set<Member> members;
-        final Set<MemberDTO> memberDtos = memberParser.parseMembersFromExcelWorkbook(extensionScheme, workbook, sheetName);
-        members = memberDao.updateMemberEntitiesFromDtos(extensionScheme, memberDtos);
+        final Set<MemberDTO> memberDtos = memberParser.parseMembersFromExcelWorkbook(extension, workbook, sheetName);
+        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDtos);
         return dtoMapperService.mapDeepMemberDtos(members);
     }
 }

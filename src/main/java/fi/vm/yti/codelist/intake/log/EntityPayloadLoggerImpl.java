@@ -20,7 +20,7 @@ import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Member;
-import fi.vm.yti.codelist.intake.model.ExtensionScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
@@ -35,7 +35,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     private static final String CODE = "Code";
     private static final String EXTERNALREFERENCE = "ExternalReference";
     private static final String PROPERTYTYPE = "PropertyType";
-    private static final String EXTENSIONSCHEME = "ExtensionScheme";
+    private static final String EXTENSIONSCHEME = "Extension";
     private static final String MEMBER = "Member";
 
     private final AuthorizationManager authorizationManager;
@@ -110,14 +110,14 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
         endPayloadLogging(PROPERTYTYPE, propertyType.getId());
     }
 
-    public void logExtensionScheme(final ExtensionScheme extensionScheme) {
-        beginPayloadLogging(EXTENSIONSCHEME, extensionScheme.getId());
+    public void logExtension(final Extension extension) {
+        beginPayloadLogging(EXTENSIONSCHEME, extension.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapExtensionSchemeDto(extensionScheme)));
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapExtensionDto(extension)));
         } catch (final JsonProcessingException e) {
-            LOG.error(String.format("Failed to write log for extensionScheme: %s", extensionScheme.getId()), e);
+            LOG.error(String.format("Failed to write log for extension: %s", extension.getId()), e);
         }
-        endPayloadLogging(EXTENSIONSCHEME, extensionScheme.getId());
+        endPayloadLogging(EXTENSIONSCHEME, extension.getId());
     }
 
     public void logMember(final Member member) {

@@ -21,5 +21,5 @@ public interface CodeSchemeParser {
     Set<CodeSchemeDTO> parseCodeSchemesFromExcelWorkbook(final CodeRegistry codeRegistry,
                                                          final Workbook workbook,
                                                          final Map<CodeSchemeDTO, String> codesSheetNames,
-                                                         final Map<CodeSchemeDTO, String> extensionSchemesSheetNames);
+                                                         final Map<CodeSchemeDTO, String> extensionsSheetNames);
 }

@@ -15,8 +15,8 @@ import fi.vm.yti.codelist.intake.model.AbstractIdentifyableCode;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
-import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.security.AuthenticatedUserProvider;
 import fi.vm.yti.security.YtiUser;
@@ -54,17 +54,17 @@ public class AuthorizationManagerImpl implements AuthorizationManager {
         return user.isSuperuser() || user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds);
     }
 
-    public boolean canExtensionSchemeBeDeleted(final ExtensionScheme extensionScheme) {
-        final Collection<UUID> organizationIds = extensionScheme.getParentCodeScheme().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
+    public boolean canExtensionSchemeBeDeleted(final Extension extension) {
+        final Collection<UUID> organizationIds = extension.getParentCodeScheme().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
         final YtiUser user = userProvider.getUser();
-        return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(extensionScheme.getStatus()).ordinal() <= Status.VALID.ordinal());
+        return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(extension.getStatus()).ordinal() <= Status.VALID.ordinal());
     }
 
     public boolean canExtensionBeDeleted(final Member member) {
-        final ExtensionScheme extensionScheme = member.getExtensionScheme();
-        final Collection<UUID> organizationIds = extensionScheme.getParentCodeScheme().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
+        final Extension extension = member.getExtension();
+        final Collection<UUID> organizationIds = extension.getParentCodeScheme().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
         final YtiUser user = userProvider.getUser();
-        return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(extensionScheme.getStatus()).ordinal() <= Status.VALID.ordinal());
+        return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(extension.getStatus()).ordinal() <= Status.VALID.ordinal());
     }
 
     public boolean canCodeRegistryBeDeleted(final CodeRegistry codeRegistry) {

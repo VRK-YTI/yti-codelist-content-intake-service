@@ -6,7 +6,7 @@ import java.util.Set;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import fi.vm.yti.codelist.common.dto.MemberDTO;
-import fi.vm.yti.codelist.intake.model.ExtensionScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
 
 public interface MemberParser {
 
@@ -14,14 +14,14 @@ public interface MemberParser {
 
     Set<MemberDTO> parseMembersFromJson(final String jsonPayload);
 
-    Set<MemberDTO> parseMembersFromCsvInputStream(final ExtensionScheme extensionScheme,
+    Set<MemberDTO> parseMembersFromCsvInputStream(final Extension extension,
                                                   final InputStream inputStream);
 
-    Set<MemberDTO> parseMembersFromExcelInputStream(final ExtensionScheme extensionScheme,
+    Set<MemberDTO> parseMembersFromExcelInputStream(final Extension extension,
                                                     final InputStream inputStream,
                                                     final String sheetName);
 
-    Set<MemberDTO> parseMembersFromExcelWorkbook(final ExtensionScheme extensionScheme,
+    Set<MemberDTO> parseMembersFromExcelWorkbook(final Extension extension,
                                                  final Workbook workbook,
                                                  final String sheetName);
 }

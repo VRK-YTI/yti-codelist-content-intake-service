@@ -17,17 +17,17 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
-import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
-import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
+import fi.vm.yti.codelist.intake.service.ExtensionService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_EXTENSIONSCHEME;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_EXTENSION;
 
 @Component
 @Path("/v1/extensionschemes")
@@ -36,40 +36,40 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_EXTEN
 public class ExtensionSchemeResource implements AbstractBaseResource {
 
     private final Indexing indexing;
-    private final ExtensionSchemeService extensionSchemeService;
+    private final ExtensionService extensionService;
 
     @Inject
     public ExtensionSchemeResource(final Indexing indexing,
-                                   final ExtensionSchemeService extensionService) {
+                                   final ExtensionService extensionService) {
         this.indexing = indexing;
-        this.extensionSchemeService = extensionService;
+        this.extensionService = extensionService;
     }
 
     @POST
-    @Path("{extensionSchemeId}")
+    @Path("{extensionId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses and creates or updates ExtensionSchemes from JSON input.")
+    @ApiOperation(value = "Parses and creates or updates Extensions from JSON input.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Returns success.")
     })
-    public Response addOrUpdateExtensionSchemesFromJson(@ApiParam(value = "ExtensionScheme UUID", required = true) @PathParam("extensionSchemeId") final UUID extensionSchemeId,
-                                                        @ApiParam(value = "JSON playload for ExtensionScheme data.", required = true) final String jsonPayload) {
-        return parseAndPersistExtensionSchemeFromSource(extensionSchemeId, jsonPayload);
+    public Response addOrUpdateExtensionSchemesFromJson(@ApiParam(value = "Extension UUID", required = true) @PathParam("extensionId") final UUID extensionId,
+                                                        @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload) {
+        return parseAndPersistExtensionSchemeFromSource(extensionId, jsonPayload);
     }
 
-    private Response parseAndPersistExtensionSchemeFromSource(final UUID extensionSchemeId,
+    private Response parseAndPersistExtensionSchemeFromSource(final UUID extensionId,
                                                               final String jsonPayload) {
-        final ExtensionSchemeDTO extensionScheme = extensionSchemeService.parseAndPersistExtensionSchemeFromJson(extensionSchemeId, jsonPayload);
-        final Set<ExtensionSchemeDTO> extensionSchemes = new HashSet<>();
-        extensionSchemes.add(extensionScheme);
-        indexing.updateExtensionSchemes(extensionSchemes);
+        final ExtensionDTO extension = extensionService.parseAndPersistExtensionFromJson(extensionId, jsonPayload);
+        final Set<ExtensionDTO> extensions = new HashSet<>();
+        extensions.add(extension);
+        indexing.updateExtensions(extensions);
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSIONSCHEME, "extensionScheme")));
-        final ResponseWrapper<ExtensionSchemeDTO> responseWrapper = new ResponseWrapper<>(meta);
-        meta.setMessage("ExtensionSchemes added or modified.");
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSION, "extension")));
+        final ResponseWrapper<ExtensionDTO> responseWrapper = new ResponseWrapper<>(meta);
+        meta.setMessage("Extensions added or modified.");
         meta.setCode(200);
-        responseWrapper.setResults(extensionSchemes);
+        responseWrapper.setResults(extensions);
         return Response.ok(responseWrapper).build();
     }
 }

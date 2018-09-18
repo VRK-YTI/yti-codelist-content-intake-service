@@ -117,7 +117,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "      }\n" +
         "    }\n" +
         "  },\n" +
-        "  \"extensionSchemes\": {\n" +
+        "  \"extensions\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  },\n" +
         "  \"externalReferences\": {\n" +
@@ -176,7 +176,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "  }\n" +
         "}\n}";
 
-    private static final String EXTENSIONSCHEME_MAPPING = "{" +
+    private static final String EXTENSION_MAPPING = "{" +
         "\"properties\": {\n" +
         "  \"codeValue\": {\n" +
         "    \"type\": \"text\"," +
@@ -348,8 +348,8 @@ public class IndexingToolsImpl implements IndexingTools {
                 case ELASTIC_TYPE_CODE:
                     builder.addMapping(type, CODE_MAPPING, XContentType.JSON);
                     break;
-                case ELASTIC_TYPE_EXTENSIONSCHEME:
-                    builder.addMapping(type, EXTENSIONSCHEME_MAPPING, XContentType.JSON);
+                case ELASTIC_TYPE_EXTENSION:
+                    builder.addMapping(type, EXTENSION_MAPPING, XContentType.JSON);
                     break;
                 case ELASTIC_TYPE_MEMBER:
                     builder.addMapping(type, MEMBER_MAPPING, XContentType.JSON);

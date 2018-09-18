@@ -28,9 +28,9 @@ import fi.vm.yti.codelist.common.dto.AbstractIdentifyableCodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
-import fi.vm.yti.codelist.common.dto.MemberDTO;
-import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
@@ -40,9 +40,9 @@ import fi.vm.yti.codelist.intake.model.IndexStatus;
 import fi.vm.yti.codelist.intake.service.CodeRegistryService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
-import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
-import fi.vm.yti.codelist.intake.service.MemberService;
+import fi.vm.yti.codelist.intake.service.ExtensionService;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
+import fi.vm.yti.codelist.intake.service.MemberService;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.update.UpdateManager.UPDATE_FAILED;
@@ -72,7 +72,7 @@ public class IndexingImpl implements Indexing {
     private final CodeService codeService;
     private final ExternalReferenceService externalReferenceService;
     private final PropertyTypeService propertyTypeService;
-    private final ExtensionSchemeService extensionSchemeService;
+    private final ExtensionService extensionService;
     private final MemberService memberService;
     private final Client client;
     private final IndexingTools indexingTools;
@@ -88,7 +88,7 @@ public class IndexingImpl implements Indexing {
                         final CodeService codeService,
                         final ExternalReferenceService externalReferenceService,
                         final PropertyTypeService propertyTypeService,
-                        final ExtensionSchemeService extensionSchemeService,
+                        final ExtensionService extensionService,
                         final MemberService memberService) {
         this.indexingTools = indexingTools;
         this.client = client;
@@ -98,7 +98,7 @@ public class IndexingImpl implements Indexing {
         this.codeService = codeService;
         this.externalReferenceService = externalReferenceService;
         this.propertyTypeService = propertyTypeService;
-        this.extensionSchemeService = extensionSchemeService;
+        this.extensionService = extensionService;
         this.memberService = memberService;
     }
 
@@ -156,8 +156,8 @@ public class IndexingImpl implements Indexing {
     }
 
     private boolean indexExtensionSchemes(final String indexName) {
-        final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.findAll();
-        return indexData(extensionSchemes, indexName, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES, Views.ExtendedExtensionScheme.class);
+        final Set<ExtensionDTO> extensions = extensionService.findAll();
+        return indexData(extensions, indexName, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONSCHEMES, Views.ExtendedExtension.class);
     }
 
     private boolean indexMembers(final String indexName) {
@@ -269,14 +269,14 @@ public class IndexingImpl implements Indexing {
         return externalReferences.isEmpty() || deleteData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES);
     }
 
-    public boolean deleteExtensionScheme(final ExtensionSchemeDTO extensionScheme) {
-        final Set<ExtensionSchemeDTO> extensionSchemes = new HashSet<>();
-        extensionSchemes.add(extensionScheme);
-        return deleteExtensionSchemes(extensionSchemes);
+    public boolean deleteExtension(final ExtensionDTO extension) {
+        final Set<ExtensionDTO> extensions = new HashSet<>();
+        extensions.add(extension);
+        return deleteExtensions(extensions);
     }
 
-    public boolean deleteExtensionSchemes(final Set<ExtensionSchemeDTO> extensionSchemes) {
-        return extensionSchemes.isEmpty() || deleteData(extensionSchemes, ELASTIC_INDEX_EXTENSIONSCHEME, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES);
+    public boolean deleteExtensions(final Set<ExtensionDTO> extensions) {
+        return extensions.isEmpty() || deleteData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONSCHEMES);
     }
 
     public boolean deleteMember(final MemberDTO extension) {
@@ -339,14 +339,14 @@ public class IndexingImpl implements Indexing {
         return externalReferences.isEmpty() || indexData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
     }
 
-    public boolean updateExtensionScheme(final ExtensionSchemeDTO extensionScheme) {
-        final Set<ExtensionSchemeDTO> extensionSchemes = new HashSet<>();
-        extensionSchemes.add(extensionScheme);
-        return updateExtensionSchemes(extensionSchemes);
+    public boolean updateExtension(final ExtensionDTO extension) {
+        final Set<ExtensionDTO> extensions = new HashSet<>();
+        extensions.add(extension);
+        return updateExtensions(extensions);
     }
 
-    public boolean updateExtensionSchemes(final Set<ExtensionSchemeDTO> extensionSchemes) {
-        return extensionSchemes.isEmpty() || indexData(extensionSchemes, ELASTIC_INDEX_EXTENSIONSCHEME, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES, Views.ExtendedExtensionScheme.class);
+    public boolean updateExtensions(final Set<ExtensionDTO> extensions) {
+        return extensions.isEmpty() || indexData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONSCHEMES, Views.ExtendedExtension.class);
     }
 
     public boolean updateMember(final MemberDTO member) {
@@ -385,7 +385,7 @@ public class IndexingImpl implements Indexing {
         if (reIndex(ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_INDEX_EXTERNALREFERENCE)) {
             success = false;
         }
-        if (reIndex(ELASTIC_INDEX_EXTENSIONSCHEME, ELASTIC_INDEX_EXTENSIONSCHEME)) {
+        if (reIndex(ELASTIC_INDEX_EXTENSION, ELASTIC_INDEX_EXTENSION)) {
             success = false;
         }
         if (reIndex(ELASTIC_INDEX_MEMBER, ELASTIC_INDEX_MEMBER)) {
@@ -446,7 +446,7 @@ public class IndexingImpl implements Indexing {
             case ELASTIC_INDEX_EXTERNALREFERENCE:
                 success = indexExternalReferences(indexName);
                 break;
-            case ELASTIC_INDEX_EXTENSIONSCHEME:
+            case ELASTIC_INDEX_EXTENSION:
                 success = indexExtensionSchemes(indexName);
                 break;
             case ELASTIC_INDEX_MEMBER:

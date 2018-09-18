@@ -14,8 +14,8 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
-import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.DataModelProperties;
@@ -143,7 +143,6 @@ public class ApiUtils {
         return createCodeUri(code.getCodeScheme().getCodeRegistry(), code.getCodeScheme(), code);
     }
 
-
     public String createCodeUri(final CodeRegistry codeRegistry,
                                 final CodeScheme codeScheme,
                                 final Code code) {
@@ -155,8 +154,8 @@ public class ApiUtils {
     }
 
     public String createCodeUrl(final String codeRegistryCodeValue,
-                                 final String codeSchemeCodeValue,
-                                 final String codeValue) {
+                                final String codeSchemeCodeValue,
+                                final String codeValue) {
         return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES, urlEncodeString(codeValue));
     }
 
@@ -168,10 +167,10 @@ public class ApiUtils {
         return createResourceUrl(API_PATH_PROPERTYTYPES, propertyType.getId().toString());
     }
 
-    public String createExtensionSchemeUrl(final String codeRegistryCodeValue,
-                                           final String codeSchemeCodeValue,
-                                           final String codeValue) {
-        return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_EXTENSIONSCHEMES, urlEncodeString(codeValue));
+    public String createExtensionUrl(final String codeRegistryCodeValue,
+                                     final String codeSchemeCodeValue,
+                                     final String codeValue) {
+        return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_EXTENSIONS, urlEncodeString(codeValue));
     }
 
     public String createMemberUrl(final MemberDTO member) {

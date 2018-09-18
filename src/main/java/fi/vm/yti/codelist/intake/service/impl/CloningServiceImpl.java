@@ -12,21 +12,21 @@ import org.springframework.stereotype.Service;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
-import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
-import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
+import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
-import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CloningService;
@@ -42,7 +42,7 @@ public class CloningServiceImpl implements CloningService {
     private final CodeSchemeDao codeSchemeDao;
     private final CodeDao codeDao;
     private final ExternalReferenceDao externalReferenceDao;
-    private final ExtensionSchemeDao extensionSchemeDao;
+    private final ExtensionDao extensionDao;
     private final AuthorizationManager authorizationManager;
     private final DtoMapperService dtoMapperService;
     private final ApiUtils apiUtils;
@@ -52,7 +52,7 @@ public class CloningServiceImpl implements CloningService {
                               final CodeSchemeDao codeSchemeDao,
                               final CodeDao codeDao,
                               final ExternalReferenceDao externalReferenceDao,
-                              final ExtensionSchemeDao extensionSchemeDao,
+                              final ExtensionDao extensionDao,
                               final AuthorizationManager authorizationManager,
                               final DtoMapperService dtoMapperService,
                               final ApiUtils apiUtils) {
@@ -61,7 +61,7 @@ public class CloningServiceImpl implements CloningService {
         this.codeSchemeDao = codeSchemeDao;
         this.codeDao = codeDao;
         this.externalReferenceDao = externalReferenceDao;
-        this.extensionSchemeDao = extensionSchemeDao;
+        this.extensionDao = extensionDao;
         this.authorizationManager = authorizationManager;
         this.dtoMapperService = dtoMapperService;
         this.apiUtils = apiUtils;
@@ -152,25 +152,25 @@ public class CloningServiceImpl implements CloningService {
                                           final CodeScheme newCodeScheme,
                                           final CodeScheme originalCodeScheme,
                                           final Set<Code> newCodes) {
-        final Set<ExtensionScheme> originalExtensionSchemes = originalCodeScheme.getExtensionSchemes();
-        final Set<ExtensionScheme> clonedExtensionSchemes = new HashSet<>();
-        for (final ExtensionScheme origExtSch : originalExtensionSchemes) {
-            clonedExtensionSchemes.add(cloneExtensionScheme(origExtSch, newCodeScheme, newCodes));
+        final Set<Extension> originalExtensions = originalCodeScheme.getExtensions();
+        final Set<Extension> clonedExtensions = new HashSet<>();
+        for (final Extension origExtSch : originalExtensions) {
+            clonedExtensions.add(cloneExtensionScheme(origExtSch, newCodeScheme, newCodes));
         }
-        extensionSchemeDao.save(clonedExtensionSchemes);
-        final Set<ExtensionSchemeDTO> extensionSchemeDTOS = new HashSet<>();
-        for (final ExtensionScheme e : clonedExtensionSchemes) {
-            ExtensionSchemeDTO dto = dtoMapperService.mapExtensionSchemeDto(e, true);
-            extensionSchemeDTOS.add(dto);
+        extensionDao.save(clonedExtensions);
+        final Set<ExtensionDTO> extensionDTOS = new HashSet<>();
+        for (final Extension e : clonedExtensions) {
+            ExtensionDTO dto = dtoMapperService.mapExtensionDto(e, true);
+            extensionDTOS.add(dto);
         }
-        codeSchemeWithUserChangesFromUi.setExtensionSchemes(extensionSchemeDTOS);
+        codeSchemeWithUserChangesFromUi.setExtensions(extensionDTOS);
     }
 
     @Transactional
-    protected ExtensionScheme cloneExtensionScheme(final ExtensionScheme original,
-                                                   final CodeScheme newCodeScheme,
-                                                   final Set<Code> newCodes) {
-        final ExtensionScheme copy = new ExtensionScheme();
+    protected Extension cloneExtensionScheme(final Extension original,
+                                             final CodeScheme newCodeScheme,
+                                             final Set<Code> newCodes) {
+        final Extension copy = new Extension();
         copy.setId(UUID.randomUUID());
         copy.setEndDate(original.getEndDate());
         copy.setStartDate(original.getStartDate());
@@ -186,7 +186,7 @@ public class CloningServiceImpl implements CloningService {
             final Member newMember = new Member();
             getCodeForExtension(newCodes, orig, newMember);
             newMember.setId(UUID.randomUUID());
-            newMember.setExtensionScheme(copy);
+            newMember.setExtension(copy);
             newMember.setBroaderMember(orig.getBroaderMember());
             newMember.setOrder(orig.getOrder());
             newMember.setMemberValue(orig.getMemberValue());

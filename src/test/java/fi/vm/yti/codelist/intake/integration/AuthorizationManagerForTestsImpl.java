@@ -3,8 +3,8 @@ package fi.vm.yti.codelist.intake.integration;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
-import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import org.springframework.stereotype.Component;
@@ -35,7 +35,7 @@ public class AuthorizationManagerForTestsImpl implements AuthorizationManager {
     }
 
     @Override
-    public boolean canExtensionSchemeBeDeleted(final ExtensionScheme extensionScheme) {
+    public boolean canExtensionSchemeBeDeleted(final Extension extension) {
         return true;
     }
 

@@ -35,7 +35,7 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
     private String memberValue;
     private Integer order;
     private Code code;
-    private ExtensionScheme extensionScheme;
+    private Extension extension;
     private Member broaderMember;
     private Map<String, String> prefLabel;
     private Date startDate;
@@ -72,13 +72,13 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinColumn(name = "extensionscheme_id", updatable = false)
-    public ExtensionScheme getExtensionScheme() {
-        return extensionScheme;
+    @JoinColumn(name = "extension_id", updatable = false)
+    public Extension getExtension() {
+        return extension;
     }
 
-    public void setExtensionScheme(final ExtensionScheme extensionScheme) {
-        this.extensionScheme = extensionScheme;
+    public void setExtension(final Extension extension) {
+        this.extension = extension;
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)

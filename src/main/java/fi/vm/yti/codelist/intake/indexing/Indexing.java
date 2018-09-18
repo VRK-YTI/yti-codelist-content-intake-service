@@ -6,7 +6,7 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
-import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 
@@ -46,13 +46,13 @@ public interface Indexing {
 
     boolean updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes);
 
-    boolean updateExtensionScheme(final ExtensionSchemeDTO extensionScheme);
+    boolean updateExtension(final ExtensionDTO extension);
 
-    boolean updateExtensionSchemes(final Set<ExtensionSchemeDTO> extensionSchemes);
+    boolean updateExtensions(final Set<ExtensionDTO> extensions);
 
-    boolean deleteExtensionScheme(final ExtensionSchemeDTO extensionScheme);
+    boolean deleteExtension(final ExtensionDTO extension);
 
-    boolean deleteExtensionSchemes(final Set<ExtensionSchemeDTO> extensionSchemes);
+    boolean deleteExtensions(final Set<ExtensionDTO> extensions);
 
     boolean updateMember(final MemberDTO member);
 

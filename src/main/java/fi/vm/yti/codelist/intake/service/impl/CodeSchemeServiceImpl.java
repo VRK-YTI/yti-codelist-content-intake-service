@@ -25,12 +25,12 @@ import org.springframework.stereotype.Service;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
-import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
-import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
+import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.InconsistencyInVersionHierarchyException;
@@ -39,13 +39,13 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.ExtensionScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
-import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
+import fi.vm.yti.codelist.intake.service.ExtensionService;
 import fi.vm.yti.codelist.intake.service.MemberService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -60,10 +60,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
     private final CodeSchemeDao codeSchemeDao;
     private final CodeSchemeParserImpl codeSchemeParser;
     private final CodeService codeService;
-    private final ExtensionSchemeService extensionSchemeService;
+    private final ExtensionService extensionService;
     private final MemberService memberService;
     private final CodeDao codeDao;
-    private final ExtensionSchemeDao extensionSchemeDao;
+    private final ExtensionDao extensionDao;
     private final ExternalReferenceDao externalReferenceDao;
     private final DtoMapperService dtoMapperService;
 
@@ -73,10 +73,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
                                  final CodeSchemeDao codeSchemeDao,
                                  final CodeSchemeParserImpl codeSchemeParser,
                                  final CodeService codeService,
-                                 final ExtensionSchemeService extensionSchemeService,
+                                 final ExtensionService extensionService,
                                  final MemberService memberService,
                                  final CodeDao codeDao,
-                                 final ExtensionSchemeDao extensionSchemeDao,
+                                 final ExtensionDao extensionDao,
                                  final ExternalReferenceDao externalReferenceDao,
                                  final DtoMapperService dtoMapperService) {
         this.codeRegistryDao = codeRegistryDao;
@@ -84,10 +84,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
         this.codeSchemeParser = codeSchemeParser;
         this.codeService = codeService;
         this.codeSchemeDao = codeSchemeDao;
-        this.extensionSchemeService = extensionSchemeService;
+        this.extensionService = extensionService;
         this.memberService = memberService;
         this.codeDao = codeDao;
-        this.extensionSchemeDao = extensionSchemeDao;
+        this.extensionDao = extensionDao;
         this.externalReferenceDao = externalReferenceDao;
         this.dtoMapperService = dtoMapperService;
     }
@@ -149,8 +149,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
                 case FORMAT_EXCEL:
                     try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
-                        final Map<CodeSchemeDTO, String> extensionSchemesSheetNames = new HashMap<>();
-                        final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionSchemesSheetNames);
+                        final Map<CodeSchemeDTO, String> extensionsSheetNames = new HashMap<>();
+                        final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionsSheetNames);
                         codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, false);
                         if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
                             final CodeScheme codeScheme = codeSchemes.iterator().next();
@@ -169,7 +169,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
                             });
                         }
                         if (codeSchemes != null && !codeSchemes.isEmpty()) {
-                            extensionSchemesSheetNames.forEach((codeSchemeDto, sheetName) -> {
+                            extensionsSheetNames.forEach((codeSchemeDto, sheetName) -> {
                                 for (final CodeScheme codeScheme : codeSchemes) {
                                     if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
                                         parseExtensionSchemes(workbook, sheetName, codeScheme);
@@ -199,13 +199,13 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
                                        final String sheetName,
                                        final CodeScheme codeScheme) {
         if (workbook.getSheet(sheetName) != null) {
-            final Map<ExtensionSchemeDTO, String> membersSheetNames = new HashMap<>();
-            final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromExcelWorkbook(codeScheme, workbook, sheetName, membersSheetNames);
-            if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
-                membersSheetNames.forEach((extensionSchemeDto, extensionSheetName) -> {
-                    final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeDto.getId());
-                    if (extensionScheme != null) {
-                        parseExtensions(workbook, extensionSheetName, extensionScheme);
+            final Map<ExtensionDTO, String> membersSheetNames = new HashMap<>();
+            final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromExcelWorkbook(codeScheme, workbook, sheetName, membersSheetNames);
+            if (extensions != null && !extensions.isEmpty()) {
+                membersSheetNames.forEach((extensionDto, extensionSheetName) -> {
+                    final Extension extension = extensionDao.findById(extensionDto.getId());
+                    if (extension != null) {
+                        parseExtensions(workbook, extensionSheetName, extension);
                     }
                 });
             }
@@ -214,9 +214,9 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
 
     private void parseExtensions(final Workbook workbook,
                                  final String sheetName,
-                                 final ExtensionScheme extensionScheme) {
+                                 final Extension extension) {
         if (workbook.getSheet(sheetName) != null) {
-            memberService.parseAndPersistMembersFromExcelWorkbook(extensionScheme, workbook, sheetName);
+            memberService.parseAndPersistMembersFromExcelWorkbook(extension, workbook, sheetName);
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
@@ -264,7 +264,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
             if (isServiceClassificationCodeScheme(codeScheme) || isLanguageCodeCodeScheme(codeScheme)) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_CANNOT_BE_DELETED));
             }
-            if (codeScheme.getRelatedExtensionSchemes() != null && !codeScheme.getRelatedExtensionSchemes().isEmpty()) {
+            if (codeScheme.getRelatedExtensions() != null && !codeScheme.getRelatedExtensions().isEmpty()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE));
             }
             if (codeScheme.getCodes() != null && !codeScheme.getCodes().isEmpty()) {

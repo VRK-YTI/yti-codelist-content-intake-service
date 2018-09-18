@@ -41,7 +41,7 @@ import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.model.ExtensionScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.parser.MemberParser;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -80,10 +80,10 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
     }
 
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public Set<MemberDTO> parseMembersFromCsvInputStream(final ExtensionScheme extensionScheme,
+    public Set<MemberDTO> parseMembersFromCsvInputStream(final Extension extension,
                                                          final InputStream inputStream) {
-        final boolean requiresMemberValue = hasMemberValue(extensionScheme);
-        final Set<MemberDTO> extensionSchemes = new LinkedHashSet<>();
+        final boolean requiresMemberValue = hasMemberValue(extension);
+        final Set<MemberDTO> extensions = new LinkedHashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -112,7 +112,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                     member.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 }
                 validateStartDateIsBeforeEndDate(member);
-                extensionSchemes.add(member);
+                extensions.add(member);
             }
         } catch (final IllegalArgumentException e) {
             LOG.error("Duplicate header value found in CSV!", e);
@@ -121,7 +121,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
             LOG.error("Error parsing CSV file!", e);
             throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
-        return extensionSchemes;
+        return extensions;
     }
 
     private MemberDTO createMemberWithCodeValue(final String codeValue) {
@@ -132,25 +132,25 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
         return refMember;
     }
 
-    public Set<MemberDTO> parseMembersFromExcelInputStream(final ExtensionScheme extensionScheme,
+    public Set<MemberDTO> parseMembersFromExcelInputStream(final Extension extension,
                                                            final InputStream inputStream,
                                                            final String sheetName) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-            return parseMembersFromExcelWorkbook(extensionScheme, workbook, sheetName);
+            return parseMembersFromExcelWorkbook(extension, workbook, sheetName);
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
     }
 
-    private boolean hasMemberValue(final ExtensionScheme extensionScheme) {
-        return extensionScheme.getPropertyType().getLocalName().equalsIgnoreCase(TYPE_CALCULATION_HIERARCHY);
+    private boolean hasMemberValue(final Extension extension) {
+        return extension.getPropertyType().getLocalName().equalsIgnoreCase(TYPE_CALCULATION_HIERARCHY);
     }
 
-    public Set<MemberDTO> parseMembersFromExcelWorkbook(final ExtensionScheme extensionScheme,
+    public Set<MemberDTO> parseMembersFromExcelWorkbook(final Extension extension,
                                                         final Workbook workbook,
                                                         final String sheetName) {
-        final boolean requireMemberValue = hasMemberValue(extensionScheme);
+        final boolean requireMemberValue = hasMemberValue(extension);
         final Set<MemberDTO> members = new LinkedHashSet<>();
         final DataFormatter formatter = new DataFormatter();
         Sheet sheet = workbook.getSheet(sheetName);

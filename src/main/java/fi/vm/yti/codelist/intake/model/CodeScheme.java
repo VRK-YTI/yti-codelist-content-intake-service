@@ -42,8 +42,8 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private Set<Code> dataClassifications;
     private Set<ExternalReference> externalReferences;
     private Set<Code> languageCodes;
-    private Set<ExtensionScheme> extensionSchemes;
-    private Set<ExtensionScheme> relatedExtensionSchemes;
+    private Set<Extension> extensions;
+    private Set<Extension> relatedExtensions;
     private String conceptUriInVocabularies;
     private Code defaultCode;
     private Set<CodeScheme> variants;
@@ -330,12 +330,12 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "parentCodeScheme", cascade = CascadeType.ALL)
-    public Set<ExtensionScheme> getExtensionSchemes() {
-        return extensionSchemes;
+    public Set<Extension> getExtensions() {
+        return extensions;
     }
 
-    public void setExtensionSchemes(final Set<ExtensionScheme> extensionSchemes) {
-        this.extensionSchemes = extensionSchemes;
+    public void setExtensions(final Set<Extension> extensions) {
+        this.extensions = extensions;
     }
 
     @Column(name = "next_codescheme_id")
@@ -408,16 +408,16 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinTable(name = "extensionscheme_codescheme",
+    @JoinTable(name = "extension_codescheme",
         joinColumns = {
             @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
         inverseJoinColumns = {
-            @JoinColumn(name = "extensionscheme_id", referencedColumnName = "id", nullable = false, updatable = false) })
-    public Set<ExtensionScheme> getRelatedExtensionSchemes() {
-        return relatedExtensionSchemes;
+            @JoinColumn(name = "extension_id", referencedColumnName = "id", nullable = false, updatable = false) })
+    public Set<Extension> getRelatedExtensions() {
+        return relatedExtensions;
     }
 
-    public void setRelatedExtensionSchemes(final Set<ExtensionScheme> relatedExtensionSchemes) {
-        this.relatedExtensionSchemes = relatedExtensionSchemes;
+    public void setRelatedExtensions(final Set<Extension> relatedExtensions) {
+        this.relatedExtensions = relatedExtensions;
     }
 }

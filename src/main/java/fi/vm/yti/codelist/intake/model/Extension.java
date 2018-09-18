@@ -23,8 +23,8 @@ import javax.persistence.Table;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
-@Table(name = "extensionscheme")
-public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatus implements Serializable {
+@Table(name = "extension")
+public class Extension extends AbstractHistoricalIdentifyableCodeWithStatus implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -45,7 +45,7 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
     }
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
-    @CollectionTable(name = "extensionscheme_preflabel", joinColumns = @JoinColumn(name = "extensionscheme_id", referencedColumnName = "id"))
+    @CollectionTable(name = "extension_preflabel", joinColumns = @JoinColumn(name = "extension_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn
@@ -79,9 +79,9 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
     }
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinTable(name = "extensionscheme_codescheme",
+    @JoinTable(name = "extension_codescheme",
         joinColumns = {
-            @JoinColumn(name = "extensionscheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
+            @JoinColumn(name = "extension_id", referencedColumnName = "id", nullable = false, updatable = false) },
         inverseJoinColumns = {
             @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) })
     public Set<CodeScheme> getCodeSchemes() {
@@ -102,7 +102,7 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
         this.propertyType = propertyType;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "extensionScheme", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "extension", cascade = CascadeType.ALL)
     public Set<Member> getMembers() {
         return members;
     }

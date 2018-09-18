@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
-import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
@@ -46,47 +46,47 @@ import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.parser.ExtensionSchemeParser;
+import fi.vm.yti.codelist.intake.parser.ExtensionParser;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
-public class ExtensionSchemeParserImpl extends AbstractBaseParser implements ExtensionSchemeParser {
+public class ExtensionParserImpl extends AbstractBaseParser implements ExtensionParser {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ExtensionSchemeParserImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ExtensionParserImpl.class);
 
-    public ExtensionSchemeDTO parseExtensionSchemeFromJson(final String jsonPayload) {
+    public ExtensionDTO parseExtensionFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final ExtensionSchemeDTO extensionScheme;
+        final ExtensionDTO extension;
         try {
-            extensionScheme = mapper.readValue(jsonPayload, ExtensionSchemeDTO.class);
-            validateStartDateIsBeforeEndDate(extensionScheme);
+            extension = mapper.readValue(jsonPayload, ExtensionDTO.class);
+            validateStartDateIsBeforeEndDate(extension);
         } catch (final IOException e) {
-            LOG.error("ExtensionScheme parsing failed from JSON!", e);
+            LOG.error("Extension parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
-        return extensionScheme;
+        return extension;
     }
 
     @Override
-    public Set<ExtensionSchemeDTO> parseExtensionSchemesFromJson(final String jsonPayload) {
+    public Set<ExtensionDTO> parseExtensionsFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final Set<ExtensionSchemeDTO> extensionSchemes;
+        final Set<ExtensionDTO> extensions;
         try {
-            extensionSchemes = mapper.readValue(jsonPayload, new TypeReference<Set<ExtensionSchemeDTO>>() {
+            extensions = mapper.readValue(jsonPayload, new TypeReference<Set<ExtensionDTO>>() {
             });
         } catch (final IOException e) {
             LOG.error("ExtensionSchemes parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
-        extensionSchemes.forEach(this::validateStartDateIsBeforeEndDate);
-        return extensionSchemes;
+        extensions.forEach(this::validateStartDateIsBeforeEndDate);
+        return extensions;
     }
 
     @Override
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public Set<ExtensionSchemeDTO> parseExtensionSchemesFromCsvInputStream(final InputStream inputStream) {
-        final Set<ExtensionSchemeDTO> extensionSchemes = new HashSet<>();
+    public Set<ExtensionDTO> parseExtensionsFromCsvInputStream(final InputStream inputStream) {
+        final Set<ExtensionDTO> extensions = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
@@ -97,15 +97,15 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
                 validateRequiredDataOnRecord(record);
-                final ExtensionSchemeDTO extensionScheme = new ExtensionSchemeDTO();
-                extensionScheme.setId(parseIdFromRecord(record));
+                final ExtensionDTO extension = new ExtensionDTO();
+                extension.setId(parseIdFromRecord(record));
                 final String codeValue = parseCodeValueFromRecord(record);
                 validateCodeValue(codeValue);
                 codeValues.add(codeValue.toLowerCase());
-                extensionScheme.setCodeValue(codeValue);
-                extensionScheme.setId(parseIdFromRecord(record));
+                extension.setCodeValue(codeValue);
+                extension.setId(parseIdFromRecord(record));
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
-                extensionScheme.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
+                extension.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 if (headerMap.containsKey(CONTENT_HEADER_CODESCHEMES)) {
                     final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
                     final List<String> uris = parseCodeSchemesFromRecord(record);
@@ -114,21 +114,21 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                         codeScheme.setUri(uri);
                         codeSchemes.add(codeScheme);
                     });
-                    extensionScheme.setCodeSchemes(codeSchemes);
+                    extension.setCodeSchemes(codeSchemes);
                 }
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
-                    extensionScheme.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    extension.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 }
                 if (record.isMapped(CONTENT_HEADER_ENDDATE)) {
-                    extensionScheme.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    extension.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 }
-                validateStartDateIsBeforeEndDate(extensionScheme);
-                extensionScheme.setStatus(parseStatusValueFromString(record.get(CONTENT_HEADER_STATUS)));
+                validateStartDateIsBeforeEndDate(extension);
+                extension.setStatus(parseStatusValueFromString(record.get(CONTENT_HEADER_STATUS)));
                 final String propertyTypeLocalName = record.get(CONTENT_HEADER_PROPERTYTYPE);
                 final PropertyTypeDTO propertyType = new PropertyTypeDTO();
                 propertyType.setLocalName(propertyTypeLocalName);
-                extensionScheme.setPropertyType(propertyType);
-                extensionSchemes.add(extensionScheme);
+                extension.setPropertyType(propertyType);
+                extensions.add(extension);
             }
         } catch (final IllegalArgumentException e) {
             LOG.error("Duplicate header value found in CSV!", e);
@@ -137,15 +137,15 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
             LOG.error("Error parsing CSV file!", e);
             throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
-        return extensionSchemes;
+        return extensions;
     }
 
     @Override
-    public Set<ExtensionSchemeDTO> parseExtensionSchemesFromExcelInputStream(final InputStream inputStream,
-                                                                             final String sheetName,
-                                                                             final Map<ExtensionSchemeDTO, String> membersSheetNames) {
+    public Set<ExtensionDTO> parseExtensionsFromExcelInputStream(final InputStream inputStream,
+                                                                 final String sheetName,
+                                                                 final Map<ExtensionDTO, String> membersSheetNames) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-            return parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, membersSheetNames);
+            return parseExtensionsFromExcelWorkbook(workbook, sheetName, membersSheetNames);
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
@@ -153,10 +153,10 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
     }
 
     @Override
-    public Set<ExtensionSchemeDTO> parseExtensionSchemesFromExcelWorkbook(final Workbook workbook,
-                                                                          final String sheetName,
-                                                                          final Map<ExtensionSchemeDTO, String> membersSheetNames) {
-        final Set<ExtensionSchemeDTO> extensionsSchemes = new HashSet<>();
+    public Set<ExtensionDTO> parseExtensionsFromExcelWorkbook(final Workbook workbook,
+                                                              final String sheetName,
+                                                              final Map<ExtensionDTO, String> membersSheetNames) {
+        final Set<ExtensionDTO> extensionsSchemes = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
         final DataFormatter formatter = new DataFormatter();
         Sheet sheet = workbook.getSheet(sheetName);
@@ -175,7 +175,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                 validateRequiredHeaders(headerMap);
             } else {
-                final ExtensionSchemeDTO extensionScheme = new ExtensionSchemeDTO();
+                final ExtensionDTO extension = new ExtensionDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).trim();
                 final String status = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)));
                 if (skipEmptyLine(codeValue, status)) {
@@ -185,10 +185,10 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 validateCodeValue(codeValue);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
-                extensionScheme.setCodeValue(codeValue);
-                extensionScheme.setStatus(parseStatusValueFromString(status));
+                extension.setCodeValue(codeValue);
+                extension.setStatus(parseStatusValueFromString(status));
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
-                    extensionScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
+                    extension.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_CODESCHEMES)) {
                     final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
@@ -200,27 +200,27 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                             codeSchemes.add(codeScheme);
                         }
                     });
-                    extensionScheme.setCodeSchemes(codeSchemes);
+                    extension.setCodeSchemes(codeSchemes);
                 }
-                extensionScheme.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
+                extension.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
-                    extensionScheme.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
+                    extension.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
-                    extensionScheme.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
+                    extension.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
                 }
-                validateStartDateIsBeforeEndDate(extensionScheme);
+                validateStartDateIsBeforeEndDate(extension);
                 final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE)));
                 final PropertyTypeDTO propertyType = new PropertyTypeDTO();
                 propertyType.setLocalName(propertyTypeLocalName);
-                extensionScheme.setPropertyType(propertyType);
+                extension.setPropertyType(propertyType);
                 if (headerMap.containsKey(CONTENT_HEADER_MEMBERSSHEET)) {
                     final String membersSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERSSHEET)));
                     if (membersSheetName != null && !membersSheetName.isEmpty()) {
-                        membersSheetNames.put(extensionScheme, membersSheetName);
+                        membersSheetNames.put(extension, membersSheetName);
                     }
                 }
-                extensionsSchemes.add(extensionScheme);
+                extensionsSchemes.add(extension);
             }
         }
         return extensionsSchemes;
@@ -258,8 +258,8 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
         }
     }
 
-    private void validateStartDateIsBeforeEndDate(final ExtensionSchemeDTO extensionScheme) {
-        if (!startDateIsBeforeEndDateSanityCheck(extensionScheme.getStartDate(), extensionScheme.getEndDate())) {
+    private void validateStartDateIsBeforeEndDate(final ExtensionDTO extension) {
+        if (!startDateIsBeforeEndDateSanityCheck(extension.getStartDate(), extension.getEndDate())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_END_BEFORE_START_DATE));
         }
     }

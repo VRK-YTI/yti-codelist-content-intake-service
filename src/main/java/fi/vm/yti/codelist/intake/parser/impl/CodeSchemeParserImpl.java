@@ -168,7 +168,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
     public Set<CodeSchemeDTO> parseCodeSchemesFromExcelWorkbook(final CodeRegistry codeRegistry,
                                                                 final Workbook workbook,
                                                                 final Map<CodeSchemeDTO, String> codesSheetNames,
-                                                                final Map<CodeSchemeDTO, String> extensionSchemesSheetNames) {
+                                                                final Map<CodeSchemeDTO, String> extensionsSheetNames) {
         final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
         final DataFormatter formatter = new DataFormatter();
@@ -256,10 +256,10 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
                     codeScheme.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
                 }
-                if (headerMap.containsKey(CONTENT_HEADER_EXTENSIONSCHEMESSHEET)) {
-                    final String extensionSchemesSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONSCHEMESSHEET)));
-                    if (extensionSchemesSheetName != null && !extensionSchemesSheetName.isEmpty()) {
-                        extensionSchemesSheetNames.put(codeScheme, extensionSchemesSheetName);
+                if (headerMap.containsKey(CONTENT_HEADER_EXTENSIONSSHEET)) {
+                    final String extensionsSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONSSHEET)));
+                    if (extensionsSheetName != null && !extensionsSheetName.isEmpty()) {
+                        extensionsSheetNames.put(codeScheme, extensionsSheetName);
                     }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_CODESSHEET)) {

@@ -17,13 +17,13 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
-import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
-import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
+import fi.vm.yti.codelist.intake.service.ExtensionService;
 import fi.vm.yti.codelist.intake.service.MemberService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -40,15 +40,15 @@ public class MemberResource implements AbstractBaseResource {
 
     private final Indexing indexing;
     private final MemberService memberService;
-    private final ExtensionSchemeService extensionSchemeService;
+    private final ExtensionService extensionService;
 
     @Inject
     public MemberResource(final Indexing indexing,
                           final MemberService memberService,
-                          final ExtensionSchemeService extensionSchemeService) {
+                          final ExtensionService extensionService) {
         this.indexing = indexing;
         this.memberService = memberService;
-        this.extensionSchemeService = extensionSchemeService;
+        this.extensionService = extensionService;
     }
 
     @POST
@@ -76,10 +76,10 @@ public class MemberResource implements AbstractBaseResource {
     public Response deleteMember(@ApiParam(value = "Member UUID", required = true) @PathParam("memberId") final UUID memberId) {
         final MemberDTO existingMember = memberService.findById(memberId);
         if (existingMember != null) {
-            final UUID extensionSchemeId = existingMember.getExtensionScheme().getId();
+            final UUID extensionId = existingMember.getExtension().getId();
             memberService.deleteMember(existingMember.getId());
             indexing.deleteMember(existingMember);
-            indexing.updateMembers(memberService.findByExtensionSchemeId(extensionSchemeId));
+            indexing.updateMembers(memberService.findByExtensionSchemeId(extensionId));
         } else {
             return Response.status(404).build();
         }
@@ -92,9 +92,9 @@ public class MemberResource implements AbstractBaseResource {
         final Set<MemberDTO> members = memberService.parseAndPersistMemberFromJson(jsonPayload);
         indexing.updateMembers(members);
         if (!members.isEmpty()) {
-            final ExtensionSchemeDTO extensionScheme = extensionSchemeService.findById(members.iterator().next().getExtensionScheme().getId());
-            if (extensionScheme != null) {
-                indexing.updateExtensionScheme(extensionScheme);
+            final ExtensionDTO extension = extensionService.findById(members.iterator().next().getExtension().getId());
+            if (extension != null) {
+                indexing.updateExtension(extension);
             }
         }
         final Meta meta = new Meta();

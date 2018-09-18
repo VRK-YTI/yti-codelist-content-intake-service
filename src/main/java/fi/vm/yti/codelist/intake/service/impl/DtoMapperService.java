@@ -13,7 +13,7 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
-import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
@@ -22,8 +22,8 @@ import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
-import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.model.PropertyType;
@@ -149,8 +149,8 @@ public class DtoMapperService {
             if (codeScheme.getExternalReferences() != null) {
                 codeSchemeDto.setExternalReferences(mapExternalReferenceDtos(codeScheme.getExternalReferences(), false));
             }
-            if (codeScheme.getExtensionSchemes() != null) {
-                codeSchemeDto.setExtensionSchemes(mapExtensionSchemeDtos(codeScheme.getExtensionSchemes(), false));
+            if (codeScheme.getExtensions() != null) {
+                codeSchemeDto.setExtensions(mapExtensionDtos(codeScheme.getExtensions(), false));
             }
         }
         if (!codeScheme.getVariants().isEmpty()) {
@@ -354,8 +354,8 @@ public class DtoMapperService {
             if (member.getBroaderMember() != null) {
                 memberDto.setBroaderMember(mapMemberDto(member.getBroaderMember(), false));
             }
-            if (member.getExtensionScheme() != null) {
-                memberDto.setExtensionScheme(mapExtensionSchemeDto(member.getExtensionScheme(), false, true, true));
+            if (member.getExtension() != null) {
+                memberDto.setExtension(mapExtensionDto(member.getExtension(), false, true, true));
             }
         }
         memberDto.setUrl(apiUtils.createMemberUrl(memberDto));
@@ -382,64 +382,64 @@ public class DtoMapperService {
     }
 
     @Transactional
-    public ExtensionSchemeDTO mapDeepExtensionSchemeDto(final ExtensionScheme extensionScheme) {
-        return mapExtensionSchemeDto(extensionScheme, true);
+    public ExtensionDTO mapDeepExtensionDto(final Extension extension) {
+        return mapExtensionDto(extension, true);
     }
 
     @Transactional
-    public ExtensionSchemeDTO mapExtensionSchemeDto(final ExtensionScheme extensionScheme) {
-        return mapExtensionSchemeDto(extensionScheme, false);
+    public ExtensionDTO mapExtensionDto(final Extension extension) {
+        return mapExtensionDto(extension, false);
     }
 
     @Transactional
-    public ExtensionSchemeDTO mapExtensionSchemeDto(final ExtensionScheme extensionScheme,
-                                                    final boolean deep) {
-        return mapExtensionSchemeDto(extensionScheme, deep, false, false);
+    public ExtensionDTO mapExtensionDto(final Extension extension,
+                                        final boolean deep) {
+        return mapExtensionDto(extension, deep, false, false);
     }
 
     @Transactional
-    public ExtensionSchemeDTO mapExtensionSchemeDto(final ExtensionScheme extensionScheme,
-                                                    final boolean deep,
-                                                    final boolean includeParentCodeScheme,
-                                                    final boolean includeCodeSchemes) {
-        final ExtensionSchemeDTO extensionSchemeDto = new ExtensionSchemeDTO();
-        extensionSchemeDto.setId(extensionScheme.getId());
-        extensionSchemeDto.setPropertyType(mapPropertyTypeDto(extensionScheme.getPropertyType()));
-        extensionSchemeDto.setPrefLabel(extensionScheme.getPrefLabel());
-        extensionSchemeDto.setStatus(extensionScheme.getStatus());
-        final String codeValue = extensionScheme.getCodeValue();
-        extensionSchemeDto.setCodeValue(codeValue);
-        extensionSchemeDto.setStartDate(extensionScheme.getStartDate());
-        extensionSchemeDto.setEndDate(extensionScheme.getEndDate());
-        if ((deep || includeParentCodeScheme) && extensionScheme.getParentCodeScheme() != null) {
-            extensionSchemeDto.setParentCodeScheme(mapCodeSchemeDto(extensionScheme.getParentCodeScheme(), false));
+    public ExtensionDTO mapExtensionDto(final Extension extension,
+                                        final boolean deep,
+                                        final boolean includeParentCodeScheme,
+                                        final boolean includeCodeSchemes) {
+        final ExtensionDTO extensionDto = new ExtensionDTO();
+        extensionDto.setId(extension.getId());
+        extensionDto.setPropertyType(mapPropertyTypeDto(extension.getPropertyType()));
+        extensionDto.setPrefLabel(extension.getPrefLabel());
+        extensionDto.setStatus(extension.getStatus());
+        final String codeValue = extension.getCodeValue();
+        extensionDto.setCodeValue(codeValue);
+        extensionDto.setStartDate(extension.getStartDate());
+        extensionDto.setEndDate(extension.getEndDate());
+        if ((deep || includeParentCodeScheme) && extension.getParentCodeScheme() != null) {
+            extensionDto.setParentCodeScheme(mapCodeSchemeDto(extension.getParentCodeScheme(), false));
         }
-        if ((deep || includeCodeSchemes) && extensionScheme.getCodeSchemes() != null) {
-            extensionSchemeDto.setCodeSchemes(mapCodeSchemeDtos(extensionScheme.getCodeSchemes(), false));
+        if ((deep || includeCodeSchemes) && extension.getCodeSchemes() != null) {
+            extensionDto.setCodeSchemes(mapCodeSchemeDtos(extension.getCodeSchemes(), false));
         }
 
-        if (deep && extensionScheme.getMembers() != null) {
-            extensionSchemeDto.setMembers(mapMemberDtos(extensionScheme.getMembers(), false));
+        if (deep && extension.getMembers() != null) {
+            extensionDto.setMembers(mapMemberDtos(extension.getMembers(), false));
         }
-        extensionSchemeDto.setUrl(apiUtils.createExtensionSchemeUrl(extensionScheme.getParentCodeScheme().getCodeRegistry().getCodeValue(), extensionScheme.getParentCodeScheme().getCodeValue(), codeValue));
-        extensionSchemeDto.setCreated(extensionScheme.getCreated());
-        extensionSchemeDto.setModified(extensionScheme.getModified());
-        return extensionSchemeDto;
+        extensionDto.setUrl(apiUtils.createExtensionUrl(extension.getParentCodeScheme().getCodeRegistry().getCodeValue(), extension.getParentCodeScheme().getCodeValue(), codeValue));
+        extensionDto.setCreated(extension.getCreated());
+        extensionDto.setModified(extension.getModified());
+        return extensionDto;
     }
 
     @Transactional
-    public Set<ExtensionSchemeDTO> mapDeepExtensionSchemeDtos(final Set<ExtensionScheme> extensionSchemes) {
-        return mapExtensionSchemeDtos(extensionSchemes, true);
+    public Set<ExtensionDTO> mapDeepExtensionDtos(final Set<Extension> extensions) {
+        return mapExtensionDtos(extensions, true);
     }
 
     @Transactional
-    public Set<ExtensionSchemeDTO> mapExtensionSchemeDtos(final Set<ExtensionScheme> extensionSchemes,
-                                                          final boolean deep) {
-        final Set<ExtensionSchemeDTO> extensionSchemeDtos = new HashSet<>();
-        if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
-            extensionSchemes.forEach(extensionScheme -> extensionSchemeDtos.add(mapExtensionSchemeDto(extensionScheme, deep)));
+    public Set<ExtensionDTO> mapExtensionDtos(final Set<Extension> extensions,
+                                              final boolean deep) {
+        final Set<ExtensionDTO> extensionDtos = new HashSet<>();
+        if (extensions != null && !extensions.isEmpty()) {
+            extensions.forEach(extension -> extensionDtos.add(mapExtensionDto(extension, deep)));
         }
-        return extensionSchemeDtos;
+        return extensionDtos;
     }
 
     @Transactional

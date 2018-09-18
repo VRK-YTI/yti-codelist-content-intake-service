@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import fi.vm.yti.codelist.common.dto.MemberDTO;
-import fi.vm.yti.codelist.intake.model.ExtensionScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
 
 public interface MemberService {
 
@@ -23,13 +23,13 @@ public interface MemberService {
 
     Set<MemberDTO> parseAndPersistMembersFromSourceData(final String codeRegistryCodeValue,
                                                         final String codeSchemeCodeValue,
-                                                        final String extensionSchemeCodeValue,
+                                                        final String extensionCodeValue,
                                                         final String format,
                                                         final InputStream inputStream,
                                                         final String jsonPayload,
                                                         final String sheetname);
 
-    Set<MemberDTO> parseAndPersistMembersFromExcelWorkbook(final ExtensionScheme extensionScheme,
+    Set<MemberDTO> parseAndPersistMembersFromExcelWorkbook(final Extension extension,
                                                            final Workbook workbook,
                                                            final String sheetName);
 }

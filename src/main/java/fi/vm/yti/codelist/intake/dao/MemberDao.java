@@ -4,8 +4,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import fi.vm.yti.codelist.common.dto.MemberDTO;
+import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
-import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 
 public interface MemberDao {
 
@@ -25,11 +25,11 @@ public interface MemberDao {
 
     Set<Member> findByBroaderMemberId(final UUID id);
 
-    Set<Member> findByExtensionSchemeId(final UUID id);
+    Set<Member> findByExtensionId(final UUID id);
 
-    Set<Member> updateMemberEntityFromDto(final ExtensionScheme extensionScheme,
+    Set<Member> updateMemberEntityFromDto(final Extension extension,
                                           final MemberDTO memberDto);
 
-    Set<Member> updateMemberEntitiesFromDtos(final ExtensionScheme extensionScheme,
+    Set<Member> updateMemberEntitiesFromDtos(final Extension extension,
                                              final Set<MemberDTO> memberDtos);
 }
