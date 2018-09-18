@@ -25,7 +25,7 @@ import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
@@ -180,28 +180,28 @@ public class CloningServiceImpl implements CloningService {
         copy.setPropertyType(original.getPropertyType());
         copy.setPrefLabel(original.getPrefLabel());
         copy.setCodeSchemes(original.getCodeSchemes());
-        final Set<Extension> newExtensions = new HashSet<>();
+        final Set<Member> newMembers = new HashSet<>();
         final Date timeStamp = new Date(System.currentTimeMillis());
-        for (final Extension orig : original.getExtensions()) {
-            final Extension newExtension = new Extension();
-            getCodeForExtension(newCodes, orig, newExtension);
-            newExtension.setId(UUID.randomUUID());
-            newExtension.setExtensionScheme(copy);
-            newExtension.setExtension(orig.getExtension());
-            newExtension.setOrder(orig.getOrder());
-            newExtension.setExtensionValue(orig.getExtensionValue());
-            newExtension.setPrefLabel(orig.getPrefLabel());
-            newExtension.setCreated(timeStamp);
-            newExtension.setModified(timeStamp);
-            newExtensions.add(newExtension);
+        for (final Member orig : original.getMembers()) {
+            final Member newMember = new Member();
+            getCodeForExtension(newCodes, orig, newMember);
+            newMember.setId(UUID.randomUUID());
+            newMember.setExtensionScheme(copy);
+            newMember.setBroaderMember(orig.getBroaderMember());
+            newMember.setOrder(orig.getOrder());
+            newMember.setMemberValue(orig.getMemberValue());
+            newMember.setPrefLabel(orig.getPrefLabel());
+            newMember.setCreated(timeStamp);
+            newMember.setModified(timeStamp);
+            newMembers.add(newMember);
         }
         copy.setCreated(timeStamp);
         copy.setModified(timeStamp);
-        copy.setExtensions(newExtensions);
+        copy.setMembers(newMembers);
         return copy;
     }
 
-    private void getCodeForExtension(final Set<Code> newCodes, final Extension orig, final Extension newExtension) {
+    private void getCodeForExtension(final Set<Code> newCodes, final Member orig, final Member newMember) {
         String codeValueOfTheOriginalCodeInTheExtension = orig.getCode().getCodeValue();
         Optional<Code> desiredCodeToPopulateIntoTheNewExtension = null;
         desiredCodeToPopulateIntoTheNewExtension =
@@ -210,7 +210,7 @@ public class CloningServiceImpl implements CloningService {
                                 code.getCodeValue().equals(codeValueOfTheOriginalCodeInTheExtension))
                         .findFirst();
         if (desiredCodeToPopulateIntoTheNewExtension.isPresent()) {
-            newExtension.setCode(desiredCodeToPopulateIntoTheNewExtension.get());
+            newMember.setCode(desiredCodeToPopulateIntoTheNewExtension.get());
         }
     }
 
@@ -344,7 +344,7 @@ public class CloningServiceImpl implements CloningService {
             }
         });
         copy.setExternalReferences(externalReferences);
-        copy.setExtensions(original.getExtensions());
+        copy.setMembers(original.getMembers());
         copy.setStatus(Status.DRAFT.toString());
         copy.setEndDate(original.getEndDate());
         copy.setStartDate(original.getStartDate());

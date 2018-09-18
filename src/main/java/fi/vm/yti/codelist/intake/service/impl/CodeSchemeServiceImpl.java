@@ -46,7 +46,7 @@ import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
-import fi.vm.yti.codelist.intake.service.ExtensionService;
+import fi.vm.yti.codelist.intake.service.MemberService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
@@ -61,7 +61,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
     private final CodeSchemeParserImpl codeSchemeParser;
     private final CodeService codeService;
     private final ExtensionSchemeService extensionSchemeService;
-    private final ExtensionService extensionService;
+    private final MemberService memberService;
     private final CodeDao codeDao;
     private final ExtensionSchemeDao extensionSchemeDao;
     private final ExternalReferenceDao externalReferenceDao;
@@ -74,7 +74,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
                                  final CodeSchemeParserImpl codeSchemeParser,
                                  final CodeService codeService,
                                  final ExtensionSchemeService extensionSchemeService,
-                                 final ExtensionService extensionService,
+                                 final MemberService memberService,
                                  final CodeDao codeDao,
                                  final ExtensionSchemeDao extensionSchemeDao,
                                  final ExternalReferenceDao externalReferenceDao,
@@ -85,7 +85,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
         this.codeService = codeService;
         this.codeSchemeDao = codeSchemeDao;
         this.extensionSchemeService = extensionSchemeService;
-        this.extensionService = extensionService;
+        this.memberService = memberService;
         this.codeDao = codeDao;
         this.extensionSchemeDao = extensionSchemeDao;
         this.externalReferenceDao = externalReferenceDao;
@@ -199,10 +199,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
                                        final String sheetName,
                                        final CodeScheme codeScheme) {
         if (workbook.getSheet(sheetName) != null) {
-            final Map<ExtensionSchemeDTO, String> extensionsSheetNames = new HashMap<>();
-            final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromExcelWorkbook(codeScheme, workbook, sheetName, extensionsSheetNames);
+            final Map<ExtensionSchemeDTO, String> membersSheetNames = new HashMap<>();
+            final Set<ExtensionSchemeDTO> extensionSchemes = extensionSchemeService.parseAndPersistExtensionSchemesFromExcelWorkbook(codeScheme, workbook, sheetName, membersSheetNames);
             if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
-                extensionsSheetNames.forEach((extensionSchemeDto, extensionSheetName) -> {
+                membersSheetNames.forEach((extensionSchemeDto, extensionSheetName) -> {
                     final ExtensionScheme extensionScheme = extensionSchemeDao.findById(extensionSchemeDto.getId());
                     if (extensionScheme != null) {
                         parseExtensions(workbook, extensionSheetName, extensionScheme);
@@ -216,7 +216,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
                                  final String sheetName,
                                  final ExtensionScheme extensionScheme) {
         if (workbook.getSheet(sheetName) != null) {
-            extensionService.parseAndPersistExtensionsFromExcelWorkbook(extensionScheme, workbook, sheetName);
+            memberService.parseAndPersistMembersFromExcelWorkbook(extensionScheme, workbook, sheetName);
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
@@ -270,7 +270,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
             if (codeScheme.getCodes() != null && !codeScheme.getCodes().isEmpty()) {
                 final Set<Code> codes = codeScheme.getCodes();
                 codes.forEach(code -> {
-                    if (code.getExtensions() != null && !code.getExtensions().isEmpty()) {
+                    if (code.getMembers() != null && !code.getMembers().isEmpty()) {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE));
                     }
                 });

@@ -29,8 +29,8 @@ public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String>
     Set<CodeScheme> findAll();
 
     @Query("select cs from CodeScheme cs " +
-            "left join fetch cs.codes cod left join fetch cod.externalReferences er left join fetch cod.extensions ext " +
-            "left join fetch cs.dataClassifications clas left join fetch clas.externalReferences clasExtRef left join fetch clas.extensions clasExt " +
+            "left join fetch cs.codes cod left join fetch cod.externalReferences er left join fetch cod.members ext " +
+            "left join fetch cs.dataClassifications clas left join fetch clas.externalReferences clasExtRef left join fetch clas.members clasExt " +
             "left join fetch cs.codeRegistry cr left join fetch cr.organizations org " +
             "where cs.id = ?1")
     CodeScheme findCodeSchemeAndEagerFetchTheChildren(final UUID id);

@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
@@ -36,7 +35,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     private Map<String, String> description;
     private Map<String, String> definition;
     private Set<ExternalReference> externalReferences;
-    private Set<Extension> extensions;
+    private Set<Member> members;
     private Code broaderCode;
     private Integer order;
     private String conceptUriInVocabularies;
@@ -210,12 +209,12 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "code", cascade = CascadeType.ALL)
-    public Set<Extension> getExtensions() {
-        return extensions;
+    public Set<Member> getMembers() {
+        return members;
     }
 
-    public void setExtensions(final Set<Extension> extensions) {
-        this.extensions = extensions;
+    public void setMembers(final Set<Member> members) {
+        this.members = members;
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)

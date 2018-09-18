@@ -15,7 +15,7 @@ import fi.vm.yti.codelist.intake.model.AbstractIdentifyableCode;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.security.AuthenticatedUserProvider;
@@ -60,8 +60,8 @@ public class AuthorizationManagerImpl implements AuthorizationManager {
         return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(extensionScheme.getStatus()).ordinal() <= Status.VALID.ordinal());
     }
 
-    public boolean canExtensionBeDeleted(final Extension extension) {
-        final ExtensionScheme extensionScheme = extension.getExtensionScheme();
+    public boolean canExtensionBeDeleted(final Member member) {
+        final ExtensionScheme extensionScheme = member.getExtensionScheme();
         final Collection<UUID> organizationIds = extensionScheme.getParentCodeScheme().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(extensionScheme.getStatus()).ordinal() <= Status.VALID.ordinal());

@@ -18,9 +18,9 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
+import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
-import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -49,25 +49,25 @@ public class ExtensionSchemeResource implements AbstractBaseResource {
     @Path("{extensionSchemeId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses and creates or updates Extensions from JSON input.")
+    @ApiOperation(value = "Parses and creates or updates ExtensionSchemes from JSON input.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Returns success.")
     })
-    public Response addOrUpdateExtensionsFromJson(@ApiParam(value = "ExtensionScheme UUID", required = true) @PathParam("extensionSchemeId") final UUID extensionSchemeId,
-                                                  @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload) {
-        return parseAndPersistExtensionFromSource(extensionSchemeId, jsonPayload);
+    public Response addOrUpdateExtensionSchemesFromJson(@ApiParam(value = "ExtensionScheme UUID", required = true) @PathParam("extensionSchemeId") final UUID extensionSchemeId,
+                                                        @ApiParam(value = "JSON playload for ExtensionScheme data.", required = true) final String jsonPayload) {
+        return parseAndPersistExtensionSchemeFromSource(extensionSchemeId, jsonPayload);
     }
 
-    private Response parseAndPersistExtensionFromSource(final UUID extensionSchemeId,
-                                                        final String jsonPayload) {
-        final ExtensionSchemeDTO extension = extensionSchemeService.parseAndPersistExtensionSchemeFromJson(extensionSchemeId, jsonPayload);
+    private Response parseAndPersistExtensionSchemeFromSource(final UUID extensionSchemeId,
+                                                              final String jsonPayload) {
+        final ExtensionSchemeDTO extensionScheme = extensionSchemeService.parseAndPersistExtensionSchemeFromJson(extensionSchemeId, jsonPayload);
         final Set<ExtensionSchemeDTO> extensionSchemes = new HashSet<>();
-        extensionSchemes.add(extension);
+        extensionSchemes.add(extensionScheme);
         indexing.updateExtensionSchemes(extensionSchemes);
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSIONSCHEME, "extensionScheme")));
         final ResponseWrapper<ExtensionSchemeDTO> responseWrapper = new ResponseWrapper<>(meta);
-        meta.setMessage("ExtensionScheme extensions added or modified.");
+        meta.setMessage("ExtensionSchemes added or modified.");
         meta.setCode(200);
         responseWrapper.setResults(extensionSchemes);
         return Response.ok(responseWrapper).build();

@@ -28,7 +28,7 @@ import fi.vm.yti.codelist.common.dto.AbstractIdentifyableCodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
-import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
@@ -41,7 +41,7 @@ import fi.vm.yti.codelist.intake.service.CodeRegistryService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
-import fi.vm.yti.codelist.intake.service.ExtensionService;
+import fi.vm.yti.codelist.intake.service.MemberService;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
@@ -62,7 +62,7 @@ public class IndexingImpl implements Indexing {
     private static final String NAME_EXTERNALREFERENCES = "ExternalReferences";
     private static final String NAME_PROPERTYTYPES = "PropertyTypes";
     private static final String NAME_EXTENSIONSCHEMES = "ExtensionSchemes";
-    private static final String NAME_EXTENSIONS = "Extensions";
+    private static final String NAME_MEMBERS = "Members";
     private static final String BULK = "ElasticSearch bulk: ";
     private static final int MAX_PAGE_COUNT = 2000;
 
@@ -73,7 +73,7 @@ public class IndexingImpl implements Indexing {
     private final ExternalReferenceService externalReferenceService;
     private final PropertyTypeService propertyTypeService;
     private final ExtensionSchemeService extensionSchemeService;
-    private final ExtensionService extensionService;
+    private final MemberService memberService;
     private final Client client;
     private final IndexingTools indexingTools;
     private boolean hasError;
@@ -89,7 +89,7 @@ public class IndexingImpl implements Indexing {
                         final ExternalReferenceService externalReferenceService,
                         final PropertyTypeService propertyTypeService,
                         final ExtensionSchemeService extensionSchemeService,
-                        final ExtensionService extensionService) {
+                        final MemberService memberService) {
         this.indexingTools = indexingTools;
         this.client = client;
         this.indexStatusRepository = indexStatusRepository;
@@ -99,7 +99,7 @@ public class IndexingImpl implements Indexing {
         this.externalReferenceService = externalReferenceService;
         this.propertyTypeService = propertyTypeService;
         this.extensionSchemeService = extensionSchemeService;
-        this.extensionService = extensionService;
+        this.memberService = memberService;
     }
 
     private boolean indexCodeRegistries(final String indexName) {
@@ -160,9 +160,9 @@ public class IndexingImpl implements Indexing {
         return indexData(extensionSchemes, indexName, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES, Views.ExtendedExtensionScheme.class);
     }
 
-    private boolean indexExtensions(final String indexName) {
-        final Set<ExtensionDTO> extensions = extensionService.findAll();
-        return indexData(extensions, indexName, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
+    private boolean indexMembers(final String indexName) {
+        final Set<MemberDTO> members = memberService.findAll();
+        return indexData(members, indexName, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
     }
 
     private <T> boolean deleteData(final Set<T> set,
@@ -279,14 +279,14 @@ public class IndexingImpl implements Indexing {
         return extensionSchemes.isEmpty() || deleteData(extensionSchemes, ELASTIC_INDEX_EXTENSIONSCHEME, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES);
     }
 
-    public boolean deleteExtension(final ExtensionDTO extension) {
-        final Set<ExtensionDTO> extensions = new HashSet<>();
-        extensions.add(extension);
-        return deleteExtensions(extensions);
+    public boolean deleteMember(final MemberDTO extension) {
+        final Set<MemberDTO> members = new HashSet<>();
+        members.add(extension);
+        return deleteMembers(members);
     }
 
-    public boolean deleteExtensions(final Set<ExtensionDTO> extensions) {
-        return extensions.isEmpty() || deleteData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS);
+    public boolean deleteMembers(final Set<MemberDTO> members) {
+        return members.isEmpty() || deleteData(members, ELASTIC_INDEX_MEMBER, ELASTIC_TYPE_MEMBER, NAME_MEMBERS);
     }
 
     public boolean updateCode(final CodeDTO code) {
@@ -349,14 +349,14 @@ public class IndexingImpl implements Indexing {
         return extensionSchemes.isEmpty() || indexData(extensionSchemes, ELASTIC_INDEX_EXTENSIONSCHEME, ELASTIC_TYPE_EXTENSIONSCHEME, NAME_EXTENSIONSCHEMES, Views.ExtendedExtensionScheme.class);
     }
 
-    public boolean updateExtension(final ExtensionDTO extension) {
-        final Set<ExtensionDTO> extensions = new HashSet<>();
-        extensions.add(extension);
-        return updateExtensions(extensions);
+    public boolean updateMember(final MemberDTO member) {
+        final Set<MemberDTO> members = new HashSet<>();
+        members.add(member);
+        return updateMembers(members);
     }
 
-    public boolean updateExtensions(final Set<ExtensionDTO> extensions) {
-        return extensions.isEmpty() || indexData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
+    public boolean updateMembers(final Set<MemberDTO> members) {
+        return members.isEmpty() || indexData(members, ELASTIC_INDEX_MEMBER, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
     }
 
     public void reIndexEverythingIfNecessary() {
@@ -388,7 +388,7 @@ public class IndexingImpl implements Indexing {
         if (reIndex(ELASTIC_INDEX_EXTENSIONSCHEME, ELASTIC_INDEX_EXTENSIONSCHEME)) {
             success = false;
         }
-        if (reIndex(ELASTIC_INDEX_EXTENSION, ELASTIC_INDEX_EXTENSION)) {
+        if (reIndex(ELASTIC_INDEX_MEMBER, ELASTIC_INDEX_MEMBER)) {
             success = false;
         }
         return success;
@@ -449,8 +449,8 @@ public class IndexingImpl implements Indexing {
             case ELASTIC_INDEX_EXTENSIONSCHEME:
                 success = indexExtensionSchemes(indexName);
                 break;
-            case ELASTIC_INDEX_EXTENSION:
-                success = indexExtensions(indexName);
+            case ELASTIC_INDEX_MEMBER:
+                success = indexMembers(indexName);
                 break;
             default:
                 LOG.error(String.format("Index type: %s not supported.", indexAlias));

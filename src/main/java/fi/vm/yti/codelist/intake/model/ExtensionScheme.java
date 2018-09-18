@@ -32,7 +32,7 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
     private PropertyType propertyType;
     private CodeScheme parentCodeScheme;
     private Set<CodeScheme> codeSchemes;
-    private Set<Extension> extensions;
+    private Set<Member> members;
     private String codeValue;
 
     @Column(name = "codevalue")
@@ -103,12 +103,12 @@ public class ExtensionScheme extends AbstractHistoricalIdentifyableCodeWithStatu
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "extensionScheme", cascade = CascadeType.ALL)
-    public Set<Extension> getExtensions() {
-        return extensions;
+    public Set<Member> getMembers() {
+        return members;
     }
 
-    public void setExtensions(final Set<Extension> extensions) {
-        this.extensions = extensions;
+    public void setMembers(final Set<Member> members) {
+        this.members = members;
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)

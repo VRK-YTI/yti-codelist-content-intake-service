@@ -143,9 +143,9 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
     @Override
     public Set<ExtensionSchemeDTO> parseExtensionSchemesFromExcelInputStream(final InputStream inputStream,
                                                                              final String sheetName,
-                                                                             final Map<ExtensionSchemeDTO, String> extensionsSheetNames) {
+                                                                             final Map<ExtensionSchemeDTO, String> membersSheetNames) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-            return parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, extensionsSheetNames);
+            return parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, membersSheetNames);
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
@@ -155,7 +155,7 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
     @Override
     public Set<ExtensionSchemeDTO> parseExtensionSchemesFromExcelWorkbook(final Workbook workbook,
                                                                           final String sheetName,
-                                                                          final Map<ExtensionSchemeDTO, String> extensionsSheetNames) {
+                                                                          final Map<ExtensionSchemeDTO, String> membersSheetNames) {
         final Set<ExtensionSchemeDTO> extensionsSchemes = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
         final DataFormatter formatter = new DataFormatter();
@@ -214,10 +214,10 @@ public class ExtensionSchemeParserImpl extends AbstractBaseParser implements Ext
                 final PropertyTypeDTO propertyType = new PropertyTypeDTO();
                 propertyType.setLocalName(propertyTypeLocalName);
                 extensionScheme.setPropertyType(propertyType);
-                if (headerMap.containsKey(CONTENT_HEADER_EXTENSIONSSHEET)) {
-                    final String extensionsSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONSSHEET)));
-                    if (extensionsSheetName != null && !extensionsSheetName.isEmpty()) {
-                        extensionsSheetNames.put(extensionScheme, extensionsSheetName);
+                if (headerMap.containsKey(CONTENT_HEADER_MEMBERSSHEET)) {
+                    final String membersSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERSSHEET)));
+                    if (membersSheetName != null && !membersSheetName.isEmpty()) {
+                        membersSheetNames.put(extensionScheme, membersSheetName);
                     }
                 }
                 extensionsSchemes.add(extensionScheme);

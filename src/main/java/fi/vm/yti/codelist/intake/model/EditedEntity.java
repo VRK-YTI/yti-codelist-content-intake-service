@@ -22,7 +22,7 @@ public class EditedEntity {
     private ExternalReference externalReference;
     private PropertyType propertyType;
     private ExtensionScheme extensionScheme;
-    private Extension extension;
+    private Member member;
 
     public EditedEntity() {
     }
@@ -113,12 +113,12 @@ public class EditedEntity {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "extension_id")
-    public Extension getExtension() {
-        return extension;
+    @JoinColumn(name = "member_id")
+    public Member getMember() {
+        return member;
     }
 
-    public void setExtension(final Extension extension) {
-        this.extension = extension;
+    public void setMember(final Member member) {
+        this.member = member;
     }
 }

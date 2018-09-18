@@ -27,30 +27,30 @@ import io.swagger.annotations.ApiModelProperty;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
-@Table(name = "extension")
-public class Extension extends AbstractIdentifyableTimestampedCode implements Serializable {
+@Table(name = "member")
+public class Member extends AbstractIdentifyableTimestampedCode implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private String extensionValue;
+    private String memberValue;
     private Integer order;
     private Code code;
     private ExtensionScheme extensionScheme;
-    private Extension extension;
+    private Member broaderMember;
     private Map<String, String> prefLabel;
     private Date startDate;
     private Date endDate;
 
-    @Column(name = "extensionvalue")
-    public String getExtensionValue() {
-        return extensionValue;
+    @Column(name = "membervalue")
+    public String getMemberValue() {
+        return memberValue;
     }
 
-    public void setExtensionValue(final String extensionValue) {
-        this.extensionValue = extensionValue;
+    public void setMemberValue(final String memberValue) {
+        this.memberValue = memberValue;
     }
 
-    @Column(name = "extensionorder")
+    @Column(name = "memberorder")
     @JsonView(Views.Normal.class)
     public Integer getOrder() {
         return order;
@@ -61,7 +61,7 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JsonView(Views.ExtendedExtension.class)
+    @JsonView(Views.ExtendedMember.class)
     @JoinColumn(name = "code_id", nullable = false)
     public Code getCode() {
         return code;
@@ -82,17 +82,17 @@ public class Extension extends AbstractIdentifyableTimestampedCode implements Se
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinColumn(name = "extension_id")
-    public Extension getExtension() {
-        return extension;
+    @JoinColumn(name = "broadermember_id")
+    public Member getBroaderMember() {
+        return broaderMember;
     }
 
-    public void setExtension(final Extension extension) {
-        this.extension = extension;
+    public void setBroaderMember(final Member broaderMember) {
+        this.broaderMember = broaderMember;
     }
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
-    @CollectionTable(name = "extension_preflabel", joinColumns = @JoinColumn(name = "extension_id", referencedColumnName = "id"))
+    @CollectionTable(name = "member_preflabel", joinColumns = @JoinColumn(name = "member_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
     @OrderColumn

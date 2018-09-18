@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
-import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
@@ -42,77 +42,77 @@ import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
-import fi.vm.yti.codelist.intake.parser.ExtensionParser;
+import fi.vm.yti.codelist.intake.parser.MemberParser;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
-public class ExtensionParserImpl extends AbstractBaseParser implements ExtensionParser {
+public class MemberParserImpl extends AbstractBaseParser implements MemberParser {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ExtensionParserImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MemberParserImpl.class);
     private static final String TYPE_CALCULATION_HIERARCHY = "calculationHierarchy";
 
-    public ExtensionDTO parseExtensionFromJson(final String jsonPayload) {
+    public MemberDTO parseMemberFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final ExtensionDTO extension;
+        final MemberDTO extension;
         try {
-            extension = mapper.readValue(jsonPayload, ExtensionDTO.class);
+            extension = mapper.readValue(jsonPayload, MemberDTO.class);
             validateStartDateIsBeforeEndDate(extension);
         } catch (final IOException e) {
-            LOG.error("Extension parsing failed from JSON!", e);
+            LOG.error("Member parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
         return extension;
     }
 
-    public Set<ExtensionDTO> parseExtensionsFromJson(final String jsonPayload) {
+    public Set<MemberDTO> parseMembersFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final Set<ExtensionDTO> extensions;
+        final Set<MemberDTO> members;
         try {
-            extensions = mapper.readValue(jsonPayload, new TypeReference<Set<ExtensionDTO>>() {
+            members = mapper.readValue(jsonPayload, new TypeReference<Set<MemberDTO>>() {
             });
         } catch (final IOException e) {
-            LOG.error("Extension parsing failed from JSON!", e);
+            LOG.error("Member parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
-        extensions.forEach(this::validateStartDateIsBeforeEndDate);
-        return extensions;
+        members.forEach(this::validateStartDateIsBeforeEndDate);
+        return members;
     }
 
     @SuppressFBWarnings("UC_USELESS_OBJECT")
-    public Set<ExtensionDTO> parseExtensionsFromCsvInputStream(final ExtensionScheme extensionScheme,
-                                                               final InputStream inputStream) {
-        final boolean requiresExtensionValue = hasExtensionValue(extensionScheme);
-        final Set<ExtensionDTO> extensionSchemes = new LinkedHashSet<>();
+    public Set<MemberDTO> parseMembersFromCsvInputStream(final ExtensionScheme extensionScheme,
+                                                         final InputStream inputStream) {
+        final boolean requiresMemberValue = hasMemberValue(extensionScheme);
+        final Set<MemberDTO> extensionSchemes = new LinkedHashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
             final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
-            validateRequiredHeaders(requiresExtensionValue, headerMap);
+            validateRequiredHeaders(requiresMemberValue, headerMap);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
-                validateRequiredDataOnRecord(requiresExtensionValue, record);
-                final ExtensionDTO extension = new ExtensionDTO();
-                extension.setId(parseIdFromRecord(record));
-                extension.setOrder(resolveOrderFromCsvRecord(record));
-                extension.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
-                if (requiresExtensionValue) {
-                    extension.setExtensionValue(parseExtensionValueFromCsvRecord(record));
+                validateRequiredDataOnRecord(requiresMemberValue, record);
+                final MemberDTO member = new MemberDTO();
+                member.setId(parseIdFromRecord(record));
+                member.setOrder(resolveOrderFromCsvRecord(record));
+                member.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
+                if (requiresMemberValue) {
+                    member.setMemberValue(parseMemberValueFromCsvRecord(record));
                 }
-                extension.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
-                final String relationCodeValue = parseExtensionRelationFromCsvRecord(record);
+                member.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                final String relationCodeValue = parseMemberRelationFromCsvRecord(record);
                 if (relationCodeValue != null) {
-                    extension.setExtension(createExtensionWithCodeValue(relationCodeValue));
+                    member.setBroaderMember(createMemberWithCodeValue(relationCodeValue));
                 }
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
-                    extension.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    member.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 }
                 if (record.isMapped(CONTENT_HEADER_ENDDATE)) {
-                    extension.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    member.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 }
-                validateStartDateIsBeforeEndDate(extension);
-                extensionSchemes.add(extension);
+                validateStartDateIsBeforeEndDate(member);
+                extensionSchemes.add(member);
             }
         } catch (final IllegalArgumentException e) {
             LOG.error("Duplicate header value found in CSV!", e);
@@ -124,34 +124,34 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         return extensionSchemes;
     }
 
-    private ExtensionDTO createExtensionWithCodeValue(final String codeValue) {
-        final ExtensionDTO refExtension = new ExtensionDTO();
+    private MemberDTO createMemberWithCodeValue(final String codeValue) {
+        final MemberDTO refMember = new MemberDTO();
         final CodeDTO refCode = new CodeDTO();
         refCode.setCodeValue(codeValue);
-        refExtension.setCode(refCode);
-        return refExtension;
+        refMember.setCode(refCode);
+        return refMember;
     }
 
-    public Set<ExtensionDTO> parseExtensionsFromExcelInputStream(final ExtensionScheme extensionScheme,
-                                                                 final InputStream inputStream,
-                                                                 final String sheetName) {
+    public Set<MemberDTO> parseMembersFromExcelInputStream(final ExtensionScheme extensionScheme,
+                                                           final InputStream inputStream,
+                                                           final String sheetName) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-            return parseExtensionsFromExcelWorkbook(extensionScheme, workbook, sheetName);
+            return parseMembersFromExcelWorkbook(extensionScheme, workbook, sheetName);
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
     }
 
-    private boolean hasExtensionValue(final ExtensionScheme extensionScheme) {
+    private boolean hasMemberValue(final ExtensionScheme extensionScheme) {
         return extensionScheme.getPropertyType().getLocalName().equalsIgnoreCase(TYPE_CALCULATION_HIERARCHY);
     }
 
-    public Set<ExtensionDTO> parseExtensionsFromExcelWorkbook(final ExtensionScheme extensionScheme,
-                                                              final Workbook workbook,
-                                                              final String sheetName) {
-        final boolean requireExtensionValue = hasExtensionValue(extensionScheme);
-        final Set<ExtensionDTO> extensions = new LinkedHashSet<>();
+    public Set<MemberDTO> parseMembersFromExcelWorkbook(final ExtensionScheme extensionScheme,
+                                                        final Workbook workbook,
+                                                        final String sheetName) {
+        final boolean requireMemberValue = hasMemberValue(extensionScheme);
+        final Set<MemberDTO> members = new LinkedHashSet<>();
         final DataFormatter formatter = new DataFormatter();
         Sheet sheet = workbook.getSheet(sheetName);
         if (sheet == null) {
@@ -170,47 +170,47 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 firstRow = false;
                 headerMap = resolveHeaderMap(row);
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
-                validateRequiredHeaders(requireExtensionValue, headerMap);
+                validateRequiredHeaders(requireMemberValue, headerMap);
             } else {
-                final ExtensionDTO extension = new ExtensionDTO();
+                final MemberDTO member = new MemberDTO();
                 final String codeIdentifier = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
-                extension.setCode(createCodeUsingIdentifier(codeIdentifier, String.valueOf(row.getRowNum())));
-                validateRequiredDataOnRow(requireExtensionValue, row, headerMap, formatter);
+                member.setCode(createCodeUsingIdentifier(codeIdentifier, String.valueOf(row.getRowNum())));
+                validateRequiredDataOnRow(requireMemberValue, row, headerMap, formatter);
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
-                    extension.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
+                    member.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
-                extension.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
-                extension.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
-                if (requireExtensionValue) {
-                    extension.setExtensionValue(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))));
+                member.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
+                member.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
+                if (requireMemberValue) {
+                    member.setMemberValue(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE))));
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {
                     final String relationCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
                     if (relationCodeValue != null && !relationCodeValue.isEmpty()) {
-                        extension.setExtension(createExtensionWithCodeValue(relationCodeValue));
+                        member.setBroaderMember(createMemberWithCodeValue(relationCodeValue));
                     }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
-                    extension.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
+                    member.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
-                    extension.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
+                    member.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
                 }
-                validateStartDateIsBeforeEndDate(extension);
-                extensions.add(extension);
+                validateStartDateIsBeforeEndDate(member);
+                members.add(member);
             }
         }
-        return extensions;
+        return members;
     }
 
-    private void validateRequiredDataOnRow(final boolean requireExtensionValue,
+    private void validateRequiredDataOnRow(final boolean requireMemberValue,
                                            final Row row,
                                            final Map<String, Integer> headerMap,
                                            final DataFormatter formatter) {
-        if (requireExtensionValue && (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))) == null ||
-            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONVALUE))).isEmpty())) {
+        if (requireMemberValue && (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE))) == null ||
+            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE))).isEmpty())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE, String.valueOf(row.getRowNum() + 1)));
+                ERR_MSG_USER_ROW_MISSING_MEMBERVALUE, String.valueOf(row.getRowNum() + 1)));
         }
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE))).isEmpty()) {
@@ -219,11 +219,11 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         }
     }
 
-    private void validateRequiredDataOnRecord(final boolean requireExtensionValue,
+    private void validateRequiredDataOnRecord(final boolean requireMemberValue,
                                               final CSVRecord record) {
-        if (requireExtensionValue && (record.get(CONTENT_HEADER_EXTENSIONVALUE) == null || record.get(CONTENT_HEADER_EXTENSIONVALUE).isEmpty())) {
+        if (requireMemberValue && (record.get(CONTENT_HEADER_MEMBERVALUE) == null || record.get(CONTENT_HEADER_MEMBERVALUE).isEmpty())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_EXTENSIONVALUE, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_MEMBERVALUE, String.valueOf(record.getRecordNumber() + 1)));
         }
         if (record.get(CONTENT_HEADER_CODE) == null || record.get(CONTENT_HEADER_CODE).isEmpty()) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
@@ -231,11 +231,11 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         }
     }
 
-    private void validateRequiredHeaders(final boolean requiresExtensionValue,
+    private void validateRequiredHeaders(final boolean requiresMamberValue,
                                          final Map<String, Integer> headerMap) {
-        if (requiresExtensionValue && !headerMap.containsKey(CONTENT_HEADER_EXTENSIONVALUE)) {
+        if (requiresMamberValue && !headerMap.containsKey(CONTENT_HEADER_MEMBERVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_MISSING_HEADER_EXTENSIONVALUE));
+                ERR_MSG_USER_MISSING_HEADER_MEMBERVALUE));
         }
         if (!headerMap.containsKey(CONTENT_HEADER_ORDER)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
@@ -264,16 +264,16 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         return code;
     }
 
-    private String parseExtensionValueFromCsvRecord(final CSVRecord record) {
-        return parseStringFromCsvRecord(record, CONTENT_HEADER_EXTENSIONVALUE);
+    private String parseMemberValueFromCsvRecord(final CSVRecord record) {
+        return parseStringFromCsvRecord(record, CONTENT_HEADER_MEMBERVALUE);
     }
 
-    private String parseExtensionRelationFromCsvRecord(final CSVRecord record) {
+    private String parseMemberRelationFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_RELATION);
     }
 
-    private void validateStartDateIsBeforeEndDate(final ExtensionDTO extension) {
-        if (!startDateIsBeforeEndDateSanityCheck(extension.getStartDate(), extension.getEndDate())) {
+    private void validateStartDateIsBeforeEndDate(final MemberDTO member) {
+        if (!startDateIsBeforeEndDateSanityCheck(member.getStartDate(), member.getEndDate())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_END_BEFORE_START_DATE));
         }
     }

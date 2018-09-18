@@ -18,9 +18,9 @@ public interface ExtensionSchemeParser {
 
     Set<ExtensionSchemeDTO> parseExtensionSchemesFromExcelInputStream(final InputStream inputStream,
                                                                       final String sheetName,
-                                                                      final Map<ExtensionSchemeDTO, String> extensionsSheetNames);
+                                                                      final Map<ExtensionSchemeDTO, String> membersSheetNames);
 
     Set<ExtensionSchemeDTO> parseExtensionSchemesFromExcelWorkbook(final Workbook workbook,
                                                                    final String sheetName,
-                                                                   final Map<ExtensionSchemeDTO, String> extensionsSheetNames);
+                                                                   final Map<ExtensionSchemeDTO, String> membersSheetNames);
 }

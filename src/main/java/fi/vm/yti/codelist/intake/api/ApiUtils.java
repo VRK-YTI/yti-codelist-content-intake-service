@@ -14,7 +14,7 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
-import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
@@ -31,9 +31,6 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
 
-/**
- * Generic utils for serving APIs.
- */
 @Component
 public class ApiUtils {
 
@@ -177,8 +174,8 @@ public class ApiUtils {
         return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_EXTENSIONSCHEMES, urlEncodeString(codeValue));
     }
 
-    public String createExtensionUrl(final ExtensionDTO extension) {
-        return createResourceUrl(API_PATH_EXTENSIONS, extension.getId().toString());
+    public String createMemberUrl(final MemberDTO member) {
+        return createResourceUrl(API_PATH_MEMBERS, member.getId().toString());
     }
 
     public String getContentIntakeServiceHostname() {

@@ -22,14 +22,14 @@ import org.springframework.stereotype.Service;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
-import fi.vm.yti.codelist.intake.dao.ExtensionDao;
+import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionSchemeDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
-import fi.vm.yti.codelist.intake.parser.ExtensionParser;
+import fi.vm.yti.codelist.intake.parser.MemberParser;
 import fi.vm.yti.codelist.intake.parser.ExtensionSchemeParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.ExtensionSchemeService;
@@ -43,26 +43,26 @@ public class ExtensionSchemeServiceImpl implements ExtensionSchemeService {
     private static final Logger LOG = LoggerFactory.getLogger(ExtensionSchemeServiceImpl.class);
 
     private final ExtensionSchemeDao extensionSchemeDao;
-    private final ExtensionDao extensionDao;
+    private final MemberDao memberDao;
     private final CodeSchemeDao codeSchemeDao;
     private final ExtensionSchemeParser extensionSchemeParser;
-    private final ExtensionParser extensionParser;
+    private final MemberParser memberParser;
     private final AuthorizationManager authorizationManager;
     private final DtoMapperService dtoMapperService;
 
     public ExtensionSchemeServiceImpl(final ExtensionSchemeDao extensionSchemeDao,
-                                      final ExtensionDao extensionDao,
+                                      final MemberDao memberDao,
                                       final CodeSchemeDao codeSchemeDao,
                                       final ExtensionSchemeParser extensionSchemeParser,
                                       final AuthorizationManager authorizationManager,
-                                      final ExtensionParser extensionParser,
+                                      final MemberParser memberParser,
                                       final DtoMapperService dtoMapperService) {
         this.extensionSchemeDao = extensionSchemeDao;
-        this.extensionDao = extensionDao;
+        this.memberDao = memberDao;
         this.codeSchemeDao = codeSchemeDao;
         this.extensionSchemeParser = extensionSchemeParser;
         this.authorizationManager = authorizationManager;
-        this.extensionParser = extensionParser;
+        this.memberParser = memberParser;
         this.dtoMapperService = dtoMapperService;
     }
 
@@ -128,13 +128,13 @@ public class ExtensionSchemeServiceImpl implements ExtensionSchemeService {
                     break;
                 case FORMAT_EXCEL:
                     try {
-                        final Map<ExtensionSchemeDTO, String> extensionsSheetNames = new HashMap<>();
+                        final Map<ExtensionSchemeDTO, String> membersSheetNames = new HashMap<>();
                         final Workbook workbook = WorkbookFactory.create(inputStream);
-                        extensionSchemes = extensionSchemeDao.updateExtensionSchemeEntitiesFromDtos(codeScheme, extensionSchemeParser.parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, extensionsSheetNames));
-                        if (!extensionsSheetNames.isEmpty()) {
-                            extensionsSheetNames.forEach((extensionSchemeDto, extensionsSheetName) -> extensionSchemes.forEach(extensionScheme -> {
+                        extensionSchemes = extensionSchemeDao.updateExtensionSchemeEntitiesFromDtos(codeScheme, extensionSchemeParser.parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, membersSheetNames));
+                        if (!membersSheetNames.isEmpty()) {
+                            membersSheetNames.forEach((extensionSchemeDto, membersSheetName) -> extensionSchemes.forEach(extensionScheme -> {
                                 if (extensionScheme.getCodeValue().equalsIgnoreCase(extensionSchemeDto.getCodeValue())) {
-                                    extensionDao.updateExtensionEntitiesFromDtos(extensionScheme, extensionParser.parseExtensionsFromExcelWorkbook(extensionScheme, workbook, extensionsSheetName));
+                                    memberDao.updateMemberEntitiesFromDtos(extensionScheme, memberParser.parseMembersFromExcelWorkbook(extensionScheme, workbook, membersSheetName));
                                 }
                             }));
                         }
@@ -159,11 +159,11 @@ public class ExtensionSchemeServiceImpl implements ExtensionSchemeService {
     public Set<ExtensionSchemeDTO> parseAndPersistExtensionSchemesFromExcelWorkbook(final CodeScheme codeScheme,
                                                                                     final Workbook workbook,
                                                                                     final String sheetName,
-                                                                                    final Map<ExtensionSchemeDTO, String> extensionsSheetNames) {
+                                                                                    final Map<ExtensionSchemeDTO, String> membersSheetNames) {
         if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
-        final Set<ExtensionSchemeDTO> extensionSchemeDtos = extensionSchemeParser.parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, extensionsSheetNames);
+        final Set<ExtensionSchemeDTO> extensionSchemeDtos = extensionSchemeParser.parseExtensionSchemesFromExcelWorkbook(workbook, sheetName, membersSheetNames);
         final Set<ExtensionScheme> extensionSchemes = extensionSchemeDao.updateExtensionSchemeEntitiesFromDtos(codeScheme, extensionSchemeDtos);
         extensionSchemeDtos.forEach(extensionSchemeDto -> extensionSchemes.forEach(extensionScheme -> {
             if (extensionScheme.getCodeValue().equalsIgnoreCase(extensionSchemeDto.getCodeValue())) {

@@ -5,7 +5,7 @@ import java.util.Set;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
-import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
@@ -40,7 +40,7 @@ public interface Indexing {
 
     boolean updateExternalReferences(final Set<ExternalReferenceDTO> externalReferences);
 
-    boolean deleteExternalReferences(final Set<ExternalReferenceDTO> codeScheme);
+    boolean deleteExternalReferences(final Set<ExternalReferenceDTO> externalReferences);
 
     boolean updatePropertyType(final PropertyTypeDTO propertyType);
 
@@ -50,17 +50,17 @@ public interface Indexing {
 
     boolean updateExtensionSchemes(final Set<ExtensionSchemeDTO> extensionSchemes);
 
-    boolean deleteExtensionScheme(final ExtensionSchemeDTO extension);
+    boolean deleteExtensionScheme(final ExtensionSchemeDTO extensionScheme);
 
-    boolean deleteExtensionSchemes(final Set<ExtensionSchemeDTO> extensions);
+    boolean deleteExtensionSchemes(final Set<ExtensionSchemeDTO> extensionSchemes);
 
-    boolean updateExtension(final ExtensionDTO extensionScheme);
+    boolean updateMember(final MemberDTO member);
 
-    boolean updateExtensions(final Set<ExtensionDTO> extensionSchemes);
+    boolean updateMembers(final Set<MemberDTO> members);
 
-    boolean deleteExtension(final ExtensionDTO extension);
+    boolean deleteMember(final MemberDTO member);
 
-    boolean deleteExtensions(final Set<ExtensionDTO> extensions);
+    boolean deleteMembers(final Set<MemberDTO> members);
 
     boolean reIndexEverything();
 

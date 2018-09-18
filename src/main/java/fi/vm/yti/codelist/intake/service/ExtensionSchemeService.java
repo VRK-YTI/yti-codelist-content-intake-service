@@ -31,7 +31,7 @@ public interface ExtensionSchemeService {
     Set<ExtensionSchemeDTO> parseAndPersistExtensionSchemesFromExcelWorkbook(final CodeScheme codeScheme,
                                                                              final Workbook workbook,
                                                                              final String sheetName,
-                                                                             final Map<ExtensionSchemeDTO, String> extensionsSheetNames);
+                                                                             final Map<ExtensionSchemeDTO, String> membersSheetNames);
 
     ExtensionSchemeDTO parseAndPersistExtensionSchemeFromJson(final String codeRegistryCodeValue,
                                                               final String codeSchemeCodeValue,

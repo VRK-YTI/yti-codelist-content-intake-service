@@ -5,7 +5,7 @@ import java.util.Set;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
@@ -26,5 +26,5 @@ public interface EntityChangeLogger {
 
     void logExtensionSchemeChange(final ExtensionScheme extensionScheme);
 
-    void logExtensionChange(final Extension extension);
+    void logExtensionChange(final Member member);
 }

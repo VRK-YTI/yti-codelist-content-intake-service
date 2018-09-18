@@ -3,7 +3,7 @@ package fi.vm.yti.codelist.intake.security;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.Organization;
 
@@ -16,7 +16,7 @@ public interface AuthorizationManager {
 
     boolean canExtensionSchemeBeDeleted(final ExtensionScheme extensionScheme);
 
-    boolean canExtensionBeDeleted(final Extension extension);
+    boolean canExtensionBeDeleted(final Member member);
 
     boolean canCodeRegistryBeDeleted(final CodeRegistry codeRegistry);
 

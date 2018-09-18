@@ -19,7 +19,7 @@ import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.ExtensionScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
@@ -36,7 +36,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     private static final String EXTERNALREFERENCE = "ExternalReference";
     private static final String PROPERTYTYPE = "PropertyType";
     private static final String EXTENSIONSCHEME = "ExtensionScheme";
-    private static final String EXTENSION = "Extension";
+    private static final String MEMBER = "Member";
 
     private final AuthorizationManager authorizationManager;
     private final Tracer tracer;
@@ -120,14 +120,14 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
         endPayloadLogging(EXTENSIONSCHEME, extensionScheme.getId());
     }
 
-    public void logExtension(final Extension extension) {
-        beginPayloadLogging(EXTENSION, extension.getId());
+    public void logMember(final Member member) {
+        beginPayloadLogging(MEMBER, member.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapExtensionDto(extension)));
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapMemberDto(member)));
         } catch (final JsonProcessingException e) {
-            LOG.error(String.format("Failed to write log for extension: %s", extension.getId()), e);
+            LOG.error(String.format("Failed to write log for member: %s", member.getId()), e);
         }
-        endPayloadLogging(EXTENSION, extension.getId());
+        endPayloadLogging(MEMBER, member.getId());
     }
 
     private void beginPayloadLogging(final String name,
