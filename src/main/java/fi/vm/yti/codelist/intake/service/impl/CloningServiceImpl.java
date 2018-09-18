@@ -126,7 +126,6 @@ public class CloningServiceImpl implements CloningService {
         handleExtensionSchemes(codeSchemeWithUserChangesFromUi,
             newCodeScheme,
             originalCodeScheme,
-            externalReferenceMap,
                 newCodes);
 
         return codeSchemeService.updateCodeSchemeFromDto(true, codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
@@ -152,12 +151,11 @@ public class CloningServiceImpl implements CloningService {
     protected void handleExtensionSchemes(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
                                           final CodeScheme newCodeScheme,
                                           final CodeScheme originalCodeScheme,
-                                          final Map<UUID, ExternalReference> externalReferenceMap,
                                           final Set<Code> newCodes) {
         final Set<ExtensionScheme> originalExtensionSchemes = originalCodeScheme.getExtensionSchemes();
         final Set<ExtensionScheme> clonedExtensionSchemes = new HashSet<>();
         for (final ExtensionScheme origExtSch : originalExtensionSchemes) {
-            clonedExtensionSchemes.add(cloneExtensionScheme(origExtSch, newCodeScheme, externalReferenceMap, newCodes));
+            clonedExtensionSchemes.add(cloneExtensionScheme(origExtSch, newCodeScheme, newCodes));
         }
         extensionSchemeDao.save(clonedExtensionSchemes);
         final Set<ExtensionSchemeDTO> extensionSchemeDTOS = new HashSet<>();
@@ -171,7 +169,6 @@ public class CloningServiceImpl implements CloningService {
     @Transactional
     protected ExtensionScheme cloneExtensionScheme(final ExtensionScheme original,
                                                    final CodeScheme newCodeScheme,
-                                                   final Map<UUID, ExternalReference> externalReferenceMap,
                                                    final Set<Code> newCodes) {
         final ExtensionScheme copy = new ExtensionScheme();
         copy.setId(UUID.randomUUID());
