@@ -123,7 +123,7 @@ public class CloningServiceImpl implements CloningService {
             newCodeScheme,
             externalReferenceMap);
 
-        handleExtensionSchemes(codeSchemeWithUserChangesFromUi,
+        handleExtensions(codeSchemeWithUserChangesFromUi,
             newCodeScheme,
             originalCodeScheme,
                 newCodes);
@@ -148,14 +148,14 @@ public class CloningServiceImpl implements CloningService {
     }
 
     @Transactional
-    protected void handleExtensionSchemes(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
-                                          final CodeScheme newCodeScheme,
-                                          final CodeScheme originalCodeScheme,
-                                          final Set<Code> newCodes) {
+    protected void handleExtensions(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
+                                    final CodeScheme newCodeScheme,
+                                    final CodeScheme originalCodeScheme,
+                                    final Set<Code> newCodes) {
         final Set<Extension> originalExtensions = originalCodeScheme.getExtensions();
         final Set<Extension> clonedExtensions = new HashSet<>();
         for (final Extension origExtSch : originalExtensions) {
-            clonedExtensions.add(cloneExtensionScheme(origExtSch, newCodeScheme, newCodes));
+            clonedExtensions.add(cloneExtension(origExtSch, newCodeScheme, newCodes));
         }
         extensionDao.save(clonedExtensions);
         final Set<ExtensionDTO> extensionDTOS = new HashSet<>();
@@ -167,9 +167,9 @@ public class CloningServiceImpl implements CloningService {
     }
 
     @Transactional
-    protected Extension cloneExtensionScheme(final Extension original,
-                                             final CodeScheme newCodeScheme,
-                                             final Set<Code> newCodes) {
+    protected Extension cloneExtension(final Extension original,
+                                       final CodeScheme newCodeScheme,
+                                       final Set<Code> newCodes) {
         final Extension copy = new Extension();
         copy.setId(UUID.randomUUID());
         copy.setEndDate(original.getEndDate());
@@ -184,7 +184,7 @@ public class CloningServiceImpl implements CloningService {
         final Date timeStamp = new Date(System.currentTimeMillis());
         for (final Member orig : original.getMembers()) {
             final Member newMember = new Member();
-            getCodeForExtension(newCodes, orig, newMember);
+            getCodeForMember(newCodes, orig, newMember);
             newMember.setId(UUID.randomUUID());
             newMember.setExtension(copy);
             newMember.setBroaderMember(orig.getBroaderMember());
@@ -201,7 +201,7 @@ public class CloningServiceImpl implements CloningService {
         return copy;
     }
 
-    private void getCodeForExtension(final Set<Code> newCodes, final Member orig, final Member newMember) {
+    private void getCodeForMember(final Set<Code> newCodes, final Member orig, final Member newMember) {
         String codeValueOfTheOriginalCodeInTheExtension = orig.getCode().getCodeValue();
         Optional<Code> desiredCodeToPopulateIntoTheNewExtension = null;
         desiredCodeToPopulateIntoTheNewExtension =

@@ -35,12 +35,12 @@ public class AuthorizationManagerForTestsImpl implements AuthorizationManager {
     }
 
     @Override
-    public boolean canExtensionSchemeBeDeleted(final Extension extension) {
+    public boolean canExtensionBeDeleted(final Extension extension) {
         return true;
     }
 
     @Override
-    public boolean canExtensionBeDeleted(final Member member) {
+    public boolean canMemberBeDeleted(final Member member) {
         return true;
     }
 

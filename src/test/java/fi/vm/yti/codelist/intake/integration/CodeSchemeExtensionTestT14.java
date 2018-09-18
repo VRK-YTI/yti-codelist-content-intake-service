@@ -23,7 +23,7 @@ import static org.junit.Assert.assertNotNull;
 @SpringBootTest(classes = {ContentIntakeServiceApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"automatedtest"})
 @TestPropertySource(locations = "classpath:test-port.properties")
-public class CodeSchemeExtensionSchemeTestT14 extends AbstractIntegrationTestBase {
+public class CodeSchemeExtensionTestT14 extends AbstractIntegrationTestBase {
 
     private static final String TEST_CODESCHEME_FILENAME = "v1_extensionscheme_test.xlsx";
 

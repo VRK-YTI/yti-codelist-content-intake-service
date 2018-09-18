@@ -57,7 +57,7 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public MemberDTO deleteMember(final UUID id) {
         final Member member = memberDao.findById(id);
-        if (!authorizationManager.canExtensionBeDeleted(member)) {
+        if (!authorizationManager.canMemberBeDeleted(member)) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         final Set<Member> members = memberDao.findByExtensionId(member.getExtension().getId());

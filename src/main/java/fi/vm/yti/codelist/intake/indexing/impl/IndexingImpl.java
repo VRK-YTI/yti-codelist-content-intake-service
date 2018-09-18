@@ -61,7 +61,7 @@ public class IndexingImpl implements Indexing {
     private static final String NAME_CODES = "Codes";
     private static final String NAME_EXTERNALREFERENCES = "ExternalReferences";
     private static final String NAME_PROPERTYTYPES = "PropertyTypes";
-    private static final String NAME_EXTENSIONSCHEMES = "ExtensionSchemes";
+    private static final String NAME_EXTENSIONS = "Extensions";
     private static final String NAME_MEMBERS = "Members";
     private static final String BULK = "ElasticSearch bulk: ";
     private static final int MAX_PAGE_COUNT = 2000;
@@ -155,9 +155,9 @@ public class IndexingImpl implements Indexing {
         return indexData(externalReferences, indexName, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
     }
 
-    private boolean indexExtensionSchemes(final String indexName) {
+    private boolean indexExtensions(final String indexName) {
         final Set<ExtensionDTO> extensions = extensionService.findAll();
-        return indexData(extensions, indexName, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONSCHEMES, Views.ExtendedExtension.class);
+        return indexData(extensions, indexName, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
     }
 
     private boolean indexMembers(final String indexName) {
@@ -276,7 +276,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean deleteExtensions(final Set<ExtensionDTO> extensions) {
-        return extensions.isEmpty() || deleteData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONSCHEMES);
+        return extensions.isEmpty() || deleteData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS);
     }
 
     public boolean deleteMember(final MemberDTO extension) {
@@ -346,7 +346,7 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateExtensions(final Set<ExtensionDTO> extensions) {
-        return extensions.isEmpty() || indexData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONSCHEMES, Views.ExtendedExtension.class);
+        return extensions.isEmpty() || indexData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
     }
 
     public boolean updateMember(final MemberDTO member) {
@@ -447,7 +447,7 @@ public class IndexingImpl implements Indexing {
                 success = indexExternalReferences(indexName);
                 break;
             case ELASTIC_INDEX_EXTENSION:
-                success = indexExtensionSchemes(indexName);
+                success = indexExtensions(indexName);
                 break;
             case ELASTIC_INDEX_MEMBER:
                 success = indexMembers(indexName);

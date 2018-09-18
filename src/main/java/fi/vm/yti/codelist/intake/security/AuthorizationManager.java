@@ -14,9 +14,9 @@ public interface AuthorizationManager {
 
     boolean canBeModifiedByUserInOrganization(final Collection<Organization> organizations);
 
-    boolean canExtensionSchemeBeDeleted(final Extension extension);
+    boolean canExtensionBeDeleted(final Extension extension);
 
-    boolean canExtensionBeDeleted(final Member member);
+    boolean canMemberBeDeleted(final Member member);
 
     boolean canCodeRegistryBeDeleted(final CodeRegistry codeRegistry);
 

@@ -53,13 +53,13 @@ public class ExtensionResource implements AbstractBaseResource {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Returns success.")
     })
-    public Response addOrUpdateExtensionSchemesFromJson(@ApiParam(value = "Extension UUID", required = true) @PathParam("extensionId") final UUID extensionId,
-                                                        @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload) {
-        return parseAndPersistExtensionSchemeFromSource(extensionId, jsonPayload);
+    public Response addOrUpdateExtensionsFromJson(@ApiParam(value = "Extension UUID", required = true) @PathParam("extensionId") final UUID extensionId,
+                                                  @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload) {
+        return parseAndPersistExtensionFromSource(extensionId, jsonPayload);
     }
 
-    private Response parseAndPersistExtensionSchemeFromSource(final UUID extensionId,
-                                                              final String jsonPayload) {
+    private Response parseAndPersistExtensionFromSource(final UUID extensionId,
+                                                        final String jsonPayload) {
         final ExtensionDTO extension = extensionService.parseAndPersistExtensionFromJson(extensionId, jsonPayload);
         final Set<ExtensionDTO> extensions = new HashSet<>();
         extensions.add(extension);

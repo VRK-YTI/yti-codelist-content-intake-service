@@ -106,7 +106,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
     @Transactional
     public Extension updateExtensionEntityFromDto(final CodeScheme codeScheme,
                                                   final ExtensionDTO extensionDto) {
-        final Extension extension = createOrUpdateExtensionScheme(codeScheme, extensionDto);
+        final Extension extension = createOrUpdateExtension(codeScheme, extensionDto);
         save(extension);
         return extension;
     }
@@ -117,7 +117,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         final Set<Extension> extensions = new HashSet<>();
         if (extensionDtos != null) {
             for (final ExtensionDTO extensionDto : extensionDtos) {
-                final Extension extension = createOrUpdateExtensionScheme(codeScheme, extensionDto);
+                final Extension extension = createOrUpdateExtension(codeScheme, extensionDto);
                 extensions.add(extension);
                 save(extension);
             }
@@ -125,20 +125,20 @@ public class ExtensionDaoImpl implements ExtensionDao {
         return extensions;
     }
 
-    private Extension createOrUpdateExtensionScheme(final CodeScheme codeScheme,
-                                                    final ExtensionDTO fromExtensionScheme) {
+    private Extension createOrUpdateExtension(final CodeScheme codeScheme,
+                                              final ExtensionDTO fromExtension) {
         Extension existingExtension;
-        if (fromExtensionScheme.getId() != null) {
-            existingExtension = extensionRepository.findById(fromExtensionScheme.getId());
+        if (fromExtension.getId() != null) {
+            existingExtension = extensionRepository.findById(fromExtension.getId());
             validateParentCodeScheme(existingExtension, codeScheme);
         } else {
-            existingExtension = extensionRepository.findByParentCodeSchemeAndCodeValueIgnoreCase(codeScheme, fromExtensionScheme.getCodeValue());
+            existingExtension = extensionRepository.findByParentCodeSchemeAndCodeValueIgnoreCase(codeScheme, fromExtension.getCodeValue());
         }
         final Extension extension;
         if (existingExtension != null) {
-            extension = updateExtension(existingExtension, fromExtensionScheme);
+            extension = updateExtension(existingExtension, fromExtension);
         } else {
-            extension = createExtension(fromExtensionScheme, codeScheme);
+            extension = createExtension(fromExtension, codeScheme);
         }
         return extension;
     }
@@ -162,10 +162,10 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
         final PropertyType propertyType = propertyTypeDao.findByContextAndLocalName(CONTEXT_EXTENSION, fromExtension.getPropertyType().getLocalName());
         if (propertyType == null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_PROPERTYTYPE_NOT_FOUND));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_PROPERTYTYPE_NOT_FOUND));
         }
         if (!Objects.equals(existingExtension.getPropertyType(), propertyType)) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_PROPERTYTYPE_CHANGE_NOT_ALLOWED));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_PROPERTYTYPE_CHANGE_NOT_ALLOWED));
         }
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         if (fromExtension.getCodeSchemes() != null && !fromExtension.getCodeSchemes().isEmpty()) {
@@ -175,7 +175,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                     if (relatedCodeScheme != null) {
                         codeSchemes.add(relatedCodeScheme);
                     } else {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_CODESCHEME_NOT_FOUND));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_NOT_FOUND));
                     }
                 }
             }
@@ -214,7 +214,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         extension.setStatus(fromExtension.getStatus());
         final PropertyType propertyType = propertyTypeDao.findByContextAndLocalName(CONTEXT_EXTENSION, fromExtension.getPropertyType().getLocalName());
         if (propertyType == null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_PROPERTYTYPE_NOT_FOUND));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_PROPERTYTYPE_NOT_FOUND));
         }
         extension.setPropertyType(propertyType);
         for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
@@ -227,11 +227,11 @@ public class ExtensionDaoImpl implements ExtensionDao {
             fromExtension.getCodeSchemes().forEach(codeSchemeDto -> {
                 final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
                 if (relatedCodeScheme != null && relatedCodeScheme.getId() == codeScheme.getId()) {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_CODESCHEME_MAPPED_TO_PARENT));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_MAPPED_TO_PARENT));
                 } else if (relatedCodeScheme != null) {
                     codeSchemes.add(relatedCodeScheme);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_CODESCHEME_NOT_FOUND));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_NOT_FOUND));
                 }
             });
             extension.setCodeSchemes(codeSchemes);

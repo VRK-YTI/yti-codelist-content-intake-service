@@ -524,10 +524,10 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
         final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
-            final ExtensionDTO existingExtensionScheme = extensionService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionCodeValue);
-            if (existingExtensionScheme != null) {
-                final Set<MemberDTO> members = memberService.findByExtensionId(existingExtensionScheme.getId());
-                final ExtensionDTO extension = extensionService.deleteExtension(existingExtensionScheme.getId());
+            final ExtensionDTO existingExtension = extensionService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionCodeValue);
+            if (existingExtension != null) {
+                final Set<MemberDTO> members = memberService.findByExtensionId(existingExtension.getId());
+                final ExtensionDTO extension = extensionService.deleteExtension(existingExtension.getId());
                 indexing.deleteMembers(members);
                 indexing.deleteExtension(extension);
                 indexing.updateCodeScheme(codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue));
@@ -722,9 +722,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
         @ApiResponse(code = 200, message = "Found"),
         @ApiResponse(code = 404, message = "Not found")
     })
-    public Response checkForExistingExtensionScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                                    @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                                                    @ApiParam(value = "Extension codeValue.", required = true) @PathParam("extensionCodeValue") final String extensionCodeValue) {
+    public Response checkForExistingExtension(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                              @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                                              @ApiParam(value = "Extension codeValue.", required = true) @PathParam("extensionCodeValue") final String extensionCodeValue) {
         final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
             final ExtensionDTO extension = this.extensionService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionCodeValue);

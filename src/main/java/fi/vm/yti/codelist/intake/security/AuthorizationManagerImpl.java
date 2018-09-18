@@ -54,13 +54,13 @@ public class AuthorizationManagerImpl implements AuthorizationManager {
         return user.isSuperuser() || user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds);
     }
 
-    public boolean canExtensionSchemeBeDeleted(final Extension extension) {
+    public boolean canExtensionBeDeleted(final Extension extension) {
         final Collection<UUID> organizationIds = extension.getParentCodeScheme().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(extension.getStatus()).ordinal() <= Status.VALID.ordinal());
     }
 
-    public boolean canExtensionBeDeleted(final Member member) {
+    public boolean canMemberBeDeleted(final Member member) {
         final Extension extension = member.getExtension();
         final Collection<UUID> organizationIds = extension.getParentCodeScheme().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
         final YtiUser user = userProvider.getUser();

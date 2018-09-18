@@ -35,7 +35,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     private static final String CODE = "Code";
     private static final String EXTERNALREFERENCE = "ExternalReference";
     private static final String PROPERTYTYPE = "PropertyType";
-    private static final String EXTENSIONSCHEME = "Extension";
+    private static final String EXTENSION = "Extension";
     private static final String MEMBER = "Member";
 
     private final AuthorizationManager authorizationManager;
@@ -111,13 +111,13 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     }
 
     public void logExtension(final Extension extension) {
-        beginPayloadLogging(EXTENSIONSCHEME, extension.getId());
+        beginPayloadLogging(EXTENSION, extension.getId());
         try {
             LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapExtensionDto(extension)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for extension: %s", extension.getId()), e);
         }
-        endPayloadLogging(EXTENSIONSCHEME, extension.getId());
+        endPayloadLogging(EXTENSION, extension.getId());
     }
 
     public void logMember(final Member member) {

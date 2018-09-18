@@ -246,7 +246,7 @@ public class ExtensionServiceImpl implements ExtensionService {
     @Transactional
     public ExtensionDTO deleteExtension(final UUID extensionId) {
         final Extension extension = extensionDao.findById(extensionId);
-        if (authorizationManager.canExtensionSchemeBeDeleted(extension)) {
+        if (authorizationManager.canExtensionBeDeleted(extension)) {
             final ExtensionDTO extensionDto = dtoMapperService.mapExtensionDto(extension, false);
             extensionDao.delete(extension);
             return extensionDto;

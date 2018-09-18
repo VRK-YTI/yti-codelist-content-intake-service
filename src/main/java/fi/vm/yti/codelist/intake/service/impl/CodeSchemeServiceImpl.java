@@ -172,7 +172,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
                             extensionsSheetNames.forEach((codeSchemeDto, sheetName) -> {
                                 for (final CodeScheme codeScheme : codeSchemes) {
                                     if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
-                                        parseExtensionSchemes(workbook, sheetName, codeScheme);
+                                        parseExtensions(workbook, sheetName, codeScheme);
                                     }
                                 }
                             });
@@ -195,9 +195,9 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
     }
 
     @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
-    private void parseExtensionSchemes(final Workbook workbook,
-                                       final String sheetName,
-                                       final CodeScheme codeScheme) {
+    private void parseExtensions(final Workbook workbook,
+                                 final String sheetName,
+                                 final CodeScheme codeScheme) {
         if (workbook.getSheet(sheetName) != null) {
             final Map<ExtensionDTO, String> membersSheetNames = new HashMap<>();
             final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromExcelWorkbook(codeScheme, workbook, sheetName, membersSheetNames);

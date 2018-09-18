@@ -76,7 +76,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
             extensions = mapper.readValue(jsonPayload, new TypeReference<Set<ExtensionDTO>>() {
             });
         } catch (final IOException e) {
-            LOG.error("ExtensionSchemes parsing failed from JSON!", e);
+            LOG.error("Extensions parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
         extensions.forEach(this::validateStartDateIsBeforeEndDate);
