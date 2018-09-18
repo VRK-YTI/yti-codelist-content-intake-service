@@ -33,7 +33,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Component
 public class ExtensionDaoImpl implements ExtensionDao {
 
-    private static final String CONTEXT_EXTENSIONSCHEME = "Extension";
+    private static final String CONTEXT_EXTENSION = "Extension";
 
     private final AuthorizationManager authorizationManager;
     private final EntityChangeLogger entityChangeLogger;
@@ -136,9 +136,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
         final Extension extension;
         if (existingExtension != null) {
-            extension = updateExtensionScheme(existingExtension, fromExtensionScheme);
+            extension = updateExtension(existingExtension, fromExtensionScheme);
         } else {
-            extension = createExtensionScheme(fromExtensionScheme, codeScheme);
+            extension = createExtension(fromExtensionScheme, codeScheme);
         }
         return extension;
     }
@@ -150,17 +150,17 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
     }
 
-    private Extension updateExtensionScheme(final Extension existingExtension,
-                                            final ExtensionDTO fromExtensionScheme) {
-        if (!Objects.equals(existingExtension.getStatus(), fromExtensionScheme.getStatus())) {
+    private Extension updateExtension(final Extension existingExtension,
+                                      final ExtensionDTO fromExtension) {
+        if (!Objects.equals(existingExtension.getStatus(), fromExtension.getStatus())) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(existingExtension.getParentCodeScheme().getCodeRegistry().getOrganizations()) &&
                 Status.valueOf(existingExtension.getStatus()).ordinal() >= Status.VALID.ordinal() &&
-                Status.valueOf(fromExtensionScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
+                Status.valueOf(fromExtension.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
             }
-            existingExtension.setStatus(fromExtensionScheme.getStatus());
+            existingExtension.setStatus(fromExtension.getStatus());
         }
-        final PropertyType propertyType = propertyTypeDao.findByContextAndLocalName(CONTEXT_EXTENSIONSCHEME, fromExtensionScheme.getPropertyType().getLocalName());
+        final PropertyType propertyType = propertyTypeDao.findByContextAndLocalName(CONTEXT_EXTENSION, fromExtension.getPropertyType().getLocalName());
         if (propertyType == null) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_PROPERTYTYPE_NOT_FOUND));
         }
@@ -168,8 +168,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_PROPERTYTYPE_CHANGE_NOT_ALLOWED));
         }
         final Set<CodeScheme> codeSchemes = new HashSet<>();
-        if (fromExtensionScheme.getCodeSchemes() != null && !fromExtensionScheme.getCodeSchemes().isEmpty()) {
-            for (final CodeSchemeDTO codeSchemeDto : fromExtensionScheme.getCodeSchemes()) {
+        if (fromExtension.getCodeSchemes() != null && !fromExtension.getCodeSchemes().isEmpty()) {
+            for (final CodeSchemeDTO codeSchemeDto : fromExtension.getCodeSchemes()) {
                 if (codeSchemeDto.getUri() != null && !codeSchemeDto.getUri().isEmpty()) {
                     final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
                     if (relatedCodeScheme != null) {
@@ -181,7 +181,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             }
         }
         existingExtension.setCodeSchemes(codeSchemes);
-        for (final Map.Entry<String, String> entry : fromExtensionScheme.getPrefLabel().entrySet()) {
+        for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
             languageService.validateInputLanguage(existingExtension.getParentCodeScheme(), language);
             final String value = entry.getValue();
@@ -189,42 +189,42 @@ public class ExtensionDaoImpl implements ExtensionDao {
                 existingExtension.setPrefLabel(language, value);
             }
         }
-        if (!Objects.equals(existingExtension.getStartDate(), fromExtensionScheme.getStartDate())) {
-            existingExtension.setStartDate(fromExtensionScheme.getStartDate());
+        if (!Objects.equals(existingExtension.getStartDate(), fromExtension.getStartDate())) {
+            existingExtension.setStartDate(fromExtension.getStartDate());
         }
-        if (!Objects.equals(existingExtension.getEndDate(), fromExtensionScheme.getEndDate())) {
-            existingExtension.setEndDate(fromExtensionScheme.getEndDate());
+        if (!Objects.equals(existingExtension.getEndDate(), fromExtension.getEndDate())) {
+            existingExtension.setEndDate(fromExtension.getEndDate());
         }
         existingExtension.setModified(new Date(System.currentTimeMillis()));
         return existingExtension;
     }
 
-    private Extension createExtensionScheme(final ExtensionDTO fromExtensionScheme,
-                                            final CodeScheme codeScheme) {
+    private Extension createExtension(final ExtensionDTO fromExtension,
+                                      final CodeScheme codeScheme) {
         final Extension extension = new Extension();
-        if (fromExtensionScheme.getId() != null) {
-            extension.setId(fromExtensionScheme.getId());
+        if (fromExtension.getId() != null) {
+            extension.setId(fromExtension.getId());
         } else {
             final UUID uuid = UUID.randomUUID();
             extension.setId(uuid);
         }
-        extension.setCodeValue(fromExtensionScheme.getCodeValue());
-        extension.setStartDate(fromExtensionScheme.getStartDate());
-        extension.setEndDate(fromExtensionScheme.getEndDate());
-        extension.setStatus(fromExtensionScheme.getStatus());
-        final PropertyType propertyType = propertyTypeDao.findByContextAndLocalName(CONTEXT_EXTENSIONSCHEME, fromExtensionScheme.getPropertyType().getLocalName());
+        extension.setCodeValue(fromExtension.getCodeValue());
+        extension.setStartDate(fromExtension.getStartDate());
+        extension.setEndDate(fromExtension.getEndDate());
+        extension.setStatus(fromExtension.getStatus());
+        final PropertyType propertyType = propertyTypeDao.findByContextAndLocalName(CONTEXT_EXTENSION, fromExtension.getPropertyType().getLocalName());
         if (propertyType == null) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_PROPERTYTYPE_NOT_FOUND));
         }
         extension.setPropertyType(propertyType);
-        for (final Map.Entry<String, String> entry : fromExtensionScheme.getPrefLabel().entrySet()) {
+        for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
             languageService.validateInputLanguage(codeScheme, language);
             extension.setPrefLabel(language, entry.getValue());
         }
         final Set<CodeScheme> codeSchemes = new HashSet<>();
-        if (fromExtensionScheme.getCodeSchemes() != null && !fromExtensionScheme.getCodeSchemes().isEmpty()) {
-            fromExtensionScheme.getCodeSchemes().forEach(codeSchemeDto -> {
+        if (fromExtension.getCodeSchemes() != null && !fromExtension.getCodeSchemes().isEmpty()) {
+            fromExtension.getCodeSchemes().forEach(codeSchemeDto -> {
                 final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
                 if (relatedCodeScheme != null && relatedCodeScheme.getId() == codeScheme.getId()) {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONSCHEME_CODESCHEME_MAPPED_TO_PARENT));
@@ -237,15 +237,15 @@ public class ExtensionDaoImpl implements ExtensionDao {
             extension.setCodeSchemes(codeSchemes);
         }
         extension.setParentCodeScheme(codeScheme);
-        addExtensionSchemeToParentCodeScheme(codeScheme, extension);
+        addExtensionToParentCodeScheme(codeScheme, extension);
         final Date timeStamp = new Date(System.currentTimeMillis());
         extension.setCreated(timeStamp);
         extension.setModified(timeStamp);
         return extension;
     }
 
-    private void addExtensionSchemeToParentCodeScheme(final CodeScheme codeScheme,
-                                                      final Extension extension) {
+    private void addExtensionToParentCodeScheme(final CodeScheme codeScheme,
+                                                final Extension extension) {
         final Set<Extension> parentCodeSchemeExtensions = codeScheme.getExtensions();
         if (parentCodeSchemeExtensions != null) {
             parentCodeSchemeExtensions.add(extension);
