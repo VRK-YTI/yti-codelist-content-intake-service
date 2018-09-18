@@ -79,7 +79,7 @@ public class MemberResource implements AbstractBaseResource {
             final UUID extensionId = existingMember.getExtension().getId();
             memberService.deleteMember(existingMember.getId());
             indexing.deleteMember(existingMember);
-            indexing.updateMembers(memberService.findByExtensionSchemeId(extensionId));
+            indexing.updateMembers(memberService.findByExtensionId(extensionId));
         } else {
             return Response.status(404).build();
         }

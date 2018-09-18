@@ -84,7 +84,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Transactional
-    public Set<MemberDTO> findByExtensionSchemeId(final UUID id) {
+    public Set<MemberDTO> findByExtensionId(final UUID id) {
         return dtoMapperService.mapDeepMemberDtos(memberDao.findByExtensionId(id));
     }
 

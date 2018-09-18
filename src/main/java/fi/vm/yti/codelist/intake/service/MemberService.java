@@ -17,7 +17,7 @@ public interface MemberService {
 
     MemberDTO findById(final UUID id);
 
-    Set<MemberDTO> findByExtensionSchemeId(final UUID id);
+    Set<MemberDTO> findByExtensionId(final UUID id);
 
     Set<MemberDTO> parseAndPersistMemberFromJson(final String jsonPayload);
 

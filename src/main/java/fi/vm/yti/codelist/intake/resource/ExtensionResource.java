@@ -30,17 +30,17 @@ import io.swagger.annotations.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_EXTENSION;
 
 @Component
-@Path("/v1/extensionschemes")
-@Api(value = "extensionschemes")
+@Path("/v1/extensions")
+@Api(value = "extensions")
 @Produces(MediaType.APPLICATION_JSON)
-public class ExtensionSchemeResource implements AbstractBaseResource {
+public class ExtensionResource implements AbstractBaseResource {
 
     private final Indexing indexing;
     private final ExtensionService extensionService;
 
     @Inject
-    public ExtensionSchemeResource(final Indexing indexing,
-                                   final ExtensionService extensionService) {
+    public ExtensionResource(final Indexing indexing,
+                             final ExtensionService extensionService) {
         this.indexing = indexing;
         this.extensionService = extensionService;
     }

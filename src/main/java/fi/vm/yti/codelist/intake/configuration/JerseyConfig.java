@@ -17,7 +17,7 @@ import fi.vm.yti.codelist.intake.resource.CodeRegistryResource;
 import fi.vm.yti.codelist.intake.resource.ConfigurationResource;
 import fi.vm.yti.codelist.intake.resource.DataClassificationResource;
 import fi.vm.yti.codelist.intake.resource.MemberResource;
-import fi.vm.yti.codelist.intake.resource.ExtensionSchemeResource;
+import fi.vm.yti.codelist.intake.resource.ExtensionResource;
 import fi.vm.yti.codelist.intake.resource.ExternalReferenceResource;
 import fi.vm.yti.codelist.intake.resource.ImpersonateUserResource;
 import fi.vm.yti.codelist.intake.resource.OrganizationResource;
@@ -105,7 +105,7 @@ public class JerseyConfig extends ResourceConfig {
         register(ExternalReferenceResource.class);
         register(PropertyTypeResource.class);
         register(DataClassificationResource.class);
-        register(ExtensionSchemeResource.class);
+        register(ExtensionResource.class);
         register(MemberResource.class);
     }
 }
