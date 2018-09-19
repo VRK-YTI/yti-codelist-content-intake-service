@@ -10,8 +10,6 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +18,6 @@ import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
-import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.MemberRepository;
@@ -35,14 +32,12 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Component
 public class MemberDaoImpl implements MemberDao {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MemberDaoImpl.class);
     private static final int MAX_LEVEL = 10;
     private static final String CALCULATION_HIERARCHY = "calculationHierarchy";
 
     private final EntityChangeLogger entityChangeLogger;
     private final MemberRepository memberRepository;
     private final CodeDao codeDao;
-    private final ExtensionDao extensionDao;
     private final UriSuomiProperties uriSuomiProperties;
     private final LanguageService languageService;
 
@@ -50,13 +45,11 @@ public class MemberDaoImpl implements MemberDao {
     public MemberDaoImpl(final EntityChangeLogger entityChangeLogger,
                          final MemberRepository memberRepository,
                          final CodeDao codeDao,
-                         final ExtensionDao extensionDao,
                          final UriSuomiProperties uriSuomiProperties,
                          final LanguageService languageService) {
         this.entityChangeLogger = entityChangeLogger;
         this.memberRepository = memberRepository;
         this.codeDao = codeDao;
-        this.extensionDao = extensionDao;
         this.uriSuomiProperties = uriSuomiProperties;
         this.languageService = languageService;
     }
@@ -108,8 +101,8 @@ public class MemberDaoImpl implements MemberDao {
         final Member member = createOrUpdateMember(extension, fromMemberDto, members);
         fromMemberDto.setId(member.getId());
         save(member);
-        members.add(member);
         resolveMemberRelation(extension, member, fromMemberDto);
+        members.add(member);
         return members;
     }
 
@@ -124,7 +117,7 @@ public class MemberDaoImpl implements MemberDao {
                 members.add(member);
                 save(member);
             }
-            resolveMemberRelations(extension, memberDtos);
+            resolveMemberRelations(extension, members, memberDtos);
         }
         return members;
     }
@@ -133,7 +126,7 @@ public class MemberDaoImpl implements MemberDao {
         try {
             return UUID.fromString(uuid);
         } catch (final IllegalArgumentException e) {
-            LOG.error("Error parsing UUID from string.", e);
+            // Ignore exception on purpose and return null here.
             return null;
         }
     }
@@ -155,8 +148,8 @@ public class MemberDaoImpl implements MemberDao {
         }
     }
 
-    private void linkExtensionWithId(final Member member,
-                                     final UUID id) {
+    private void linkMemberWithId(final Member member,
+                                  final UUID id) {
         final Member relatedMember = findById(id);
         linkMembers(member, relatedMember);
     }
@@ -177,14 +170,14 @@ public class MemberDaoImpl implements MemberDao {
         }
         final Set<Member> linkedMembers = new HashSet<>();
         if (relatedMember != null && relatedMember.getId() != null) {
-            linkExtensionWithId(member, relatedMember.getId());
+            linkMemberWithId(member, relatedMember.getId());
             linkedMembers.add(member);
         } else if (relatedMember != null && relatedMember.getCode() != null) {
             final Set<Member> members = findByExtensionId(extension.getId());
             final String identifier = relatedMember.getCode().getCodeValue();
             final UUID uuid = getUuidFromString(identifier);
             if (uuid != null) {
-                linkExtensionWithId(member, uuid);
+                linkMemberWithId(member, uuid);
                 linkedMembers.add(member);
             }
             for (final Member extensionMember : members) {
@@ -223,10 +216,18 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     private void resolveMemberRelations(final Extension extension,
+                                        final Set<Member> members,
                                         final Set<MemberDTO> fromMembers) {
         fromMembers.forEach(fromMember -> {
-            final Member member = findById(fromMember.getId());
-            resolveMemberRelation(extension, member, fromMember);
+            Member member = null;
+            for (final Member mem : members) {
+                if (fromMember.getId().equals(mem.getId())) {
+                    member = mem;
+                }
+            }
+            if (member != null) {
+                resolveMemberRelation(extension, member, fromMember);
+            }
         });
     }
 
@@ -246,7 +247,7 @@ public class MemberDaoImpl implements MemberDao {
             if (existingMember != null) {
                 member = updateMember(extension.getParentCodeScheme(), extension, existingMember, fromMember, members);
             } else {
-                member = craeteMember(extension.getParentCodeScheme(), extension, fromMember, members);
+                member = createMember(extension.getParentCodeScheme(), extension, fromMember, members);
             }
             return member;
         } else {
@@ -287,7 +288,6 @@ public class MemberDaoImpl implements MemberDao {
         } else if (existingMember.getOrder() == null && fromMember.getOrder() == null) {
             existingMember.setOrder(getNextOrderInSequence(extension));
         }
-        setRelatedMember(fromMember, existingMember);
         if (fromMember.getCode() != null) {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, extension, fromMember);
             if (!Objects.equals(existingMember.getCode(), code)) {
@@ -306,7 +306,7 @@ public class MemberDaoImpl implements MemberDao {
         return existingMember;
     }
 
-    private Member craeteMember(final CodeScheme codeScheme,
+    private Member createMember(final CodeScheme codeScheme,
                                 final Extension extension,
                                 final MemberDTO fromMember,
                                 final Set<Member> members) {
@@ -337,7 +337,6 @@ public class MemberDaoImpl implements MemberDao {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, extension, fromMember);
             member.setCode(code);
         }
-        setRelatedMember(fromMember, member);
         member.setStartDate(fromMember.getStartDate());
         member.setEndDate(fromMember.getEndDate());
         member.setExtension(extension);
@@ -350,26 +349,6 @@ public class MemberDaoImpl implements MemberDao {
     private void validateMemberValue(final String memberValue) {
         if (memberValue == null || memberValue.isEmpty()) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_NOT_SET));
-        }
-    }
-
-    private void setRelatedMember(final MemberDTO fromMember,
-                                  final Member member) {
-        if (fromMember.getRelatedMember() != null && fromMember.getRelatedMember().getId() != null) {
-            final UUID relatedMemberId = fromMember.getRelatedMember().getId();
-            if (relatedMemberId != null && relatedMemberId == fromMember.getId()) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
-            }
-            if (relatedMemberId != null) {
-                final Member relatedMember = findById(relatedMemberId);
-                if (relatedMember != null) {
-                    member.setRelatedMember(member);
-                } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
-                }
-            }
-        } else {
-            member.setRelatedMember(null);
         }
     }
 
@@ -400,9 +379,7 @@ public class MemberDaoImpl implements MemberDao {
                                                     final CodeScheme parentCodeScheme,
                                                     final Extension extension) {
         final Set<CodeScheme> codeSchemes = extension.getCodeSchemes();
-        if (codeSchemeForCode == parentCodeScheme || (codeSchemes != null && codeSchemes.contains(codeSchemeForCode))) {
-            return;
-        } else {
+        if (codeSchemeForCode != parentCodeScheme && (codeSchemes == null || !codeSchemes.contains(codeSchemeForCode))) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_ALLOWED));
         }
     }

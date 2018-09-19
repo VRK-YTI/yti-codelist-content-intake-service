@@ -103,7 +103,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 member.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 final String relationCodeValue = parseMemberRelationFromCsvRecord(record);
                 if (relationCodeValue != null) {
-                    member.setRelatedMember(createMemberWithCodeValue(relationCodeValue));
+                    member.setRelatedMember(createMemberWithCodeAndCodeValue(relationCodeValue));
                 }
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
                     member.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
@@ -124,12 +124,12 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
         return extensions;
     }
 
-    private MemberDTO createMemberWithCodeValue(final String codeValue) {
-        final MemberDTO refMember = new MemberDTO();
+    private MemberDTO createMemberWithCodeAndCodeValue(final String codeValue) {
+        final MemberDTO member = new MemberDTO();
         final CodeDTO refCode = new CodeDTO();
         refCode.setCodeValue(codeValue);
-        refMember.setCode(refCode);
-        return refMember;
+        member.setCode(refCode);
+        return member;
     }
 
     public Set<MemberDTO> parseMembersFromExcelInputStream(final Extension extension,
@@ -187,7 +187,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {
                     final String relationCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
                     if (relationCodeValue != null && !relationCodeValue.isEmpty()) {
-                        member.setRelatedMember(createMemberWithCodeValue(relationCodeValue));
+                        member.setRelatedMember(createMemberWithCodeAndCodeValue(relationCodeValue));
                     }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
