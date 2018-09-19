@@ -93,8 +93,8 @@ public class MemberDaoImpl implements MemberDao {
         return memberRepository.findByCodeId(id);
     }
 
-    public Set<Member> findByBroaderMemberId(final UUID id) {
-        return memberRepository.findByBroaderMemberId(id);
+    public Set<Member> findByRelatedMemberId(final UUID id) {
+        return memberRepository.findByRelatedMemberId(id);
     }
 
     public Set<Member> findByExtensionId(final UUID id) {
@@ -164,24 +164,24 @@ public class MemberDaoImpl implements MemberDao {
     private void linkMembers(final Member member,
                              final Member relatedMember) {
         if (relatedMember != null) {
-            member.setBroaderMember(relatedMember);
+            member.setRelatedMember(relatedMember);
         }
     }
 
     private void resolveMemberRelation(final Extension extension,
                                        final Member member,
                                        final MemberDTO fromMember) {
-        final MemberDTO broaderMember = fromMember.getBroaderMember();
-        if (broaderMember != null && broaderMember.getId() != null && fromMember.getId() != null && member.getId().equals(broaderMember.getId())) {
+        final MemberDTO relatedMember = fromMember.getRelatedMember();
+        if (relatedMember != null && relatedMember.getId() != null && fromMember.getId() != null && member.getId().equals(relatedMember.getId())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
         final Set<Member> linkedMembers = new HashSet<>();
-        if (broaderMember != null && broaderMember.getId() != null) {
-            linkExtensionWithId(member, broaderMember.getId());
+        if (relatedMember != null && relatedMember.getId() != null) {
+            linkExtensionWithId(member, relatedMember.getId());
             linkedMembers.add(member);
-        } else if (broaderMember != null && broaderMember.getCode() != null) {
+        } else if (relatedMember != null && relatedMember.getCode() != null) {
             final Set<Member> members = findByExtensionId(extension.getId());
-            final String identifier = broaderMember.getCode().getCodeValue();
+            final String identifier = relatedMember.getCode().getCodeValue();
             final UUID uuid = getUuidFromString(identifier);
             if (uuid != null) {
                 linkExtensionWithId(member, uuid);
@@ -212,7 +212,7 @@ public class MemberDaoImpl implements MemberDao {
         if (level > MAX_LEVEL) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_HIERARCHY_MAXLEVEL_REACHED));
         }
-        final Member relatedMember = member.getBroaderMember();
+        final Member relatedMember = member.getRelatedMember();
         if (relatedMember != null) {
             if (chainedMembers.contains(relatedMember)) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CYCLIC_DEPENDENCY_ISSUE));
@@ -287,7 +287,7 @@ public class MemberDaoImpl implements MemberDao {
         } else if (existingMember.getOrder() == null && fromMember.getOrder() == null) {
             existingMember.setOrder(getNextOrderInSequence(extension));
         }
-        setBroaderMember(fromMember, existingMember);
+        setRelatedMember(fromMember, existingMember);
         if (fromMember.getCode() != null) {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, extension, fromMember);
             if (!Objects.equals(existingMember.getCode(), code)) {
@@ -337,7 +337,7 @@ public class MemberDaoImpl implements MemberDao {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, extension, fromMember);
             member.setCode(code);
         }
-        setBroaderMember(fromMember, member);
+        setRelatedMember(fromMember, member);
         member.setStartDate(fromMember.getStartDate());
         member.setEndDate(fromMember.getEndDate());
         member.setExtension(extension);
@@ -353,23 +353,23 @@ public class MemberDaoImpl implements MemberDao {
         }
     }
 
-    private void setBroaderMember(final MemberDTO fromMember,
+    private void setRelatedMember(final MemberDTO fromMember,
                                   final Member member) {
-        if (fromMember.getBroaderMember() != null && fromMember.getBroaderMember().getId() != null) {
-            final UUID broaderMemberId = fromMember.getBroaderMember().getId();
-            if (broaderMemberId != null && broaderMemberId == fromMember.getId()) {
+        if (fromMember.getRelatedMember() != null && fromMember.getRelatedMember().getId() != null) {
+            final UUID relatedMemberId = fromMember.getRelatedMember().getId();
+            if (relatedMemberId != null && relatedMemberId == fromMember.getId()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
             }
-            if (broaderMemberId != null) {
-                final Member broaderMember = findById(broaderMemberId);
-                if (broaderMember != null) {
-                    member.setBroaderMember(member);
+            if (relatedMemberId != null) {
+                final Member relatedMember = findById(relatedMemberId);
+                if (relatedMember != null) {
+                    member.setRelatedMember(member);
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
                 }
             }
         } else {
-            member.setBroaderMember(null);
+            member.setRelatedMember(null);
         }
     }
 

@@ -351,8 +351,8 @@ public class DtoMapperService {
         memberDto.setCode(mapCodeDto(member.getCode(), false, true, false));
         memberDto.setPrefLabel(member.getPrefLabel());
         if (deep) {
-            if (member.getBroaderMember() != null) {
-                memberDto.setBroaderMember(mapMemberDto(member.getBroaderMember(), false));
+            if (member.getRelatedMember() != null) {
+                memberDto.setRelatedMember(mapMemberDto(member.getRelatedMember(), false));
             }
             if (member.getExtension() != null) {
                 memberDto.setExtension(mapExtensionDto(member.getExtension(), false, true, true));

@@ -187,7 +187,7 @@ public class CloningServiceImpl implements CloningService {
             getCodeForMember(newCodes, orig, newMember);
             newMember.setId(UUID.randomUUID());
             newMember.setExtension(copy);
-            newMember.setBroaderMember(orig.getBroaderMember());
+            newMember.setRelatedMember(orig.getRelatedMember());
             newMember.setOrder(orig.getOrder());
             newMember.setMemberValue(orig.getMemberValue());
             newMember.setPrefLabel(orig.getPrefLabel());

@@ -103,7 +103,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 member.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 final String relationCodeValue = parseMemberRelationFromCsvRecord(record);
                 if (relationCodeValue != null) {
-                    member.setBroaderMember(createMemberWithCodeValue(relationCodeValue));
+                    member.setRelatedMember(createMemberWithCodeValue(relationCodeValue));
                 }
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
                     member.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
@@ -187,7 +187,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {
                     final String relationCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
                     if (relationCodeValue != null && !relationCodeValue.isEmpty()) {
-                        member.setBroaderMember(createMemberWithCodeValue(relationCodeValue));
+                        member.setRelatedMember(createMemberWithCodeValue(relationCodeValue));
                     }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {

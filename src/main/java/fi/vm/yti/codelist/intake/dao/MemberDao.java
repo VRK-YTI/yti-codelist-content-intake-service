@@ -23,7 +23,7 @@ public interface MemberDao {
 
     Set<Member> findByCodeId(final UUID id);
 
-    Set<Member> findByBroaderMemberId(final UUID id);
+    Set<Member> findByRelatedMemberId(final UUID id);
 
     Set<Member> findByExtensionId(final UUID id);
 

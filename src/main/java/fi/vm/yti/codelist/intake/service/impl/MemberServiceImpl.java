@@ -62,9 +62,9 @@ public class MemberServiceImpl implements MemberService {
         }
         final Set<Member> members = memberDao.findByExtensionId(member.getExtension().getId());
         members.forEach(extension1 -> {
-            final Member broaderMember = member.getBroaderMember();
-            if (broaderMember != null && broaderMember.getId() == id) {
-                member.setBroaderMember(null);
+            final Member relatedMember = member.getRelatedMember();
+            if (relatedMember != null && relatedMember.getId() == id) {
+                member.setRelatedMember(null);
                 memberDao.save(member);
             }
         });

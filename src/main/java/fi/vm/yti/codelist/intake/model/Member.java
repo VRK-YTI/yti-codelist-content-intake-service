@@ -36,7 +36,7 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
     private Integer order;
     private Code code;
     private Extension extension;
-    private Member broaderMember;
+    private Member relatedMember;
     private Map<String, String> prefLabel;
     private Date startDate;
     private Date endDate;
@@ -82,13 +82,13 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinColumn(name = "broadermember_id")
-    public Member getBroaderMember() {
-        return broaderMember;
+    @JoinColumn(name = "relatedmember_id")
+    public Member getRelatedMember() {
+        return relatedMember;
     }
 
-    public void setBroaderMember(final Member broaderMember) {
-        this.broaderMember = broaderMember;
+    public void setRelatedMember(final Member relatedMember) {
+        this.relatedMember = relatedMember;
     }
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
