@@ -267,11 +267,19 @@ public class MemberDaoImpl implements MemberDao {
                                 final Member existingMember,
                                 final MemberDTO fromMember,
                                 final Set<Member> members) {
-        final String memberValue = fromMember.getMemberValue();
         if (extension.getPropertyType().getLocalName().equalsIgnoreCase(CALCULATION_HIERARCHY)) {
-            validateMemberValue(memberValue);
-            if (!Objects.equals(existingMember.getMemberValue(), memberValue)) {
-                existingMember.setMemberValue(memberValue);
+            final String memberValue_1 = fromMember.getMemberValue_1();
+            validateMemberValue(memberValue_1);
+            if (!Objects.equals(existingMember.getMemberValue_1(), memberValue_1)) {
+                existingMember.setMemberValue_1(memberValue_1);
+            }
+            final String memberValue_2 = fromMember.getMemberValue_2();
+            if (!Objects.equals(existingMember.getMemberValue_2(), memberValue_2)) {
+                existingMember.setMemberValue_2(memberValue_2);
+            }
+            final String memberValue_3 = fromMember.getMemberValue_3();
+            if (!Objects.equals(existingMember.getMemberValue_3(), memberValue_3)) {
+                existingMember.setMemberValue_3(memberValue_3);
             }
         }
         for (final Map.Entry<String, String> entry : fromMember.getPrefLabel().entrySet()) {
@@ -317,10 +325,14 @@ public class MemberDaoImpl implements MemberDao {
             final UUID uuid = UUID.randomUUID();
             member.setId(uuid);
         }
-        final String memberValue = fromMember.getMemberValue();
         if (extension.getPropertyType().getLocalName().equalsIgnoreCase(CALCULATION_HIERARCHY)) {
-            validateMemberValue(memberValue);
-            member.setMemberValue(memberValue);
+            final String memberValue_1 = fromMember.getMemberValue_1();
+            validateMemberValue(memberValue_1);
+            member.setMemberValue_1(memberValue_1);
+            final String memberValue_2 = fromMember.getMemberValue_2();
+            member.setMemberValue_2(memberValue_2);
+            final String memberValue_3 = fromMember.getMemberValue_3();
+            member.setMemberValue_3(memberValue_3);
         }
         for (final Map.Entry<String, String> entry : fromMember.getPrefLabel().entrySet()) {
             final String language = entry.getKey();

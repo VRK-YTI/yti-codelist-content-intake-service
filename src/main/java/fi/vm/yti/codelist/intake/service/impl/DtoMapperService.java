@@ -347,7 +347,9 @@ public class DtoMapperService {
         final MemberDTO memberDto = new MemberDTO();
         memberDto.setId(member.getId());
         memberDto.setOrder(member.getOrder());
-        memberDto.setMemberValue(member.getMemberValue());
+        memberDto.setMemberValue_1(member.getMemberValue_1());
+        memberDto.setMemberValue_2(member.getMemberValue_2());
+        memberDto.setMemberValue_3(member.getMemberValue_3());
         memberDto.setCode(mapCodeDto(member.getCode(), false, true, false));
         memberDto.setPrefLabel(member.getPrefLabel());
         if (deep) {

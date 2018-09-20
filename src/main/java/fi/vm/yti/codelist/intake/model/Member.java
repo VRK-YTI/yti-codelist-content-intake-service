@@ -32,7 +32,6 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
 
     private static final long serialVersionUID = 1L;
 
-    private String memberValue;
     private Integer order;
     private Code code;
     private Extension extension;
@@ -40,15 +39,9 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
     private Map<String, String> prefLabel;
     private Date startDate;
     private Date endDate;
-
-    @Column(name = "membervalue")
-    public String getMemberValue() {
-        return memberValue;
-    }
-
-    public void setMemberValue(final String memberValue) {
-        this.memberValue = memberValue;
-    }
+    private String memberValue_1;
+    private String memberValue_2;
+    private String memberValue_3;
 
     @Column(name = "memberorder")
     @JsonView(Views.Normal.class)
@@ -164,5 +157,32 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
         } else {
             this.endDate = null;
         }
+    }
+
+    @Column(name = "membervalue_1")
+    public String getMemberValue_1() {
+        return memberValue_1;
+    }
+
+    public void setMemberValue_1(final String memberValue_1) {
+        this.memberValue_1 = memberValue_1;
+    }
+
+    @Column(name = "membervalue_2")
+    public String getMemberValue_2() {
+        return memberValue_2;
+    }
+
+    public void setMemberValue_2(final String memberValue_2) {
+        this.memberValue_2 = memberValue_2;
+    }
+
+    @Column(name = "membervalue_3")
+    public String getMemberValue_3() {
+        return memberValue_3;
+    }
+
+    public void setMemberValue_3(final String memberValue_3) {
+        this.memberValue_3 = memberValue_3;
     }
 }

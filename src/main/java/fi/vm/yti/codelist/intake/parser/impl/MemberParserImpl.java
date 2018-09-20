@@ -82,23 +82,25 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
     @SuppressFBWarnings("UC_USELESS_OBJECT")
     public Set<MemberDTO> parseMembersFromCsvInputStream(final Extension extension,
                                                          final InputStream inputStream) {
-        final boolean requiresMemberValue = hasMemberValue(extension);
+        final boolean requiresMemberValues = hasMemberValue(extension);
         final Set<MemberDTO> extensions = new LinkedHashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
             final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
-            validateRequiredHeaders(requiresMemberValue, headerMap);
+            validateRequiredHeaders(requiresMemberValues, headerMap);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
-                validateRequiredDataOnRecord(requiresMemberValue, record);
+                validateRequiredDataOnRecord(requiresMemberValues, record);
                 final MemberDTO member = new MemberDTO();
                 member.setId(parseIdFromRecord(record));
                 member.setOrder(resolveOrderFromCsvRecord(record));
                 member.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
-                if (requiresMemberValue) {
-                    member.setMemberValue(parseMemberValueFromCsvRecord(record));
+                if (requiresMemberValues) {
+                    member.setMemberValue_1(parseStringFromCsvRecord(record, CONTENT_HEADER_MEMBERVALUE_1));
+                    member.setMemberValue_2(parseStringFromCsvRecord(record, CONTENT_HEADER_MEMBERVALUE_2));
+                    member.setMemberValue_3(parseStringFromCsvRecord(record, CONTENT_HEADER_MEMBERVALUE_3));
                 }
                 member.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 final String relationCodeValue = parseMemberRelationFromCsvRecord(record);
@@ -150,7 +152,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
     public Set<MemberDTO> parseMembersFromExcelWorkbook(final Extension extension,
                                                         final Workbook workbook,
                                                         final String sheetName) {
-        final boolean requireMemberValue = hasMemberValue(extension);
+        final boolean requireMemberValues = hasMemberValue(extension);
         final Set<MemberDTO> members = new LinkedHashSet<>();
         final DataFormatter formatter = new DataFormatter();
         Sheet sheet = workbook.getSheet(sheetName);
@@ -170,19 +172,21 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 firstRow = false;
                 headerMap = resolveHeaderMap(row);
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
-                validateRequiredHeaders(requireMemberValue, headerMap);
+                validateRequiredHeaders(requireMemberValues, headerMap);
             } else {
                 final MemberDTO member = new MemberDTO();
                 final String codeIdentifier = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
                 member.setCode(createCodeUsingIdentifier(codeIdentifier, String.valueOf(row.getRowNum())));
-                validateRequiredDataOnRow(requireMemberValue, row, headerMap, formatter);
+                validateRequiredDataOnRow(requireMemberValues, row, headerMap, formatter);
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     member.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
                 member.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 member.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
-                if (requireMemberValue) {
-                    member.setMemberValue(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE))));
+                if (requireMemberValues) {
+                    member.setMemberValue_1(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE_1))));
+                    member.setMemberValue_2(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE_2))));
+                    member.setMemberValue_3(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE_3))));
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {
                     final String relationCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
@@ -207,8 +211,8 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                                            final Row row,
                                            final Map<String, Integer> headerMap,
                                            final DataFormatter formatter) {
-        if (requireMemberValue && (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE))) == null ||
-            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE))).isEmpty())) {
+        if (requireMemberValue && (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE_1))) == null ||
+            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE_1))).isEmpty())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ROW_MISSING_MEMBERVALUE, String.valueOf(row.getRowNum() + 1)));
         }
@@ -221,7 +225,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
 
     private void validateRequiredDataOnRecord(final boolean requireMemberValue,
                                               final CSVRecord record) {
-        if (requireMemberValue && (record.get(CONTENT_HEADER_MEMBERVALUE) == null || record.get(CONTENT_HEADER_MEMBERVALUE).isEmpty())) {
+        if (requireMemberValue && (record.get(CONTENT_HEADER_MEMBERVALUE_1) == null || record.get(CONTENT_HEADER_MEMBERVALUE_1).isEmpty())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ROW_MISSING_MEMBERVALUE, String.valueOf(record.getRecordNumber() + 1)));
         }
@@ -233,7 +237,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
 
     private void validateRequiredHeaders(final boolean requiresMamberValue,
                                          final Map<String, Integer> headerMap) {
-        if (requiresMamberValue && !headerMap.containsKey(CONTENT_HEADER_MEMBERVALUE)) {
+        if (requiresMamberValue && !headerMap.containsKey(CONTENT_HEADER_MEMBERVALUE_1)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_MEMBERVALUE));
         }
@@ -262,10 +266,6 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
             code.setCodeValue(identifier);
         }
         return code;
-    }
-
-    private String parseMemberValueFromCsvRecord(final CSVRecord record) {
-        return parseStringFromCsvRecord(record, CONTENT_HEADER_MEMBERVALUE);
     }
 
     private String parseMemberRelationFromCsvRecord(final CSVRecord record) {
