@@ -99,8 +99,12 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 member.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 if (requiresMemberValues) {
                     member.setMemberValue_1(parseStringFromCsvRecord(record, CONTENT_HEADER_MEMBERVALUE_1));
-                    member.setMemberValue_2(parseStringFromCsvRecord(record, CONTENT_HEADER_MEMBERVALUE_2));
-                    member.setMemberValue_3(parseStringFromCsvRecord(record, CONTENT_HEADER_MEMBERVALUE_3));
+                    if (headerMap.containsKey(CONTENT_HEADER_MEMBERVALUE_2)) {
+                        member.setMemberValue_2(parseStringFromCsvRecord(record, CONTENT_HEADER_MEMBERVALUE_2));
+                    }
+                    if (headerMap.containsKey(CONTENT_HEADER_MEMBERVALUE_3)) {
+                        member.setMemberValue_3(parseStringFromCsvRecord(record, CONTENT_HEADER_MEMBERVALUE_3));
+                    }
                 }
                 member.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
                 final String relationCodeValue = parseMemberRelationFromCsvRecord(record);
@@ -185,8 +189,12 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 member.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
                 if (requireMemberValues) {
                     member.setMemberValue_1(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE_1))));
-                    member.setMemberValue_2(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE_2))));
-                    member.setMemberValue_3(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE_3))));
+                    if (headerMap.containsKey(CONTENT_HEADER_MEMBERVALUE_2)) {
+                        member.setMemberValue_2(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE_2))));
+                    }
+                    if (headerMap.containsKey(CONTENT_HEADER_MEMBERVALUE_3)) {
+                        member.setMemberValue_3(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBERVALUE_3))));
+                    }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_RELATION)) {
                     final String relationCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_RELATION)));
