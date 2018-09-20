@@ -14,24 +14,31 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import fi.vm.yti.codelist.intake.ContentIntakeServiceApplication;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
+import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
+import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {ContentIntakeServiceApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { ContentIntakeServiceApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"automatedtest"})
 @TestPropertySource(locations = "classpath:test-port.properties")
-public class CodeRegistryResourceT2 extends AbstractIntegrationTestBase {
+public class CodeSchemeWithExtensionsTestT16 extends AbstractIntegrationTestBase {
 
-    public static final String TEST_CODEREGISTRY_FILENAME = "v1_testcoderegistries.csv";
+    private static final String TEST_CODESCHEME_FILENAME = "v1_extensionscheme_test.xlsx";
 
     @Inject
     private CodeRegistryRepository codeRegistryRepository;
 
+    @Inject
+    private CodeSchemeRepository codeSchemeRepository;
+
     @Test
     @Transactional
-    public void postRegistriesTest() {
-        final ResponseEntity<String> response = uploadCodeRegistriesFromCsv(TEST_CODEREGISTRY_FILENAME);
+    public void postCodeSchemesToCodeRegistryTest() {
+        final ResponseEntity<String> response = uploadCodeSchemesToCodeRegistryFromExcel(TEST_CODEREGISTRY_CODEVALUE, TEST_CODESCHEME_FILENAME);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(11, codeRegistryRepository.findAll().size());
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(TEST_CODEREGISTRY_CODEVALUE);
+        assertNotNull(codeRegistry);
     }
 }
