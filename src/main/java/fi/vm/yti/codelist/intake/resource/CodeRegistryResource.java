@@ -555,11 +555,12 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                  @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                  @ApiParam(value = "Extension codeValue", required = true) @PathParam("extensionCodeValue") final String extensionCodeValue,
                                  @ApiParam(value = "Member UUID", required = true) @PathParam("memberId") final UUID memberId) {
-
         final MemberDTO existingMember = memberService.findById(memberId);
         if (existingMember != null) {
-            final MemberDTO member = memberService.deleteMember(existingMember.getId());
-            indexing.deleteMember(member);
+            final Set<MemberDTO> affectedMembers = new HashSet<>();
+            final MemberDTO memberToBeDeleted = memberService.deleteMember(existingMember.getId(), affectedMembers);
+            indexing.updateMembers(affectedMembers);
+            indexing.deleteMember(memberToBeDeleted);
         } else {
             return Response.status(404).build();
         }
@@ -641,11 +642,12 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                @ApiParam(value = "Code codeValue.", required = true) @PathParam("codeCodeValue") final String codeCodeValue) {
         final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
-            final CodeDTO code = codeService.deleteCode(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
-            if (code != null) {
-                final Set<CodeDTO> referencedCodes = codeService.removeBroaderCodeId(code.getId());
-                if (referencedCodes != null && !referencedCodes.isEmpty()) {
-                    indexing.updateCodes(referencedCodes);
+            final CodeDTO codeToBeDeleted = codeService.findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
+            if (codeToBeDeleted != null) {
+                final Set<CodeDTO> affectedCodes = new HashSet<>();
+                final CodeDTO code = codeService.deleteCode(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue, affectedCodes);
+                if (!affectedCodes.isEmpty()) {
+                    indexing.updateCodes(affectedCodes);
                 }
                 final Set<MemberDTO> members = code.getMembers();
                 if (members != null && !members.isEmpty()) {

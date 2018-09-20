@@ -229,28 +229,33 @@ public class CodeServiceImpl implements CodeService {
     @Transactional
     public CodeDTO deleteCode(final String codeRegistryCodeValue,
                               final String codeSchemeCodeValue,
-                              final String codeCodeValue) {
+                              final String codeCodeValue,
+                              final Set<CodeDTO> affectedCodes) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
-            final Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
-            if (code != null) {
-                if (authorizationManager.canCodeBeDeleted(code)) {
-                    if (code.getMembers() != null && !code.getMembers().isEmpty()) {
+            final Code codeToBeDeleted = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
+            if (codeToBeDeleted != null) {
+                if (authorizationManager.canCodeBeDeleted(codeToBeDeleted)) {
+                    if (codeToBeDeleted.getMembers() != null && !codeToBeDeleted.getMembers().isEmpty()) {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_IN_USE));
                     }
-                    if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(code.getCodeValue())) {
+                    if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(codeToBeDeleted.getCodeValue())) {
                         codeScheme.setDefaultCode(null);
                         codeSchemeDao.save(codeScheme);
                     }
-                    final CodeDTO codeDto = dtoMapperService.mapCodeDto(code, true, true, true);
-                    codeDao.delete(code);
-                    return codeDto;
+                    affectedCodes.addAll(removeBroaderCodeId(codeToBeDeleted.getId()));
+                    final CodeDTO codeToBeDeletedDTO = dtoMapperService.mapCodeDto(codeToBeDeleted, true, true, true);
+                    codeDao.delete(codeToBeDeleted);
+                    return codeToBeDeletedDTO;
                 } else {
                     throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                 }
+            } else {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
             }
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
-        return null;
     }
 
     @Transactional

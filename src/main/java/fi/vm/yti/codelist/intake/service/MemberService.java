@@ -11,7 +11,8 @@ import fi.vm.yti.codelist.intake.model.Extension;
 
 public interface MemberService {
 
-    MemberDTO deleteMember(final UUID id);
+    MemberDTO deleteMember(final UUID id,
+                           final Set<MemberDTO> affectedMembers);
 
     Set<MemberDTO> findAll();
 

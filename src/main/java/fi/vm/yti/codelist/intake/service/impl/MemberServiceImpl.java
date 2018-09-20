@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
-import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
+import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -55,22 +55,25 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Transactional
-    public MemberDTO deleteMember(final UUID id) {
-        final Member member = memberDao.findById(id);
-        if (!authorizationManager.canMemberBeDeleted(member)) {
-            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
-        }
-        final Set<Member> members = memberDao.findByExtensionId(member.getExtension().getId());
-        members.forEach(extension1 -> {
-            final Member relatedMember = member.getRelatedMember();
-            if (relatedMember != null && relatedMember.getId() == id) {
-                member.setRelatedMember(null);
-                memberDao.save(member);
+    public MemberDTO deleteMember(final UUID id,
+                                  final Set<MemberDTO> affectedMembers) {
+        final Member memberToBeDeleted = memberDao.findById(id);
+        if (memberToBeDeleted != null) {
+            if (!authorizationManager.canMemberBeDeleted(memberToBeDeleted)) {
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
-        });
-        final MemberDTO memberDto = dtoMapperService.mapMemberDto(member, false);
-        memberDao.delete(member);
-        return memberDto;
+            final Set<Member> relatedMembers = memberDao.findByRelatedMemberId(memberToBeDeleted.getId());
+            relatedMembers.forEach(relatedMember -> {
+                relatedMember.setRelatedMember(null);
+                memberDao.save(relatedMember);
+            });
+            affectedMembers.addAll(dtoMapperService.mapDeepMemberDtos(relatedMembers));
+            final MemberDTO memberToBeDeletedDto = dtoMapperService.mapDeepMemberDto(memberToBeDeleted);
+            memberDao.delete(memberToBeDeleted);
+            return memberToBeDeletedDto;
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_404));
+        }
     }
 
     @Transactional
