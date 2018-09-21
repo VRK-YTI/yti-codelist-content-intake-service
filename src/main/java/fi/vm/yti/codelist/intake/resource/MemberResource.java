@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.resource;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -76,10 +77,10 @@ public class MemberResource implements AbstractBaseResource {
     public Response deleteMember(@ApiParam(value = "Member UUID", required = true) @PathParam("memberId") final UUID memberId) {
         final MemberDTO existingMember = memberService.findById(memberId);
         if (existingMember != null) {
-            final UUID extensionId = existingMember.getExtension().getId();
-            memberService.deleteMember(existingMember.getId());
+            final Set<MemberDTO> affectedMembers = new HashSet<>();
+            memberService.deleteMember(existingMember.getId(), affectedMembers);
             indexing.deleteMember(existingMember);
-            indexing.updateMembers(memberService.findByExtensionId(extensionId));
+            indexing.updateMembers(affectedMembers);
         } else {
             return Response.status(404).build();
         }

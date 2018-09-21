@@ -46,7 +46,8 @@ public interface CodeService {
 
     CodeDTO deleteCode(final String codeRegistryCodeValue,
                        final String codeSchemeCodeValue,
-                       final String codeCodeValue);
+                       final String codeCodeValue,
+                       final Set<CodeDTO> affectedCodes);
 
     CodeDTO findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                                           final String codeSchemeCodeValue,
