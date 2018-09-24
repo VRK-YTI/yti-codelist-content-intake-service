@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -208,6 +209,7 @@ public class CloningServiceImpl implements CloningService {
             HashMap<UUID, UUID> oldIdToNewIdPointerMap = new HashMap<>();
             HashMap<UUID, UUID> oldIdToOldRelatedMemberIdMap = new HashMap<>();
             HashMap<UUID, Member> newMembersMap = new HashMap<>();
+
             for (final Member originalMember : originalMembers) {
                 Member newMember = new Member();
                 newMember = populateMember(newCodes,
@@ -223,26 +225,30 @@ public class CloningServiceImpl implements CloningService {
                     originalMember.getRelatedMember() != null ?
                         originalMember.getRelatedMember().getId() : null);
             }
+
             for (Member newMember : newMembers) {
                 Member relatedMember = newMembersMap.get(oldIdToOldRelatedMemberIdMap.get(newMember.getId()));
                 newMember.setRelatedMember(relatedMember);
                 newMember.setId(oldIdToNewIdPointerMap.get(newMember.getId())); //Only at this point new UUIDs to everyone!!
             }
+
             LinkedHashSet<Member> membersInOrderOfTheirLevelTopLevelFirst = new LinkedHashSet<>();
-            Long nrOfItems = new Long(newMembers.size()); //TODO remove these Long constructors
-            Long nrOfItemsProcessed = new Long(0);
+            Long nrOfItems = (long) newMembers.size();
+            Long nrOfItemsProcessed = 0L;
             LinkedHashSet<Member> topLevel = new LinkedHashSet<>();
+
             for (Member member : newMembers) {
                 if (member.getRelatedMember() == null) {
                     topLevel.add(member);
                     nrOfItemsProcessed++;
                 }
             }
+
             membersInOrderOfTheirLevelTopLevelFirst.addAll(topLevel);
-            LinkedHashSet<Member> currentLevelParents = topLevel;
             if (nrOfItemsProcessed < nrOfItems) {
-                getNextLevelItems(newMembers, nrOfItemsProcessed, nrOfItems, currentLevelParents, membersInOrderOfTheirLevelTopLevelFirst);
+                getNextLevelItemsOfMembers(newMembers, nrOfItemsProcessed, nrOfItems, topLevel, membersInOrderOfTheirLevelTopLevelFirst);
             }
+
             memberDao.save(membersInOrderOfTheirLevelTopLevelFirst);
             clonedExtension.setMembers(membersInOrderOfTheirLevelTopLevelFirst);//order just to avoid referential integrity problems
             extensionDao.save(clonedExtension);
@@ -250,12 +256,13 @@ public class CloningServiceImpl implements CloningService {
         return newMembers;
     }
 
-    private void getNextLevelItems(Set<Member> newMembers,
-                                   Long nrOfItemsProcessed,
-                                   Long nrOfItems,
-                                   LinkedHashSet<Member> currentLevelParents,
-                                   LinkedHashSet<Member> ordered) {
+    private void getNextLevelItemsOfMembers(Set<Member> newMembers,
+                                            Long nrOfItemsProcessed,
+                                            Long nrOfItems,
+                                            LinkedHashSet<Member> currentLevelParents,
+                                            LinkedHashSet<Member> ordered) {
         LinkedHashSet<Member> newParents = new LinkedHashSet<>();
+
         for (Member member : newMembers) {
             if (currentLevelParents.contains(member.getRelatedMember())) {
                 ordered.add(member);
@@ -263,8 +270,9 @@ public class CloningServiceImpl implements CloningService {
                 nrOfItemsProcessed++;
             }
         }
+
         if (nrOfItemsProcessed < nrOfItems) {
-            getNextLevelItems(newMembers, nrOfItemsProcessed, nrOfItems, newParents, ordered);
+            getNextLevelItemsOfMembers(newMembers, nrOfItemsProcessed, nrOfItems, newParents, ordered);
         }
     }
 
@@ -404,13 +412,53 @@ public class CloningServiceImpl implements CloningService {
                 final Code parentCode = clonedCodesByCodeValueMap.get(parentCodeValue);
                 clonedCode.setBroaderCode(parentCode);
             }
-            codeDao.save(clonedCode);
-            final CodeDTO clonedCodeDTO = dtoMapperService.mapDeepCodeDto(clonedCode);
-            clonedCodeDTOs.add(clonedCodeDTO);
         }
+
+        LinkedHashSet<Code> codesInOrderOfTheirLevelTopLevelFirst = new LinkedHashSet<>();
+        Long nrOfItems = (long) clonedCodes.size();
+        Long nrOfItemsProcessed = 0L;
+        LinkedHashSet<Code> topLevel = new LinkedHashSet<>();
+
+        for (Code code : clonedCodes) {
+            if (code.getBroaderCode() == null) {
+                topLevel.add(code);
+                nrOfItemsProcessed++;
+            }
+        }
+        codesInOrderOfTheirLevelTopLevelFirst.addAll(topLevel);
+        LinkedHashSet<Code> currentLevelParents = topLevel;
+        if (nrOfItemsProcessed < nrOfItems) {
+            getNextLevelItemsOfCodes(clonedCodes, nrOfItemsProcessed, nrOfItems, currentLevelParents, codesInOrderOfTheirLevelTopLevelFirst);
+        }
+        ArrayList<Code> orderedCodes = new ArrayList(codesInOrderOfTheirLevelTopLevelFirst); //ArrayList retains order in forEach
+        orderedCodes.forEach( code -> {
+            codeDao.save(code);
+            final CodeDTO clonedCodeDTO = dtoMapperService.mapDeepCodeDto(code);
+            clonedCodeDTOs.add(clonedCodeDTO);
+        });
 
         codeSchemeWithUserChangesFromUi.setCodes(clonedCodeDTOs);
         return clonedCodes;
+    }
+
+    private void getNextLevelItemsOfCodes(Set<Code> codes,
+                                            Long nrOfItemsProcessed,
+                                            Long nrOfItems,
+                                            LinkedHashSet<Code> currentLevelParents,
+                                            LinkedHashSet<Code> ordered) {
+        LinkedHashSet<Code> newParents = new LinkedHashSet<>();
+
+        for (Code code : codes) {
+            if (currentLevelParents.contains(code.getBroaderCode())) {
+                ordered.add(code);
+                newParents.add(code);
+                nrOfItemsProcessed++;
+            }
+        }
+        
+        if (nrOfItemsProcessed < nrOfItems) {
+            getNextLevelItemsOfCodes(codes, nrOfItemsProcessed, nrOfItems, newParents, ordered);
+        }
     }
 
     @Transactional
