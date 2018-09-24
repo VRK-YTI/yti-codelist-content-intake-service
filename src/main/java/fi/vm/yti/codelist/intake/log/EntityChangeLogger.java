@@ -9,6 +9,7 @@ import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
+import fi.vm.yti.codelist.intake.model.ValueType;
 
 public interface EntityChangeLogger {
 
@@ -27,4 +28,6 @@ public interface EntityChangeLogger {
     void logExtensionChange(final Extension extension);
 
     void logMemberChange(final Member member);
+
+    void logValueTypeChange(final ValueType member);
 }

@@ -307,9 +307,7 @@ public class CloningServiceImpl implements CloningService {
         newMember.setId(originalMember.getId());
         newMember.setExtension(extension);
         newMember.setOrder(originalMember.getOrder());
-        newMember.setMemberValue_1(originalMember.getMemberValue_1());
-        newMember.setMemberValue_2(originalMember.getMemberValue_2());
-        newMember.setMemberValue_3(originalMember.getMemberValue_3());
+        // TODO: Clone memberValues accordingly!
         newMember.setPrefLabel(originalMember.getPrefLabel());
         newMember.setCreated(timeStamp);
         newMember.setModified(timeStamp);

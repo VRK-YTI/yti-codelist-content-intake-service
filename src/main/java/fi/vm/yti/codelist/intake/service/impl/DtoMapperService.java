@@ -15,8 +15,10 @@ import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.MemberValueDTO;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
+import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.model.Code;
@@ -25,8 +27,10 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
+import fi.vm.yti.codelist.intake.model.MemberValue;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.model.PropertyType;
+import fi.vm.yti.codelist.intake.model.ValueType;
 
 @Component
 public class DtoMapperService {
@@ -319,6 +323,9 @@ public class DtoMapperService {
         propertyTypeDto.setUrl(apiUtils.createPropertyTypeUrl(propertyTypeDto));
         propertyTypeDto.setCreated(propertyType.getCreated());
         propertyTypeDto.setModified(propertyType.getModified());
+        if (propertyType.getValueTypes() != null && !propertyType.getValueTypes().isEmpty()) {
+            propertyTypeDto.setValueTypes(mapValueTypeDtos(propertyType.getValueTypes()));
+        }
         return propertyTypeDto;
     }
 
@@ -329,6 +336,58 @@ public class DtoMapperService {
             propertyTypes.forEach(propertyType -> propertyTypeDtos.add(mapPropertyTypeDto(propertyType)));
         }
         return propertyTypeDtos;
+    }
+
+    @Transactional
+    public Set<ValueTypeDTO> mapValueTypeDtos(final Set<ValueType> valueTypes) {
+        final Set<ValueTypeDTO> valueTypeDtos = new HashSet<>();
+        if (valueTypes != null && !valueTypes.isEmpty()) {
+            valueTypes.forEach(valueType -> valueTypeDtos.add(mapValueTypeDto(valueType)));
+        }
+        return valueTypeDtos;
+    }
+
+    @Transactional
+    public ValueTypeDTO mapValueTypeDto(final ValueType valueType) {
+        final ValueTypeDTO valueTypeDto = new ValueTypeDTO();
+        valueTypeDto.setId(valueType.getId());
+        valueTypeDto.setTypeUri(valueType.getTypeUri());
+        valueTypeDto.setValueTypeUri(valueType.getValueTypeUri());
+        valueTypeDto.setLocalName(valueType.getLocalName());
+        valueTypeDto.setRegexp(valueType.getRegexp());
+        valueTypeDto.setPrefLabel(valueType.getPrefLabel());
+        valueTypeDto.setRequired(valueType.getRequired());
+        valueTypeDto.setUrl(apiUtils.createValueTypeUrl(valueTypeDto));
+        return valueTypeDto;
+    }
+
+    @Transactional
+    public Set<MemberValueDTO> mapMemberValueDtos(final Set<MemberValue> memberValues) {
+        final Set<MemberValueDTO> memberValueDtos = new HashSet<>();
+        if (memberValues != null && !memberValues.isEmpty()) {
+            memberValues.forEach(memberValue -> memberValueDtos.add(mapMemberValueDto(memberValue, false)));
+        }
+        return memberValueDtos;
+    }
+
+    @Transactional
+    public MemberValueDTO mapDeepMemberValueDto(final MemberValue memberValue) {
+        return mapMemberValueDto(memberValue, true);
+    }
+
+    @Transactional
+    public MemberValueDTO mapMemberValueDto(final MemberValue memberValue,
+                                            final boolean deep) {
+        final MemberValueDTO memberValueDto = new MemberValueDTO();
+        memberValueDto.setId(memberValue.getId());
+        memberValueDto.setCreated(memberValue.getCreated());
+        memberValueDto.setModified(memberValue.getModified());
+        memberValueDto.setValue(memberValue.getValue());
+        memberValueDto.setValueType(mapValueTypeDto(memberValue.getValueType()));
+        if (deep) {
+            memberValueDto.setMember(mapMemberDto(memberValue.getMember()));
+        }
+        return memberValueDto;
     }
 
     @Transactional
@@ -347,9 +406,9 @@ public class DtoMapperService {
         final MemberDTO memberDto = new MemberDTO();
         memberDto.setId(member.getId());
         memberDto.setOrder(member.getOrder());
-        memberDto.setMemberValue_1(member.getMemberValue_1());
-        memberDto.setMemberValue_2(member.getMemberValue_2());
-        memberDto.setMemberValue_3(member.getMemberValue_3());
+        if (member.getMemberValues() != null && !member.getMemberValues().isEmpty()) {
+            memberDto.setMemberValues(mapMemberValueDtos(member.getMemberValues()));
+        }
         memberDto.setCode(mapCodeDto(member.getCode(), false, true, false));
         memberDto.setPrefLabel(member.getPrefLabel());
         if (deep) {

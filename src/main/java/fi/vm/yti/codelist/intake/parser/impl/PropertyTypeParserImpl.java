@@ -32,12 +32,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
+import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.parser.PropertyTypeParser;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
+import static java.util.Arrays.asList;
 
 @Service
 public class PropertyTypeParserImpl extends AbstractBaseParser implements PropertyTypeParser {
@@ -89,6 +91,9 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
                 propertyType.setPropertyUri(record.get(CONTENT_HEADER_PROPERTYURI));
                 propertyType.setContext(record.get(CONTENT_HEADER_CONTEXT));
                 propertyType.setType(record.get(CONTENT_HEADER_TYPE));
+                if (record.get(CONTENT_HEADER_VALUETYPE) != null) {
+                    propertyType.setValueTypes(parseValueTypesFromString(record.get(CONTENT_HEADER_VALUETYPE)));
+                }
                 propertyType.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 propertyType.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                 propertyTypes.add(propertyType);
@@ -101,6 +106,19 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
             throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
         return propertyTypes;
+    }
+
+    private Set<ValueTypeDTO> parseValueTypesFromString(final String valueTypeString) {
+        final Set<ValueTypeDTO> valueTypes = new HashSet<>();
+        final List<String> valueTypeLocalNames = valueTypeString == null || valueTypeString.isEmpty() ? null : asList(valueTypeString.split(";"));
+        if (valueTypeLocalNames != null && !valueTypeLocalNames.isEmpty()) {
+            valueTypeLocalNames.forEach(valueTypeLocalName -> {
+                final ValueTypeDTO valueType = new ValueTypeDTO();
+                valueType.setLocalName(valueTypeLocalName);
+                valueTypes.add(valueType);
+            });
+        }
+        return valueTypes;
     }
 
     @Override
@@ -133,6 +151,9 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
                     propertyType.setType(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_TYPE))));
                     propertyType.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                     propertyType.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
+                    if (row.getCell(headerMap.get(CONTENT_HEADER_VALUETYPE)) != null) {
+                        propertyType.setValueTypes(parseValueTypesFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_VALUETYPE)))));
+                    }
                     propertyTypes.add(propertyType);
                 }
             }

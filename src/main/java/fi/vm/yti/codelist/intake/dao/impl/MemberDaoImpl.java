@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -19,6 +20,7 @@ import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
+import fi.vm.yti.codelist.intake.dao.MemberValueDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.MemberRepository;
 import fi.vm.yti.codelist.intake.language.LanguageService;
@@ -27,31 +29,35 @@ import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
+import fi.vm.yti.codelist.intake.model.MemberValue;
+import fi.vm.yti.codelist.intake.model.ValueType;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
 public class MemberDaoImpl implements MemberDao {
 
     private static final int MAX_LEVEL = 10;
-    private static final String CALCULATION_HIERARCHY = "calculationHierarchy";
 
     private final EntityChangeLogger entityChangeLogger;
     private final MemberRepository memberRepository;
     private final CodeDao codeDao;
     private final UriSuomiProperties uriSuomiProperties;
     private final LanguageService languageService;
+    private final MemberValueDao memberValueDao;
 
     @Inject
     public MemberDaoImpl(final EntityChangeLogger entityChangeLogger,
                          final MemberRepository memberRepository,
                          final CodeDao codeDao,
                          final UriSuomiProperties uriSuomiProperties,
-                         final LanguageService languageService) {
+                         final LanguageService languageService,
+                         final MemberValueDao memberValueDao) {
         this.entityChangeLogger = entityChangeLogger;
         this.memberRepository = memberRepository;
         this.codeDao = codeDao;
         this.uriSuomiProperties = uriSuomiProperties;
         this.languageService = languageService;
+        this.memberValueDao = memberValueDao;
     }
 
     public void delete(final Member member) {
@@ -101,6 +107,7 @@ public class MemberDaoImpl implements MemberDao {
         final Member member = createOrUpdateMember(extension, fromMemberDto, members);
         fromMemberDto.setId(member.getId());
         save(member);
+        updateMemberMemberValues(extension, member, fromMemberDto);
         resolveMemberRelation(extension, member, fromMemberDto);
         members.add(member);
         return members;
@@ -116,10 +123,38 @@ public class MemberDaoImpl implements MemberDao {
                 memberDto.setId(member.getId());
                 members.add(member);
                 save(member);
+                updateMemberMemberValues(extension, member, memberDto);
             }
             resolveMemberRelations(extension, members, memberDtos);
         }
         return members;
+    }
+
+    private void updateMemberMemberValues(final Extension extension,
+                                          final Member member,
+                                          final MemberDTO fromMemberDto) {
+        final Set<MemberValue> memberValues = memberValueDao.updateMemberValueEntitiesFromDtos(member, fromMemberDto.getMemberValues());
+        ensureThatRequiredMemberValuesArePresent(extension.getPropertyType().getValueTypes(), memberValues);
+        member.setMemberValues(memberValues);
+        save(member);
+    }
+
+    private void ensureThatRequiredMemberValuesArePresent(final Set<ValueType> valueTypes,
+                                                          final Set<MemberValue> memberValues) {
+        if (!valueTypes.isEmpty()) {
+            final Set<ValueType> requiredValueTypes = valueTypes.stream().filter(ValueType::getRequired).collect(Collectors.toSet());
+            if (!requiredValueTypes.isEmpty()) {
+                requiredValueTypes.forEach(valueType -> {
+                    if (!memberValues.isEmpty()) {
+                        if (memberValues.stream().noneMatch(member -> member.getValueType() == valueType)) {
+                            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_NOT_SET));
+                        }
+                    } else {
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_NOT_SET));
+                    }
+                });
+            }
+        }
     }
 
     private UUID getUuidFromString(final String uuid) {
@@ -255,33 +290,12 @@ public class MemberDaoImpl implements MemberDao {
         }
     }
 
-    private void validateExtension(final Member member,
-                                   final Extension extension) {
-        if (member.getExtension() != extension) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
-        }
-    }
-
     private Member updateMember(final CodeScheme codeScheme,
                                 final Extension extension,
                                 final Member existingMember,
                                 final MemberDTO fromMember,
                                 final Set<Member> members) {
-        if (extension.getPropertyType().getLocalName().equalsIgnoreCase(CALCULATION_HIERARCHY)) {
-            final String memberValue_1 = fromMember.getMemberValue_1();
-            validateMemberValue(memberValue_1);
-            if (!Objects.equals(existingMember.getMemberValue_1(), memberValue_1)) {
-                existingMember.setMemberValue_1(memberValue_1);
-            }
-            final String memberValue_2 = fromMember.getMemberValue_2();
-            if (!Objects.equals(existingMember.getMemberValue_2(), memberValue_2)) {
-                existingMember.setMemberValue_2(memberValue_2);
-            }
-            final String memberValue_3 = fromMember.getMemberValue_3();
-            if (!Objects.equals(existingMember.getMemberValue_3(), memberValue_3)) {
-                existingMember.setMemberValue_3(memberValue_3);
-            }
-        }
+
         for (final Map.Entry<String, String> entry : fromMember.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
             languageService.validateInputLanguage(codeScheme, language);
@@ -325,15 +339,6 @@ public class MemberDaoImpl implements MemberDao {
             final UUID uuid = UUID.randomUUID();
             member.setId(uuid);
         }
-        if (extension.getPropertyType().getLocalName().equalsIgnoreCase(CALCULATION_HIERARCHY)) {
-            final String memberValue_1 = fromMember.getMemberValue_1();
-            validateMemberValue(memberValue_1);
-            member.setMemberValue_1(memberValue_1);
-            final String memberValue_2 = fromMember.getMemberValue_2();
-            member.setMemberValue_2(memberValue_2);
-            final String memberValue_3 = fromMember.getMemberValue_3();
-            member.setMemberValue_3(memberValue_3);
-        }
         for (final Map.Entry<String, String> entry : fromMember.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
             languageService.validateInputLanguage(codeScheme, language);
@@ -358,9 +363,10 @@ public class MemberDaoImpl implements MemberDao {
         return member;
     }
 
-    private void validateMemberValue(final String memberValue) {
-        if (memberValue == null || memberValue.isEmpty()) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_NOT_SET));
+    private void validateExtension(final Member member,
+                                   final Extension extension) {
+        if (member.getExtension() != extension) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
     }
 

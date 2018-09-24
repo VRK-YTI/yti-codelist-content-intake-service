@@ -3,6 +3,7 @@ package fi.vm.yti.codelist.intake.model;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -10,6 +11,8 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
@@ -28,6 +31,7 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
     private String type;
     private Map<String, String> prefLabel;
     private Map<String, String> definition;
+    private Set<ValueType> valueTypes;
 
     @Column(name = "localname")
     public String getLocalName() {
@@ -137,5 +141,30 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
             definition.remove(language);
         }
         setDefinition(definition);
+    }
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "propertytype_valuetype",
+        joinColumns = {
+            @JoinColumn(name = "propertytype_id", referencedColumnName = "id") },
+        inverseJoinColumns = {
+            @JoinColumn(name = "valuetype_id", referencedColumnName = "id") })
+    public Set<ValueType> getValueTypes() {
+        return valueTypes;
+    }
+
+    public void setValueTypes(final Set<ValueType> valueTypes) {
+        this.valueTypes = valueTypes;
+    }
+
+    public ValueType getValueTypeWithLocalName(final String localName) {
+        if (valueTypes != null && !valueTypes.isEmpty()) {
+            for (final ValueType valueType : valueTypes) {
+                if (valueType.getLocalName().equalsIgnoreCase(localName)) {
+                    return valueType;
+                }
+            }
+        }
+        return null;
     }
 }

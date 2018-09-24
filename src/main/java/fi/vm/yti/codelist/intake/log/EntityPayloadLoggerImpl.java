@@ -23,6 +23,7 @@ import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
+import fi.vm.yti.codelist.intake.model.ValueType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.impl.DtoMapperService;
 
@@ -37,6 +38,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     private static final String PROPERTYTYPE = "PropertyType";
     private static final String EXTENSION = "Extension";
     private static final String MEMBER = "Member";
+    private static final String VALUETYPE = "ValueType";
 
     private final AuthorizationManager authorizationManager;
     private final Tracer tracer;
@@ -129,6 +131,17 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
         }
         endPayloadLogging(MEMBER, member.getId());
     }
+
+    public void logValueType(final ValueType valueType) {
+        beginPayloadLogging(VALUETYPE, valueType.getId());
+        try {
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapValueTypeDto(valueType)));
+        } catch (final JsonProcessingException e) {
+            LOG.error(String.format("Failed to write log for valueType: %s", valueType.getId()), e);
+        }
+        endPayloadLogging(VALUETYPE, valueType.getId());
+    }
+
 
     private void beginPayloadLogging(final String name,
                                      final UUID identifier) {

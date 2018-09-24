@@ -17,6 +17,7 @@ import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
+import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.DataModelProperties;
 import fi.vm.yti.codelist.intake.configuration.FrontendProperties;
@@ -165,6 +166,10 @@ public class ApiUtils {
 
     public String createPropertyTypeUrl(final PropertyTypeDTO propertyType) {
         return createResourceUrl(API_PATH_PROPERTYTYPES, propertyType.getId().toString());
+    }
+
+    public String createValueTypeUrl(final ValueTypeDTO valueType) {
+        return createResourceUrl(API_PATH_VALUETYPES, valueType.getId().toString());
     }
 
     public String createExtensionUrl(final String codeRegistryCodeValue,

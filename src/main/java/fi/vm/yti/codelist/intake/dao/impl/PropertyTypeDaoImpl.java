@@ -12,21 +12,27 @@ import javax.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
+import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
+import fi.vm.yti.codelist.intake.dao.ValueTypeDao;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.PropertyType;
+import fi.vm.yti.codelist.intake.model.ValueType;
 
 @Component
 public class PropertyTypeDaoImpl implements PropertyTypeDao {
 
     private final EntityChangeLogger entityChangeLogger;
     private final PropertyTypeRepository propertyTypeRepository;
+    private final ValueTypeDao valueTypeDao;
 
     public PropertyTypeDaoImpl(final EntityChangeLogger entityChangeLogger,
-                               final PropertyTypeRepository propertyTypeRepository) {
+                               final PropertyTypeRepository propertyTypeRepository,
+                               final ValueTypeDao valueTypeDao) {
         this.entityChangeLogger = entityChangeLogger;
         this.propertyTypeRepository = propertyTypeRepository;
+        this.valueTypeDao = valueTypeDao;
     }
 
     public PropertyType findById(final UUID id) {
@@ -114,6 +120,7 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
                 existingPropertyType.setDefinition(language, value);
             }
         }
+        existingPropertyType.setValueTypes(resolveValueTypesFromDtos(fromPropertyType.getValueTypes()));
         existingPropertyType.setModified(new Date(System.currentTimeMillis()));
         return existingPropertyType;
     }
@@ -136,9 +143,23 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
         for (final Map.Entry<String, String> entry : fromPropertyType.getDefinition().entrySet()) {
             propertyType.setDefinition(entry.getKey(), entry.getValue());
         }
+        propertyType.setValueTypes(resolveValueTypesFromDtos(fromPropertyType.getValueTypes()));
         final Date timeStamp = new Date(System.currentTimeMillis());
         propertyType.setCreated(timeStamp);
         propertyType.setModified(timeStamp);
         return propertyType;
+    }
+
+    private Set<ValueType> resolveValueTypesFromDtos(final Set<ValueTypeDTO> valueTypeDtos) {
+        final Set<ValueType> valueTypes = new HashSet<>();
+        if (valueTypeDtos != null && !valueTypeDtos.isEmpty()) {
+            valueTypeDtos.forEach(valueTypeDto -> {
+                final ValueType valueType = valueTypeDao.findByLocalName(valueTypeDto.getLocalName());
+                if (valueType != null) {
+                    valueTypes.add(valueType);
+                }
+            });
+        }
+        return valueTypes;
     }
 }

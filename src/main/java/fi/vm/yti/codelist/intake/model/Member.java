@@ -3,7 +3,9 @@ package fi.vm.yti.codelist.intake.model;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
@@ -14,6 +16,7 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -39,9 +42,11 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
     private Map<String, String> prefLabel;
     private Date startDate;
     private Date endDate;
-    private String memberValue_1;
-    private String memberValue_2;
-    private String memberValue_3;
+    private Set<MemberValue> memberValues;
+
+    public Member() {
+        memberValues = new HashSet<>();
+    }
 
     @Column(name = "memberorder")
     @JsonView(Views.Normal.class)
@@ -159,30 +164,23 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
         }
     }
 
-    @Column(name = "membervalue_1")
-    public String getMemberValue_1() {
-        return memberValue_1;
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "member", cascade = CascadeType.ALL)
+    public Set<MemberValue> getMemberValues() {
+        return memberValues;
     }
 
-    public void setMemberValue_1(final String memberValue_1) {
-        this.memberValue_1 = memberValue_1;
+    public void setMemberValues(final Set<MemberValue> memberValues) {
+        this.memberValues = memberValues;
     }
 
-    @Column(name = "membervalue_2")
-    public String getMemberValue_2() {
-        return memberValue_2;
-    }
-
-    public void setMemberValue_2(final String memberValue_2) {
-        this.memberValue_2 = memberValue_2;
-    }
-
-    @Column(name = "membervalue_3")
-    public String getMemberValue_3() {
-        return memberValue_3;
-    }
-
-    public void setMemberValue_3(final String memberValue_3) {
-        this.memberValue_3 = memberValue_3;
+    public MemberValue getMemberValueWithLocalName(final String localName) {
+        if (memberValues != null && !memberValues.isEmpty()) {
+            for (final MemberValue memberValue : memberValues) {
+                if (memberValue.getValueType().getLocalName().equalsIgnoreCase(localName)) {
+                    return memberValue;
+                }
+            }
+        }
+        return null;
     }
 }

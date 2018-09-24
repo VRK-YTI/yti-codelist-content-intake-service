@@ -22,6 +22,7 @@ import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
+import fi.vm.yti.codelist.intake.model.ValueType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 
 @Service
@@ -106,6 +107,13 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         entityPayloadLogger.logMember(member);
         final EditedEntity editedEntity = new EditedEntity(createCommit());
         editedEntity.setMember(member);
+        editedEntityRepository.save(editedEntity);
+    }
+
+    public void logValueTypeChange(final ValueType valueType) {
+        entityPayloadLogger.logValueType(valueType);
+        final EditedEntity editedEntity = new EditedEntity(createCommit());
+        editedEntity.setValueType(valueType);
         editedEntityRepository.save(editedEntity);
     }
 

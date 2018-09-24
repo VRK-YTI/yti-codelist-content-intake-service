@@ -19,6 +19,7 @@ import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
+import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
@@ -32,6 +33,7 @@ import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
+import fi.vm.yti.codelist.intake.service.ValueTypeService;
 import fi.vm.yti.codelist.intake.update.UpdateManager;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
@@ -41,8 +43,10 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.*;
 public class YtiDataAccess {
 
     public static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
+    public static final String DEFAULT_VALUETYPE_FILENAME = "valuetypes.csv";
     public static final String DEFAULT_EXTERNALREFERENCE_FILENAME = "externalreferences.csv";
-    private static final String PROPERTYTYPE_IDENTIFIER = "v4";
+    private static final String PROPERTYTYPE_IDENTIFIER = "v5";
+    private static final String VALUETYPE_IDENTIFIER = "v1";
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
     private static final String DEFAULT_CLASSIFICATIONREGISTRY_FILENAME = "classificationregistries.csv";
     private static final String DEFAULT_INTEROPERABILITYREGISTRY_FILENAME = "interoperabilityplatformregistries.csv";
@@ -62,6 +66,7 @@ public class YtiDataAccess {
     private final CodeService codeService;
     private final ExternalReferenceService externalReferenceService;
     private final PropertyTypeService propertyTypeService;
+    private final ValueTypeService valueTypeService;
 
     @Inject
     public YtiDataAccess(final ContentIntakeServiceProperties contentIntakeServiceProperties,
@@ -73,7 +78,8 @@ public class YtiDataAccess {
                          final CodeSchemeService codeSchemeService,
                          final CodeService codeService,
                          final ExternalReferenceService externalReferenceService,
-                         final PropertyTypeService propertyTypeService) {
+                         final PropertyTypeService propertyTypeService,
+                         final ValueTypeService valueTypeService) {
         this.contentIntakeServiceProperties = contentIntakeServiceProperties;
         this.updateManager = updateManager;
         this.codeRegistryDao = codeRegistryDao;
@@ -84,6 +90,7 @@ public class YtiDataAccess {
         this.codeService = codeService;
         this.externalReferenceService = externalReferenceService;
         this.propertyTypeService = propertyTypeService;
+        this.valueTypeService = valueTypeService;
     }
 
     @Transactional
@@ -101,6 +108,7 @@ public class YtiDataAccess {
 
     @Transactional
     public void initializeDefaultData() {
+        loadDefaultValueTypes();
         loadDefaultPropertyTypes();
         loadDefaultExternalReferences();
         loadRegistryContent(DEFAULT_CLASSIFICATIONREGISTRY_FILENAME, "V2_CLASSIFICATION");
@@ -240,6 +248,27 @@ public class YtiDataAccess {
             }
         } else {
             LOG.info("PropertyTypes already up to date, skipping...");
+        }
+    }
+
+    private void loadDefaultValueTypes() {
+        LOG.info("Loading default ValueTypes...");
+        final Stopwatch watch = Stopwatch.createStarted();
+        if (updateManager.shouldUpdateData(DATA_VALUETYPES, VALUETYPE_IDENTIFIER, DEFAULT_VALUETYPE_FILENAME)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(DATA_VALUETYPES, VALUETYPE_IDENTIFIER, SOURCE_INTERNAL, DEFAULT_VALUETYPE_FILENAME, UpdateManager.UPDATE_RUNNING);
+            try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_VALUETYPES + "/" + DEFAULT_VALUETYPE_FILENAME)) {
+                final Set<ValueTypeDTO> valueTypes = valueTypeService.parseAndPersistValueTypesFromSourceData(true, FORMAT_CSV, inputStream, null);
+                LOG.info(String.format("ValueType data loaded and persisted %d ValueType in %s", valueTypes.size(), watch));
+                watch.reset().start();
+                if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
+                    updateManager.updateSuccessStatus(updateStatus);
+                }
+            } catch (final IOException e) {
+                LOG.error("Issue with parsing ValueType file. ", e);
+                updateManager.updateFailedStatus(updateStatus);
+            }
+        } else {
+            LOG.info("ValueTypes already up to date, skipping...");
         }
     }
 

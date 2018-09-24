@@ -9,6 +9,7 @@ import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
+import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 
 public interface Indexing {
 
@@ -45,6 +46,10 @@ public interface Indexing {
     boolean updatePropertyType(final PropertyTypeDTO propertyType);
 
     boolean updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes);
+
+    boolean updateValueType(final ValueTypeDTO ValueTypeDTO);
+
+    boolean updateValueTypes(final Set<ValueTypeDTO> valueTypes);
 
     boolean updateExtension(final ExtensionDTO extension);
 

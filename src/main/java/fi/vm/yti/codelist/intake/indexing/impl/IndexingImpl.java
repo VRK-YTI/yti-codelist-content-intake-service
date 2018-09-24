@@ -32,6 +32,7 @@ import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
+import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.indexing.IndexingTools;
@@ -44,6 +45,7 @@ import fi.vm.yti.codelist.intake.service.ExtensionService;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import fi.vm.yti.codelist.intake.service.MemberService;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
+import fi.vm.yti.codelist.intake.service.ValueTypeService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.update.UpdateManager.UPDATE_FAILED;
 
@@ -61,6 +63,7 @@ public class IndexingImpl implements Indexing {
     private static final String NAME_CODES = "Codes";
     private static final String NAME_EXTERNALREFERENCES = "ExternalReferences";
     private static final String NAME_PROPERTYTYPES = "PropertyTypes";
+    private static final String NAME_VALUETYPES = "ValueTypes";
     private static final String NAME_EXTENSIONS = "Extensions";
     private static final String NAME_MEMBERS = "Members";
     private static final String BULK = "ElasticSearch bulk: ";
@@ -72,6 +75,7 @@ public class IndexingImpl implements Indexing {
     private final CodeService codeService;
     private final ExternalReferenceService externalReferenceService;
     private final PropertyTypeService propertyTypeService;
+    private final ValueTypeService valueTypeService;
     private final ExtensionService extensionService;
     private final MemberService memberService;
     private final Client client;
@@ -88,6 +92,7 @@ public class IndexingImpl implements Indexing {
                         final CodeService codeService,
                         final ExternalReferenceService externalReferenceService,
                         final PropertyTypeService propertyTypeService,
+                        final ValueTypeService valueTypeService,
                         final ExtensionService extensionService,
                         final MemberService memberService) {
         this.indexingTools = indexingTools;
@@ -98,6 +103,7 @@ public class IndexingImpl implements Indexing {
         this.codeService = codeService;
         this.externalReferenceService = externalReferenceService;
         this.propertyTypeService = propertyTypeService;
+        this.valueTypeService = valueTypeService;
         this.extensionService = extensionService;
         this.memberService = memberService;
     }
@@ -148,6 +154,11 @@ public class IndexingImpl implements Indexing {
     private boolean indexPropertyTypes(final String indexName) {
         final Set<PropertyTypeDTO> propertyTypes = propertyTypeService.findAll();
         return indexData(propertyTypes, indexName, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.ExtendedPropertyType.class);
+    }
+
+    private boolean indexValueTypes(final String indexName) {
+        final Set<ValueTypeDTO> valueTypes = valueTypeService.findAll();
+        return indexData(valueTypes, indexName, ELASTIC_TYPE_VALUETYPE, NAME_VALUETYPES, Views.ExtendedValueType.class);
     }
 
     private boolean indexExternalReferences(final String indexName) {
@@ -329,6 +340,16 @@ public class IndexingImpl implements Indexing {
         return propertyTypes.isEmpty() || indexData(propertyTypes, ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
     }
 
+    public boolean updateValueType(final ValueTypeDTO valueType) {
+        final Set<ValueTypeDTO> valueTypes = new HashSet<>();
+        valueTypes.add(valueType);
+        return updateValueTypes(valueTypes);
+    }
+
+    public boolean updateValueTypes(final Set<ValueTypeDTO> valueTypes) {
+        return valueTypes.isEmpty() || indexData(valueTypes, ELASTIC_INDEX_VALUETYPE, ELASTIC_TYPE_VALUETYPE, NAME_VALUETYPES, Views.Normal.class);
+    }
+
     public boolean updateExternalReference(final ExternalReferenceDTO externalReference) {
         final Set<ExternalReferenceDTO> externalReferences = new HashSet<>();
         externalReferences.add(externalReference);
@@ -380,6 +401,9 @@ public class IndexingImpl implements Indexing {
             success = false;
         }
         if (reIndex(ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE)) {
+            success = false;
+        }
+        if (reIndex(ELASTIC_INDEX_VALUETYPE, ELASTIC_TYPE_VALUETYPE)) {
             success = false;
         }
         if (reIndex(ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_INDEX_EXTERNALREFERENCE)) {
@@ -451,6 +475,9 @@ public class IndexingImpl implements Indexing {
                 break;
             case ELASTIC_INDEX_MEMBER:
                 success = indexMembers(indexName);
+                break;
+            case ELASTIC_INDEX_VALUETYPE:
+                success = indexValueTypes(indexName);
                 break;
             default:
                 LOG.error(String.format("Index type: %s not supported.", indexAlias));

@@ -43,7 +43,8 @@ public class UpdateManager {
                                      final String version,
                                      final String status) {
         final UpdateStatus updateStatus = new UpdateStatus();
-        updateStatus.setId(UUID.randomUUID());
+        final UUID uuid = UUID.randomUUID();
+        updateStatus.setId(uuid);
         updateStatus.setDataType(dataType);
         updateStatus.setSource(source);
         updateStatus.setVersion(version);

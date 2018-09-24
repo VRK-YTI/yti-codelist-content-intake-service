@@ -23,6 +23,7 @@ public class EditedEntity {
     private PropertyType propertyType;
     private Extension extension;
     private Member member;
+    private ValueType valueType;
 
     public EditedEntity() {
     }
@@ -33,7 +34,7 @@ public class EditedEntity {
     }
 
     @Id
-    @Column(name = "id")
+    @Column(name = "id", unique = true)
     public UUID getId() {
         return id;
     }
@@ -120,5 +121,15 @@ public class EditedEntity {
 
     public void setMember(final Member member) {
         this.member = member;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "valuetype_id")
+    public ValueType getValueType() {
+        return valueType;
+    }
+
+    public void setValueType(final ValueType valueType) {
+        this.valueType = valueType;
     }
 }

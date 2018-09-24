@@ -32,7 +32,7 @@ public class Commit {
     }
 
     @Id
-    @Column(name = "id")
+    @Column(name = "id", unique = true)
     public UUID getId() {
         return id;
     }

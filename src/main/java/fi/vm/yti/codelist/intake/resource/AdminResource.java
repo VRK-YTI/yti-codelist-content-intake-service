@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
+import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.groupmanagement.OrganizationUpdater;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
@@ -30,6 +31,7 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
+import fi.vm.yti.codelist.intake.service.ValueTypeService;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -37,6 +39,7 @@ import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.data.YtiDataAccess.DEFAULT_EXTERNALREFERENCE_FILENAME;
 import static fi.vm.yti.codelist.intake.data.YtiDataAccess.DEFAULT_PROPERTYTYPE_FILENAME;
+import static fi.vm.yti.codelist.intake.data.YtiDataAccess.DEFAULT_VALUETYPE_FILENAME;
 
 @Component
 @Path("/admin")
@@ -54,6 +57,7 @@ public class AdminResource implements AbstractBaseResource {
     private final ApiUtils apiUtils;
     private final Indexing indexing;
     private final OrganizationUpdater organizationUpdater;
+    private final ValueTypeService valueTypeService;
 
     @Inject
     public AdminResource(final AuthorizationManager authorizationManager,
@@ -64,7 +68,8 @@ public class AdminResource implements AbstractBaseResource {
                          final ExternalReferenceService externalReferenceService,
                          final ApiUtils apiUtils,
                          final Indexing indexing,
-                         final OrganizationUpdater organizationUpdater) {
+                         final OrganizationUpdater organizationUpdater,
+                         final ValueTypeService valueTypeService) {
         this.authorizationManager = authorizationManager;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
@@ -74,6 +79,7 @@ public class AdminResource implements AbstractBaseResource {
         this.apiUtils = apiUtils;
         this.indexing = indexing;
         this.organizationUpdater = organizationUpdater;
+        this.valueTypeService = valueTypeService;
     }
 
     @Path("/updateorganizations")
@@ -193,6 +199,29 @@ public class AdminResource implements AbstractBaseResource {
                 LOG.error("Issue with parsing PropertyType file. ", e);
             }
             LOG.info("PropertyTypes reloaded.");
+            return Response.ok().build();
+        } else {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+    }
+
+    @GET
+    @Path("/valuetypes/reload")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Reloads ValueTypes from source data.")
+    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Transactional
+    public Response reloadValueTypes() {
+        if (authorizationManager.isSuperUser()) {
+            try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_VALUETYPES + "/" + DEFAULT_VALUETYPE_FILENAME)) {
+                final Set<ValueTypeDTO> valueTypeDtos = valueTypeService.parseAndPersistValueTypesFromSourceData(true, FORMAT_CSV, inputStream, null);
+                LOG.info("Reloaded " + valueTypeDtos.size() + " ValueTypes from initial data!");
+                indexing.reIndexEverything();
+                LOG.info("Reindexing finished.");
+            } catch (final IOException e) {
+                LOG.error("Issue with parsing ValueType file. ", e);
+            }
+            LOG.info("ValueTypes reloaded.");
             return Response.ok().build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).build();

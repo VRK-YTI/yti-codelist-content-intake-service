@@ -372,7 +372,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                   @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                   @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                                   @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistExtensiosFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, null, EXCEL_SHEET_EXTENSIONS);
+        return parseAndPersistExtensionsFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, null, EXCEL_SHEET_EXTENSIONS);
     }
 
     @POST
@@ -387,7 +387,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                   @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                   @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                                   @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload) {
-        return parseAndPersistExtensiosFromSource(codeRegistryCodeValue, codeSchemeCodeValue, FORMAT_JSON, null, jsonPayload, null);
+        return parseAndPersistExtensionsFromSource(codeRegistryCodeValue, codeSchemeCodeValue, FORMAT_JSON, null, jsonPayload, null);
     }
 
     @POST
@@ -847,12 +847,12 @@ public class CodeRegistryResource implements AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
-    private Response parseAndPersistExtensiosFromSource(final String codeRegistryCodeValue,
-                                                        final String codeSchemeCodeValue,
-                                                        final String format,
-                                                        final InputStream inputStream,
-                                                        final String jsonPayload,
-                                                        final String sheetName) {
+    private Response parseAndPersistExtensionsFromSource(final String codeRegistryCodeValue,
+                                                         final String codeSchemeCodeValue,
+                                                         final String format,
+                                                         final InputStream inputStream,
+                                                         final String jsonPayload,
+                                                         final String sheetName) {
         final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload, sheetName);
         indexing.updateExtensions(extensions);
         if (!extensions.isEmpty()) {
@@ -866,7 +866,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             indexing.updateCodeSchemes(codeSchemes);
         }
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSION, "member,codeScheme,code,codeRegistry")));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSION, "member,memberValue,valueType,propertyType,codeScheme,code,codeRegistry")));
         final ResponseWrapper<ExtensionDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("Extensions added or modified: " + extensions.size());
         meta.setCode(200);
@@ -890,7 +890,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 indexing.updateExtension(extension);
             }
             final Meta meta = new Meta();
-            ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_MEMBER, "extension,codeScheme,code,codeRegistry,propertyType")));
+            ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_MEMBER, "extension,codeScheme,code,codeRegistry,propertyType,valueType,memberValue")));
             final ResponseWrapper<MemberDTO> responseWrapper = new ResponseWrapper<>(meta);
             meta.setMessage("Member added or modified: " + members.size());
             meta.setCode(200);

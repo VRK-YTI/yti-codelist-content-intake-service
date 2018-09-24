@@ -28,7 +28,7 @@ public class IndexStatus implements Serializable {
     private Date modified;
 
     @Id
-    @Column(name = "id")
+    @Column(name = "id", unique = true)
     public UUID getId() {
         return id;
     }

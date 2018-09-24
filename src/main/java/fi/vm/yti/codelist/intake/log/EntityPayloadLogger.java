@@ -7,6 +7,7 @@ import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
+import fi.vm.yti.codelist.intake.model.ValueType;
 
 public interface EntityPayloadLogger {
 
@@ -23,4 +24,6 @@ public interface EntityPayloadLogger {
     void logExtension(final Extension extension);
 
     void logMember(final Member member);
+
+    void logValueType(final ValueType member);
 }
