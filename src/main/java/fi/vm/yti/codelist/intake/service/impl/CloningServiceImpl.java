@@ -37,6 +37,7 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Member;
+import fi.vm.yti.codelist.intake.model.MemberValue;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CloningService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
@@ -307,10 +308,25 @@ public class CloningServiceImpl implements CloningService {
         newMember.setId(originalMember.getId());
         newMember.setExtension(extension);
         newMember.setOrder(originalMember.getOrder());
-        // TODO: Clone memberValues accordingly!
         newMember.setPrefLabel(originalMember.getPrefLabel());
         newMember.setCreated(timeStamp);
         newMember.setModified(timeStamp);
+
+        Set<MemberValue> newMemberValues = new HashSet<>();
+
+        originalMember.getMemberValues().forEach( originalMemberValue -> {
+            MemberValue newMemberValue = new MemberValue();
+            newMemberValue.setId(UUID.randomUUID());
+            newMemberValue.setMember(newMember);
+            newMemberValue.setValue(originalMemberValue.getValue());
+            newMemberValue.setValueType(originalMemberValue.getValueType());
+            newMemberValue.setCreated(timeStamp);
+            newMemberValue.setModified(timeStamp);
+            newMemberValues.add(newMemberValue);
+        });
+
+        newMember.setMemberValues(newMemberValues);
+
         return newMember;
     }
 
