@@ -318,7 +318,6 @@ public class DtoMapperService {
         propertyTypeDto.setDefinition(propertyType.getDefinition());
         propertyTypeDto.setLocalName(propertyType.getLocalName());
         propertyTypeDto.setPrefLabel(propertyType.getPrefLabel());
-        propertyTypeDto.setType(propertyType.getType());
         propertyTypeDto.setPropertyUri(propertyType.getPropertyUri());
         propertyTypeDto.setUrl(apiUtils.createPropertyTypeUrl(propertyTypeDto));
         propertyTypeDto.setCreated(propertyType.getCreated());

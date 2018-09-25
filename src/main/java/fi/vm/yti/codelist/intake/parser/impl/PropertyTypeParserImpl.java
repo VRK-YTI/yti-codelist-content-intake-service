@@ -90,7 +90,6 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
                 propertyType.setLocalName(record.get(CONTENT_HEADER_LOCALNAME));
                 propertyType.setPropertyUri(record.get(CONTENT_HEADER_PROPERTYURI));
                 propertyType.setContext(record.get(CONTENT_HEADER_CONTEXT));
-                propertyType.setType(record.get(CONTENT_HEADER_TYPE));
                 if (record.get(CONTENT_HEADER_VALUETYPE) != null) {
                     propertyType.setValueTypes(parseValueTypesFromString(record.get(CONTENT_HEADER_VALUETYPE)));
                 }
@@ -148,7 +147,6 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
                     propertyType.setLocalName(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LOCALNAME))));
                     propertyType.setPropertyUri(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYURI))));
                     propertyType.setContext(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CONTEXT))));
-                    propertyType.setType(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_TYPE))));
                     propertyType.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                     propertyType.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
                     if (row.getCell(headerMap.get(CONTENT_HEADER_VALUETYPE)) != null) {

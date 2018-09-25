@@ -28,7 +28,6 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
     private String propertyUri;
     private String localName;
     private String context;
-    private String type;
     private Map<String, String> prefLabel;
     private Map<String, String> definition;
     private Set<ValueType> valueTypes;
@@ -49,15 +48,6 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
 
     public void setContext(final String context) {
         this.context = context;
-    }
-
-    @Column(name = "type")
-    public String getType() {
-        return type;
-    }
-
-    public void setType(final String type) {
-        this.type = type;
     }
 
     @Column(name = "propertyuri")

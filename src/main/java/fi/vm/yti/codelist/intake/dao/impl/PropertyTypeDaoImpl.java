@@ -107,9 +107,6 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
         if (!Objects.equals(existingPropertyType.getLocalName(), fromPropertyType.getLocalName())) {
             existingPropertyType.setLocalName(fromPropertyType.getLocalName());
         }
-        if (!Objects.equals(existingPropertyType.getType(), fromPropertyType.getType())) {
-            existingPropertyType.setType(fromPropertyType.getType());
-        }
         for (final Map.Entry<String, String> entry : fromPropertyType.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
             final String value = entry.getValue();
@@ -139,7 +136,6 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
         }
         propertyType.setContext(fromPropertyType.getContext());
         propertyType.setLocalName(fromPropertyType.getLocalName());
-        propertyType.setType(fromPropertyType.getType());
         propertyType.setPropertyUri(fromPropertyType.getPropertyUri());
         for (final Map.Entry<String, String> entry : fromPropertyType.getPrefLabel().entrySet()) {
             propertyType.setPrefLabel(entry.getKey(), entry.getValue());
