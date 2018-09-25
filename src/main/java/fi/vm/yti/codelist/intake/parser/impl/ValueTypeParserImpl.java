@@ -85,6 +85,7 @@ public class ValueTypeParserImpl extends AbstractBaseParser implements ValueType
                 final ValueTypeDTO valueType = new ValueTypeDTO();
                 valueType.setId(parseUUIDFromString(record.get(CONTENT_HEADER_ID)));
                 valueType.setLocalName(record.get(CONTENT_HEADER_LOCALNAME));
+                valueType.setRegexp(record.get(CONTENT_HEADER_REGEXP));
                 valueType.setTypeUri(record.get(CONTENT_HEADER_TYPEURI));
                 valueType.setValueTypeUri(record.get(CONTENT_HEADER_VALUETYPEURI));
                 valueType.setRequired(Boolean.valueOf(record.get(CONTENT_HEADER_REQUIRED)));
@@ -124,6 +125,7 @@ public class ValueTypeParserImpl extends AbstractBaseParser implements ValueType
                     final ValueTypeDTO valueType = new ValueTypeDTO();
                     valueType.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                     valueType.setLocalName(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LOCALNAME))));
+                    valueType.setRegexp(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_REGEXP))));
                     valueType.setTypeUri(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_TYPEURI))));
                     valueType.setValueTypeUri(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_VALUETYPEURI))));
                     valueType.setRequired(Boolean.valueOf(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_REQUIRED)))));

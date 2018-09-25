@@ -1,3 +1,3 @@
-ID,LOCALNAME,REQUIRED,TYPEURI,VALUETYPEURI,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN
-6534a9e9-5246-4d7e-965c-fd8e64a5d704,unaryOperator,true,http://www.w3.org/2001/XMLSchema#string,http://uri.suomi.fi/datamodel/ns/code#unaryOperator,Aritmeettinen operaattori,,Unary operator
-2057650b-88b8-4a72-80fb-076007aa4ec1,comparisonOperator,false,http://www.w3.org/2001/XMLSchema#string,http://uri.suomi.fi/datamodel/ns/code#comparisonOperator,Laskenta operaattori,,Comparison operator
+ID,LOCALNAME,REQUIRED,TYPEURI,VALUETYPEURI,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,REGEXP
+6534a9e9-5246-4d7e-965c-fd8e64a5d704,unaryOperator,true,http://www.w3.org/2001/XMLSchema#string,http://uri.suomi.fi/datamodel/ns/code#unaryOperator,Aritmeettinen operaattori,,Unary operator,"^(\+|-)$"
+2057650b-88b8-4a72-80fb-076007aa4ec1,comparisonOperator,false,http://www.w3.org/2001/XMLSchema#string,http://uri.suomi.fi/datamodel/ns/code#comparisonOperator,Vertailu operaattori,,Comparison operator,"^(=|<=|>=)$"

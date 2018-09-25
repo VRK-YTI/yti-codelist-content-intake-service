@@ -89,6 +89,9 @@ public class ValueTypeDaoImpl implements ValueTypeDao {
         if (!Objects.equals(existingValueType.getLocalName(), fromValueType.getLocalName())) {
             existingValueType.setLocalName(fromValueType.getLocalName());
         }
+        if (!Objects.equals(existingValueType.getRegexp(), fromValueType.getRegexp())) {
+            existingValueType.setRegexp(fromValueType.getRegexp());
+        }
         existingValueType.setRequired(fromValueType.getRequired());
         for (final Map.Entry<String, String> entry : fromValueType.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
@@ -111,6 +114,7 @@ public class ValueTypeDaoImpl implements ValueTypeDao {
         valueType.setValueTypeUri(fromValueType.getValueTypeUri());
         valueType.setTypeUri(fromValueType.getTypeUri());
         valueType.setLocalName(fromValueType.getLocalName());
+        valueType.setRegexp(fromValueType.getRegexp());
         valueType.setRequired(fromValueType.getRequired());
         for (final Map.Entry<String, String> entry : fromValueType.getPrefLabel().entrySet()) {
             valueType.setPrefLabel(entry.getKey(), entry.getValue());
