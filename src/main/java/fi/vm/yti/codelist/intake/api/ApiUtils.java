@@ -15,7 +15,6 @@ import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
-import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
@@ -29,6 +28,8 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.Member;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
 
@@ -147,7 +148,15 @@ public class ApiUtils {
     public String createCodeUri(final CodeRegistry codeRegistry,
                                 final CodeScheme codeScheme,
                                 final Code code) {
-        return createResourceUri(codeRegistry.getCodeValue() + "/" + codeScheme.getCodeValue() + "/" + urlEncodeString(code.getCodeValue()));
+        return createResourceUri(codeRegistry.getCodeValue() + "/" + codeScheme.getCodeValue() + "/code/" + urlEncodeString(code.getCodeValue()));
+    }
+
+    public String createExtensionUri(final Extension extension) {
+        return createResourceUri(extension.getParentCodeScheme().getCodeRegistry().getCodeValue() + "/" + extension.getParentCodeScheme().getCodeValue() + "/extension/" + urlEncodeString(extension.getCodeValue()));
+    }
+
+    public String createMemberUri(final Member member) {
+        return createResourceUri(member.getExtension().getParentCodeScheme().getCodeRegistry().getCodeValue() + "/" + member.getExtension().getParentCodeScheme().getCodeValue() + "/extension/" + urlEncodeString(member.getExtension().getCodeValue()) + "/member/" + member.getId());
     }
 
     public String createCodeUrl(final CodeDTO code) {
@@ -172,14 +181,21 @@ public class ApiUtils {
         return createResourceUrl(API_PATH_VALUETYPES, valueType.getId().toString());
     }
 
+    public String createExtensionUrl(final Extension extension) {
+        return createExtensionUrl(extension.getParentCodeScheme().getCodeRegistry().getCodeValue(), extension.getParentCodeScheme().getCodeValue(), extension.getCodeValue());
+    }
+
     public String createExtensionUrl(final String codeRegistryCodeValue,
                                      final String codeSchemeCodeValue,
                                      final String codeValue) {
         return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_EXTENSIONS, urlEncodeString(codeValue));
     }
 
-    public String createMemberUrl(final MemberDTO member) {
-        return createResourceUrl(API_PATH_MEMBERS, member.getId().toString());
+    public String createMemberUrl(final Member member) {
+        return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + member.getExtension().getParentCodeScheme().getCodeRegistry().getCodeValue() +
+            API_PATH_CODESCHEMES + "/" + member.getExtension().getParentCodeScheme().getCodeValue() +
+            API_PATH_EXTENSIONS + urlEncodeString(member.getExtension().getCodeValue()) +
+            API_PATH_MEMBERS, member.getId().toString());
     }
 
     public String getContentIntakeServiceHostname() {

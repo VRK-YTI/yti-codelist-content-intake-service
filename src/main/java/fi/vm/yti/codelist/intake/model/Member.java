@@ -43,6 +43,7 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
     private Date startDate;
     private Date endDate;
     private Set<MemberValue> memberValues;
+    private String uri;
 
     public Member() {
         memberValues = new HashSet<>();
@@ -182,5 +183,14 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
             }
         }
         return null;
+    }
+
+    @Column(name = "uri")
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(final String uri) {
+        this.uri = uri;
     }
 }

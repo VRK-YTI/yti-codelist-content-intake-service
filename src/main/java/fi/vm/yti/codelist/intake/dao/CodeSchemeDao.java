@@ -15,6 +15,9 @@ public interface CodeSchemeDao {
 
     void save(final Set<CodeScheme> codeSchemes);
 
+    void save(final Set<CodeScheme> codeSchemes,
+              final boolean logChange);
+
     CodeScheme findById(final UUID id);
 
     CodeScheme findByUri(final String uri);

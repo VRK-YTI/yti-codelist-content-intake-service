@@ -46,7 +46,6 @@ import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Extension;
-import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.model.ValueType;
 import fi.vm.yti.codelist.intake.parser.MemberParser;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
@@ -56,8 +55,6 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 public class MemberParserImpl extends AbstractBaseParser implements MemberParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(MemberParserImpl.class);
-    private static final String UNARYOPERATOR = "unaryOperator";
-    private static final String COMPARISONOPERATOR = "comparisonOperator";
 
     public MemberDTO parseMemberFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
@@ -185,7 +182,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                             final String value = formatter.formatCellValue(row.getCell(headerMap.get(headerName))).trim();
                             if (!value.isEmpty()) {
                                 memberValues.add(createMemberValueWithValue(value, valueType.getLocalName()));
-                            } else if (valueType.getRequired()){
+                            } else if (valueType.getRequired()) {
                                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_MEMBERVALUE));
                             }
                         }

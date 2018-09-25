@@ -35,19 +35,23 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
         this.valueTypeDao = valueTypeDao;
     }
 
+    @Transactional
     public PropertyType findById(final UUID id) {
         return propertyTypeRepository.findById(id);
     }
 
+    @Transactional
     public PropertyType findByContextAndLocalName(final String context,
                                                   final String propertyTypeLocalName) {
         return propertyTypeRepository.findByLocalName(propertyTypeLocalName);
     }
 
+    @Transactional
     public PropertyType findByLocalName(final String propertyTypeLocalName) {
         return propertyTypeRepository.findByLocalName(propertyTypeLocalName);
     }
 
+    @Transactional
     public Set<PropertyType> findAll() {
         return propertyTypeRepository.findAll();
     }

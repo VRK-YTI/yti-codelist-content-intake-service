@@ -28,14 +28,17 @@ public class ValueTypeDaoImpl implements ValueTypeDao {
         this.valueTypeRepository = valueTypeRepository;
     }
 
+    @Transactional
     public ValueType findById(final UUID id) {
         return valueTypeRepository.findById(id);
     }
 
+    @Transactional
     public ValueType findByLocalName(final String valueTypeLocalName) {
         return valueTypeRepository.findByLocalName(valueTypeLocalName);
     }
 
+    @Transactional
     public Set<ValueType> findAll() {
         return valueTypeRepository.findAll();
     }

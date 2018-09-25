@@ -17,6 +17,9 @@ public interface MemberDao {
 
     void save(final Set<Member> members);
 
+    void save(final Set<Member> members,
+              final boolean logChange);
+
     Set<Member> findAll();
 
     Member findById(final UUID id);

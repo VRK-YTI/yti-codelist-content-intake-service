@@ -17,6 +17,9 @@ public interface ExtensionDao {
 
     void save(final Set<Extension> extensions);
 
+    void save(final Set<Extension> extensions,
+              final boolean logChange);
+
     Set<Extension> findAll();
 
     Extension findById(final UUID id);

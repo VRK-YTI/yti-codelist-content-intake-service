@@ -34,6 +34,7 @@ public class Extension extends AbstractHistoricalIdentifyableCodeWithStatus impl
     private Set<CodeScheme> codeSchemes;
     private Set<Member> members;
     private String codeValue;
+    private String uri;
 
     @Column(name = "codevalue")
     public String getCodeValue() {
@@ -119,5 +120,14 @@ public class Extension extends AbstractHistoricalIdentifyableCodeWithStatus impl
 
     public void setParentCodeScheme(final CodeScheme parentCodeScheme) {
         this.parentCodeScheme = parentCodeScheme;
+    }
+
+    @Column(name = "uri")
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(final String uri) {
+        this.uri = uri;
     }
 }

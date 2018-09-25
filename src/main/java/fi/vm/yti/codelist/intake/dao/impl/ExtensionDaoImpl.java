@@ -17,6 +17,7 @@ import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.model.Status;
+import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
@@ -41,6 +42,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
     private final PropertyTypeDao propertyTypeDao;
     private final CodeSchemeDao codeSchemeDao;
     private final LanguageService languageService;
+    private final ApiUtils apiUtils;
 
     @Inject
     public ExtensionDaoImpl(final AuthorizationManager authorizationManager,
@@ -48,13 +50,15 @@ public class ExtensionDaoImpl implements ExtensionDao {
                             final ExtensionRepository extensionRepository,
                             final PropertyTypeDao propertyTypeDao,
                             final CodeSchemeDao codeSchemeDao,
-                            final LanguageService languageService) {
+                            final LanguageService languageService,
+                            final ApiUtils apiUtils) {
         this.authorizationManager = authorizationManager;
         this.entityChangeLogger = entityChangeLogger;
         this.extensionRepository = extensionRepository;
         this.propertyTypeDao = propertyTypeDao;
         this.codeSchemeDao = codeSchemeDao;
         this.languageService = languageService;
+        this.apiUtils = apiUtils;
     }
 
     public void delete(final Extension extension) {
@@ -72,9 +76,16 @@ public class ExtensionDaoImpl implements ExtensionDao {
         entityChangeLogger.logExtensionChange(extension);
     }
 
-    public void save(final Set<Extension> extensions) {
+    public void save(final Set<Extension> extensions,
+                     final boolean logChange) {
         extensionRepository.save(extensions);
-        extensions.forEach(entityChangeLogger::logExtensionChange);
+        if (logChange) {
+            extensions.forEach(entityChangeLogger::logExtensionChange);
+        }
+    }
+
+    public void save(final Set<Extension> extensions) {
+        save(extensions, true);
     }
 
     public Set<Extension> findAll() {
@@ -238,6 +249,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
         extension.setParentCodeScheme(codeScheme);
         addExtensionToParentCodeScheme(codeScheme, extension);
+        extension.setUri(apiUtils.createExtensionUri(extension));
         final Date timeStamp = new Date(System.currentTimeMillis());
         extension.setCreated(timeStamp);
         extension.setModified(timeStamp);

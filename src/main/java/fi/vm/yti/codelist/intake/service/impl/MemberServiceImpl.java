@@ -17,6 +17,7 @@ import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
+import fi.vm.yti.codelist.intake.exception.NotFoundException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -72,7 +73,7 @@ public class MemberServiceImpl implements MemberService {
             memberDao.delete(memberToBeDeleted);
             return memberToBeDeletedDto;
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_404));
+            throw new NotFoundException();
         }
     }
 

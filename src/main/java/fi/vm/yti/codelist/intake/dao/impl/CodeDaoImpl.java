@@ -63,80 +63,105 @@ public class CodeDaoImpl implements CodeDao {
         this.languageService = languageService;
     }
 
+    @Transactional
     public int getCodeCount() {
         return codeRepository.getCodeCount();
     }
 
+    @Transactional
     public void save(final Code code) {
         save(code, true);
     }
 
+    @Transactional
     public void save(final Code code,
-                     final boolean logData) {
+                     final boolean logChange) {
         codeRepository.save(code);
-        if (logData) {
+        if (logChange) {
             entityChangeLogger.logCodeChange(code);
         }
     }
 
-    public void save(final Set<Code> codes) {
+    @Transactional
+    public void save(final Set<Code> codes,
+                     final boolean logChange) {
         codeRepository.save(codes);
-        entityChangeLogger.logCodesChange(codes);
+        if (logChange) {
+            entityChangeLogger.logCodesChange(codes);
+        }
     }
 
+    @Transactional
+    public void save(final Set<Code> codes) {
+        save(codes, true);
+    }
+
+    @Transactional
     public void delete(final Code code) {
         entityChangeLogger.logCodeChange(code);
         codeRepository.delete(code);
     }
 
+    @Transactional
     public void delete(final Set<Code> codes) {
         entityChangeLogger.logCodesChange(codes);
         codeRepository.delete(codes);
     }
 
+    @Transactional
     public Set<Code> findAll(final PageRequest pageRequest) {
         return new HashSet<>(codeRepository.findAll(pageRequest).getContent());
     }
 
+    @Transactional
     public Set<Code> findAll() {
         return codeRepository.findAll();
     }
 
+    @Transactional
     public Code findByUri(final String uri) {
         return codeRepository.findByUriIgnoreCase(uri);
     }
 
+    @Transactional
     public Set<String> findByCodeSchemeAndCodeValue(final UUID codeSchemeId) {
         return codeRepository.getCodeSchemeCodeValues(codeSchemeId);
     }
 
+    @Transactional
     public Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
                                              final String codeValue) {
         return codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeValue);
     }
 
+    @Transactional
     public Code findByCodeSchemeAndCodeValueAndBroaderCodeId(final CodeScheme codeScheme,
                                                              final String codeValue,
                                                              final UUID broaderCodeId) {
         return codeRepository.findByCodeSchemeAndCodeValueIgnoreCaseAndBroaderCodeId(codeScheme, codeValue, broaderCodeId);
     }
 
+    @Transactional
     public Set<String> getCodeSchemeCodeValues(final UUID codeSchemeId) {
         return codeRepository.getCodeSchemeCodeValues(codeSchemeId);
     }
 
+    @Transactional
     public Code findById(UUID id) {
         return codeRepository.findById(id);
     }
 
+    @Transactional
     public Set<Code> findByCodeSchemeId(final UUID codeSchemeId) {
         return codeRepository.findByCodeSchemeId(codeSchemeId);
     }
 
+    @Transactional
     public Set<Code> findByCodeSchemeIdAndBroaderCodeIdIsNull(final UUID codeSchemeId) {
         return codeRepository.findByCodeSchemeIdAndBroaderCodeIdIsNull(codeSchemeId);
     }
 
+    @Transactional
     public Set<Code> findByBroaderCodeId(final UUID broaderCodeId) {
         return codeRepository.findByBroaderCodeId(broaderCodeId);
     }

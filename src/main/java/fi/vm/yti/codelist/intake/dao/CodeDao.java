@@ -14,7 +14,13 @@ public interface CodeDao {
 
     void save(final Code code);
 
+    void save(final Code code,
+              final boolean logChange);
+
     void save(final Set<Code> codes);
+
+    void save(final Set<Code> codes,
+              final boolean logChange);
 
     void delete(final Code code);
 

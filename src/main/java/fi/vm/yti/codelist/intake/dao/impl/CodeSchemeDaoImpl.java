@@ -75,6 +75,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         this.organizationRepository = organizationRepository;
     }
 
+    @Transactional
     public void delete(final CodeScheme codeScheme) {
         entityChangeLogger.logCodeSchemeChange(codeScheme);
         codeSchemeRepository.delete(codeScheme);
@@ -86,11 +87,21 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         entityChangeLogger.logCodeSchemeChange(codeScheme);
     }
 
-    public void save(final Set<CodeScheme> codeSchemes) {
+    @Transactional
+    public void save(final Set<CodeScheme> codeSchemes,
+                     final boolean logChange) {
         codeSchemeRepository.save(codeSchemes);
-        codeSchemes.forEach(entityChangeLogger::logCodeSchemeChange);
+        if (logChange) {
+            codeSchemes.forEach(entityChangeLogger::logCodeSchemeChange);
+        }
     }
 
+    @Transactional
+    public void save(final Set<CodeScheme> codeSchemes) {
+        save(codeSchemes, true);
+    }
+
+    @Transactional
     public CodeScheme findById(final UUID id) {
         return codeSchemeRepository.findById(id);
     }
@@ -104,11 +115,13 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         return codeSchemeRepository.findByCodeRegistryCodeValueIgnoreCase(codeRegistryCodeValue);
     }
 
+    @Transactional
     public CodeScheme findByCodeRegistryAndCodeValue(final CodeRegistry codeRegistry,
                                                      final String codeValue) {
         return codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, codeValue);
     }
 
+    @Transactional
     public CodeScheme findByCodeRegistryCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                               final String codeSchemeCodeValue) {
         final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(codeRegistryCodeValue);
@@ -118,6 +131,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         return null;
     }
 
+    @Transactional
     public Set<CodeScheme> findAll() {
         return codeSchemeRepository.findAll();
     }

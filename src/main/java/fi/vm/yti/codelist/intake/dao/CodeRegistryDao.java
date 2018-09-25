@@ -7,6 +7,11 @@ import fi.vm.yti.codelist.intake.model.CodeRegistry;
 
 public interface CodeRegistryDao {
 
+    void save(final Set<CodeRegistry> codeRegistries);
+
+    void save(final Set<CodeRegistry> codeRegistries,
+              final boolean logChange);
+
     void delete(final CodeRegistry codeRegistry);
 
     Set<CodeRegistry> findAll();

@@ -17,10 +17,12 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
+import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.dao.MemberValueDao;
+import fi.vm.yti.codelist.intake.exception.NotFoundException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.MemberRepository;
 import fi.vm.yti.codelist.intake.language.LanguageService;
@@ -44,6 +46,7 @@ public class MemberDaoImpl implements MemberDao {
     private final UriSuomiProperties uriSuomiProperties;
     private final LanguageService languageService;
     private final MemberValueDao memberValueDao;
+    private final ApiUtils apiUtils;
 
     @Inject
     public MemberDaoImpl(final EntityChangeLogger entityChangeLogger,
@@ -51,51 +54,70 @@ public class MemberDaoImpl implements MemberDao {
                          final CodeDao codeDao,
                          final UriSuomiProperties uriSuomiProperties,
                          final LanguageService languageService,
-                         final MemberValueDao memberValueDao) {
+                         final MemberValueDao memberValueDao,
+                         final ApiUtils apiUtils) {
         this.entityChangeLogger = entityChangeLogger;
         this.memberRepository = memberRepository;
         this.codeDao = codeDao;
         this.uriSuomiProperties = uriSuomiProperties;
         this.languageService = languageService;
         this.memberValueDao = memberValueDao;
+        this.apiUtils = apiUtils;
     }
 
+    @Transactional
     public void delete(final Member member) {
         entityChangeLogger.logMemberChange(member);
         memberRepository.delete(member);
     }
 
+    @Transactional
     public void delete(final Set<Member> members) {
         members.forEach(entityChangeLogger::logMemberChange);
         memberRepository.delete(members);
     }
 
+    @Transactional
     public void save(final Member member) {
         memberRepository.save(member);
         entityChangeLogger.logMemberChange(member);
     }
 
-    public void save(final Set<Member> members) {
+    @Transactional
+    public void save(final Set<Member> members,
+                     final boolean logChange) {
         memberRepository.save(members);
-        members.forEach(entityChangeLogger::logMemberChange);
+        if (logChange) {
+            members.forEach(entityChangeLogger::logMemberChange);
+        }
     }
 
+    @Transactional
+    public void save(final Set<Member> members) {
+        save(members, true);
+    }
+
+    @Transactional
     public Set<Member> findAll() {
         return memberRepository.findAll();
     }
 
+    @Transactional
     public Member findById(final UUID id) {
         return memberRepository.findById(id);
     }
 
+    @Transactional
     public Set<Member> findByCodeId(final UUID id) {
         return memberRepository.findByCodeId(id);
     }
 
+    @Transactional
     public Set<Member> findByRelatedMemberId(final UUID id) {
         return memberRepository.findByRelatedMemberId(id);
     }
 
+    @Transactional
     public Set<Member> findByExtensionId(final UUID id) {
         return memberRepository.findByExtensionId(id);
     }
@@ -172,7 +194,7 @@ public class MemberDaoImpl implements MemberDao {
         for (final Member member : members) {
             final Code code = member.getCode();
             if (code == null) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND));
+                throw new NotFoundException();
             }
             if ((identifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && code.getUri().equalsIgnoreCase(identifier)) || code.getCodeValue().equalsIgnoreCase(identifier)) {
                 if (found) {
@@ -360,6 +382,7 @@ public class MemberDaoImpl implements MemberDao {
         final Date timeStamp = new Date(System.currentTimeMillis());
         member.setCreated(timeStamp);
         member.setModified(timeStamp);
+        member.setUri(apiUtils.createMemberUri(member));
         return member;
     }
 
@@ -380,15 +403,15 @@ public class MemberDaoImpl implements MemberDao {
             if (code != null) {
                 checkThatCodeIsInAllowedCodeScheme(code.getCodeScheme(), codeScheme, extension);
             } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND));
+                throw new NotFoundException();
             }
         } else if (fromCode != null && codeScheme != null && fromCode.getCodeValue() != null && !fromCode.getCodeValue().isEmpty()) {
             code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, member.getCode().getCodeValue());
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND));
+            throw new NotFoundException();
         }
         if (code == null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND));
+            throw new NotFoundException();
         }
         return code;
     }

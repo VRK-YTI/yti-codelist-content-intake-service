@@ -46,11 +46,27 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         this.organizationRepository = organizationRepository;
     }
 
+    @Transactional
     public void delete(final CodeRegistry codeRegistry) {
         entityChangeLogger.logCodeRegistryChange(codeRegistry);
         codeRegistryRepository.delete(codeRegistry);
     }
 
+    @Transactional
+    public void save(final Set<CodeRegistry> codeRegistries,
+                     final boolean logChange) {
+        codeRegistryRepository.save(codeRegistries);
+        if (logChange) {
+            codeRegistries.forEach(entityChangeLogger::logCodeRegistryChange);
+        }
+    }
+
+    @Transactional
+    public void save(final Set<CodeRegistry> codeRegistries) {
+        save(codeRegistries, true);
+    }
+
+    @Transactional
     public Set<CodeRegistry> findAll() {
         return codeRegistryRepository.findAll();
     }

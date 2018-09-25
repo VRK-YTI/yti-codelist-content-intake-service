@@ -419,7 +419,8 @@ public class DtoMapperService {
                 memberDto.setExtension(mapExtensionDto(member.getExtension(), false, true, true));
             }
         }
-        memberDto.setUrl(apiUtils.createMemberUrl(memberDto));
+        memberDto.setUri(apiUtils.createMemberUri(member));
+        memberDto.setUrl(apiUtils.createMemberUrl(member));
         memberDto.setStartDate(member.getStartDate());
         memberDto.setEndDate(member.getEndDate());
         memberDto.setCreated(member.getCreated());
@@ -469,6 +470,8 @@ public class DtoMapperService {
         extensionDto.setPrefLabel(extension.getPrefLabel());
         extensionDto.setStatus(extension.getStatus());
         final String codeValue = extension.getCodeValue();
+        extensionDto.setUrl(apiUtils.createExtensionUrl(extension));
+        extensionDto.setUri(apiUtils.createExtensionUri(extension));
         extensionDto.setCodeValue(codeValue);
         extensionDto.setStartDate(extension.getStartDate());
         extensionDto.setEndDate(extension.getEndDate());

@@ -17,6 +17,7 @@ import javax.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
@@ -395,6 +396,7 @@ public class CloningServiceImpl implements CloningService {
     }
 
     @Transactional
+    @SuppressFBWarnings({ "UC_USELESS_OBJECT" })
     protected Set<Code> handleCodes(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
                                     final Set<Code> originalCodes,
                                     final CodeScheme newCodeScheme,

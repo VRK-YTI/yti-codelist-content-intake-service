@@ -336,12 +336,11 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
     }
 
     @Transactional
+    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE")
     public LinkedHashSet<CodeSchemeDTO> getPreviousVersions(final UUID uuid,
                                                             final LinkedHashSet<CodeSchemeDTO> result) {
         CodeSchemeDTO prevVersion = this.findById(uuid);
-        if (prevVersion == null) {
-            return result;
-        } else {
+        if (prevVersion != null) {
             result.add(prevVersion);
             if (prevVersion.getPrevCodeschemeId() == null) {
                 return result;
@@ -349,6 +348,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
                 return getPreviousVersions(prevVersion.getPrevCodeschemeId(), result);
             }
         }
+        return result;
     }
 
     private void dealWithPossibleVersionHierarchyBeforeDeleting(final CodeSchemeDTO currentCodeScheme,

@@ -25,9 +25,13 @@ import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
+import fi.vm.yti.codelist.intake.jpa.ExtensionRepository;
+import fi.vm.yti.codelist.intake.jpa.MemberRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
@@ -37,9 +41,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.data.YtiDataAccess.DEFAULT_EXTERNALREFERENCE_FILENAME;
-import static fi.vm.yti.codelist.intake.data.YtiDataAccess.DEFAULT_PROPERTYTYPE_FILENAME;
-import static fi.vm.yti.codelist.intake.data.YtiDataAccess.DEFAULT_VALUETYPE_FILENAME;
+import static fi.vm.yti.codelist.intake.data.YtiDataAccess.*;
 
 @Component
 @Path("/admin")
@@ -49,6 +51,8 @@ public class AdminResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(AdminResource.class);
     private final AuthorizationManager authorizationManager;
+    private final ExtensionRepository extensionRepository;
+    private final MemberRepository memberRepository;
     private final CodeRegistryRepository codeRegistryRepository;
     private final CodeSchemeRepository codeSchemeRepository;
     private final CodeRepository codeRepository;
@@ -61,6 +65,8 @@ public class AdminResource implements AbstractBaseResource {
 
     @Inject
     public AdminResource(final AuthorizationManager authorizationManager,
+                         final ExtensionRepository extensionRepository,
+                         final MemberRepository memberRepository,
                          final CodeRegistryRepository codeRegistryRepository,
                          final CodeSchemeRepository codeSchemeRepository,
                          final CodeRepository codeRepository,
@@ -71,6 +77,8 @@ public class AdminResource implements AbstractBaseResource {
                          final OrganizationUpdater organizationUpdater,
                          final ValueTypeService valueTypeService) {
         this.authorizationManager = authorizationManager;
+        this.extensionRepository = extensionRepository;
+        this.memberRepository = memberRepository;
         this.codeRegistryRepository = codeRegistryRepository;
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeRepository = codeRepository;
@@ -97,7 +105,7 @@ public class AdminResource implements AbstractBaseResource {
     }
 
     @GET
-    @Path("/coderegistries/rewriteaddresses")
+    @Path("/coderegistries/rewriteuris")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Rewrites all coderegistry resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
@@ -110,7 +118,7 @@ public class AdminResource implements AbstractBaseResource {
             }
             codeRegistryRepository.save(codeRegistries);
             indexing.reIndexEverything();
-            LOG.info("CodeRegistry uris and urls rewritten.");
+            LOG.info("CodeRegistry uris rewritten.");
             return Response.ok().build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -118,7 +126,7 @@ public class AdminResource implements AbstractBaseResource {
     }
 
     @GET
-    @Path("/codeschemes/rewriteaddresses")
+    @Path("/codeschemes/rewriteuris")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Rewrites all codescheme resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
@@ -131,7 +139,7 @@ public class AdminResource implements AbstractBaseResource {
             }
             codeSchemeRepository.save(codeSchemes);
             indexing.reIndexEverything();
-            LOG.info("CodeScheme uris and urls rewritten.");
+            LOG.info("CodeScheme uris rewritten.");
             return Response.ok().build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -139,7 +147,7 @@ public class AdminResource implements AbstractBaseResource {
     }
 
     @GET
-    @Path("/codes/rewriteaddresses")
+    @Path("/codes/rewriteuris")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Rewrites all code resource uris.")
     @ApiResponse(code = 200, message = "Upon successful request.")
@@ -152,7 +160,49 @@ public class AdminResource implements AbstractBaseResource {
             }
             codeRepository.save(codes);
             indexing.reIndexEverything();
-            LOG.info("Code uris and urls rewritten.");
+            LOG.info("Code uris rewritten.");
+            return Response.ok().build();
+        } else {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+    }
+
+    @GET
+    @Path("/extensions/rewriteuris")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Rewrites all code resource uris.")
+    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Transactional
+    public Response rewriteExtensionUris() {
+        if (authorizationManager.isSuperUser()) {
+            final Set<Extension> extensions = extensionRepository.findAll();
+            for (final Extension extension : extensions) {
+                extension.setUri(apiUtils.createExtensionUrl(extension));
+            }
+            extensionRepository.save(extensions);
+            indexing.reIndexEverything();
+            LOG.info("Extension uris rewritten.");
+            return Response.ok().build();
+        } else {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+    }
+
+    @GET
+    @Path("/members/rewriteuris")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Rewrites all code resource uris.")
+    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Transactional
+    public Response rewriteMemberUris() {
+        if (authorizationManager.isSuperUser()) {
+            final Set<Member> members = memberRepository.findAll();
+            for (final Member member : members) {
+                member.setUri(apiUtils.createMemberUrl(member));
+            }
+            memberRepository.save(members);
+            indexing.reIndexEverything();
+            LOG.info("Member uris rewritten.");
             return Response.ok().build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -169,7 +219,7 @@ public class AdminResource implements AbstractBaseResource {
         if (authorizationManager.isSuperUser()) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_EXTERNALREFERENCES + "/" + DEFAULT_EXTERNALREFERENCE_FILENAME)) {
                 final Set<ExternalReferenceDTO> externalReferenceDtos = externalReferenceService.parseAndPersistExternalReferencesFromSourceData(true, FORMAT_CSV, inputStream, null, null);
-                LOG.info("Reloaded " + externalReferenceDtos.size() + " ExternalReferences from initial data!");
+                LOG.info(String.format("Reloaded %d ExternalReferences from initial data!", externalReferenceDtos.size()));
                 indexing.reIndexEverything();
                 LOG.info("Reindexing finished.");
             } catch (final IOException e) {
@@ -192,7 +242,7 @@ public class AdminResource implements AbstractBaseResource {
         if (authorizationManager.isSuperUser()) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_PROPERTYTYPES + "/" + DEFAULT_PROPERTYTYPE_FILENAME)) {
                 final Set<PropertyTypeDTO> propertyTypeDtos = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(true, FORMAT_CSV, inputStream, null);
-                LOG.info("Reloaded " + propertyTypeDtos.size() + " PropertyTypes from initial data!");
+                LOG.info(String.format("Reloaded %d PropertyTypes from initial data!", propertyTypeDtos.size()));
                 indexing.reIndexEverything();
                 LOG.info("Reindexing finished.");
             } catch (final IOException e) {
@@ -215,7 +265,7 @@ public class AdminResource implements AbstractBaseResource {
         if (authorizationManager.isSuperUser()) {
             try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_VALUETYPES + "/" + DEFAULT_VALUETYPE_FILENAME)) {
                 final Set<ValueTypeDTO> valueTypeDtos = valueTypeService.parseAndPersistValueTypesFromSourceData(true, FORMAT_CSV, inputStream, null);
-                LOG.info("Reloaded " + valueTypeDtos.size() + " ValueTypes from initial data!");
+                LOG.info(String.format("Reloaded %d ValueTypes from initial data!", valueTypeDtos.size()));
                 indexing.reIndexEverything();
                 LOG.info("Reindexing finished.");
             } catch (final IOException e) {

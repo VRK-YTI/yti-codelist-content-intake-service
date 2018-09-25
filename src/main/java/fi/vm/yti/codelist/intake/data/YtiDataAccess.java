@@ -20,13 +20,18 @@ import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
+import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
+import fi.vm.yti.codelist.intake.dao.ExtensionDao;
+import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.UpdateStatus;
 import fi.vm.yti.codelist.intake.service.CodeRegistryService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
@@ -45,6 +50,10 @@ public class YtiDataAccess {
     public static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
     public static final String DEFAULT_VALUETYPE_FILENAME = "valuetypes.csv";
     public static final String DEFAULT_EXTERNALREFERENCE_FILENAME = "externalreferences.csv";
+    private static final String MIGRATION_URIS = "urimigration";
+    private static final String MIGRATION_URIS_VERSION = "v3";
+    private static final String MIGRATION_LANGUAGECODES = "languagecodemigration";
+    private static final String MIGRATION_LANGUAGECODES_VERSION = "v1";
     private static final String PROPERTYTYPE_IDENTIFIER = "v5";
     private static final String VALUETYPE_IDENTIFIER = "v1";
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
@@ -61,12 +70,15 @@ public class YtiDataAccess {
     private final CodeRegistryDao codeRegistryDao;
     private final CodeSchemeDao codeSchemeDao;
     private final CodeDao codeDao;
+    private final ExtensionDao extensionDao;
+    private final MemberDao memberDao;
     private final CodeRegistryService codeRegistryService;
     private final CodeSchemeService codeSchemeService;
     private final CodeService codeService;
     private final ExternalReferenceService externalReferenceService;
     private final PropertyTypeService propertyTypeService;
     private final ValueTypeService valueTypeService;
+    private final ApiUtils apiUtils;
 
     @Inject
     public YtiDataAccess(final ContentIntakeServiceProperties contentIntakeServiceProperties,
@@ -74,23 +86,29 @@ public class YtiDataAccess {
                          final CodeRegistryDao codeRegistryDao,
                          final CodeSchemeDao codeSchemeDao,
                          final CodeDao codeDao,
+                         final ExtensionDao extensionDao,
+                         final MemberDao memberDao,
                          final CodeRegistryService codeRegistryService,
                          final CodeSchemeService codeSchemeService,
                          final CodeService codeService,
                          final ExternalReferenceService externalReferenceService,
                          final PropertyTypeService propertyTypeService,
-                         final ValueTypeService valueTypeService) {
+                         final ValueTypeService valueTypeService,
+                         final ApiUtils apiUtils) {
         this.contentIntakeServiceProperties = contentIntakeServiceProperties;
         this.updateManager = updateManager;
         this.codeRegistryDao = codeRegistryDao;
         this.codeSchemeDao = codeSchemeDao;
         this.codeDao = codeDao;
+        this.extensionDao = extensionDao;
+        this.memberDao = memberDao;
         this.codeRegistryService = codeRegistryService;
         this.codeSchemeService = codeSchemeService;
         this.codeService = codeService;
         this.externalReferenceService = externalReferenceService;
         this.propertyTypeService = propertyTypeService;
         this.valueTypeService = valueTypeService;
+        this.apiUtils = apiUtils;
     }
 
     @Transactional
@@ -115,23 +133,33 @@ public class YtiDataAccess {
         classifyServiceClassification();
         loadRegistryContent(DEFAULT_INTEROPERABILITYREGISTRY_FILENAME, "V2_INTEROPERABILITY");
         setLanguageCodesToEarlierCodeSchemes();
+        rewriteAllUris();
     }
 
     @Transactional
     public void setLanguageCodesToEarlierCodeSchemes() {
-        final CodeScheme languageCodeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(YTI_REGISTRY, YTI_LANGUAGECODE_CODESCHEME);
-        final Set<Code> defaultLanguageCodes = new HashSet<>();
-        defaultLanguageCodes.add(codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, "fi"));
-        defaultLanguageCodes.add(codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, "sv"));
-        defaultLanguageCodes.add(codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, "en"));
-        final Set<CodeScheme> codeSchemes = codeSchemeDao.findAll();
-        if (codeSchemes != null) {
-            codeSchemes.forEach(codeScheme -> {
-                if (codeScheme.getLanguageCodes() == null || codeScheme.getLanguageCodes().isEmpty()) {
-                    codeScheme.setLanguageCodes(defaultLanguageCodes);
-                    codeSchemeDao.save(codeScheme);
-                }
-            });
+        LOG.info("Setting language codes to earlier codeschemes...");
+        if (updateManager.shouldUpdateData(MIGRATION_LANGUAGECODES, MIGRATION_LANGUAGECODES_VERSION, MIGRATION_LANGUAGECODES_VERSION)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(MIGRATION_LANGUAGECODES, MIGRATION_LANGUAGECODES_VERSION, SOURCE_INTERNAL, MIGRATION_LANGUAGECODES_VERSION, UpdateManager.UPDATE_RUNNING);
+            final CodeScheme languageCodeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(YTI_REGISTRY, YTI_LANGUAGECODE_CODESCHEME);
+            final Set<Code> defaultLanguageCodes = new HashSet<>();
+            defaultLanguageCodes.add(codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, "fi"));
+            defaultLanguageCodes.add(codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, "sv"));
+            defaultLanguageCodes.add(codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, "en"));
+            final Set<CodeScheme> codeSchemes = codeSchemeDao.findAll();
+            if (codeSchemes != null) {
+                codeSchemes.forEach(codeScheme -> {
+                    if (codeScheme.getLanguageCodes() == null || codeScheme.getLanguageCodes().isEmpty()) {
+                        codeScheme.setLanguageCodes(defaultLanguageCodes);
+                        codeSchemeDao.save(codeScheme);
+                    }
+                });
+            }
+            if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
+                updateManager.updateSuccessStatus(updateStatus);
+            }
+        } else {
+            LOG.info("CodeScheme languageCodes already up to date, skipping...");
         }
     }
 
@@ -293,6 +321,53 @@ public class YtiDataAccess {
         }
     }
 
+    private void rewriteAllUris() {
+        LOG.info("Rewriting URIs...");
+        if (updateManager.shouldUpdateData(MIGRATION_URIS, MIGRATION_URIS_VERSION, MIGRATION_URIS_VERSION)) {
+            final UpdateStatus updateStatus = updateManager.createStatus(MIGRATION_URIS, MIGRATION_URIS_VERSION, SOURCE_INTERNAL, MIGRATION_URIS_VERSION, UpdateManager.UPDATE_RUNNING);
+            rewriteCodeRegistryUris();
+            rewriteCodeSchemeUris();
+            rewriteCodeUris();
+            rewriteExtensionUris();
+            rewriteMemberUris();
+            if (updateStatus.getStatus().equals(UpdateManager.UPDATE_RUNNING)) {
+                updateManager.updateSuccessStatus(updateStatus);
+            }
+        } else {
+            LOG.info("URIs already up to date, skipping...");
+        }
+    }
+
+    private void rewriteCodeRegistryUris() {
+        final Set<CodeRegistry> codeRegistries = codeRegistryDao.findAll();
+        codeRegistries.forEach(codeRegistry -> codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry)));
+        codeRegistryDao.save(codeRegistries, false);
+    }
+
+    private void rewriteCodeSchemeUris() {
+        final Set<CodeScheme> codeSchemes = codeSchemeDao.findAll();
+        codeSchemes.forEach(codeScheme -> codeScheme.setUri(apiUtils.createCodeSchemeUri(codeScheme)));
+        codeSchemeDao.save(codeSchemes, false);
+    }
+
+    private void rewriteCodeUris() {
+        final Set<Code> codes = codeDao.findAll();
+        codes.forEach(code -> code.setUri(apiUtils.createCodeUri(code)));
+        codeDao.save(codes, false);
+    }
+
+    private void rewriteExtensionUris() {
+        final Set<Extension> extensions = extensionDao.findAll();
+        extensions.forEach(extension -> extension.setUri(apiUtils.createExtensionUri(extension)));
+        extensionDao.save(extensions, false);
+    }
+
+    private void rewriteMemberUris() {
+        final Set<Member> members = memberDao.findAll();
+        members.forEach(member -> member.setUri(apiUtils.createMemberUri(member)));
+        memberDao.save(members, false);
+    }
+
     private void classifyServiceClassification() {
         LOG.info("Ensuring Service Classification CodeScheme belongs to P9 classification.");
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(JUPO_REGISTRY);
@@ -315,4 +390,5 @@ public class YtiDataAccess {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
         return codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeValue);
     }
+
 }
