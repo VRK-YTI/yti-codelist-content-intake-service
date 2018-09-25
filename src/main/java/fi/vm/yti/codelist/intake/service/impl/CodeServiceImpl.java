@@ -201,7 +201,13 @@ public class CodeServiceImpl implements CodeService {
     private Set<CodeDTO> decreaseChildHierarchyLevel(final UUID broaderCodeId) {
         final Set<Code> childCodes = codeDao.findByBroaderCodeId(broaderCodeId);
         childCodes.forEach(code -> {
-            code.setHierarchyLevel(code.getHierarchyLevel() - 1);
+            final int hierarchyLevel;
+            if (code.getHierarchyLevel() == null || code.getHierarchyLevel() < 1) {
+                hierarchyLevel = 1;
+            } else {
+                hierarchyLevel = code.getHierarchyLevel() - 1;
+            }
+            code.setHierarchyLevel(hierarchyLevel);
             if (code.getBroaderCode() != null) {
                 decreaseChildHierarchyLevel(code.getId());
             }
