@@ -106,9 +106,9 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                     for (final ValueType valueType : valueTypes) {
                         final String headerName = valueType.getLocalName().toUpperCase();
                         if (headerMap.containsKey(headerName)) {
-                            final String unaryOperatorValue = parseStringFromCsvRecord(record, headerName).trim();
-                            if (unaryOperatorValue.isEmpty()) {
-                                memberValues.add(createMemberValueWithValue(unaryOperatorValue, valueType.getLocalName()));
+                            final String value = parseStringFromCsvRecord(record, headerName).trim();
+                            if (!value.isEmpty()) {
+                                memberValues.add(createMemberValueWithValue(value, valueType.getLocalName()));
                             } else if (valueType.getRequired()) {
                                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_MEMBERVALUE));
                             }
