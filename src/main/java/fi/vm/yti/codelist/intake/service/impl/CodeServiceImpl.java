@@ -203,7 +203,7 @@ public class CodeServiceImpl implements CodeService {
         childCodes.forEach(code -> {
             code.setHierarchyLevel(code.getHierarchyLevel() - 1);
             if (code.getBroaderCode() != null) {
-                decreaseChildHierarchyLevel(code.getBroaderCode().getId());
+                decreaseChildHierarchyLevel(code.getId());
             }
         });
         codeDao.save(childCodes);
