@@ -16,6 +16,7 @@ import fi.vm.yti.codelist.intake.ContentIntakeServiceApplication;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -26,6 +27,8 @@ import static org.junit.Assert.assertNotNull;
 public class CodeSchemeDcatTestT15 extends AbstractIntegrationTestBase {
 
     private static final String TEST_CODESCHEME_FILENAME = "v1_dcat.xlsx";
+    private static final String TEST_EU_CODEREGISTRY_CODEVALUE = "eu";
+    private static final String TEST_DCAT_CODESCHEME_CODEVALUE = "dcat";
 
     @Inject
     private CodeRegistryRepository codeRegistryRepository;
@@ -36,9 +39,11 @@ public class CodeSchemeDcatTestT15 extends AbstractIntegrationTestBase {
     @Test
     @Transactional
     public void postCodeSchemesToCodeRegistryTest() {
-        final ResponseEntity<String> response = uploadCodeSchemesToCodeRegistryFromExcel(TEST_CODEREGISTRY_CODEVALUE, TEST_CODESCHEME_FILENAME);
+        final ResponseEntity<String> response = uploadCodeSchemesToCodeRegistryFromExcel(TEST_EU_CODEREGISTRY_CODEVALUE, TEST_CODESCHEME_FILENAME);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(TEST_CODEREGISTRY_CODEVALUE);
+        final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(TEST_EU_CODEREGISTRY_CODEVALUE);
         assertNotNull(codeRegistry);
+        final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, TEST_DCAT_CODESCHEME_CODEVALUE);
+        assertNotNull(codeScheme);
     }
 }
