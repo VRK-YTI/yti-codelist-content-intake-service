@@ -403,15 +403,15 @@ public class MemberDaoImpl implements MemberDao {
             if (code != null) {
                 checkThatCodeIsInAllowedCodeScheme(code.getCodeScheme(), codeScheme, extension);
             } else {
-                throw new NotFoundException();
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND));
             }
         } else if (fromCode != null && codeScheme != null && fromCode.getCodeValue() != null && !fromCode.getCodeValue().isEmpty()) {
             code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, member.getCode().getCodeValue());
         } else {
-            throw new NotFoundException();
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND));
         }
         if (code == null) {
-            throw new NotFoundException();
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND));
         }
         return code;
     }
