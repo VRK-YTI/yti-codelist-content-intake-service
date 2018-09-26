@@ -54,7 +54,7 @@ public class YtiDataAccess {
     private static final String MIGRATION_URIS_VERSION = "v3";
     private static final String MIGRATION_LANGUAGECODES = "languagecodemigration";
     private static final String MIGRATION_LANGUAGECODES_VERSION = "v1";
-    private static final String PROPERTYTYPE_IDENTIFIER = "v5";
+    private static final String PROPERTYTYPE_IDENTIFIER = "v6";
     private static final String VALUETYPE_IDENTIFIER = "v2";
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
     private static final String DEFAULT_CLASSIFICATIONREGISTRY_FILENAME = "classificationregistries.csv";

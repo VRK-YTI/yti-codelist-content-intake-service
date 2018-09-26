@@ -1,5 +1,5 @@
 ID,LOCALNAME,CONTEXT,PROPERTYURI,PREFLABEL_FI,PREFLABEL_SV,PREFLABEL_EN,DEFINITION_FI,DEFINITION_SV,DEFINITION_EN,VALUETYPE
-9e6b738c-e4be-11e7-9d91-b36cf669b046,link,ExternalReference,http://purl.org/dc/terms/relation/,Linkki,,Link,Linkki ulkopuoliseen resurssiin.,,A link to the related resource.,
+9e6b738c-e4be-11e7-9d91-b36cf669b046,link,ExternalReference,http://purl.org/dc/terms/relation/,Muu linkki,,Other link,Linkki ulkopuoliseen resurssiin.,,A link to the related resource.,
 a40fadb2-e4be-11e7-b775-ef8f3dee2d0e,source,ExternalReference,http://purl.org/dc/terms/source/,Lähde,,Source,Liittyvä resurssi jota on käytetty lähteenä.,,A related resource from which the described resource is derived.,
 a807461e-e4be-11e7-9cf2-bf74dc97e66b,instructions,ExternalReference,http://purl.org/dc/terms/instructionalMethod/,Käyttöohje,,Instructions,Viittaus käyttöohjeeseen jossa on kuvattu koodiston ja koodien käyttötarkoitus.,,"Reference to a document that describes a process that is used to engender knowledge, attitudes, and skills.",
 aa9e0e58-e4be-11e7-86f5-db4ae2fc3d3b,standard,ExternalReference,http://purl.org/dc/terms/conformsTo/,Liittyvä standardi,,Standard,Liittyvä standardi tai suositus.,,An established standard to which the described resource conforms.,
