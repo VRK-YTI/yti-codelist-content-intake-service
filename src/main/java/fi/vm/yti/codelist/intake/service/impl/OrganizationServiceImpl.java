@@ -20,7 +20,6 @@ import com.google.common.base.Stopwatch;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dto.GroupManagementOrganizationDTO;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
 import fi.vm.yti.codelist.intake.model.Organization;
@@ -36,7 +35,6 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Inject
     public OrganizationServiceImpl(final OrganizationRepository organizationRepository,
-                                   final ApiUtils apiUtils,
                                    final DtoMapperService dtoMapperService) {
         this.organizationRepository = organizationRepository;
         this.dtoMapperService = dtoMapperService;
@@ -51,7 +49,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     public Set<OrganizationDTO> findByRemovedIsFalse(boolean onlyOrganizationsWithCodeSchemes) {
         Set<Organization> organizations = null;
         if (onlyOrganizationsWithCodeSchemes) {
-            organizations =organizationRepository.findByRemovedIsFalseAndCodeSchemesIsNotNull();
+            organizations = organizationRepository.findByRemovedIsFalseAndCodeSchemesIsNotNull();
         } else {
             organizations = organizationRepository.findByRemovedIsFalse();
         }
