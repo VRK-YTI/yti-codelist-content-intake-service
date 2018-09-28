@@ -93,7 +93,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
             records.forEach(record -> {
                 final CodeRegistryDTO fromCodeRegistry = new CodeRegistryDTO();
                 final String codeValue = parseCodeValueFromRecord(record);
-                validateCodeValue(codeValue);
+                validateCodeValue(codeValue, String.valueOf(record.getRecordNumber() + 1));
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 fromCodeRegistry.setCodeValue(codeValue);
@@ -142,7 +142,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
                     if (codeValue.isEmpty()) {
                         continue;
                     }
-                    validateCodeValue(codeValue);
+                    validateCodeValue(codeValue, String.valueOf(row.getRowNum()));
                     checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                     codeValues.add(codeValue.toLowerCase());
                     fromCodeRegistry.setCodeValue(codeValue);

@@ -45,16 +45,34 @@ public abstract class AbstractBaseParser {
     private static final String CODESCHEME_CODEVALUE_VALIDATOR = "^[a-zA-Z0-9_\\-]*$";
 
     public static void validateCodeCodeValue(final String codeValue) {
+        validateCodeCodeValue(codeValue, null);
+    }
+
+    public static void validateCodeCodeValue(final String codeValue,
+                                             final String entityIdentifier) {
         if (codeValue == null || !codeValue.matches(CODE_CODEVALUE_VALIDATOR)) {
             LOG.error(String.format("Error with code: %s", codeValue));
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODE_CODEVALUE));
+            if (entityIdentifier != null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODE_CODEVALUE_WITH_IDENTIFIER, entityIdentifier));
+            } else {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODE_CODEVALUE));
+            }
         }
     }
 
     public static void validateCodeValue(final String codeValue) {
+        validateCodeValue(codeValue, null);
+    }
+
+    public static void validateCodeValue(final String codeValue,
+                                         final String entityIdentifier) {
         if (!codeValue.matches(CODESCHEME_CODEVALUE_VALIDATOR)) {
             LOG.error(String.format("Error with code: %s", codeValue));
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODEVALUE));
+            if (entityIdentifier != null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODEVALUE_WITH_IDENTIFIER, entityIdentifier));
+            } else {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_INVALID_CODEVALUE));
+            }
         }
     }
 
