@@ -25,7 +25,7 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
 
     private static final long serialVersionUID = 1L;
 
-    private String propertyUri;
+    private String uri;
     private String localName;
     private String context;
     private Map<String, String> prefLabel;
@@ -50,13 +50,13 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
         this.context = context;
     }
 
-    @Column(name = "propertyuri")
-    public String getPropertyUri() {
-        return propertyUri;
+    @Column(name = "uri")
+    public String getUri() {
+        return uri;
     }
 
-    public void setPropertyUri(final String propertyUri) {
-        this.propertyUri = propertyUri;
+    public void setUri(final String uri) {
+        this.uri = uri;
     }
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)

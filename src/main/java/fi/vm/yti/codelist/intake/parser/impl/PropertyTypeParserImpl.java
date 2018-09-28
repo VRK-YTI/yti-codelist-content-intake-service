@@ -88,7 +88,7 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
                 final PropertyTypeDTO propertyType = new PropertyTypeDTO();
                 propertyType.setId(parseUUIDFromString(record.get(CONTENT_HEADER_ID)));
                 propertyType.setLocalName(record.get(CONTENT_HEADER_LOCALNAME));
-                propertyType.setPropertyUri(record.get(CONTENT_HEADER_PROPERTYURI));
+                propertyType.setUri(record.get(CONTENT_HEADER_URI));
                 propertyType.setContext(record.get(CONTENT_HEADER_CONTEXT));
                 if (record.get(CONTENT_HEADER_VALUETYPE) != null) {
                     propertyType.setValueTypes(parseValueTypesFromString(record.get(CONTENT_HEADER_VALUETYPE)));
@@ -145,7 +145,7 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
                     final PropertyTypeDTO propertyType = new PropertyTypeDTO();
                     propertyType.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                     propertyType.setLocalName(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LOCALNAME))));
-                    propertyType.setPropertyUri(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYURI))));
+                    propertyType.setUri(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_URI))));
                     propertyType.setContext(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CONTEXT))));
                     propertyType.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                     propertyType.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));

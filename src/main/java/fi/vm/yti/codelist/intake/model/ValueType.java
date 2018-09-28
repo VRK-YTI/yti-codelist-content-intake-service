@@ -23,7 +23,7 @@ public class ValueType extends AbstractIdentifyableCode implements Serializable 
     private static final long serialVersionUID = 1L;
 
     private String localName;
-    private String valueTypeUri;
+    private String uri;
     private String typeUri;
     private Map<String, String> prefLabel;
     private String regexp;
@@ -47,13 +47,13 @@ public class ValueType extends AbstractIdentifyableCode implements Serializable 
         this.typeUri = typeUri;
     }
 
-    @Column(name = "valuetypeuri")
-    public String getValueTypeUri() {
-        return valueTypeUri;
+    @Column(name = "uri")
+    public String getUri() {
+        return uri;
     }
 
-    public void setValueTypeUri(final String valueTypeUri) {
-        this.valueTypeUri = valueTypeUri;
+    public void setUri(final String uri) {
+        this.uri = uri;
     }
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)

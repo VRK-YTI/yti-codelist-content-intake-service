@@ -80,8 +80,8 @@ public class ValueTypeDaoImpl implements ValueTypeDao {
 
     private ValueType updateValueType(final ValueType existingValueType,
                                       final ValueTypeDTO fromValueType) {
-        if (!Objects.equals(existingValueType.getValueTypeUri(), fromValueType.getValueTypeUri())) {
-            existingValueType.setValueTypeUri(fromValueType.getValueTypeUri());
+        if (!Objects.equals(existingValueType.getUri(), fromValueType.getUri())) {
+            existingValueType.setUri(fromValueType.getUri());
         }
         if (!Objects.equals(existingValueType.getTypeUri(), fromValueType.getTypeUri())) {
             existingValueType.setTypeUri(fromValueType.getTypeUri());
@@ -111,7 +111,7 @@ public class ValueTypeDaoImpl implements ValueTypeDao {
             final UUID uuid = UUID.randomUUID();
             valueType.setId(uuid);
         }
-        valueType.setValueTypeUri(fromValueType.getValueTypeUri());
+        valueType.setUri(fromValueType.getUri());
         valueType.setTypeUri(fromValueType.getTypeUri());
         valueType.setLocalName(fromValueType.getLocalName());
         valueType.setRegexp(fromValueType.getRegexp());
