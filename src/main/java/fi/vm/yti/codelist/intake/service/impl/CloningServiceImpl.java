@@ -154,7 +154,34 @@ public class CloningServiceImpl implements CloningService {
             }
             codeSchemeWithUserChangesFromUi.setExtensions(extensionDTOS);
         }
+
+        //defaultCode is not coming in from the UI so we just take care of it here
+        if (originalCodeScheme.getDefaultCode() != null) {
+            codeSchemeWithUserChangesFromUi.setDefaultCode(
+                dtoMapperService.mapDeepCodeDto(populateNewDefaultCode(originalCodeScheme, newCodeScheme,
+                    externalReferenceMap, newCodes)));
+        }
+
+
         return codeSchemeService.updateCodeSchemeFromDto(true, codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
+    }
+
+    @Transactional
+    public Code populateNewDefaultCode(final CodeScheme originalCodeScheme,
+                                        final CodeScheme newCodeScheme,
+                                        final Map<UUID, ExternalReference> externalReferenceMap,
+                                        final Set<Code> newCodes) {
+        UUID newDefauldCodeUuid = null;
+        for (Code newCode : newCodes) {
+            if (newCode.getCodeValue().equals(originalCodeScheme.getDefaultCode().getCodeValue())) {
+                newDefauldCodeUuid = newCode.getId();
+            }
+        }
+        Code newDefaultCode = cloneCode(originalCodeScheme.getDefaultCode(), newCodeScheme,externalReferenceMap);
+        newDefaultCode.setId(newDefauldCodeUuid);
+        codeDao.save(newDefaultCode);
+        newCodeScheme.setDefaultCode(newDefaultCode);
+        return newDefaultCode;
     }
 
     @Transactional
