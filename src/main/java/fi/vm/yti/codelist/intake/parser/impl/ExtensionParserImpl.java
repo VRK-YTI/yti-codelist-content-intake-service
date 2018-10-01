@@ -100,7 +100,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 final ExtensionDTO extension = new ExtensionDTO();
                 extension.setId(parseIdFromRecord(record));
                 final String codeValue = parseCodeValueFromRecord(record);
-                validateCodeValue(codeValue);
+                validateCodeValue(codeValue, String.valueOf(record.getRecordNumber() + 1));
                 codeValues.add(codeValue.toLowerCase());
                 extension.setCodeValue(codeValue);
                 extension.setId(parseIdFromRecord(record));
@@ -182,7 +182,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                     continue;
                 }
                 validateRequiredDataOnRow(row, headerMap, formatter);
-                validateCodeValue(codeValue);
+                validateCodeValue(codeValue, String.valueOf(row.getRowNum() + 1));
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 extension.setCodeValue(codeValue);
@@ -204,10 +204,10 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 }
                 extension.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
-                    extension.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
+                    extension.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum() + 1)));
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
-                    extension.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
+                    extension.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum() + 1)));
                 }
                 validateStartDateIsBeforeEndDate(extension);
                 final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE)));

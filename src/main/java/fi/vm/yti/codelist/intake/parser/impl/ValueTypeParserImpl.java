@@ -87,7 +87,7 @@ public class ValueTypeParserImpl extends AbstractBaseParser implements ValueType
                 valueType.setLocalName(record.get(CONTENT_HEADER_LOCALNAME));
                 valueType.setRegexp(record.get(CONTENT_HEADER_REGEXP));
                 valueType.setTypeUri(record.get(CONTENT_HEADER_TYPEURI));
-                valueType.setValueTypeUri(record.get(CONTENT_HEADER_VALUETYPEURI));
+                valueType.setUri(record.get(CONTENT_HEADER_URI));
                 valueType.setRequired(Boolean.valueOf(record.get(CONTENT_HEADER_REQUIRED)));
                 valueType.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 valueTypes.add(valueType);
@@ -127,7 +127,7 @@ public class ValueTypeParserImpl extends AbstractBaseParser implements ValueType
                     valueType.setLocalName(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LOCALNAME))));
                     valueType.setRegexp(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_REGEXP))));
                     valueType.setTypeUri(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_TYPEURI))));
-                    valueType.setValueTypeUri(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_VALUETYPEURI))));
+                    valueType.setUri(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_URI))));
                     valueType.setRequired(Boolean.valueOf(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_REQUIRED)))));
                     valueType.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                     valueTypes.add(valueType);

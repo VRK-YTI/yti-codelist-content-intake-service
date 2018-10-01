@@ -107,7 +107,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 validateRequiredDataOnRecord(record);
                 final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
                 final String codeValue = parseCodeValueFromRecord(record);
-                validateCodeValue(codeValue);
+                validateCodeValue(codeValue, String.valueOf(record.getRecordNumber() + 1));
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 codeScheme.setCodeValue(codeValue);
@@ -201,7 +201,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     continue;
                 }
                 validateRequiredDataOnRow(row, headerMap, formatter);
-                validateCodeValue(codeValue);
+                validateCodeValue(codeValue, String.valueOf(row.getRowNum() + 1));
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 codeScheme.setCodeValue(codeValue);

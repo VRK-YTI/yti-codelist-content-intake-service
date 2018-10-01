@@ -74,7 +74,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 final CodeDTO code = new CodeDTO();
                 code.setId(parseIdFromRecord(record));
                 final String codeValue = parseCodeValueFromRecord(record);
-                validateCodeCodeValue(codeValue);
+                validateCodeCodeValue(codeValue, String.valueOf(record.getRecordNumber() + 1));
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 code.setCodeValue(codeValue);
@@ -163,7 +163,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                     continue;
                 }
                 validateRequiredDataOnRow(row, headerMap, formatter);
-                validateCodeCodeValue(codeValue);
+                validateCodeCodeValue(codeValue, String.valueOf(row.getRowNum() + 1));
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 code.setCodeValue(codeValue);
