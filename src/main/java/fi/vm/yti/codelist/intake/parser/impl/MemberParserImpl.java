@@ -58,15 +58,15 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
 
     public MemberDTO parseMemberFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
-        final MemberDTO extension;
+        final MemberDTO member;
         try {
-            extension = mapper.readValue(jsonPayload, MemberDTO.class);
-            validateStartDateIsBeforeEndDate(extension);
+            member = mapper.readValue(jsonPayload, MemberDTO.class);
+            validateStartDateIsBeforeEndDate(member);
         } catch (final IOException e) {
             LOG.error("Member parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_406);
         }
-        return extension;
+        return member;
     }
 
     public Set<MemberDTO> parseMembersFromJson(final String jsonPayload) {
