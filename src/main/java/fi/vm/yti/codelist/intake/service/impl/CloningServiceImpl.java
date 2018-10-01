@@ -340,7 +340,9 @@ public class CloningServiceImpl implements CloningService {
      *
      * For example, Extensions can hold zero to many CodeScheme references to any CodeSchemes anywhere. These get cloned
      * here as-is, and it is up to the caller to change the appropriate attribute(s) (if any) to the correct one. This design
-     * decision keeps this method usable in any circumstances in the future. Continuing our example,
+     * decision keeps this method usable in any circumstances in the future. Continuing our example, in the case of
+     * Extensions, the caller will simply replace the Extensions Set in the cloned CodeSchemes with the new one.
+     *
      * @param originalCodeSchemes
      * @return
      */
