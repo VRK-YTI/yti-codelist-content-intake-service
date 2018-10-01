@@ -339,7 +339,7 @@ public class CloningServiceImpl implements CloningService {
      * tree of the CodeScheme and its various children.
      *
      * For example, Extensions can hold zero to many CodeScheme references to any CodeSchemes anywhere. These get cloned
-     * here as-is, and it is up to the caller to change the appropriate attribute to the correct one. This design
+     * here as-is, and it is up to the caller to change the appropriate attribute(s) (if any) to the correct one. This design
      * decision keeps this method usable in any circumstances in the future. Continuing our example,
      * @param originalCodeSchemes
      * @return
