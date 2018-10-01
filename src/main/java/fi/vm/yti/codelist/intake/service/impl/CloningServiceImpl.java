@@ -137,14 +137,13 @@ public class CloningServiceImpl implements CloningService {
             newCodeScheme,
             externalReferenceMap);
 
+        final Set<Extension> originalExtensions = originalCodeScheme.getExtensions();
+
         Set<Extension> clonedExtensions = handleExtensions(newCodeScheme,
             originalCodeScheme,
-            newCodes);
+            newCodes,
+            originalExtensions);
 
-        Set<Extension> originalExtensions = new HashSet<>();
-        originalCodeScheme.getExtensions().forEach(ext ->
-            originalExtensions.add(extensionDao.findById(ext.getId()))
-        );
         if (!clonedExtensions.isEmpty()) {
             handleMembers(originalExtensions, newCodes, originalCodeScheme, clonedExtensions);
             final Set<ExtensionDTO> extensionDTOS = new HashSet<>();
@@ -203,8 +202,8 @@ public class CloningServiceImpl implements CloningService {
     @Transactional
     protected Set<Extension> handleExtensions(final CodeScheme newCodeScheme,
                                               final CodeScheme originalCodeScheme,
-                                              final Set<Code> newCodes) {
-        final Set<Extension> originalExtensions = originalCodeScheme.getExtensions();
+                                              final Set<Code> newCodes,
+                                              final Set<Extension> originalExtensions) {
         final Set<Extension> clonedExtensions = new HashSet<>();
         for (final Extension originalExtension : originalExtensions) {
             clonedExtensions.add(cloneExtension(originalExtension, newCodeScheme, newCodes, originalCodeScheme));
@@ -319,11 +318,70 @@ public class CloningServiceImpl implements CloningService {
         copy.setCodeValue(original.getCodeValue());
         copy.setPropertyType(original.getPropertyType());
         copy.setPrefLabel(original.getPrefLabel());
-        copy.setCodeSchemes(original.getCodeSchemes());
+
+        HashSet<Extension> newExtensions = new HashSet<>();
+        newExtensions.add(copy);
+
+        Set<CodeScheme> clonedInternalCodeSchemes = cloneInternalCodeSchemes(original.getCodeSchemes());
+        clonedInternalCodeSchemes.forEach(cs -> cs.setExtensions(newExtensions));
+        copy.setCodeSchemes(clonedInternalCodeSchemes);
+
         final Date timeStamp = new Date(System.currentTimeMillis());
         copy.setCreated(timeStamp);
         copy.setModified(timeStamp);
+        copy.setUri(apiUtils.createExtensionUri(copy));
         return copy;
+    }
+
+    /**
+     * This method is used in case there are references to CodeShemes OTHER than the one being cloned in the "main"
+     * method of this class, (that is, the CodeScheme of which we are creating a new version of,) anywhere in the object
+     * tree of the CodeScheme and its various children.
+     *
+     * For example, Extensions can hold zero to many CodeScheme references to any CodeSchemes anywhere. These get cloned
+     * here as-is, and it is up to the caller to change the appropriate attribute to the correct one. This design
+     * decision keeps this method usable in any circumstances in the future. Continuing our example,
+     * @param originalCodeSchemes
+     * @return
+     */
+    private Set<CodeScheme> cloneInternalCodeSchemes(final Set<CodeScheme> originalCodeSchemes) {
+        Set<CodeScheme> result = new LinkedHashSet<>();
+        for (CodeScheme o : originalCodeSchemes) {
+            CodeScheme cs = new CodeScheme();
+            cs.setExtensions(o.getExtensions());
+            cs.setDefaultCode(o.getDefaultCode());
+            cs.setVariantMothers(o.getVariantMothers());
+            cs.setVariants(o.getVariants());
+            cs.setLastCodeschemeId(o.getLastCodeschemeId());
+            cs.setNextCodeschemeId(o.getNextCodeschemeId());
+            cs.setPrevCodeschemeId(o.getPrevCodeschemeId());
+            cs.setUri(o.getUri());
+            cs.setGovernancePolicy(o.getGovernancePolicy());
+            cs.setConceptUriInVocabularies(o.getConceptUriInVocabularies());
+            cs.setDataClassifications(o.getDataClassifications());
+            cs.setChangeNote(o.getChangeNote());
+            cs.setDefinition(o.getDefinition());
+            cs.setDescription(o.getDescription());
+            cs.setLegalBase(o.getLegalBase());
+            cs.setSource(o.getSource());
+            cs.setVersion(o.getVersion());
+            cs.setPrefLabel(o.getPrefLabel());
+            cs.setEndDate(o.getEndDate());
+            cs.setStartDate(o.getStartDate());
+            cs.setCodes(o.getCodes());
+            cs.setCodeValue(o.getCodeValue());
+            cs.setStatus(o.getStatus());
+            cs.setExternalReferences(o.getExternalReferences());
+            cs.setCodeRegistry(o.getCodeRegistry());
+            cs.setLanguageCodes(o.getLanguageCodes());
+            cs.setOrganizations(o.getOrganizations());
+            cs.setRelatedExtensions(o.getRelatedExtensions());
+            cs.setCreated(o.getCreated());
+            cs.setModified(o.getModified());
+            cs.setId(o.getId());
+            result.add(cs);
+        }
+        return result;
     }
 
     private Member populateMember(final Set<Code> newCodes,
