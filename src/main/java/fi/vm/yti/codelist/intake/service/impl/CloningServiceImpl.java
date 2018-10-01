@@ -397,6 +397,8 @@ public class CloningServiceImpl implements CloningService {
         newMember.setPrefLabel(originalMember.getPrefLabel());
         newMember.setCreated(timeStamp);
         newMember.setModified(timeStamp);
+        newMember.setStartDate(originalMember.getStartDate());
+        newMember.setEndDate(originalMember.getEndDate());
 
         Set<MemberValue> newMemberValues = new HashSet<>();
 
