@@ -141,8 +141,12 @@ public abstract class AbstractBaseParser {
     Map<String, String> parseLocalizedValueFromCsvRecord(final Map<String, Integer> valueHeaders,
                                                          final CSVRecord record) {
         final Map<String, String> value = new LinkedHashMap<>();
-        valueHeaders.forEach((language, header) ->
-            value.put(language, record.get(header)));
+        valueHeaders.forEach((language, header) -> {
+            final String localizedValue = record.get(header);
+            if (localizedValue != null && !localizedValue.trim().isEmpty()) {
+                value.put(language, localizedValue.trim());
+            }
+        });
         return value;
     }
 
@@ -161,8 +165,12 @@ public abstract class AbstractBaseParser {
                                                         final Row row,
                                                         final DataFormatter formatter) {
         final Map<String, String> value = new LinkedHashMap<>();
-        valueHeaders.forEach((language, header) ->
-            value.put(language, formatter.formatCellValue(row.getCell(header))));
+        valueHeaders.forEach((language, header) -> {
+            final String localizedValue = formatter.formatCellValue(row.getCell(header));
+            if (!localizedValue.trim().isEmpty()) {
+                value.put(language, localizedValue.trim());
+            }
+        });
         return value;
     }
 
