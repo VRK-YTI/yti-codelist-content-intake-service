@@ -29,6 +29,7 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.parser.impl.CodeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeService;
@@ -243,7 +244,15 @@ public class CodeServiceImpl implements CodeService {
             if (codeToBeDeleted != null) {
                 if (authorizationManager.canCodeBeDeleted(codeToBeDeleted)) {
                     if (codeToBeDeleted.getMembers() != null && !codeToBeDeleted.getMembers().isEmpty()) {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_IN_USE));
+                        final StringBuilder identifier = new StringBuilder();
+                        for (final Member relatedMember : codeToBeDeleted.getMembers()) {
+                            if (identifier.length() == 0) {
+                                identifier.append(relatedMember.getUri());
+                            } else {
+                                identifier.append("\n").append(relatedMember.getUri());
+                            }
+                        }
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_IN_USE, identifier.toString()));
                     }
                     if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(codeToBeDeleted.getCodeValue())) {
                         codeScheme.setDefaultCode(null);

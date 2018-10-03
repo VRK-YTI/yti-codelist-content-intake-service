@@ -41,6 +41,7 @@ import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
@@ -265,13 +266,29 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_CANNOT_BE_DELETED));
             }
             if (codeScheme.getRelatedExtensions() != null && !codeScheme.getRelatedExtensions().isEmpty()) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE));
+                final StringBuilder identifier = new StringBuilder();
+                for (final Extension relatedExtension : codeScheme.getRelatedExtensions()) {
+                    if (identifier.length() == 0) {
+                        identifier.append(relatedExtension.getUri());
+                    } else {
+                        identifier.append("\n").append(relatedExtension.getUri());
+                    }
+                };
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE, identifier.toString()));
             }
             if (codeScheme.getCodes() != null && !codeScheme.getCodes().isEmpty()) {
                 final Set<Code> codes = codeScheme.getCodes();
                 codes.forEach(code -> {
                     if (code.getMembers() != null && !code.getMembers().isEmpty()) {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE));
+                        final StringBuilder identifier = new StringBuilder();
+                        for (final Member relatedMember : code.getMembers()) {
+                            if (identifier.length() == 0) {
+                                identifier.append(relatedMember.getUri());
+                            } else {
+                                identifier.append("\n").append(relatedMember.getUri());
+                            }
+                        };
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE, identifier.toString()));
                     }
                 });
             }
