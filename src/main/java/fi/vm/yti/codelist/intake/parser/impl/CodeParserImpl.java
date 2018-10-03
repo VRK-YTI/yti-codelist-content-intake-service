@@ -70,11 +70,12 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
             final List<CSVRecord> records = csvParser.getRecords();
 
             for (final CSVRecord record : records) {
+                final String recordIdentifier = getRecordIdentifier(record);
                 validateRequiredDataOnRecord(record);
                 final CodeDTO code = new CodeDTO();
                 code.setId(parseIdFromRecord(record));
                 final String codeValue = parseCodeValueFromRecord(record);
-                validateCodeCodeValue(codeValue, String.valueOf(record.getRecordNumber() + 1));
+                validateCodeCodeValue(codeValue, recordIdentifier);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 code.setCodeValue(codeValue);
@@ -95,10 +96,10 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 code.setHierarchyLevel(resolveHierarchyLevelFromCsvRecord(record));
                 code.setStatus(parseStatusValueFromString(record.get(CONTENT_HEADER_STATUS)));
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
-                    code.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    code.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), recordIdentifier));
                 }
                 if (record.isMapped(CONTENT_HEADER_ENDDATE)) {
-                    code.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    code.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), recordIdentifier));
                 }
                 validateStartDateIsBeforeEndDate(code);
 
@@ -147,6 +148,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         Map<String, Integer> descriptionHeaders = null;
         while (rowIterator.hasNext()) {
             final Row row = rowIterator.next();
+            final String rowIdentifier = getRowIdentifier(row);
             if (firstRow) {
                 firstRow = false;
                 headerMap = resolveHeaderMap(row);
@@ -163,7 +165,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                     continue;
                 }
                 validateRequiredDataOnRow(row, headerMap, formatter);
-                validateCodeCodeValue(codeValue, String.valueOf(row.getRowNum() + 1));
+                validateCodeCodeValue(codeValue, rowIdentifier);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 code.setCodeValue(codeValue);
@@ -187,10 +189,10 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                     }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
-                    code.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum() + 1)));
+                    code.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), rowIdentifier));
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
-                    code.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum() + 1)));
+                    code.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), rowIdentifier));
                 }
                 validateStartDateIsBeforeEndDate(code);
                 codes.add(code);
@@ -291,12 +293,12 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).isEmpty()) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(row.getRowNum() + 1)));
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, getRowIdentifier(row)));
         }
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))).isEmpty()) {
             throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(row.getRowNum() + 1)));
+                ERR_MSG_USER_ROW_MISSING_STATUS, getRowIdentifier(row)));
         }
     }
 
@@ -307,12 +309,12 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).isEmpty()) {
             LOG.error("CODEVALUE header not found or value empty in CSV file!");
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, getRecordIdentifier(record)));
         }
         if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).isEmpty()) {
             LOG.error("STATUS header not found or value empty in CSV file!");
             throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_STATUS, getRecordIdentifier(record)));
         }
     }
 

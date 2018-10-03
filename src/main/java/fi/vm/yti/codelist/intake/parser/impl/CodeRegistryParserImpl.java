@@ -91,9 +91,10 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
             final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
             final List<CSVRecord> records = csvParser.getRecords();
             records.forEach(record -> {
+                final String recordIdentifier = getRecordIdentifier(record);
                 final CodeRegistryDTO fromCodeRegistry = new CodeRegistryDTO();
                 final String codeValue = parseCodeValueFromRecord(record);
-                validateCodeValue(codeValue, String.valueOf(record.getRecordNumber() + 1));
+                validateCodeValue(codeValue, recordIdentifier);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 fromCodeRegistry.setCodeValue(codeValue);
@@ -130,6 +131,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
             Map<String, Integer> descriptionHeaders = null;
             while (rowIterator.hasNext()) {
                 final Row row = rowIterator.next();
+                final String rowIdentifier = getRowIdentifier(row);
                 if (firstRow) {
                     firstRow = false;
                     headerMap = resolveHeaderMap(row);
@@ -142,7 +144,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
                     if (codeValue.isEmpty()) {
                         continue;
                     }
-                    validateCodeValue(codeValue, String.valueOf(row.getRowNum()));
+                    validateCodeValue(codeValue, rowIdentifier);
                     checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                     codeValues.add(codeValue.toLowerCase());
                     fromCodeRegistry.setCodeValue(codeValue);

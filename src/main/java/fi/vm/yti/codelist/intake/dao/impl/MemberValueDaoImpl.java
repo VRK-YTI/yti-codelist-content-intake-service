@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -22,9 +21,8 @@ import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.MemberValue;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.model.ValueType;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_MEMBERVALUE_VALIDATION_FAILED;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_VALUETYPE_NOT_FOUND;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
+import static fi.vm.yti.codelist.intake.util.ValidationUtils.validateStringAgainstRegexp;
 
 @Component
 public class MemberValueDaoImpl implements MemberValueDao {
@@ -139,19 +137,11 @@ public class MemberValueDaoImpl implements MemberValueDao {
         final ValueType valueType = propertyType.getValueTypeWithLocalName(memberValue.getValueType().getLocalName());
         if (valueType != null) {
             final String regexp = valueType.getRegexp();
-            if (regexp != null && !regexp.isEmpty()) {
-                if (!validateStringAgainstRegexp(memberValue.getValue(), regexp)) {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_VALIDATION_FAILED));
-                }
+            if (regexp != null && !regexp.isEmpty() && !validateStringAgainstRegexp(memberValue.getValue(), regexp)) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_VALIDATION_FAILED));
             }
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_VALUETYPE_NOT_FOUND));
         }
-    }
-
-    private boolean validateStringAgainstRegexp(final String input,
-                                                final String regexp) {
-        final Pattern pattern = Pattern.compile(regexp);
-        return pattern.matcher(input).matches();
     }
 }

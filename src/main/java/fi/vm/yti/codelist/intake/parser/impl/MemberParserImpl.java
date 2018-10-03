@@ -50,6 +50,7 @@ import fi.vm.yti.codelist.intake.model.ValueType;
 import fi.vm.yti.codelist.intake.parser.MemberParser;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
+import static fi.vm.yti.codelist.intake.util.ValidationUtils.validateStringAgainstRegexp;
 
 @Component
 public class MemberParserImpl extends AbstractBaseParser implements MemberParser {
@@ -96,6 +97,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
             validateRequiredHeaders(filterRequiredValueTypes(valueTypes), headerMap);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
+                final String recordIdentifier = getRecordIdentifier(record);
                 validateRequiredDataOnRecord(filterRequiredValueTypes(valueTypes), record);
                 final MemberDTO member = new MemberDTO();
                 member.setId(parseIdFromRecord(record));
@@ -108,6 +110,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                         if (headerMap.containsKey(headerName)) {
                             final String value = parseStringFromCsvRecord(record, headerName).trim();
                             if (!value.isEmpty()) {
+                                validateMemberValue(valueType.getRegexp(), value, recordIdentifier);
                                 memberValues.add(createMemberValueWithValue(value, valueType.getLocalName()));
                             } else if (valueType.getRequired()) {
                                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_MEMBERVALUE));
@@ -116,16 +119,16 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                     }
                     member.setMemberValues(memberValues);
                 }
-                member.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                member.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record), recordIdentifier));
                 final String relationCodeValue = parseMemberRelationFromCsvRecord(record);
                 if (relationCodeValue != null) {
                     member.setRelatedMember(createMemberWithCodeAndCodeValue(relationCodeValue));
                 }
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
-                    member.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    member.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), recordIdentifier));
                 }
                 if (record.isMapped(CONTENT_HEADER_ENDDATE)) {
-                    member.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    member.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), recordIdentifier));
                 }
                 validateStartDateIsBeforeEndDate(member);
                 extensions.add(member);
@@ -165,9 +168,10 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                 validateRequiredHeaders(valueTypes, headerMap);
             } else {
+                final String rowIdentifier = getRowIdentifier(row);
                 final MemberDTO member = new MemberDTO();
                 final String codeIdentifier = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
-                member.setCode(createCodeUsingIdentifier(codeIdentifier, String.valueOf(row.getRowNum())));
+                member.setCode(createCodeUsingIdentifier(codeIdentifier, rowIdentifier));
                 validateRequiredDataOnRow(valueTypes, row, headerMap, formatter);
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     member.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
@@ -181,6 +185,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                             final String headerName = valueType.getLocalName().toUpperCase();
                             final String value = formatter.formatCellValue(row.getCell(headerMap.get(headerName))).trim();
                             if (!value.isEmpty()) {
+                                validateMemberValue(valueType.getRegexp(), value, rowIdentifier);
                                 memberValues.add(createMemberValueWithValue(value, valueType.getLocalName()));
                             } else if (valueType.getRequired()) {
                                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_MEMBERVALUE));
@@ -196,16 +201,24 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                     }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
-                    member.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
+                    member.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), rowIdentifier));
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
-                    member.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
+                    member.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), rowIdentifier));
                 }
                 validateStartDateIsBeforeEndDate(member);
                 members.add(member);
             }
         }
         return members;
+    }
+
+    private void validateMemberValue(final String regexp,
+                                     final String value,
+                                     final String identifier) {
+        if (regexp != null && !regexp.isEmpty() && !validateStringAgainstRegexp(value, regexp)) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_VALIDATION_FAILED_WITH_IDENTIFIER, identifier));
+        }
     }
 
     private MemberValueDTO createMemberValueWithValue(final String value,
@@ -233,7 +246,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                     if ((formatter.formatCellValue(row.getCell(headerMap.get(valueType.getLocalName().toUpperCase()))) == null ||
                         formatter.formatCellValue(row.getCell(headerMap.get(valueType.getLocalName().toUpperCase()))).isEmpty())) {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ERR_MSG_USER_ROW_MISSING_MEMBERVALUE, String.valueOf(row.getRowNum() + 1)));
+                            ERR_MSG_USER_ROW_MISSING_MEMBERVALUE, getRowIdentifier(row)));
                     }
                 });
             }
@@ -241,7 +254,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE))).isEmpty()) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_CODE, String.valueOf(row.getRowNum() + 1)));
+                ERR_MSG_USER_ROW_MISSING_CODE, getRowIdentifier(row)));
         }
     }
 
@@ -252,13 +265,13 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 final String headerName = valueType.getLocalName().toUpperCase();
                 if ((record.get(headerName) == null || record.get(headerName).isEmpty())) {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                        ERR_MSG_USER_ROW_MISSING_MEMBERVALUE, String.valueOf(record.getRecordNumber() + 1)));
+                        ERR_MSG_USER_ROW_MISSING_MEMBERVALUE, getRecordIdentifier(record)));
                 }
             });
         }
         if (record.get(CONTENT_HEADER_CODE) == null || record.get(CONTENT_HEADER_CODE).isEmpty()) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_CODE, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_CODE, getRecordIdentifier(record)));
         }
     }
 

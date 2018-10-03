@@ -248,7 +248,7 @@ public abstract class AbstractBaseParser {
             }
             return value;
         } catch (final Exception e) {
-            LOG.error("error in row: " + record.getRecordNumber() + 1, e);
+            LOG.error("error in row: " + getRecordIdentifier(record), e);
         }
         return null;
     }
@@ -353,5 +353,13 @@ public abstract class AbstractBaseParser {
             }
         }
         return organizations;
+    }
+
+    String getRowIdentifier(final Row row) {
+        return String.valueOf(row.getRowNum() + 1);
+    }
+
+    String getRecordIdentifier(final CSVRecord record) {
+        return String.valueOf(record.getRecordNumber() + 1);
     }
 }

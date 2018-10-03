@@ -104,10 +104,11 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
             validateRequiredHeaders(headerMap);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
+                final String recordIdentifier = getRecordIdentifier(record);
                 validateRequiredDataOnRecord(record);
                 final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
                 final String codeValue = parseCodeValueFromRecord(record);
-                validateCodeValue(codeValue, String.valueOf(record.getRecordNumber() + 1));
+                validateCodeValue(codeValue, recordIdentifier);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 codeScheme.setCodeValue(codeValue);
@@ -145,10 +146,10 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     }
                 }
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
-                    codeScheme.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    codeScheme.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), recordIdentifier));
                 }
                 if (record.isMapped(CONTENT_HEADER_ENDDATE)) {
-                    codeScheme.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    codeScheme.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), recordIdentifier));
                 }
                 validateStartDateIsBeforeEndDate(codeScheme);
                 codeSchemes.add(codeScheme);
@@ -185,6 +186,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         boolean firstRow = true;
         while (rowIterator.hasNext()) {
             final Row row = rowIterator.next();
+            final String rowIdentifier = getRowIdentifier(row);
             if (firstRow) {
                 firstRow = false;
                 headerMap = resolveHeaderMap(row);
@@ -201,7 +203,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     continue;
                 }
                 validateRequiredDataOnRow(row, headerMap, formatter);
-                validateCodeValue(codeValue, String.valueOf(row.getRowNum() + 1));
+                validateCodeValue(codeValue, rowIdentifier);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 codeScheme.setCodeValue(codeValue);
@@ -251,10 +253,10 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
-                    codeScheme.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum())));
+                    codeScheme.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), rowIdentifier));
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
-                    codeScheme.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum())));
+                    codeScheme.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), rowIdentifier));
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_EXTENSIONSSHEET)) {
                     final String extensionsSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONSSHEET)));
@@ -319,23 +321,23 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).isEmpty()) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(row.getRowNum() + 1)));
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, getRowIdentifier(row)));
         }
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))).isEmpty()) {
             throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(row.getRowNum() + 1)));
+                ERR_MSG_USER_ROW_MISSING_STATUS, getRowIdentifier(row)));
         }
     }
 
     private void validateRequiredDataOnRecord(final CSVRecord record) {
         if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).isEmpty()) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, getRecordIdentifier(record)));
         }
         if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).isEmpty()) {
             throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_STATUS, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_STATUS, getRecordIdentifier(record)));
         }
     }
 

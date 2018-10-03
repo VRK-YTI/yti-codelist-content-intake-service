@@ -96,11 +96,12 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
             validateRequiredHeaders(headerMap);
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
+                final String recordIdentifier = getRecordIdentifier(record);
                 validateRequiredDataOnRecord(record);
                 final ExtensionDTO extension = new ExtensionDTO();
                 extension.setId(parseIdFromRecord(record));
                 final String codeValue = parseCodeValueFromRecord(record);
-                validateCodeValue(codeValue, String.valueOf(record.getRecordNumber() + 1));
+                validateCodeValue(codeValue, recordIdentifier);
                 codeValues.add(codeValue.toLowerCase());
                 extension.setCodeValue(codeValue);
                 extension.setId(parseIdFromRecord(record));
@@ -117,10 +118,10 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                     extension.setCodeSchemes(codeSchemes);
                 }
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
-                    extension.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    extension.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), recordIdentifier));
                 }
                 if (record.isMapped(CONTENT_HEADER_ENDDATE)) {
-                    extension.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), String.valueOf(record.getRecordNumber() + 1)));
+                    extension.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), recordIdentifier));
                 }
                 validateStartDateIsBeforeEndDate(extension);
                 extension.setStatus(parseStatusValueFromString(record.get(CONTENT_HEADER_STATUS)));
@@ -182,7 +183,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                     continue;
                 }
                 validateRequiredDataOnRow(row, headerMap, formatter);
-                validateCodeValue(codeValue, String.valueOf(row.getRowNum() + 1));
+                validateCodeValue(codeValue, getRowIdentifier(row));
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 extension.setCodeValue(codeValue);
@@ -204,10 +205,10 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 }
                 extension.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
-                    extension.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), String.valueOf(row.getRowNum() + 1)));
+                    extension.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), getRowIdentifier(row)));
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
-                    extension.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), String.valueOf(row.getRowNum() + 1)));
+                    extension.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), getRowIdentifier(row)));
                 }
                 validateStartDateIsBeforeEndDate(extension);
                 final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE)));
@@ -232,18 +233,18 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).isEmpty()) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(row.getRowNum() + 1)));
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, getRowIdentifier(row)));
         }
     }
 
     private void validateRequiredDataOnRecord(final CSVRecord record) {
         if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).isEmpty()) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_CODEVALUE, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, getRecordIdentifier(record)));
         }
         if (record.get(CONTENT_HEADER_PROPERTYTYPE) == null || record.get(CONTENT_HEADER_PROPERTYTYPE).isEmpty()) {
             throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_PROPERTYTYPE, String.valueOf(record.getRecordNumber() + 1)));
+                ERR_MSG_USER_ROW_MISSING_PROPERTYTYPE, getRecordIdentifier(record)));
         }
     }
 
