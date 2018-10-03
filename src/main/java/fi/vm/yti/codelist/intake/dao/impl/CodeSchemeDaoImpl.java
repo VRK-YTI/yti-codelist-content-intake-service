@@ -275,7 +275,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(existingCodeScheme, language, false);
+            languageService.validateInputLanguageForCodeScheme(existingCodeScheme, language, false);
             final String value = entry.getValue();
             if (!Objects.equals(existingCodeScheme.getPrefLabel(language), value)) {
                 existingCodeScheme.setPrefLabel(language, value);
@@ -283,7 +283,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getDescription().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(existingCodeScheme, language, false);
+            languageService.validateInputLanguageForCodeScheme(existingCodeScheme, language, false);
             final String value = entry.getValue();
             if (!Objects.equals(existingCodeScheme.getDescription(language), value)) {
                 existingCodeScheme.setDescription(language, value);
@@ -291,7 +291,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getDefinition().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(existingCodeScheme, language, false);
+            languageService.validateInputLanguageForCodeScheme(existingCodeScheme, language, false);
             final String value = entry.getValue();
             if (!Objects.equals(existingCodeScheme.getDefinition(language), value)) {
                 existingCodeScheme.setDefinition(language, value);
@@ -299,7 +299,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getChangeNote().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(existingCodeScheme, language, false);
+            languageService.validateInputLanguageForCodeScheme(existingCodeScheme, language, false);
             final String value = entry.getValue();
             if (!Objects.equals(existingCodeScheme.getChangeNote(language), value)) {
                 existingCodeScheme.setChangeNote(language, value);
@@ -370,22 +370,22 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeScheme.setGovernancePolicy(fromCodeScheme.getGovernancePolicy());
         for (final Map.Entry<String, String> entry : fromCodeScheme.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(codeScheme, language, false);
+            languageService.validateInputLanguageForCodeScheme(codeScheme, language, false);
             codeScheme.setPrefLabel(language, entry.getValue());
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getDescription().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(codeScheme, language, false);
+            languageService.validateInputLanguageForCodeScheme(codeScheme, language, false);
             codeScheme.setDescription(language, entry.getValue());
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getDefinition().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(codeScheme, language, false);
+            languageService.validateInputLanguageForCodeScheme(codeScheme, language, false);
             codeScheme.setDefinition(language, entry.getValue());
         }
         for (final Map.Entry<String, String> entry : fromCodeScheme.getChangeNote().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(codeScheme, language, false);
+            languageService.validateInputLanguageForCodeScheme(codeScheme, language, false);
             codeScheme.setChangeNote(language, entry.getValue());
         }
         codeScheme.setVersion(fromCodeScheme.getVersion());

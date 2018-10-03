@@ -35,8 +35,6 @@ public interface CodeDao {
                                                       final String codeValue,
                                                       final UUID broaderCodeId);
 
-    Set<String> getCodeSchemeCodeValues(final UUID codeSchemeId);
-
     Code findById(final UUID id);
 
     Set<Code> findByCodeSchemeId(final UUID codeSchemeId);

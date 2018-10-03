@@ -27,6 +27,7 @@ import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
+import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -42,7 +43,8 @@ import fi.vm.yti.codelist.intake.service.ValueTypeService;
 import fi.vm.yti.codelist.intake.update.UpdateManager;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.*;
+import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.JUPO_REGISTRY;
+import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
 
 @Service
 public class YtiDataAccess {
@@ -50,20 +52,27 @@ public class YtiDataAccess {
     public static final String DEFAULT_PROPERTYTYPE_FILENAME = "propertytypes.csv";
     public static final String DEFAULT_VALUETYPE_FILENAME = "valuetypes.csv";
     public static final String DEFAULT_EXTERNALREFERENCE_FILENAME = "externalreferences.csv";
+
+    private static final Logger LOG = LoggerFactory.getLogger(YtiDataAccess.class);
+
     private static final String MIGRATION_URIS = "urimigration";
-    private static final String MIGRATION_URIS_VERSION = "v3";
     private static final String MIGRATION_LANGUAGECODES = "languagecodemigration";
-    private static final String MIGRATION_LANGUAGECODES_VERSION = "v1";
-    private static final String PROPERTYTYPE_IDENTIFIER = "v6";
-    private static final String VALUETYPE_IDENTIFIER = "v3";
+
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
     private static final String DEFAULT_CLASSIFICATIONREGISTRY_FILENAME = "classificationregistries.csv";
     private static final String DEFAULT_INTEROPERABILITYREGISTRY_FILENAME = "interoperabilityplatformregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
     private static final String DEFAULT_TESTREGISTRY_FILENAME = "testcoderegistries.csv";
+
     private static final String SERVICE_CLASSIFICATION_P9 = "P9";
+
     private static final String DEFAULT_IDENTIFIER = "default";
-    private static final Logger LOG = LoggerFactory.getLogger(YtiDataAccess.class);
+    private static final String MIGRATION_URIS_VERSION = "v3";
+    private static final String MIGRATION_LANGUAGECODES_VERSION = "v1";
+    private static final String PROPERTYTYPE_IDENTIFIER = "v6";
+    private static final String VALUETYPE_IDENTIFIER = "v3";
+
+    private boolean isInitializing;
 
     private final ContentIntakeServiceProperties contentIntakeServiceProperties;
     private final UpdateManager updateManager;
@@ -79,6 +88,7 @@ public class YtiDataAccess {
     private final PropertyTypeService propertyTypeService;
     private final ValueTypeService valueTypeService;
     private final ApiUtils apiUtils;
+    private final LanguageService languageService;
 
     @Inject
     public YtiDataAccess(final ContentIntakeServiceProperties contentIntakeServiceProperties,
@@ -94,7 +104,8 @@ public class YtiDataAccess {
                          final ExternalReferenceService externalReferenceService,
                          final PropertyTypeService propertyTypeService,
                          final ValueTypeService valueTypeService,
-                         final ApiUtils apiUtils) {
+                         final ApiUtils apiUtils,
+                         final LanguageService languageService) {
         this.contentIntakeServiceProperties = contentIntakeServiceProperties;
         this.updateManager = updateManager;
         this.codeRegistryDao = codeRegistryDao;
@@ -109,6 +120,12 @@ public class YtiDataAccess {
         this.propertyTypeService = propertyTypeService;
         this.valueTypeService = valueTypeService;
         this.apiUtils = apiUtils;
+        this.languageService = languageService;
+        isInitializing = true;
+    }
+
+    public boolean isInitializing() {
+        return isInitializing;
     }
 
     @Transactional
@@ -132,6 +149,7 @@ public class YtiDataAccess {
         loadRegistryContent(DEFAULT_CLASSIFICATIONREGISTRY_FILENAME, "V2_CLASSIFICATION");
         classifyServiceClassification();
         loadRegistryContent(DEFAULT_INTEROPERABILITYREGISTRY_FILENAME, "V2_INTEROPERABILITY");
+        languageService.loadLanguageCodes();
         setLanguageCodesToEarlierCodeSchemes();
         rewriteAllUris();
     }
@@ -141,11 +159,10 @@ public class YtiDataAccess {
         LOG.info("Setting language codes to earlier codeschemes...");
         if (updateManager.shouldUpdateData(MIGRATION_LANGUAGECODES, MIGRATION_LANGUAGECODES_VERSION, MIGRATION_LANGUAGECODES_VERSION)) {
             final UpdateStatus updateStatus = updateManager.createStatus(MIGRATION_LANGUAGECODES, MIGRATION_LANGUAGECODES_VERSION, SOURCE_INTERNAL, MIGRATION_LANGUAGECODES_VERSION, UpdateManager.UPDATE_RUNNING);
-            final CodeScheme languageCodeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(YTI_REGISTRY, YTI_LANGUAGECODE_CODESCHEME);
             final Set<Code> defaultLanguageCodes = new HashSet<>();
-            defaultLanguageCodes.add(codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, "fi"));
-            defaultLanguageCodes.add(codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, "sv"));
-            defaultLanguageCodes.add(codeDao.findByCodeSchemeAndCodeValue(languageCodeScheme, "en"));
+            defaultLanguageCodes.add(languageService.getLanguageCode("fi"));
+            defaultLanguageCodes.add(languageService.getLanguageCode("sv"));
+            defaultLanguageCodes.add(languageService.getLanguageCode("en"));
             final Set<CodeScheme> codeSchemes = codeSchemeDao.findAll();
             if (codeSchemes != null) {
                 codeSchemes.forEach(codeScheme -> {

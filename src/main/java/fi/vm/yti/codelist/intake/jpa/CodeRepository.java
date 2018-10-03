@@ -50,7 +50,4 @@ public interface CodeRepository extends PagingAndSortingRepository<Code, String>
 
     @Query("SELECT COUNT(c) FROM Code as c")
     int getCodeCount();
-
-    @Query(value = "SELECT c.codeValue FROM code AS c WHERE c.codeScheme_id = :codeSchemeId ORDER BY c.codeValue", nativeQuery = true)
-    Set<String> getCodeSchemeCodeValues(@Param("codeSchemeId") final UUID codeSchemeId);
 }

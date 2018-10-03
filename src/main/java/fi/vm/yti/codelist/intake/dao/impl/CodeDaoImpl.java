@@ -124,11 +124,6 @@ public class CodeDaoImpl implements CodeDao {
     }
 
     @Transactional
-    public Set<String> findByCodeSchemeAndCodeValue(final UUID codeSchemeId) {
-        return codeRepository.getCodeSchemeCodeValues(codeSchemeId);
-    }
-
-    @Transactional
     public Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
                                              final String codeValue) {
         return codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeValue);
@@ -139,11 +134,6 @@ public class CodeDaoImpl implements CodeDao {
                                                              final String codeValue,
                                                              final UUID broaderCodeId) {
         return codeRepository.findByCodeSchemeAndCodeValueIgnoreCaseAndBroaderCodeId(codeScheme, codeValue, broaderCodeId);
-    }
-
-    @Transactional
-    public Set<String> getCodeSchemeCodeValues(final UUID codeSchemeId) {
-        return codeRepository.getCodeSchemeCodeValues(codeSchemeId);
     }
 
     @Transactional
@@ -314,7 +304,7 @@ public class CodeDaoImpl implements CodeDao {
         existingCode.setBroaderCode(resolveBroaderCode(fromCode, codeScheme));
         for (final Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(codeScheme, language);
+            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingCode.getPrefLabel(language), value)) {
                 existingCode.setPrefLabel(language, value);
@@ -322,7 +312,7 @@ public class CodeDaoImpl implements CodeDao {
         }
         for (final Map.Entry<String, String> entry : fromCode.getDescription().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(codeScheme, language);
+            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingCode.getDescription(language), value)) {
                 existingCode.setDescription(language, value);
@@ -330,7 +320,7 @@ public class CodeDaoImpl implements CodeDao {
         }
         for (final Map.Entry<String, String> entry : fromCode.getDefinition().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(codeScheme, language);
+            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingCode.getDefinition(language), value)) {
                 existingCode.setDefinition(language, value);
@@ -383,17 +373,17 @@ public class CodeDaoImpl implements CodeDao {
         }
         for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(codeScheme, language);
+            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
             code.setPrefLabel(language, entry.getValue());
         }
         for (Map.Entry<String, String> entry : fromCode.getDescription().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(codeScheme, language);
+            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
             code.setDescription(language, entry.getValue());
         }
         for (Map.Entry<String, String> entry : fromCode.getDefinition().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(codeScheme, language);
+            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
             code.setDefinition(language, entry.getValue());
         }
         code.setStartDate(fromCode.getStartDate());

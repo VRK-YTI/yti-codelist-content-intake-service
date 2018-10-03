@@ -320,7 +320,7 @@ public class MemberDaoImpl implements MemberDao {
 
         for (final Map.Entry<String, String> entry : fromMember.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(codeScheme, language);
+            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingMember.getPrefLabel(language), value)) {
                 existingMember.setPrefLabel(language, value);
@@ -363,7 +363,7 @@ public class MemberDaoImpl implements MemberDao {
         }
         for (final Map.Entry<String, String> entry : fromMember.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(codeScheme, language);
+            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
             member.setPrefLabel(language, entry.getValue());
         }
         if (fromMember.getOrder() != null) {

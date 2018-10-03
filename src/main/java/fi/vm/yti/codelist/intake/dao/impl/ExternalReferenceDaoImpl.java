@@ -167,7 +167,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         }
         for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(parentCodeScheme, language);
+            languageService.validateInputLanguageForCodeScheme(parentCodeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingExternalReference.getTitle(language), value)) {
                 existingExternalReference.setTitle(language, value);
@@ -175,7 +175,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         }
         for (final Map.Entry<String, String> entry : fromExternalReference.getDescription().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(parentCodeScheme, language);
+            languageService.validateInputLanguageForCodeScheme(parentCodeScheme, language);
             final String value = entry.getValue();
             if (!Objects.equals(existingExternalReference.getDescription(language), value)) {
                 existingExternalReference.setDescription(language, value);
@@ -204,12 +204,12 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         externalReference.setPropertyType(propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, fromExternalReference.getPropertyType().getLocalName()));
         for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(parentCodeScheme, language);
+            languageService.validateInputLanguageForCodeScheme(parentCodeScheme, language);
             externalReference.setTitle(language, entry.getValue());
         }
         for (final Map.Entry<String, String> entry : fromExternalReference.getDescription().entrySet()) {
             final String language = entry.getKey();
-            languageService.validateInputLanguage(parentCodeScheme, language);
+            languageService.validateInputLanguageForCodeScheme(parentCodeScheme, language);
             externalReference.setDescription(language, entry.getValue());
         }
         final Date timeStamp = new Date(System.currentTimeMillis());
