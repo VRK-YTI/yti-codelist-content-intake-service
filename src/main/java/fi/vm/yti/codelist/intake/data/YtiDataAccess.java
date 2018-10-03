@@ -133,6 +133,7 @@ public class YtiDataAccess {
         LOG.info("Initializing data...");
         if (contentIntakeServiceProperties.getInitializeContent()) {
             initializeDefaultData();
+            isInitializing = false;
         }
         if (contentIntakeServiceProperties.getInitializeTestContent()) {
             loadRegistryContent(DEFAULT_YTIREGISTRY_FILENAME, "V2_YTI");
