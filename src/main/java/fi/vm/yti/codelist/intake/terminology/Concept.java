@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.terminology;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -35,6 +36,21 @@ public final class Concept {
         this.definition = definition;
         this.vocabularyPrefLabel = vocabularyPrefLabel;
         this.uri = uri;
+    }
+
+    public Concept(final ConceptSuggestion conceptSuggestion) {
+        this.id = null;
+        this.vocabularyId = conceptSuggestion.getVocabulary();
+        this.prefLabel = getPrefLabelFromSuggestion(conceptSuggestion.getPrefLabel());
+        this.definition = null;
+        this.vocabularyPrefLabel = null;
+        this.uri = conceptSuggestion.getUri();
+    }
+
+    private Map getPrefLabelFromSuggestion(final Attribute attribute) {
+        Map prefLabel = new HashMap<>();
+        prefLabel.put(attribute.getLang(), attribute.getValue());
+        return prefLabel;
     }
 
     public UUID getId() {
