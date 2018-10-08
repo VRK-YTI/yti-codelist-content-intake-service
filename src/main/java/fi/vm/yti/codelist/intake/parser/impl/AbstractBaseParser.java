@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -300,11 +301,6 @@ public abstract class AbstractBaseParser {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_CONCEPTURI);
     }
 
-    boolean skipEmptyLine(final String codeValue,
-                          final String status) {
-        return (codeValue == null || codeValue.trim().isEmpty()) && (status == null || status.trim().isEmpty());
-    }
-
     Integer resolveOrderFromExcelRow(final Map<String, Integer> headerMap,
                                      final Row row,
                                      final DataFormatter formatter) {
@@ -361,5 +357,21 @@ public abstract class AbstractBaseParser {
 
     String getRecordIdentifier(final CSVRecord record) {
         return String.valueOf(record.getRecordNumber() + 1);
+    }
+
+    boolean checkIfRowIsEmpty(final Row row) {
+        if (row == null) {
+            return true;
+        }
+        if (row.getLastCellNum() <= 0) {
+            return true;
+        }
+        for (int cellNum = row.getFirstCellNum(); cellNum < row.getLastCellNum(); cellNum++) {
+            final Cell cell = row.getCell(cellNum);
+            if (cell != null && cell.getCellTypeEnum() != CellType.BLANK && StringUtils.isNotBlank(cell.toString())) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -141,7 +141,7 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
                     headerMap = resolveHeaderMap(row);
                     prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                     definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
-                } else {
+                } else if (!checkIfRowIsEmpty(row)) {
                     final PropertyTypeDTO propertyType = new PropertyTypeDTO();
                     propertyType.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                     propertyType.setLocalName(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LOCALNAME))));

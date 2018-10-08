@@ -175,13 +175,10 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 headerMap = resolveHeaderMap(row);
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                 validateRequiredHeaders(headerMap);
-            } else {
+            } else if (!checkIfRowIsEmpty(row)) {
                 final ExtensionDTO extension = new ExtensionDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).trim();
                 final String status = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)));
-                if (skipEmptyLine(codeValue, status)) {
-                    continue;
-                }
                 validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeValue(codeValue, getRowIdentifier(row));
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);

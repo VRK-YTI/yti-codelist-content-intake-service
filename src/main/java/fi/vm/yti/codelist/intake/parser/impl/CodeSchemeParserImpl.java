@@ -195,13 +195,10 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
                 changeNoteHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_CHANGENOTE_PREFIX);
                 validateRequiredHeaders(headerMap);
-            } else if (row.getPhysicalNumberOfCells() > 0 && !isRowEmpty(row)) {
+            } else if (!checkIfRowIsEmpty(row)) {
                 final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
                 final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).trim();
                 final String status = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)));
-                if (skipEmptyLine(codeValue, status)) {
-                    continue;
-                }
                 validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeValue(codeValue, rowIdentifier);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
