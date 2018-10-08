@@ -36,6 +36,7 @@ import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
+import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.common.util.YtiCollectionUtils;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
@@ -227,7 +228,48 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                      @ApiParam(value = "JSON playload for CodeScheme data.") final String jsonPayload) {
 
         final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
+
+        final Set<CodeSchemeDTO> versionsToReIndex = new LinkedHashSet<>();
+        UUID codeSchemeWhoseStatusMustBeSetToSuperseded = null;
+        CodeSchemeDTO previousCodeScheme = null;
+
         if (codeScheme != null) {
+
+            if (codeScheme.getLastCodeschemeId() != null) {
+                if (currentCodeSchemeIsTheLatestVersion(codeScheme)) {
+                    if (codeScheme.getStatus().equals(Status.VALID.toString())) {
+                        previousCodeScheme = codeSchemeService.findById(codeScheme.getPrevCodeschemeId());
+                        if (previousCodeScheme.getStatus().equals(Status.VALID.toString())) {
+                            previousCodeScheme.setStatus(Status.SUPERSEDED.toString());
+                            codeSchemeService.updateCodeSchemeFromDto(previousCodeScheme.getCodeRegistry().getCodeValue(), previousCodeScheme);
+                            versionsToReIndex.add(previousCodeScheme);
+                            codeSchemeWhoseStatusMustBeSetToSuperseded = previousCodeScheme.getId();
+                        }
+                    }
+                }
+
+                final LinkedHashSet<CodeSchemeListItem> allVersions = codeScheme.getAllVersions();
+
+                for (final CodeSchemeListItem listItem : allVersions) {
+                    if (listItem.getId().equals(codeScheme.getId())) {
+                        populateCodeSchemeListItem(codeScheme,
+                            listItem);
+                    }
+                    if (codeSchemeWhoseStatusMustBeSetToSuperseded != null && listItem.getId().equals(codeSchemeWhoseStatusMustBeSetToSuperseded)) {
+                        listItem.setStatus(Status.SUPERSEDED.toString());
+                    }
+                }
+
+                for (final CodeSchemeListItem listItem : allVersions) {
+                    CodeSchemeDTO currentVersion = codeSchemeService.findById(listItem.getId());
+                    currentVersion.setAllVersions(allVersions);
+                    codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, currentVersion);
+                    versionsToReIndex.add(currentVersion);
+                }
+
+                indexing.updateCodeSchemes(versionsToReIndex);
+            }
+
             if (!codeScheme.getVariantMothersOfThisCodeScheme().isEmpty()) {
                 for (final CodeSchemeListItem mother : codeScheme.getVariantMothersOfThisCodeScheme()) {
                     CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(mother.getId());
@@ -238,28 +280,29 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                 item);
                         }
                     }
+                    codeSchemeService.updateCodeSchemeFromDto(motherCodeScheme.getCodeRegistry().getCodeValue(), motherCodeScheme);
                     indexing.updateCodeScheme(motherCodeScheme);
                 }
-
             }
-            if (codeScheme.getLastCodeschemeId() != null) {
-                final LinkedHashSet<CodeSchemeListItem> allVersions = codeScheme.getAllVersions();
-                for (final CodeSchemeListItem listItem : allVersions) {
-                    if (listItem.getId().equals(codeScheme.getId())) {
-                        populateCodeSchemeListItem(codeScheme,
-                            listItem);
+
+            if (!previousCodeScheme.getVariantMothersOfThisCodeScheme().isEmpty()) {
+                for (final CodeSchemeListItem mother : previousCodeScheme.getVariantMothersOfThisCodeScheme()) {
+                    CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(mother.getId());
+                    final LinkedHashSet<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
+                    for (CodeSchemeListItem item : variantsOfTheMother) {
+                        if (item.getId().equals(codeScheme.getId())) {
+                            populateCodeSchemeListItem(codeScheme,
+                                item);
+                        }
+                        if (codeSchemeWhoseStatusMustBeSetToSuperseded != null && item.getId().equals(codeSchemeWhoseStatusMustBeSetToSuperseded)) {
+                            item.setStatus(Status.SUPERSEDED.toString());
+                        }
                     }
+                    codeSchemeService.updateCodeSchemeFromDto(motherCodeScheme.getCodeRegistry().getCodeValue(), motherCodeScheme);
+                    indexing.updateCodeScheme(motherCodeScheme);
                 }
-                final Set<CodeSchemeDTO> versionsToReIndex = new LinkedHashSet<>();
-                for (final CodeSchemeListItem listItem : allVersions) {
-                    CodeSchemeDTO currentVersion = codeSchemeService.findById(listItem.getId());
-                    currentVersion.setAllVersions(allVersions);
-                    codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, currentVersion);
-                    versionsToReIndex.add(currentVersion);
-                }
-                indexing.updateCodeSchemes(versionsToReIndex);
-
             }
+
             indexing.updateCodeScheme(codeScheme);
             indexing.updateExternalReferences(codeScheme.getExternalReferences());
             indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
@@ -272,6 +315,10 @@ public class CodeRegistryResource implements AbstractBaseResource {
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
+    }
+
+    private boolean currentCodeSchemeIsTheLatestVersion(final CodeSchemeDTO codeScheme) {
+        return codeScheme.getLastCodeschemeId() != null && codeScheme.getLastCodeschemeId().compareTo(codeScheme.getId()) == 0;
     }
 
     private void populateCodeSchemeListItem(final CodeSchemeDTO codeScheme,
