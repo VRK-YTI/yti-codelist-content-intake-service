@@ -125,31 +125,39 @@ public class MemberDaoImpl implements MemberDao {
     @Transactional
     public Set<Member> updateMemberEntityFromDto(final Extension extension,
                                                  final MemberDTO fromMemberDto) {
-        final Set<Member> members = new HashSet<>();
-        final Member member = createOrUpdateMember(extension, fromMemberDto, members);
+        final Set<Member> affectedMembers = new HashSet<>();
+        final Member member = createOrUpdateMember(extension, fromMemberDto, affectedMembers);
         fromMemberDto.setId(member.getId());
         save(member);
         updateMemberMemberValues(extension, member, fromMemberDto);
         resolveMemberRelation(extension, member, fromMemberDto);
-        members.add(member);
-        return members;
+        affectedMembers.add(member);
+        resolveAffectedRelatedMembers(affectedMembers, member.getId());
+        return affectedMembers;
     }
 
     @Transactional
     public Set<Member> updateMemberEntitiesFromDtos(final Extension extension,
                                                     final Set<MemberDTO> memberDtos) {
-        final Set<Member> members = new HashSet<>();
+        final Set<Member> affectedMembers = new HashSet<>();
         if (memberDtos != null) {
             for (final MemberDTO memberDto : memberDtos) {
-                final Member member = createOrUpdateMember(extension, memberDto, members);
+                final Member member = createOrUpdateMember(extension, memberDto, affectedMembers);
                 memberDto.setId(member.getId());
-                members.add(member);
+                affectedMembers.add(member);
                 save(member);
                 updateMemberMemberValues(extension, member, memberDto);
+                resolveAffectedRelatedMembers(affectedMembers, member.getId());
             }
-            resolveMemberRelations(extension, members, memberDtos);
+            resolveMemberRelations(extension, affectedMembers, memberDtos);
         }
-        return members;
+        return affectedMembers;
+    }
+
+    private void resolveAffectedRelatedMembers(final Set<Member> affectedMembers,
+                                               final UUID memberId) {
+        final Set<Member> relatedMembers = findByRelatedMemberId(memberId);
+        affectedMembers.addAll(relatedMembers);
     }
 
     private void updateMemberMemberValues(final Extension extension,
