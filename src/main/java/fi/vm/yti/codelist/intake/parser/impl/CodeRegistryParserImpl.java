@@ -138,12 +138,9 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
                     prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                     descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
                     validateRequiredHeaders(headerMap);
-                } else {
+                } else if (!checkIfRowIsEmpty(row)) {
                     final CodeRegistryDTO fromCodeRegistry = new CodeRegistryDTO();
                     final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).trim();
-                    if (codeValue.isEmpty()) {
-                        continue;
-                    }
                     validateCodeValue(codeValue, rowIdentifier);
                     checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                     codeValues.add(codeValue.toLowerCase());

@@ -121,7 +121,7 @@ public class ValueTypeParserImpl extends AbstractBaseParser implements ValueType
                     firstRow = false;
                     headerMap = resolveHeaderMap(row);
                     prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
-                } else {
+                } else if (!checkIfRowIsEmpty(row)) {
                     final ValueTypeDTO valueType = new ValueTypeDTO();
                     valueType.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                     valueType.setLocalName(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LOCALNAME))));

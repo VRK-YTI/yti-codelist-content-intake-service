@@ -134,7 +134,7 @@ public class ExternalReferenceParserImpl extends AbstractBaseParser implements E
                     titleHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_TITLE_PREFIX);
                     descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
                     firstRow = false;
-                } else {
+                } else if (!checkIfRowIsEmpty(row)) {
                     final ExternalReferenceDTO externalReference = new ExternalReferenceDTO();
                     final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID))));
                     externalReference.setId(id);

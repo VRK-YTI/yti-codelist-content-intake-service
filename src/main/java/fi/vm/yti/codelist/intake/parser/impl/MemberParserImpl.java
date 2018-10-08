@@ -159,15 +159,12 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
         boolean firstRow = true;
         while (rowIterator.hasNext()) {
             final Row row = rowIterator.next();
-            if (row == null) {
-                continue;
-            }
             if (firstRow) {
                 firstRow = false;
                 headerMap = resolveHeaderMap(row);
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                 validateRequiredHeaders(valueTypes, headerMap);
-            } else {
+            } else if (!checkIfRowIsEmpty(row)) {
                 final String rowIdentifier = getRowIdentifier(row);
                 final MemberDTO member = new MemberDTO();
                 final String codeIdentifier = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
