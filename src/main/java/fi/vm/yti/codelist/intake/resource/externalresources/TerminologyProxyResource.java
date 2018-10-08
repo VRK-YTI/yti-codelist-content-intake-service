@@ -180,9 +180,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         final ResponseWrapper<Concept> wrapper = new ResponseWrapper<>(meta);
         String response;
         Attribute prefLabel = new Attribute(contentLanguage, suggestion);
-        //Attribute definition = new Attribute(contentLanguage, "delete me fake definition");
         ConceptSuggestion conceptSuggestion = new ConceptSuggestion(prefLabel, UUID.fromString(vocabularyId));
-        //conceptSuggestion.setDefinition(definition);
 
         final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -212,8 +210,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         }
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
-        final ConceptSuggestion conceptSuggestionFulfilled;
-        final Concept concept;
+
         try {
             meta.setCode(200);
             meta.setResultCount(1);
@@ -223,9 +220,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
             results.add(mapper.readValue(response, new TypeReference<ConceptSuggestion>() {
             }));
 
-            conceptSuggestionFulfilled = (ConceptSuggestion) results.iterator().next();
-            concept = new Concept(conceptSuggestionFulfilled);
-            resultAsConcept.add(concept);
+            resultAsConcept.add(new Concept((ConceptSuggestion) results.iterator().next()));
 
             wrapper.setResults(new HashSet<Concept>(resultAsConcept));
             return Response.ok(wrapper).build();
