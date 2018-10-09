@@ -30,9 +30,9 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
-import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
@@ -48,8 +48,8 @@ import fi.vm.yti.codelist.intake.service.CodeRegistryService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExtensionService;
-import fi.vm.yti.codelist.intake.service.MemberService;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
+import fi.vm.yti.codelist.intake.service.MemberService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -237,13 +237,49 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
             if (codeScheme.getLastCodeschemeId() != null) {
                 if (currentCodeSchemeIsTheLatestVersion(codeScheme)) {
-                    if (codeScheme.getStatus().equals(Status.VALID.toString())) {
+                    if (codeScheme.getStatus().equals(Status.VALID.toString())) { //When the latest version goes VALID, the prev version goes SUPERSEDED. Update all listings too.
                         previousCodeScheme = codeSchemeService.findById(codeScheme.getPrevCodeschemeId());
                         if (previousCodeScheme.getStatus().equals(Status.VALID.toString())) {
                             previousCodeScheme.setStatus(Status.SUPERSEDED.toString());
                             codeSchemeService.updateCodeSchemeFromDto(previousCodeScheme.getCodeRegistry().getCodeValue(), previousCodeScheme);
                             versionsToReIndex.add(previousCodeScheme);
                             codeSchemeWhoseStatusMustBeSetToSuperseded = previousCodeScheme.getId();
+                        }
+
+                        if (!previousCodeScheme.getVariantMothersOfThisCodeScheme().isEmpty()) {
+                            for (final CodeSchemeListItem mother : previousCodeScheme.getVariantMothersOfThisCodeScheme()) {
+                                CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(mother.getId());
+                                final LinkedHashSet<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
+                                for (CodeSchemeListItem item : variantsOfTheMother) {
+                                    if (item.getId().equals(previousCodeScheme.getId())) {
+                                        populateCodeSchemeListItem(previousCodeScheme,
+                                            item);
+                                    }
+                                    if (codeSchemeWhoseStatusMustBeSetToSuperseded != null && item.getId().equals(codeSchemeWhoseStatusMustBeSetToSuperseded)) {
+                                        item.setStatus(Status.SUPERSEDED.toString());
+                                    }
+                                }
+                                codeSchemeService.updateCodeSchemeFromDto(motherCodeScheme.getCodeRegistry().getCodeValue(), motherCodeScheme);
+                                indexing.updateCodeScheme(motherCodeScheme);
+                            }
+                        }
+
+                        if (!previousCodeScheme.getVariantsOfThisCodeScheme().isEmpty()) {
+                            for (final CodeSchemeListItem variant : previousCodeScheme.getVariantsOfThisCodeScheme()) {
+                                CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(variant.getId());
+                                final LinkedHashSet<CodeSchemeListItem> mothersOfTheVariant = variantCodeScheme.getVariantMothersOfThisCodeScheme();
+                                for (CodeSchemeListItem item : mothersOfTheVariant) {
+                                    if (item.getId().equals(previousCodeScheme.getId())) {
+                                        populateCodeSchemeListItem(previousCodeScheme,
+                                            item);
+                                    }
+                                    if (codeSchemeWhoseStatusMustBeSetToSuperseded != null && item.getId().equals(codeSchemeWhoseStatusMustBeSetToSuperseded)) {
+                                        item.setStatus(Status.SUPERSEDED.toString());
+                                    }
+                                }
+                                codeSchemeService.updateCodeSchemeFromDto(variantCodeScheme.getCodeRegistry().getCodeValue(), variantCodeScheme);
+                                indexing.updateCodeScheme(variantCodeScheme);
+                            }
                         }
                     }
                 }
@@ -278,24 +314,6 @@ public class CodeRegistryResource implements AbstractBaseResource {
                         if (item.getId().equals(codeScheme.getId())) {
                             populateCodeSchemeListItem(codeScheme,
                                 item);
-                        }
-                    }
-                    codeSchemeService.updateCodeSchemeFromDto(motherCodeScheme.getCodeRegistry().getCodeValue(), motherCodeScheme);
-                    indexing.updateCodeScheme(motherCodeScheme);
-                }
-            }
-
-            if (!previousCodeScheme.getVariantMothersOfThisCodeScheme().isEmpty()) {
-                for (final CodeSchemeListItem mother : previousCodeScheme.getVariantMothersOfThisCodeScheme()) {
-                    CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(mother.getId());
-                    final LinkedHashSet<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
-                    for (CodeSchemeListItem item : variantsOfTheMother) {
-                        if (item.getId().equals(codeScheme.getId())) {
-                            populateCodeSchemeListItem(codeScheme,
-                                item);
-                        }
-                        if (codeSchemeWhoseStatusMustBeSetToSuperseded != null && item.getId().equals(codeSchemeWhoseStatusMustBeSetToSuperseded)) {
-                            item.setStatus(Status.SUPERSEDED.toString());
                         }
                     }
                     codeSchemeService.updateCodeSchemeFromDto(motherCodeScheme.getCodeRegistry().getCodeValue(), motherCodeScheme);
