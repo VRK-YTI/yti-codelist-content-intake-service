@@ -100,7 +100,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "    \"type\": \"nested\",\n" +
         "    \"dynamic\": true\n" +
         "  },\n" +
-        "  \"dataClassifications\": {\n" +
+        "  \"infoDomains\": {\n" +
         "    \"type\": \"nested\"\n" +
         "  },\n" +
         "  \"organizations\": {\n" +
