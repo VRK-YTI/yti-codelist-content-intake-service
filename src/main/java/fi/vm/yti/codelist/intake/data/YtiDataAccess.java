@@ -396,14 +396,14 @@ public class YtiDataAccess {
                                                  final String codeSchemeCodeValue,
                                                  final String dataClassificationCodeValue) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
-        final Code classification = getDataClassification(dataClassificationCodeValue);
-        final Set<Code> classifications = new HashSet<>();
-        classifications.add(classification);
-        codeScheme.setDataClassifications(classifications);
+        final Code infoDomain = getInfoDomain(dataClassificationCodeValue);
+        final Set<Code> infoDomains = new HashSet<>();
+        infoDomains.add(infoDomain);
+        codeScheme.setInfoDomains(infoDomains);
         codeSchemeDao.save(codeScheme);
     }
 
-    private Code getDataClassification(final String codeValue) {
+    private Code getInfoDomain(final String codeValue) {
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(JUPO_REGISTRY);
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
         return codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeValue);

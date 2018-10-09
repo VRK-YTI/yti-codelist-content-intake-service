@@ -36,7 +36,7 @@ import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
-import fi.vm.yti.codelist.intake.dto.DataClassificationDTO;
+import fi.vm.yti.codelist.intake.dto.InfoDomainDTO;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
@@ -53,17 +53,17 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_DATAC
 @Path("/v1/dataclassifications")
 @Api(value = "dataclassifications")
 @Produces(MediaType.APPLICATION_JSON)
-public class DataClassificationResource implements AbstractBaseResource {
+public class InfoDomainResource implements AbstractBaseResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DataClassificationResource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(InfoDomainResource.class);
     private final CodeSchemeService codeSchemeService;
     private final CodeService codeService;
     private final DataSource dataSource;
 
     @Inject
-    public DataClassificationResource(final CodeSchemeService codeSchemeService,
-                                      final CodeService codeService,
-                                      final DataSource dataSource) {
+    public InfoDomainResource(final CodeSchemeService codeSchemeService,
+                              final CodeService codeService,
+                              final DataSource dataSource) {
         this.codeSchemeService = codeSchemeService;
         this.codeService = codeService;
         this.dataSource = dataSource;
@@ -74,37 +74,37 @@ public class DataClassificationResource implements AbstractBaseResource {
     @ApiOperation(value = "Data classification API for listing codes and counts.")
     @ApiResponse(code = 200, message = "Returns data classifications and counts.")
     @Transactional
-    public Response getDataClassifications(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand,
-                                           @ApiParam(value = "Language code for sorting results.") @QueryParam("language") final String language) {
+    public Response getInfoDomains(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand,
+                                   @ApiParam(value = "Language code for sorting results.") @QueryParam("language") final String language) {
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_DATACLASSIFICATION, expand)));
         final Meta meta = new Meta();
-        final ResponseWrapper<DataClassificationDTO> wrapper = new ResponseWrapper<>();
+        final ResponseWrapper<InfoDomainDTO> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);
         final ObjectMapper mapper = createObjectMapper();
-        final CodeSchemeDTO dataClassificationsScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(JUPO_REGISTRY, YTI_DATACLASSIFICATION_CODESCHEME);
-        final Set<CodeDTO> codes = codeService.findByCodeSchemeId(dataClassificationsScheme.getId());
-        final Set<DataClassificationDTO> dataClassifications = new LinkedHashSet<>();
-        final Map<String, Integer> statistics = getClassificationCounts();
+        final CodeSchemeDTO infoDomainScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(JUPO_REGISTRY, YTI_DATACLASSIFICATION_CODESCHEME);
+        final Set<CodeDTO> codes = codeService.findByCodeSchemeId(infoDomainScheme.getId());
+        final Set<InfoDomainDTO> infoDomains = new LinkedHashSet<>();
+        final Map<String, Integer> statistics = getInfoDomainCounts();
         codes.forEach(code -> {
             final Integer count = statistics.get(code.getId().toString());
-            final DataClassificationDTO dataClassification = new DataClassificationDTO(code, count != null ? count : 0);
-            dataClassifications.add(dataClassification);
+            final InfoDomainDTO infoDomainDTO = new InfoDomainDTO(code, count != null ? count : 0);
+            infoDomains.add(infoDomainDTO);
         });
         if (language != null && !language.isEmpty()) {
-            final List<DataClassificationDTO> sortedClassifications = new ArrayList<>(dataClassifications);
-            sortedClassifications.sort(Comparator.comparing(dataClassification -> dataClassification.getPrefLabel(language)));
-            final Set<DataClassificationDTO> sortedSet = new LinkedHashSet<>(sortedClassifications);
+            final List<InfoDomainDTO> sortedInfoDomains = new ArrayList<>(infoDomains);
+            sortedInfoDomains.sort(Comparator.comparing(infoDomain -> infoDomain.getPrefLabel(language)));
+            final Set<InfoDomainDTO> sortedSet = new LinkedHashSet<>(sortedInfoDomains);
             wrapper.setResults(sortedSet);
         } else {
-            wrapper.setResults(dataClassifications);
+            wrapper.setResults(infoDomains);
         }
         meta.setCode(200);
-        meta.setResultCount(dataClassifications.size());
+        meta.setResultCount(infoDomains.size());
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         return Response.ok(wrapper).build();
     }
 
-    private Map<String, Integer> getClassificationCounts() {
+    private Map<String, Integer> getInfoDomainCounts() {
         final Map<String, Integer> statistics = new HashMap<>();
         try (final Connection connection = dataSource.getConnection();
              final PreparedStatement ps = connection.prepareStatement("SELECT code_id, count(code_id) FROM service_codescheme_code GROUP BY code_id");

@@ -39,7 +39,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private Map<String, String> changeNote;
     private CodeRegistry codeRegistry;
     private Set<Code> codes;
-    private Set<Code> dataClassifications;
+    private Set<Code> infoDomains;
     private Set<ExternalReference> externalReferences;
     private Set<Code> languageCodes;
     private Set<Extension> extensions;
@@ -298,12 +298,12 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
             @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
         inverseJoinColumns = {
             @JoinColumn(name = "code_id", referencedColumnName = "id", nullable = false, updatable = false) })
-    public Set<Code> getDataClassifications() {
-        return dataClassifications;
+    public Set<Code> getInfoDomains() {
+        return infoDomains;
     }
 
-    public void setDataClassifications(final Set<Code> dataClassifications) {
-        this.dataClassifications = dataClassifications;
+    public void setInfoDomains(final Set<Code> infoDomains) {
+        this.infoDomains = infoDomains;
     }
 
     @ManyToMany(fetch = FetchType.EAGER)

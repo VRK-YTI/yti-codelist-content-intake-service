@@ -147,8 +147,8 @@ public class DtoMapperService {
             if (codeScheme.getDefaultCode() != null) {
                 codeSchemeDto.setDefaultCode(mapCodeDto(codeScheme.getDefaultCode(), false, true, false));
             }
-            if (codeScheme.getDataClassifications() != null) {
-                codeSchemeDto.setDataClassifications(mapCodeDtos(codeScheme.getDataClassifications(), false, true));
+            if (codeScheme.getInfoDomains() != null) {
+                codeSchemeDto.setInfoDomains(mapCodeDtos(codeScheme.getInfoDomains(), false, true));
             }
             if (codeScheme.getExternalReferences() != null) {
                 codeSchemeDto.setExternalReferences(mapExternalReferenceDtos(codeScheme.getExternalReferences(), false));

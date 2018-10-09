@@ -250,12 +250,12 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             existingCodeScheme.setCodeRegistry(codeRegistry);
         }
         existingCodeScheme.setOrganizations(resolveOrganizationsFromDtosOrCodeRegistry(fromCodeScheme.getOrganizations(), codeRegistry));
-        final Set<Code> classifications = resolveDataClassificationsFromDtos(fromCodeScheme.getDataClassifications());
-        if (!Objects.equals(existingCodeScheme.getDataClassifications(), classifications)) {
-            if (classifications != null && !classifications.isEmpty()) {
-                existingCodeScheme.setDataClassifications(classifications);
+        final Set<Code> infoDomains = resolveInfoDomainsFromDtos(fromCodeScheme.getInfoDomains());
+        if (!Objects.equals(existingCodeScheme.getInfoDomains(), infoDomains)) {
+            if (infoDomains != null && !infoDomains.isEmpty()) {
+                existingCodeScheme.setInfoDomains(infoDomains);
             } else {
-                existingCodeScheme.setDataClassifications(null);
+                existingCodeScheme.setInfoDomains(null);
             }
         }
         final Set<Code> languageCodes = resolveLanguageCodesFromDtos(fromCodeScheme.getLanguageCodes());
@@ -352,7 +352,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                                         final CodeSchemeDTO fromCodeScheme) {
         final CodeScheme codeScheme = new CodeScheme();
         codeScheme.setCodeRegistry(codeRegistry);
-        codeScheme.setDataClassifications(resolveDataClassificationsFromDtos(fromCodeScheme.getDataClassifications()));
+        codeScheme.setInfoDomains(resolveInfoDomainsFromDtos(fromCodeScheme.getInfoDomains()));
         final Set<Code> languageCodes = resolveLanguageCodesFromDtos(fromCodeScheme.getLanguageCodes());
         codeScheme.setLanguageCodes(languageCodes);
         if (fromCodeScheme.getId() != null) {
@@ -417,7 +417,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         return codeScheme;
     }
 
-    private Set<Code> resolveDataClassificationsFromDtos(final Set<CodeDTO> codeDtos) {
+    private Set<Code> resolveInfoDomainsFromDtos(final Set<CodeDTO> codeDtos) {
         final Set<Code> codes;
         if (codeDtos != null && !codeDtos.isEmpty()) {
             codes = new HashSet<>();

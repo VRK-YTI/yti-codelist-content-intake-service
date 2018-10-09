@@ -15,11 +15,11 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.Views;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
-@JsonFilter("dataClassification")
+@JsonFilter("infoDomain")
 @XmlRootElement
 @XmlType(propOrder = { "id", "codeValue", "status", "prefLabel", "count" })
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class DataClassificationDTO implements Serializable {
+public class InfoDomainDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -29,11 +29,11 @@ public class DataClassificationDTO implements Serializable {
     private Integer count;
     private Map<String, String> prefLabel;
 
-    public DataClassificationDTO() {
+    public InfoDomainDTO() {
     }
 
-    public DataClassificationDTO(final CodeDTO code,
-                                 final Integer count) {
+    public InfoDomainDTO(final CodeDTO code,
+                         final Integer count) {
         setId(code.getId());
         setStatus(code.getStatus());
         setCodeValue(code.getCodeValue());

@@ -360,7 +360,7 @@ public class CloningServiceImpl implements CloningService {
             cs.setUri(o.getUri());
             cs.setGovernancePolicy(o.getGovernancePolicy());
             cs.setConceptUriInVocabularies(o.getConceptUriInVocabularies());
-            cs.setDataClassifications(o.getDataClassifications());
+            cs.setInfoDomains(o.getInfoDomains());
             cs.setChangeNote(o.getChangeNote());
             cs.setDefinition(o.getDefinition());
             cs.setDescription(o.getDescription());

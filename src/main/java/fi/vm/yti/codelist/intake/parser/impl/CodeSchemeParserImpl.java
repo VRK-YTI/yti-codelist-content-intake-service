@@ -121,7 +121,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     codeScheme.setOrganizations(resolveOrganizations(record.get(CONTENT_HEADER_ORGANIZATION)));
                 }
                 if (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
-                    codeScheme.setDataClassifications(resolveDataClassificationsFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_CLASSIFICATION)));
+                    codeScheme.setInfoDomains(resolveInfoDomainsFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_CLASSIFICATION)));
                 }
                 if ((!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) &&
                     (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) &&
@@ -209,7 +209,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     codeScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
                 if (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
-                    codeScheme.setDataClassifications(resolveDataClassificationsFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CLASSIFICATION)))));
+                    codeScheme.setInfoDomains(resolveInfoDomainsFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CLASSIFICATION)))));
                 }
                 if ((!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) &&
                     (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) &&
@@ -274,20 +274,20 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         return codeSchemes;
     }
 
-    private Set<CodeDTO> resolveDataClassificationsFromString(final String dataClassificationCodes) {
-        final Set<CodeDTO> classifications = new HashSet<>();
-        if (dataClassificationCodes == null || dataClassificationCodes.isEmpty()) {
+    private Set<CodeDTO> resolveInfoDomainsFromString(final String infoDomainCodes) {
+        final Set<CodeDTO> infoDomains = new HashSet<>();
+        if (infoDomainCodes == null || infoDomainCodes.isEmpty()) {
             throw new BadClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_CLASSIFICATION));
         }
-        final List<String> codes = Arrays.asList(dataClassificationCodes.split(";"));
+        final List<String> codes = Arrays.asList(infoDomainCodes.split(";"));
         codes.forEach(code -> {
             if (!code.isEmpty()) {
-                final CodeDTO classification = new CodeDTO();
-                classification.setCodeValue(code);
-                classifications.add(classification);
+                final CodeDTO infoDomain = new CodeDTO();
+                infoDomain.setCodeValue(code);
+                infoDomains.add(infoDomain);
             }
         });
-        return classifications;
+        return infoDomains;
     }
 
     private Set<CodeDTO> resolveLanguageCodesFromString(final String languageCodes) {
