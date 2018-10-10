@@ -44,7 +44,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_DATACLASSIFICATION;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_INFODOMAIN;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.JUPO_REGISTRY;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
@@ -76,7 +76,7 @@ public class InfoDomainResource implements AbstractBaseResource {
     @Transactional
     public Response getInfoDomains(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand,
                                    @ApiParam(value = "Language code for sorting results.") @QueryParam("language") final String language) {
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_DATACLASSIFICATION, expand)));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_INFODOMAIN, expand)));
         final Meta meta = new Meta();
         final ResponseWrapper<InfoDomainDTO> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);

@@ -121,7 +121,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     codeScheme.setOrganizations(resolveOrganizations(record.get(CONTENT_HEADER_ORGANIZATION)));
                 }
                 if (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
-                    codeScheme.setInfoDomains(resolveInfoDomainsFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_CLASSIFICATION)));
+                    codeScheme.setInfoDomains(resolveInfoDomainsFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_INFODOMAIN)));
                 }
                 if ((!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) &&
                     (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) &&
@@ -209,7 +209,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     codeScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
                 if (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
-                    codeScheme.setInfoDomains(resolveInfoDomainsFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CLASSIFICATION)))));
+                    codeScheme.setInfoDomains(resolveInfoDomainsFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_INFODOMAIN)))));
                 }
                 if ((!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) &&
                     (!codeValue.equals(YTI_DATACLASSIFICATION_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) &&
@@ -343,7 +343,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
         }
-        if (!headerMap.containsKey(CONTENT_HEADER_CLASSIFICATION)) {
+        if (!headerMap.containsKey(CONTENT_HEADER_INFODOMAIN)) {
             throw new MissingHeaderClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
         }
