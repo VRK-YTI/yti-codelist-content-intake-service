@@ -141,7 +141,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
         Extension existingExtension;
         if (fromExtension.getId() != null) {
             existingExtension = extensionRepository.findById(fromExtension.getId());
-            validateParentCodeScheme(existingExtension, codeScheme);
+            if (existingExtension != null) {
+                validateParentCodeScheme(existingExtension, codeScheme);
+            }
         } else {
             existingExtension = extensionRepository.findByParentCodeSchemeAndCodeValueIgnoreCase(codeScheme, fromExtension.getCodeValue());
         }
