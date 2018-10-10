@@ -72,8 +72,12 @@ public class MemberValueDaoImpl implements MemberValueDao {
                                                  final MemberValueDTO fromMemberValue) {
         validateMemberValue(fromMemberValue, member.getExtension().getPropertyType());
         final MemberValue existingMemberValue;
-        if (fromMemberValue.getId() != null) {
-            existingMemberValue = memberValueRepository.findById(fromMemberValue.getId());
+        if (fromMemberValue.getValueType() != null) {
+            final ValueType valueType = valueTypeDao.findByLocalName(fromMemberValue.getValueType().getLocalName());
+            if (valueType == null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            }
+            existingMemberValue = memberValueRepository.findByMemberAndValueType(member, valueType);
         } else {
             existingMemberValue = null;
         }
