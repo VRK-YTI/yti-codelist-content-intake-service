@@ -304,7 +304,9 @@ public class MemberDaoImpl implements MemberDao {
         if (extension != null) {
             if (fromMember.getId() != null) {
                 existingMember = memberRepository.findByExtensionAndId(extension, fromMember.getId());
-                validateExtension(existingMember, extension);
+                if (existingMember != null) {
+                    validateExtension(existingMember, extension);
+                }
             } else {
                 existingMember = null;
             }
