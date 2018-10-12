@@ -39,7 +39,7 @@ public abstract class AbstractBaseParser {
 
     public static final String JUPO_REGISTRY = "jupo";
     public static final String YTI_REGISTRY = "interoperabilityplatform";
-    public static final String YTI_DATACLASSIFICATION_CODESCHEME = "serviceclassification";
+    public static final String YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME = "serviceclassification";
     public static final String YTI_LANGUAGECODE_CODESCHEME = "languagecodes";
     private static final Logger LOG = LoggerFactory.getLogger(AbstractBaseParser.class);
     private static final String CODE_CODEVALUE_VALIDATOR = "^[a-zA-Z0-9_\\-\\.\\+\\&\\#\\*]*$";

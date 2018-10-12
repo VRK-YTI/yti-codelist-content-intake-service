@@ -14,7 +14,7 @@ import org.junit.runners.Suite;
     CodeDuplicateUploadTestT7.class,
     DoubleHeaderUploadTestT8.class,
     InvalidIdUploadTestT9.class,
-    CodeSchemeBadClassificationT10.class,
+    CodeSchemeBadInformationDomainT10.class,
     CodeSchemeCaseTestT11.class,
     CodeCaseTestT12.class,
     CodeValueTestT13.class,

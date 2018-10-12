@@ -18,9 +18,9 @@ import static org.junit.Assert.assertEquals;
 @SpringBootTest(classes = {ContentIntakeServiceApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"automatedtest"})
 @TestPropertySource(locations = "classpath:test-port.properties")
-public class CodeSchemeBadClassificationT10 extends AbstractIntegrationTestBase {
+public class CodeSchemeBadInformationDomainT10 extends AbstractIntegrationTestBase {
 
-    private static final String TEST_CODESCHEME_FILENAME = "v1_bad_classification.csv";
+    private static final String TEST_CODESCHEME_FILENAME = "v1_bad_infodomain.csv";
 
     @Test
     @Transactional

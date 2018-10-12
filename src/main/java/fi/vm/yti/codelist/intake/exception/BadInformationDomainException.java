@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-public class BadClassificationException extends YtiCodeListException {
+public class BadInformationDomainException extends YtiCodeListException {
 
-    public BadClassificationException(final ErrorModel errorModel) {
+    public BadInformationDomainException(final ErrorModel errorModel) {
         super(errorModel);
     }
 }

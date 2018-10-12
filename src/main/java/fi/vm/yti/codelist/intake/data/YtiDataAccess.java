@@ -44,7 +44,7 @@ import fi.vm.yti.codelist.intake.update.UpdateManager;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.JUPO_REGISTRY;
-import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_DATACLASSIFICATION_CODESCHEME;
+import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME;
 
 @Service
 public class YtiDataAccess {
@@ -59,12 +59,12 @@ public class YtiDataAccess {
     private static final String MIGRATION_LANGUAGECODES = "languagecodemigration";
 
     private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
-    private static final String DEFAULT_CLASSIFICATIONREGISTRY_FILENAME = "classificationregistries.csv";
+    private static final String DEFAULT_CLASSIFICATIONREGISTRY_FILENAME = "classificationregistries.csv"; // classification = information domain
     private static final String DEFAULT_INTEROPERABILITYREGISTRY_FILENAME = "interoperabilityplatformregistries.csv";
     private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
     private static final String DEFAULT_TESTREGISTRY_FILENAME = "testcoderegistries.csv";
 
-    private static final String SERVICE_CLASSIFICATION_P9 = "P9";
+    private static final String SERVICE_CLASSIFICATION_P9 = "P9"; // classification = information domain
 
     private static final String DEFAULT_IDENTIFIER = "default";
     private static final String MIGRATION_URIS_VERSION = "v3";
@@ -147,7 +147,7 @@ public class YtiDataAccess {
         loadDefaultValueTypes();
         loadDefaultPropertyTypes();
         loadDefaultExternalReferences();
-        loadRegistryContent(DEFAULT_CLASSIFICATIONREGISTRY_FILENAME, "V2_CLASSIFICATION");
+        loadRegistryContent(DEFAULT_CLASSIFICATIONREGISTRY_FILENAME, "V2_CLASSIFICATION"); //classification = information domain
         classifyServiceClassification();
         loadRegistryContent(DEFAULT_INTEROPERABILITYREGISTRY_FILENAME, "V2_INTEROPERABILITY");
         languageService.loadLanguageCodes();
@@ -386,12 +386,18 @@ public class YtiDataAccess {
         memberDao.save(members, false);
     }
 
+    /**
+     * classification = information domain
+     */
     private void classifyServiceClassification() {
         LOG.info("Ensuring Service Classification CodeScheme belongs to P9 classification.");
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(JUPO_REGISTRY);
-        classifyCodeSchemeWithCodeValue(codeRegistry, YTI_DATACLASSIFICATION_CODESCHEME, SERVICE_CLASSIFICATION_P9);
+        classifyCodeSchemeWithCodeValue(codeRegistry, YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME, SERVICE_CLASSIFICATION_P9);
     }
 
+    /**
+     * classification = information domain
+     */
     private void classifyCodeSchemeWithCodeValue(final CodeRegistry codeRegistry,
                                                  final String codeSchemeCodeValue,
                                                  final String dataClassificationCodeValue) {
@@ -405,7 +411,7 @@ public class YtiDataAccess {
 
     private Code getInfoDomain(final String codeValue) {
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(JUPO_REGISTRY);
-        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
+        final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME);
         return codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeValue);
     }
 

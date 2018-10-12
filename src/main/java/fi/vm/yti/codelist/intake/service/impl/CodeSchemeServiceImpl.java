@@ -467,6 +467,9 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
         codeSchemeDTOsToIndex.add(next);
     }
 
+    /**
+     * classification = information domain
+     */
     private boolean isServiceClassificationCodeScheme(final CodeScheme codeScheme) {
         return isCodeSchemeWithRegistryAndCodeValue(codeScheme, "jupo", "serviceclassification");
     }

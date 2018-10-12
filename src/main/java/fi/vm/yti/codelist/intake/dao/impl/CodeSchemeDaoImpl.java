@@ -422,13 +422,13 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         if (codeDtos != null && !codeDtos.isEmpty()) {
             codes = new HashSet<>();
             final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(JUPO_REGISTRY);
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, YTI_DATACLASSIFICATION_CODESCHEME);
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME);
             codeDtos.forEach(codeDto -> {
                 final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
                 if (code != null && code.getHierarchyLevel() == 1) {
                     codes.add(code);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_CLASSIFICATION));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_INFODOMAIN));
                 }
             });
         } else {

@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-public class MissingHeaderClassificationException extends YtiCodeListException {
+public class MissingHeaderInformationDomainException extends YtiCodeListException {
 
-    public MissingHeaderClassificationException(final ErrorModel errorModel) {
+    public MissingHeaderInformationDomainException(final ErrorModel errorModel) {
         super(errorModel);
     }
 }

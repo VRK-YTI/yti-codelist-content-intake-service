@@ -41,7 +41,7 @@ import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
-import fi.vm.yti.codelist.intake.exception.MissingHeaderClassificationException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderInformationDomainException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
@@ -251,7 +251,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
         }
         if (!headerMap.containsKey(CONTENT_HEADER_PROPERTYTYPE)) {
-            throw new MissingHeaderClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+            throw new MissingHeaderInformationDomainException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_PROPERTYTYPE));
         }
     }
