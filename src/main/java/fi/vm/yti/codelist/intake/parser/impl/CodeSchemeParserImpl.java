@@ -345,7 +345,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         }
         if (!headerMap.containsKey(CONTENT_HEADER_INFODOMAIN)) {
             throw new MissingHeaderClassificationException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_MISSING_HEADER_CLASSIFICATION));
+                ERR_MSG_USER_MISSING_HEADER_INFORMATIONDOMAIN));
         }
         if (!headerMap.containsKey(CONTENT_HEADER_STATUS)) {
             throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
