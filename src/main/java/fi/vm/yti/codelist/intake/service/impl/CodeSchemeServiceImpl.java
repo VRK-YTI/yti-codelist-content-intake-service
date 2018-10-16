@@ -53,7 +53,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Singleton
 @Service
-public class CodeSchemeServiceImpl implements CodeSchemeService {
+public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseService {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeServiceImpl.class);
     private final AuthorizationManager authorizationManager;
@@ -465,22 +465,5 @@ public class CodeSchemeServiceImpl implements CodeSchemeService {
         next = this.updateCodeSchemeFromDto(next.getCodeRegistry().getCodeValue(), next);
         this.populateAllVersionsToCodeSchemeDTO(next);
         codeSchemeDTOsToIndex.add(next);
-    }
-
-    /**
-     * classification = information domain
-     */
-    private boolean isServiceClassificationCodeScheme(final CodeScheme codeScheme) {
-        return isCodeSchemeWithRegistryAndCodeValue(codeScheme, "jupo", "serviceclassification");
-    }
-
-    private boolean isLanguageCodeCodeScheme(final CodeScheme codeScheme) {
-        return isCodeSchemeWithRegistryAndCodeValue(codeScheme, "interoperabilityplatform", "languagecodes");
-    }
-
-    private boolean isCodeSchemeWithRegistryAndCodeValue(final CodeScheme codeScheme,
-                                                         final String codeRegistryCodeValue,
-                                                         final String codeValue) {
-        return codeScheme.getCodeRegistry().getCodeValue().equalsIgnoreCase(codeRegistryCodeValue) && codeScheme.getCodeValue().equalsIgnoreCase(codeValue);
     }
 }

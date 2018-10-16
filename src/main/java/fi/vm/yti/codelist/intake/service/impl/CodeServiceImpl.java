@@ -38,7 +38,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Singleton
 @Service
-public class CodeServiceImpl implements CodeService {
+public class CodeServiceImpl implements CodeService, AbstractBaseService {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeServiceImpl.class);
     private final AuthorizationManager authorizationManager;
@@ -239,6 +239,9 @@ public class CodeServiceImpl implements CodeService {
                               final String codeCodeValue,
                               final Set<CodeDTO> affectedCodes) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        if (isServiceClassificationCodeScheme(codeScheme) || isLanguageCodeCodeScheme(codeScheme)) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_CANNOT_BE_DELETED));
+        }
         if (codeScheme != null) {
             final Code codeToBeDeleted = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
             if (codeToBeDeleted != null) {
