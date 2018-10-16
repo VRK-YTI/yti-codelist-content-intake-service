@@ -428,7 +428,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                 if (code != null && code.getHierarchyLevel() == 1) {
                     codes.add(code);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_INFODOMAIN));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_INFORMATIONDOMAIN));
                 }
             });
         } else {

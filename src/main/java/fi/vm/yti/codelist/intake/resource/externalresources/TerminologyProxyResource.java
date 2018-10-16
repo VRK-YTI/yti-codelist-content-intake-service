@@ -163,14 +163,15 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     }
 
     @POST
-    @Path("/suggestion/vocabulary/{vocabularyId}/language/{contentLanguage}")
+    @Path("/suggestion/vocabulary/{vocabularyId}/language/{contentLanguage}/suggestion/{suggestion}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Creates a concept in Controlled Vocabularies and returns it.")
     @ApiResponse(code = 200, message = "Returns success.")
     @SuppressWarnings("Duplicates")
     public Response suggestAConcept(@PathParam("vocabularyId") final String vocabularyId,
                                     @PathParam("contentLanguage") final String contentLanguage,
-                                    @RequestBody String suggestion) {
+                                    @PathParam("suggestion") final String suggestion,
+                                    @RequestBody String suggestedDefinition) {
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
@@ -180,7 +181,8 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         final ResponseWrapper<Concept> wrapper = new ResponseWrapper<>(meta);
         String response;
         Attribute prefLabel = new Attribute(contentLanguage, suggestion);
-        ConceptSuggestion conceptSuggestion = new ConceptSuggestion(prefLabel, UUID.fromString(vocabularyId));
+        Attribute definition = new Attribute(contentLanguage, suggestedDefinition);
+        ConceptSuggestion conceptSuggestion = new ConceptSuggestion(prefLabel, definition, UUID.fromString(vocabularyId));
 
         final ObjectMapper objectMapper = new ObjectMapper();
 
