@@ -29,6 +29,16 @@ public final class ConceptSuggestion {
 
     public ConceptSuggestion(final Attribute prefLabel,
                              final Attribute definition,
+                             final UUID vocabulary) {
+        this.prefLabel = prefLabel;
+        this.definition = definition;
+        this.creator = null;
+        this.vocabulary = vocabulary;
+        this.uri = null;
+    }
+
+    public ConceptSuggestion(final Attribute prefLabel,
+                             final Attribute definition,
                              final UUID creator,
                              final UUID vocabulary,
                              final String uri) {
