@@ -277,7 +277,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
     private Set<CodeDTO> resolveInfoDomainsFromString(final String infoDomainCodes) {
         final Set<CodeDTO> infoDomains = new HashSet<>();
         if (infoDomainCodes == null || infoDomainCodes.isEmpty()) {
-            throw new BadInformationDomainException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_INFODOMAIN));
+            throw new BadInformationDomainException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_INFORMATIONDOMAIN));
         }
         final List<String> codes = Arrays.asList(infoDomainCodes.split(";"));
         codes.forEach(code -> {
