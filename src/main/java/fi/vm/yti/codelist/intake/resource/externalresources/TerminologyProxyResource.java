@@ -187,7 +187,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         final ObjectMapper objectMapper = new ObjectMapper();
 
         final HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_UTF8);
 
         HttpEntity<String> request;
         try {
