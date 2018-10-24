@@ -228,7 +228,7 @@ public class YtiDataAccess {
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, identifier, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODESCHEMES + "/" + identifier + ".csv")) {
                     watch.reset().start();
-                    codeSchemes.addAll(codeSchemeService.parseAndPersistCodeSchemesFromSourceData(true, codeRegistry.getCodeValue(), FORMAT_CSV, inputStream, null));
+                    codeSchemes.addAll(codeSchemeService.parseAndPersistCodeSchemesFromSourceData(true, codeRegistry.getCodeValue(), FORMAT_CSV, inputStream, null, false, ""));
                     LOG.info(String.format("CodeScheme data parsed and persisted in: %s", watch));
                 } catch (final IOException e) {
                     LOG.error("Issue with parsing CodeScheme file. ", e);

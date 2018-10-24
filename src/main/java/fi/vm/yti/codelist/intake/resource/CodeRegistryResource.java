@@ -20,10 +20,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
@@ -185,7 +188,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/")
+    @Path("{codeRegistryCodeValue}/codeschemes")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates CodeSchemes from JSON input.")
@@ -195,14 +198,14 @@ public class CodeRegistryResource implements AbstractBaseResource {
     public Response addOrUpdateCodeSchemesFromJson(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("json") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                    @ApiParam(value = "JSON playload for CodeScheme data.", required = true) final String jsonPayload) {
-        return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, FORMAT_JSON, null, jsonPayload);
+        return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, FORMAT_JSON, null, jsonPayload, false, "");
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/")
+    @Path("{codeRegistryCodeValue}/codeschemes/{newVersionOfCodeScheme}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses and creates or updates CodeSchemes from CSV or Excel input data.")
+    @ApiOperation(value = "Parses and creates or updates CodeSchemes from Excel or CSV file.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "CodeSchemes added or modified successfully.")
     })
@@ -211,8 +214,39 @@ public class CodeRegistryResource implements AbstractBaseResource {
     })
     public Response addOrUpdateCodeSchemesFromFile(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("csv") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                                   @ApiParam(value = "New Codelist version", required = true) @PathParam("newVersionOfCodeScheme") final boolean userIsCreatingANewVersionOfACodeSchene,
+                                                   @ApiParam(value = "If creating new version, id of previous code list version") @QueryParam("originalCodeSchemeIdIfCreatingNewVersion") final String originalCodeSchemeIdIfCreatingNewVersion,
                                                    @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, format, inputStream, null);
+        return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, format, inputStream, null, userIsCreatingANewVersionOfACodeSchene, originalCodeSchemeIdIfCreatingNewVersion);
+    }
+
+    @POST
+    @Path("{codeRegistryCodeValue}/codeschemes/validate")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Validates CSV or Excel input data in case of new Code list version creation directly from file.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "The file is valid or not.")
+    })
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "file", value = "Input-file", dataType = "file", paramType = "formData")
+    })
+    public Response canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("csv") final String format,
+                                                   @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                                   @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
+        boolean result = codeSchemeService.canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(codeRegistryCodeValue, format, inputStream);
+        final ObjectMapper mapper = new ObjectMapper();
+
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_UTF8);
+
+        Response response = null;
+        try {
+            response = Response.status(Response.Status.OK).entity(mapper.writeValueAsString(result)).build();
+        } catch (JsonProcessingException e) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "JSON processing exceptionm"));
+        }
+        return  response;
     }
 
     @POST
@@ -349,14 +383,19 @@ public class CodeRegistryResource implements AbstractBaseResource {
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/clone/codescheme/{originalCodeSchemeUuid}")
+    @Path("{codeRegistryCodeValue}/clone/codescheme/{originalCodeSchemeUuid}/newversionempty/{newversionempty}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response cloneCodeSchemeFromJson(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                             @PathParam("originalCodeSchemeUuid") final String originalCodeSchemeUuid,
+                                            @PathParam("newversionempty") final boolean createNewVersionAsEmpty,
                                             @ApiParam(value = "JSON playload for CodeScheme data.", required = true) final String jsonPayload) {
         CodeSchemeDTO codeSchemeWithUserChangesFromUi = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
-        codeSchemeWithUserChangesFromUi = cloningService.cloneCodeSchemeWithAllThePlumbing(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue, originalCodeSchemeUuid);
+        if (createNewVersionAsEmpty) {
+            codeSchemeWithUserChangesFromUi = cloningService.cloneCodeSchemeAsEmpty(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue, originalCodeSchemeUuid);
+        } else {
+            codeSchemeWithUserChangesFromUi = cloningService.cloneCodeSchemeWithAllThePlumbing(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue, originalCodeSchemeUuid);
+        }
         return indexCodeschemeAndCodesAfterCloning(codeSchemeWithUserChangesFromUi, codeRegistryCodeValue);
     }
 
@@ -883,8 +922,10 @@ public class CodeRegistryResource implements AbstractBaseResource {
     private Response parseAndPersistCodeSchemesFromSource(final String codeRegistryCodeValue,
                                                           final String format,
                                                           final InputStream inputStream,
-                                                          final String jsonPayload) {
-        final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload);
+                                                          final String jsonPayload,
+                                                          final boolean userIsCreatingANewVersionOfACodeScheme,
+                                                          final String originalCodeSchemeIdIfCreatingNewVersion) {
+        final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeIdIfCreatingNewVersion);
         for (CodeSchemeDTO codeScheme : codeSchemes) {
             if (codeScheme.getLastCodeschemeId() != null) {
                 codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);

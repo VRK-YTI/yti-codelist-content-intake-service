@@ -22,12 +22,16 @@ public interface CodeSchemeService {
                                                                 final String codeRegistryCodeValue,
                                                                 final String format,
                                                                 final InputStream inputStream,
-                                                                final String jsonPayload);
+                                                                final String jsonPayload,
+                                                                final boolean userIsCreatingANewVersionOfACodeSchene,
+                                                                final String originalCodeSchemeIdIfCreatingNewVersion);
 
     Set<CodeSchemeDTO> parseAndPersistCodeSchemesFromSourceData(final String codeRegistryCodeValue,
                                                                 final String format,
                                                                 final InputStream inputStream,
-                                                                final String jsonPayload);
+                                                                final String jsonPayload,
+                                                                final boolean userIsCreatingANewVersionOfACodeSchene,
+                                                                final String originalCodeSchemeIdIfCreatingNewVersion);
 
     CodeSchemeDTO parseAndPersistCodeSchemeFromJson(final String codeRegistryCodeValue,
                                                     final String codeSchemeCodeValue,
@@ -48,4 +52,8 @@ public interface CodeSchemeService {
 
     LinkedHashSet<CodeSchemeDTO> getPreviousVersions(final UUID uuid,
                                                      final LinkedHashSet<CodeSchemeDTO> result);
+
+    boolean canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(final String codeRegistryCodeValue,
+                                                                                   final String format,
+                                                                                   final InputStream inputStream);
 }

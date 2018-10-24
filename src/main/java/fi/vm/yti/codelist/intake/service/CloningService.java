@@ -23,6 +23,10 @@ public interface CloningService {
                                                     final String codeRegistryCodeValue,
                                                     final String originalCodeSchemeUuid);
 
+    CodeSchemeDTO cloneCodeSchemeAsEmpty(CodeSchemeDTO codeSchemeWithUserChangesFromUi,
+                                                final String codeRegistryCodeValue,
+                                                final String originalCodeSchemeUuid);
+
     LinkedHashSet<CodeScheme> getPreviousVersions(final UUID uuid,
                                                   final LinkedHashSet<CodeScheme> result);
 }

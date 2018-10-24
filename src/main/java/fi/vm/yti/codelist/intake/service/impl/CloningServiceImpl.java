@@ -82,6 +82,55 @@ public class CloningServiceImpl implements CloningService {
     }
 
     @Transactional
+    public CodeSchemeDTO cloneCodeSchemeAsEmpty(CodeSchemeDTO codeSchemeWithUserChangesFromUi,
+                                                final String codeRegistryCodeValue,
+                                                final String originalCodeSchemeUuid) {
+
+        final CodeScheme originalCodeScheme = findCodeSchemeAndEagerFetchTheChildren(UUID.fromString(originalCodeSchemeUuid));
+
+        if (!authorizationManager.canBeModifiedByUserInOrganization(originalCodeScheme.getOrganizations())) {
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+        }
+
+        codeSchemeWithUserChangesFromUi.setStatus(Status.DRAFT.toString());
+        codeSchemeWithUserChangesFromUi.setNextCodeschemeId(null);
+        codeSchemeWithUserChangesFromUi.setPrevCodeschemeId(originalCodeScheme.getId());
+
+        codeSchemeWithUserChangesFromUi = codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
+        codeSchemeWithUserChangesFromUi.setLastCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
+
+        originalCodeScheme.setNextCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
+        originalCodeScheme.setLastCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
+
+        codeSchemeDao.save(originalCodeScheme);
+
+        final CodeScheme newCodeScheme = codeSchemeDao.findById(codeSchemeWithUserChangesFromUi.getId());
+
+        final LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
+
+        LinkedHashSet<CodeScheme> previousVersions = new LinkedHashSet<>();
+        previousVersions = getPreviousVersions(originalCodeScheme.getId(), previousVersions);
+        for (CodeScheme codeScheme : previousVersions) {
+            codeScheme.setLastCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
+            CodeSchemeListItem olderVersion = new CodeSchemeListItem(codeScheme.getId(), codeScheme.getPrefLabel(), codeScheme.getUri(), codeScheme.getStartDate(), codeScheme.getEndDate(), codeScheme.getStatus());
+            versionHistory.add(olderVersion);
+        }
+        codeSchemeDao.save(previousVersions);
+
+        CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getId(), codeSchemeWithUserChangesFromUi.getPrefLabel(),
+            codeSchemeWithUserChangesFromUi.getUri(), codeSchemeWithUserChangesFromUi.getStartDate(),
+            codeSchemeWithUserChangesFromUi.getEndDate(), codeSchemeWithUserChangesFromUi.getStatus());
+        codeSchemeWithUserChangesFromUi.setLastCodeschemeId(newCodeScheme.getId());
+
+        LinkedHashSet<CodeSchemeListItem> allVersions = new LinkedHashSet<>();
+        allVersions.add(newVersionListItem);
+        allVersions.addAll(versionHistory);
+        codeSchemeWithUserChangesFromUi.setAllVersions(allVersions);
+
+        return codeSchemeService.updateCodeSchemeFromDto(true, codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
+    }
+
+    @Transactional
     public CodeSchemeDTO cloneCodeSchemeWithAllThePlumbing(CodeSchemeDTO codeSchemeWithUserChangesFromUi,
                                                            final String codeRegistryCodeValue,
                                                            final String originalCodeSchemeUuid) {
