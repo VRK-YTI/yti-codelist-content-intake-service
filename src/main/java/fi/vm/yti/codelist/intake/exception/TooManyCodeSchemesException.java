@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-public class TooManyCodeSchemesException extends YtiCodeListException{
+public class TooManyCodeSchemesException extends YtiCodeListException {
 
     public TooManyCodeSchemesException(final ErrorModel errorModel) {
         super(errorModel);

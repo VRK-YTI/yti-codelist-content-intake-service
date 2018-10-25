@@ -43,6 +43,7 @@ import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.common.util.YtiCollectionUtils;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
+import fi.vm.yti.codelist.intake.exception.TooManyCodeSchemesException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
@@ -63,6 +64,7 @@ import io.swagger.annotations.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_CODEREGISTRY_NOT_EMPTY;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_TOO_MANY_CODESCHEMES_IN_FILE;
 
 @Component
 @Path("/v1/coderegistries")
@@ -234,7 +236,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
     public Response canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("csv") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                    @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        boolean result = codeSchemeService.canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(codeRegistryCodeValue, format, inputStream);
+        boolean okToCreateANewVersion = codeSchemeService.canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(codeRegistryCodeValue, format, inputStream);
         final ObjectMapper mapper = new ObjectMapper();
 
         final HttpHeaders headers = new HttpHeaders();
@@ -242,7 +244,12 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
         Response response = null;
         try {
-            response = Response.status(Response.Status.OK).entity(mapper.writeValueAsString(result)).build();
+            if (okToCreateANewVersion) {
+                response = Response.status(Response.Status.OK).entity(mapper.writeValueAsString(okToCreateANewVersion)).build();
+            } else {
+                throw new TooManyCodeSchemesException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_TOO_MANY_CODESCHEMES_IN_FILE));
+            }
+
         } catch (JsonProcessingException e) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "JSON processing exceptionm"));
         }
