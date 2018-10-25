@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -192,6 +193,15 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_UTF8);
         headers.add("Cookie", "JSESSIONID=" + httpServletrequest.getSession().getId());
+
+        LOG.error("Cookies from original request ======================");
+        for (Cookie c : httpServletrequest.getCookies()) {
+            LOG.error("c.getComment() == " + c.getComment());
+            LOG.error("c.getDomain() == " + c.getDomain());
+            LOG.error("c.getName()) == " + c.getName());
+            LOG.error("c.getPath() == " + c.getPath());
+            LOG.error("c.getValue() == " + c.getValue());
+        }
 
         HttpEntity<String> request;
         try {
