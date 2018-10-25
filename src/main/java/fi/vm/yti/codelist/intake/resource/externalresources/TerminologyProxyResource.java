@@ -6,11 +6,13 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -171,7 +173,8 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     public Response suggestAConcept(@PathParam("vocabularyId") final String vocabularyId,
                                     @PathParam("contentLanguage") final String contentLanguage,
                                     @PathParam("suggestion") final String suggestion,
-                                    @RequestBody String suggestedDefinition) {
+                                    @RequestBody String suggestedDefinition,
+                                    @Context HttpServletRequest httpServletrequest) {
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
@@ -188,6 +191,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
 
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_UTF8);
+        headers.add("Cookie", "JSESSIONID=" + httpServletrequest.getSession().getId());
 
         HttpEntity<String> request;
         try {
