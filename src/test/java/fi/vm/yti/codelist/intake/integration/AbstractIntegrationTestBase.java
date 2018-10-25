@@ -65,7 +65,7 @@ abstract public class AbstractIntegrationTestBase {
     private ResponseEntity<String> uploadCodeSchemesToCodeRegistry(final String codeRegistryCodeValue,
                                                                    final String codeSchemesFilename,
                                                                    final String format) {
-        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + "?format=" + format;
+        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/false" + "?format=" + format;
         final String filePath = "/" + CODESCHEMES_FOLDER_NAME + "/" + codeSchemesFilename;
         return uploadFile(apiUrl, filePath);
     }
