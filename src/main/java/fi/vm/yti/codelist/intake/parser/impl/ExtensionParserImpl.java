@@ -102,10 +102,10 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 extension.setId(parseIdFromRecord(record));
                 final String codeValue = parseCodeValueFromRecord(record);
                 validateCodeValue(codeValue, recordIdentifier);
-                codeValues.add(codeValue.toLowerCase());
                 extension.setCodeValue(codeValue);
                 extension.setId(parseIdFromRecord(record));
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
+                codeValues.add(codeValue.toLowerCase());
                 extension.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 if (headerMap.containsKey(CONTENT_HEADER_CODESCHEMES)) {
                     final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
