@@ -181,7 +181,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
     private LinkedHashSet<CodeSchemeDTO> handleNewVersionCreationFromFileRelatedActivities(final Set<CodeScheme> codeSchemes, final String originalCodeSchemeIdIfCreatingNewVersion) {
         if (codeSchemes.size() > 1) {
-            throw new TooManyCodeSchemesException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "too many codeSchemes"));
+            throw new TooManyCodeSchemesException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_TOO_MANY_CODESCHEMES_IN_FILE));
         }
         CodeScheme codeScheme = codeSchemes.iterator().next();
         codeScheme.setLastCodeschemeId(codeScheme.getId());
