@@ -202,7 +202,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
             LOG.error("c.getPath() == " + c.getPath());
             LOG.error("c.getValue() == " + c.getValue());
         }
-        //headers.add("cookie", httpServletrequest.getHeader("cookie"));
+        headers.add("cookie", httpServletrequest.getHeader("cookie"));
 
         HttpEntity<String> request;
         try {
