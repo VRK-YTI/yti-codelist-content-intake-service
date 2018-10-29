@@ -127,6 +127,12 @@ public class CloningServiceImpl implements CloningService {
         allVersions.addAll(versionHistory);
         codeSchemeWithUserChangesFromUi.setAllVersions(allVersions);
 
+        final Map<UUID, ExternalReference> externalReferenceMap = handleParentExternalReferences(originalCodeScheme, newCodeScheme);
+
+        handleCodeSchemeExternalReferences(codeSchemeWithUserChangesFromUi,
+            originalCodeScheme,
+            externalReferenceMap);
+
         return codeSchemeService.updateCodeSchemeFromDto(true, codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
     }
 
