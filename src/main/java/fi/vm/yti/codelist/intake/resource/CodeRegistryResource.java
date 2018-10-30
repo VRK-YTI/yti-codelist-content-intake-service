@@ -972,6 +972,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
             extensions.forEach(extension -> {
                 final CodeSchemeDTO codeScheme = codeSchemeService.findById(extension.getParentCodeScheme().getId());
+                codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
                 codeSchemes.add(codeScheme);
                 final Set<MemberDTO> members = memberService.findByExtensionId(extension.getId());
                 indexing.updateMembers(members);
