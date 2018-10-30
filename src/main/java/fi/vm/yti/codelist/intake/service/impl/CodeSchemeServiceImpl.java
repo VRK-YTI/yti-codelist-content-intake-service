@@ -39,6 +39,7 @@ import fi.vm.yti.codelist.intake.exception.InconsistencyInVersionHierarchyExcept
 import fi.vm.yti.codelist.intake.exception.TooManyCodeSchemesException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -72,6 +73,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
     private final ExternalReferenceDao externalReferenceDao;
     private final DtoMapperService dtoMapperService;
     private final CloningService cloningService;
+    private final CodeSchemeRepository codeSchemeRepository;
 
     @Inject
     public CodeSchemeServiceImpl(final AuthorizationManager authorizationManager,
@@ -85,7 +87,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                  final ExtensionDao extensionDao,
                                  final ExternalReferenceDao externalReferenceDao,
                                  final DtoMapperService dtoMapperService,
-                                 @Lazy final CloningService cloningService) {
+                                 @Lazy final CloningService cloningService,
+                                 CodeSchemeRepository codeSchemeRepository) {
         this.codeRegistryDao = codeRegistryDao;
         this.authorizationManager = authorizationManager;
         this.codeSchemeParser = codeSchemeParser;
@@ -98,6 +101,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         this.externalReferenceDao = externalReferenceDao;
         this.dtoMapperService = dtoMapperService;
         this.cloningService = cloningService;
+        this.codeSchemeRepository = codeSchemeRepository;
     }
 
     @Transactional
@@ -152,9 +156,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> extensionsSheetNames = new HashMap<>();
                         final Set<CodeSchemeDTO> codeSchemeDTOs = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionsSheetNames);
-                        if (codeSchemeDTOs.size() > 1) {
-                            result = false;
-                        }
+                        doTheValidationsAfterLoadingAndParsingTheContentsOfFile(codeRegistry, codeSchemeDTOs);
                     } catch (final InvalidFormatException | IOException | POIXMLException e) {
                         LOG.error("Error parsing Excel file!", e);
                         throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
@@ -166,9 +168,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                 case FORMAT_CSV:
                     final Set<CodeSchemeDTO> codeSchemeDTOs;
                     codeSchemeDTOs = codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream);
-                    if (codeSchemeDTOs.size() > 1) {
-                        result = false;
-                    }
+                    doTheValidationsAfterLoadingAndParsingTheContentsOfFile(codeRegistry, codeSchemeDTOs);
                     break;
                 default:
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
@@ -177,6 +177,22 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
         return result;
+    }
+
+    private void doTheValidationsAfterLoadingAndParsingTheContentsOfFile(final CodeRegistry codeRegistry,
+                                                                         final Set<CodeSchemeDTO> codeSchemeDTOs) {
+        if (codeSchemeDTOs.size() > 1) {
+            throw new TooManyCodeSchemesException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_TOO_MANY_CODESCHEMES_IN_FILE));
+        }
+        CodeSchemeDTO thePotentialNewVersion = codeSchemeDTOs.iterator().next();
+        CodeScheme existingCodeSchemeWithSameCodeValue = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, thePotentialNewVersion.getCodeValue());
+        if (existingCodeSchemeWithSameCodeValue != null) {
+            throw new TooManyCodeSchemesException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ALREADY_EXISTING_CODE_SCHEME));
+        }
+        if (!(thePotentialNewVersion.getStatus().equals(Status.DRAFT.toString()) ||
+            thePotentialNewVersion.getStatus().equals(Status.INCOMPLETE.toString()))) {
+            throw new TooManyCodeSchemesException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID));
+        }
     }
 
     private LinkedHashSet<CodeSchemeDTO> handleNewVersionCreationFromFileRelatedActivities(final Set<CodeScheme> codeSchemes, final String originalCodeSchemeIdIfCreatingNewVersion) {
