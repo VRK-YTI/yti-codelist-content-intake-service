@@ -578,7 +578,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
             final Set<ExtensionDTO> extensions = extensionService.findByCodeSchemeId(codeSchemeId);
             final Set<MemberDTO> members = memberService.findByExtensionId(codeSchemeId);
-            final Set<CodeSchemeDTO> codeSchemeDTOsToIndex = new LinkedHashSet<>();
+            final LinkedHashSet<CodeSchemeDTO> codeSchemeDTOsToIndex = new LinkedHashSet<>();
             final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue(), codeSchemeDTOsToIndex);
 
             final Set<CodeSchemeDTO> affectedCodeSchemes = new LinkedHashSet<>();

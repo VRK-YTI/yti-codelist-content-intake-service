@@ -39,7 +39,7 @@ public interface CodeSchemeService {
 
     CodeSchemeDTO deleteCodeScheme(final String codeRegistryCodeValue,
                                    final String codeSchemeCodeValue,
-                                   final Set<CodeSchemeDTO> codeSchemeDTOsToIndex);
+                                   final LinkedHashSet<CodeSchemeDTO> codeSchemeDTOsToIndex);
 
     CodeSchemeDTO updateCodeSchemeFromDto(final String codeRegistryCodeValue,
                                           final CodeSchemeDTO codeSchemeDTO);
