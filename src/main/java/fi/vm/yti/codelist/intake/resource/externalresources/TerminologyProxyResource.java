@@ -187,21 +187,12 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         Attribute prefLabel = new Attribute(contentLanguage, suggestion);
         Attribute definition = new Attribute(contentLanguage, suggestedDefinition);
         ConceptSuggestion conceptSuggestion = new ConceptSuggestion(prefLabel, definition, UUID.fromString(vocabularyId));
+        conceptSuggestion.setCreator(user.getId());
 
         final ObjectMapper objectMapper = new ObjectMapper();
 
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_UTF8);
-        //headers.add("Cookie", "JSESSIONID=" + httpServletrequest.getSession().getId());
-
-        LOG.error("authdebug cookies ======================");
-        for (Cookie c : httpServletrequest.getCookies()) {
-            LOG.error("c.getComment() == " + c.getComment());
-            LOG.error("c.getDomain() == " + c.getDomain());
-            LOG.error("c.getName()) == " + c.getName());
-            LOG.error("c.getPath() == " + c.getPath());
-            LOG.error("c.getValue() == " + c.getValue());
-        }
         headers.add("cookie", httpServletrequest.getHeader("cookie"));
 
         HttpEntity<String> request;
