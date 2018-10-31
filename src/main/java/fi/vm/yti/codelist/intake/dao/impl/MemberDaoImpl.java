@@ -253,6 +253,8 @@ public class MemberDaoImpl implements MemberDao {
                     linkedMembers.add(member);
                 }
             }
+        } else if (relatedMember == null) {
+            member.setRelatedMember(null);
         }
         linkedMembers.forEach(this::checkExtensionHierarchyLevels);
         save(linkedMembers);
