@@ -24,6 +24,8 @@ public interface ExtensionDao {
 
     Extension findById(final UUID id);
 
+    Set<Extension> findByCodeSchemes(final CodeScheme codeScheme);
+
     Set<Extension> findByParentCodeScheme(final CodeScheme codeScheme);
 
     Set<Extension> findByParentCodeSchemeId(final UUID codeSchemeId);

@@ -147,7 +147,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         codeSchemes.forEach(codeScheme -> {
             indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
             indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
-            final Set<ExtensionDTO> extensions = extensionService.findByCodeSchemeId(codeScheme.getId());
+            final Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(codeScheme.getId());
             if (extensions != null && !extensions.isEmpty()) {
                 indexing.updateExtensions(extensions);
                 for (final ExtensionDTO extension : extensions) {
@@ -365,10 +365,17 @@ public class CodeRegistryResource implements AbstractBaseResource {
             indexing.updateCodeScheme(codeScheme);
             indexing.updateExternalReferences(codeScheme.getExternalReferences());
             indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
-            final Set<ExtensionDTO> extensions = extensionService.findByCodeSchemeId(codeScheme.getId());
+            final Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(codeScheme.getId());
             if (extensions != null) {
                 indexing.updateExtensions(extensions);
                 extensions.forEach(extension -> indexing.updateMembers(memberService.findByExtensionId(extension.getId())));
+            }
+            final Set<ExtensionDTO> relatedExtensions = extensionService.findByCodeSchemeId(codeScheme.getId());
+            if (relatedExtensions != null && !relatedExtensions.isEmpty()) {
+                indexing.updateExtensions(relatedExtensions);
+                for (final ExtensionDTO extension : relatedExtensions) {
+                    indexing.updateMembers(memberService.findByExtensionId(extension.getId()));
+                }
             }
         }
         final Meta meta = new Meta();
@@ -576,7 +583,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             final UUID codeSchemeId = existingCodeScheme.getId();
             final Set<CodeDTO> codes = codeService.findByCodeSchemeId(codeSchemeId);
             final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
-            final Set<ExtensionDTO> extensions = extensionService.findByCodeSchemeId(codeSchemeId);
+            final Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(codeSchemeId);
             final Set<MemberDTO> members = memberService.findByExtensionId(codeSchemeId);
             final LinkedHashSet<CodeSchemeDTO> codeSchemeDTOsToIndex = new LinkedHashSet<>();
             final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue(), codeSchemeDTOsToIndex);
@@ -732,7 +739,10 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
         final Set<CodeDTO> codes = codeService.parseAndPersistCodeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue, jsonPayload);
         indexing.updateCodes(codes);
-        codes.forEach(code -> indexing.updateExternalReferences(code.getExternalReferences()));
+        codes.forEach(code -> {
+            indexing.updateExternalReferences(code.getExternalReferences());
+            indexing.updateMembers(memberService.findByCodeId(code.getId()));
+        });
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
@@ -766,7 +776,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 }
                 indexing.deleteCode(code);
                 indexing.updateCodeScheme(codeScheme);
-                final Set<ExtensionDTO> extensions = extensionService.findByCodeSchemeId(codeScheme.getId());
+                final Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(codeScheme.getId());
                 indexing.updateExtensions(extensions);
                 final Meta meta = new Meta();
                 meta.setCode(200);
@@ -861,7 +871,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             codeSchemes.forEach(codeScheme -> {
                 indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
                 indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
-                final Set<ExtensionDTO> extensions = extensionService.findByCodeSchemeId(codeScheme.getId());
+                final Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(codeScheme.getId());
                 if (extensions != null && !extensions.isEmpty()) {
                     indexing.updateExtensions(extensions);
                     for (final ExtensionDTO extension : extensions) {
@@ -910,7 +920,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
         indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
         indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
-        final Set<ExtensionDTO> extensions = extensionService.findByCodeSchemeId(codeScheme.getId());
+        final Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(codeScheme.getId());
         if (extensions != null && !extensions.isEmpty()) {
             indexing.updateExtensions(extensions);
             for (final ExtensionDTO extension : extensions) {
@@ -943,10 +953,17 @@ public class CodeRegistryResource implements AbstractBaseResource {
         for (final CodeSchemeDTO codeScheme : codeSchemes) {
             indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
             indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
-            final Set<ExtensionDTO> extensions = extensionService.findByCodeSchemeId(codeScheme.getId());
+            final Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(codeScheme.getId());
             if (extensions != null && !extensions.isEmpty()) {
                 indexing.updateExtensions(extensions);
                 for (final ExtensionDTO extension : extensions) {
+                    indexing.updateMembers(memberService.findByExtensionId(extension.getId()));
+                }
+            }
+            final Set<ExtensionDTO> relatedExtensions = extensionService.findByCodeSchemeId(codeScheme.getId());
+            if (relatedExtensions != null && !relatedExtensions.isEmpty()) {
+                indexing.updateExtensions(relatedExtensions);
+                for (final ExtensionDTO extension : relatedExtensions) {
                     indexing.updateMembers(memberService.findByExtensionId(extension.getId()));
                 }
             }
@@ -1022,6 +1039,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                     final String jsonPayload) {
         final Set<CodeDTO> codes = codeService.parseAndPersistCodesFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload);
         indexing.updateCodes(codes);
+        codes.forEach(code -> indexing.updateMembers(memberService.findByCodeId(code.getId())));
         final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         indexing.updateCodeScheme(codeScheme);
         indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));

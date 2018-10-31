@@ -18,6 +18,8 @@ public interface ExtensionService {
 
     Set<ExtensionDTO> findByCodeSchemeId(final UUID codeSchemeId);
 
+    Set<ExtensionDTO> findByParentCodeSchemeId(final UUID codeSchemeId);
+
     ExtensionDTO findByCodeSchemeIdAndCodeValue(final UUID codeSchemeId,
                                                       final String codeValue);
 

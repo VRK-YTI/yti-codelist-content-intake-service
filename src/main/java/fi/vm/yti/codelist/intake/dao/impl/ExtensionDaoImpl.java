@@ -100,6 +100,10 @@ public class ExtensionDaoImpl implements ExtensionDao {
         return extensionRepository.findByParentCodeScheme(codeScheme);
     }
 
+    public Set<Extension> findByCodeSchemes(final CodeScheme codeScheme) {
+        return extensionRepository.findByCodeSchemes(codeScheme);
+    }
+
     public Set<Extension> findByParentCodeSchemeId(final UUID codeSchemeId) {
         return extensionRepository.findByParentCodeSchemeId(codeSchemeId);
     }

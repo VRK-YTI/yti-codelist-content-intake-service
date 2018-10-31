@@ -82,6 +82,12 @@ public class ExtensionServiceImpl implements ExtensionService {
 
     @Transactional
     public Set<ExtensionDTO> findByCodeSchemeId(final UUID codeSchemeId) {
+        final CodeScheme codeScheme = codeSchemeDao.findById(codeSchemeId);
+        return dtoMapperService.mapDeepExtensionDtos(extensionDao.findByCodeSchemes(codeScheme));
+    }
+
+    @Transactional
+    public Set<ExtensionDTO> findByParentCodeSchemeId(final UUID codeSchemeId) {
         return dtoMapperService.mapDeepExtensionDtos(extensionDao.findByParentCodeSchemeId(codeSchemeId));
     }
 
