@@ -1,7 +1,7 @@
 package fi.vm.yti.codelist.intake.model;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -19,8 +19,6 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -40,8 +38,8 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
     private Extension extension;
     private Member relatedMember;
     private Map<String, String> prefLabel;
-    private Date startDate;
-    private Date endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private Set<MemberValue> memberValues;
     private String uri;
 
@@ -127,39 +125,37 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
         setPrefLabel(prefLabel);
     }
 
-    @ApiModelProperty(dataType = "dateTime")
+    @ApiModelProperty(dataType = "date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @Temporal(TemporalType.DATE)
     @Column(name = "startdate")
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         if (startDate != null) {
-            return new Date(startDate.getTime());
+            return startDate;
         }
         return null;
     }
 
-    public void setStartDate(final Date startDate) {
+    public void setStartDate(final LocalDate startDate) {
         if (startDate != null) {
-            this.startDate = new Date(startDate.getTime());
+            this.startDate = startDate;
         } else {
             this.startDate = null;
         }
     }
 
-    @ApiModelProperty(dataType = "dateTime")
+    @ApiModelProperty(dataType = "date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @Temporal(TemporalType.DATE)
     @Column(name = "enddate")
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         if (endDate != null) {
-            return new Date(endDate.getTime());
+            return endDate;
         }
         return null;
     }
 
-    public void setEndDate(final Date endDate) {
+    public void setEndDate(final LocalDate endDate) {
         if (endDate != null) {
-            this.endDate = new Date(endDate.getTime());
+            this.endDate = endDate;
         } else {
             this.endDate = null;
         }

@@ -27,7 +27,9 @@ import org.springframework.stereotype.Component;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -307,7 +309,8 @@ public class IndexingToolsImpl implements IndexingTools {
      * @param indexName The name of the index to be created.
      * @param type      Type for this index.
      */
-    public void createIndexWithNestedPrefLabel(final String indexName, final String type) {
+    public void createIndexWithNestedPrefLabel(final String indexName,
+                                               final String type) {
         final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
         if (!exists) {
             final CreateIndexRequestBuilder builder = client.admin().indices().prepareCreate(indexName);
@@ -322,18 +325,18 @@ public class IndexingToolsImpl implements IndexingTools {
                     .startObject("text_analyzer")
                     .field("type", "custom")
                     .field("tokenizer", "keyword")
-                    .field("filter", new String[]{"standard", "lowercase", "trim"})
+                    .field("filter", new String[]{ "standard", "lowercase", "trim" })
                     .endObject()
                     .startObject("preflabel_analyzer")
                     .field("type", "custom")
                     .field("tokenizer", "ngram")
-                    .field("filter", new String[]{"lowercase", "standard"})
+                    .field("filter", new String[]{ "lowercase", "standard" })
                     .endObject()
                     .endObject()
                     .startObject("normalizer")
                     .startObject("keyword_normalizer")
                     .field("type", "custom")
-                    .field("filter", new String[]{"lowercase"})
+                    .field("filter", new String[]{ "lowercase" })
                     .endObject()
                     .endObject()
                     .endObject()
@@ -373,6 +376,9 @@ public class IndexingToolsImpl implements IndexingTools {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.registerModule(new JavaTimeModule());
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         return mapper;
     }
 

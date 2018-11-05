@@ -13,15 +13,17 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.model.ValueType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
@@ -57,6 +59,8 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
 
     private ObjectMapper createMapper() {
         final ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        objectMapper.registerModule(new JavaTimeModule());
         objectMapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         return objectMapper;
@@ -141,7 +145,6 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
         }
         endPayloadLogging(VALUETYPE, valueType.getId());
     }
-
 
     private void beginPayloadLogging(final String name,
                                      final UUID identifier) {

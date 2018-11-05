@@ -1,8 +1,8 @@
 package fi.vm.yti.codelist.intake.parser.impl;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -22,10 +22,11 @@ import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
@@ -81,6 +82,8 @@ public abstract class AbstractBaseParser {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        mapper.registerModule(new JavaTimeModule());
         return mapper;
     }
 
@@ -98,13 +101,14 @@ public abstract class AbstractBaseParser {
         return header.substring(header.indexOf(prefix) + prefix.length()).toLowerCase();
     }
 
-    Date parseStartDateFromString(final String dateString,
+    LocalDate parseStartDateFromString(final String dateString,
                                   final String rowIdentifier) {
-        Date date = null;
+        LocalDate date = null;
         final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
         if (!dateString.isEmpty()) {
             try {
-                date = dateFormat.parse(dateString);
+                java.util.Date utilDate = dateFormat.parse(dateString);
+                date = utilDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             } catch (final ParseException e) {
                 LOG.error(String.format("Parsing startDate failed from string: %s", dateString));
                 throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
@@ -114,13 +118,14 @@ public abstract class AbstractBaseParser {
         return date;
     }
 
-    Date parseEndDateFromString(final String dateString,
+    LocalDate parseEndDateFromString(final String dateString,
                                 final String rowIdentifier) {
-        Date date = null;
+        LocalDate date = null;
         final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
         if (!dateString.isEmpty()) {
             try {
-                date = dateFormat.parse(dateString);
+                java.util.Date utilDate = dateFormat.parse(dateString);
+                date = utilDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             } catch (final ParseException e) {
                 LOG.error(String.format("Parsing endDate failed from string: %s", dateString));
                 throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
@@ -175,30 +180,10 @@ public abstract class AbstractBaseParser {
         return value;
     }
 
-    boolean startDateIsBeforeEndDateSanityCheck(final Date startDate,
-                                                final Date endDate) {
+    boolean startDateIsBeforeEndDateSanityCheck(final LocalDate startDate,
+                                                final LocalDate endDate) {
         // if either one is null, everything is OK
-        return startDate == null || endDate == null || startDate.before(endDate) || startAndEndDatesAreOnTheSameDay(startDate, endDate);
-    }
-
-    /**
-     * This is needed to allow start and end date on the same day - the users might want to enable a code or
-     * a codescheme for one day.
-     */
-    @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
-    private boolean startAndEndDatesAreOnTheSameDay(final Date startDate,
-                                                    final Date endDate) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        final Date startDateWithoutTime;
-        final Date endDateWithoutTime;
-        try {
-            startDateWithoutTime = sdf.parse(sdf.format(startDate));
-            endDateWithoutTime = sdf.parse(sdf.format(endDate));
-        } catch (final ParseException e) {
-            LOG.error("Parsing exception in date comparison.", e);
-            return true; // should never ever happen, dates are never null here and are coming from datepicker
-        }
-        return startDateWithoutTime.compareTo(endDateWithoutTime) == 0;
+        return startDate == null || endDate == null || startDate.isBefore(endDate) || startDate.compareTo(endDate) == 0;
     }
 
     Map<String, Integer> resolveHeaderMap(final Row row) {
