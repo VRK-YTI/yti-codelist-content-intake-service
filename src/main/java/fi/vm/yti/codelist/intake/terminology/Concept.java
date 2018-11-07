@@ -42,7 +42,7 @@ public final class Concept {
         this.id = null;
         this.vocabularyId = conceptSuggestion.getVocabulary();
         this.prefLabel = getPrefLabelFromSuggestion(conceptSuggestion.getPrefLabel());
-        this.definition = null;
+        this.definition = getDefinitionFromSuggestion(conceptSuggestion.getDefinition());
         this.vocabularyPrefLabel = null;
         this.uri = conceptSuggestion.getUri();
     }
@@ -51,6 +51,12 @@ public final class Concept {
         Map prefLabel = new HashMap<>();
         prefLabel.put(attribute.getLang(), attribute.getValue());
         return prefLabel;
+    }
+
+    private Map getDefinitionFromSuggestion(final Attribute attribute) {
+        Map definition = new HashMap<>();
+        definition.put(attribute.getLang(), attribute.getValue());
+        return definition;
     }
 
     public UUID getId() {
