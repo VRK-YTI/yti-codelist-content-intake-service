@@ -362,6 +362,21 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 }
             }
 
+            if (!codeScheme.getVariantsOfThisCodeScheme().isEmpty()) {
+                for (final CodeSchemeListItem variant : codeScheme.getVariantsOfThisCodeScheme()) {
+                    CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(variant.getId());
+                    final LinkedHashSet<CodeSchemeListItem> mothersOfTheVariant = variantCodeScheme.getVariantMothersOfThisCodeScheme();
+                    for (CodeSchemeListItem item : mothersOfTheVariant) {
+                        if (item.getId().equals(codeScheme.getId())) {
+                            populateCodeSchemeListItem(codeScheme,
+                                item);
+                        }
+                    }
+                    codeSchemeService.updateCodeSchemeFromDto(variantCodeScheme.getCodeRegistry().getCodeValue(), variantCodeScheme);
+                    indexing.updateCodeScheme(variantCodeScheme);
+                }
+            }
+
             indexing.updateCodeScheme(codeScheme);
             indexing.updateExternalReferences(codeScheme.getExternalReferences());
             indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
