@@ -8,11 +8,13 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
+import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
@@ -20,6 +22,7 @@ import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
+import fi.vm.yti.codelist.intake.parser.ExternalReferenceParser;
 import fi.vm.yti.codelist.intake.parser.impl.ExternalReferenceParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
@@ -33,7 +36,7 @@ public class ExternalReferenceServiceImpl implements ExternalReferenceService {
     private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceServiceImpl.class);
 
     private final AuthorizationManager authorizationManager;
-    private final ExternalReferenceParserImpl externalReferenceParser;
+    private final ExternalReferenceParser externalReferenceParser;
     private final ExternalReferenceDao externalReferenceDao;
     private final DtoMapperService dtoMapperService;
 
@@ -56,6 +59,29 @@ public class ExternalReferenceServiceImpl implements ExternalReferenceService {
     @Transactional
     public Set<ExternalReferenceDTO> findByParentCodeSchemeId(final UUID codeSchemeId) {
         return dtoMapperService.mapDeepExternalReferenceDtos(externalReferenceDao.findByParentCodeSchemeId(codeSchemeId));
+    }
+
+    @Transactional
+    public ExternalReferenceDTO findByParentCodeSchemeIdAndHref(final UUID codeSchemeId,
+                                                                final String href) {
+        return dtoMapperService.mapDeepExternalReferenceDto(externalReferenceDao.findByParentCodeSchemeIdAndHref(codeSchemeId, href));
+    }
+
+    @Transactional
+    public Set<ExternalReferenceDTO> parseAndPersistExternalReferencesFromExcelWorkbook(final Workbook workbook,
+                                                                                        final String sheetName,
+                                                                                        final CodeScheme codeScheme) {
+        final Set<ExternalReference> externalReferences;
+        if (codeScheme != null) {
+            if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+            }
+            final Set<ExternalReferenceDTO> externalReferenceDtos = externalReferenceParser.parseExternalReferencesFromExcelWorkbook(workbook, sheetName, codeScheme);
+            externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(externalReferenceDtos, codeScheme);
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        }
+        return dtoMapperService.mapDeepExternalReferenceDtos(externalReferences);
     }
 
     @Transactional
@@ -85,7 +111,7 @@ public class ExternalReferenceServiceImpl implements ExternalReferenceService {
                 }
                 break;
             case FORMAT_EXCEL:
-                externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(isAuthorized, externalReferenceParser.parseExternalReferencesFromExcelInputStream(inputStream), codeScheme);
+                externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(isAuthorized, externalReferenceParser.parseExternalReferencesFromExcelInputStream(inputStream, ApiConstants.EXCEL_SHEET_EXTERNALREFERENCES), codeScheme);
                 break;
             case FORMAT_CSV:
                 externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(isAuthorized, externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream), codeScheme);

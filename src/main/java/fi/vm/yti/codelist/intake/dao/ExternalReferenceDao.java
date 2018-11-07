@@ -33,5 +33,10 @@ public interface ExternalReferenceDao {
 
     Set<ExternalReference> findByParentCodeSchemeId(final UUID parentCodeSchemeId);
 
-    Set<ExternalReference> findByParentCodeSchemeIdAndGlobalIsNull(final UUID parentCodeSchemeId);
+    ExternalReference findByParentCodeSchemeIdAndHref(final UUID parentCodeSchemeId,
+                                                      final String href);
+
+    ExternalReference createOrUpdateExternalReference(final boolean internal,
+                                                      final ExternalReferenceDTO fromExternalReference,
+                                                      final CodeScheme codeScheme);
 }

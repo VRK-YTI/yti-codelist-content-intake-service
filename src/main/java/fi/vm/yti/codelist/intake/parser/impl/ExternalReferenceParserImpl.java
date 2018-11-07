@@ -26,6 +26,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -33,11 +34,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.parser.ExternalReferenceParser;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -114,49 +120,88 @@ public class ExternalReferenceParserImpl extends AbstractBaseParser implements E
     }
 
     @Override
-    public Set<ExternalReferenceDTO> parseExternalReferencesFromExcelInputStream(final InputStream inputStream) {
-        final Set<ExternalReferenceDTO> externalReferences = new HashSet<>();
+    public Set<ExternalReferenceDTO> parseExternalReferencesFromExcelInputStream(final InputStream inputStream,
+                                                                                 final String sheetName) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-            final DataFormatter formatter = new DataFormatter();
-            Sheet sheet = workbook.getSheet(EXCEL_SHEET_EXTERNALREFERENCES);
-            if (sheet == null) {
-                sheet = workbook.getSheetAt(0);
-            }
-            final Iterator<Row> rowIterator = sheet.rowIterator();
-            Map<String, Integer> headerMap = null;
-            Map<String, Integer> titleHeaders = null;
-            Map<String, Integer> descriptionHeaders = null;
-            boolean firstRow = true;
-            while (rowIterator.hasNext()) {
-                final Row row = rowIterator.next();
-                if (firstRow) {
-                    headerMap = resolveHeaderMap(row);
-                    titleHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_TITLE_PREFIX);
-                    descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
-                    firstRow = false;
-                } else if (!checkIfRowIsEmpty(row)) {
-                    final ExternalReferenceDTO externalReference = new ExternalReferenceDTO();
-                    final UUID id = parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID))));
-                    externalReference.setId(id);
-                    final UUID parentCodeSchemeId = parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PARENTCODESCHEMEID))));
-                    final CodeSchemeDTO parentCodeScheme = new CodeSchemeDTO();
-                    parentCodeScheme.setId(parentCodeSchemeId);
-                    externalReference.setParentCodeScheme(parentCodeScheme);
-                    final String href = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HREF)));
-                    externalReference.setHref(href);
-                    final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE)));
-                    final PropertyTypeDTO propertyType = new PropertyTypeDTO();
-                    propertyType.setLocalName(propertyTypeLocalName);
-                    externalReference.setPropertyType(propertyType);
-                    externalReference.setTitle(parseLocalizedValueFromExcelRow(titleHeaders, row, formatter));
-                    externalReference.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
-                    externalReferences.add(externalReference);
-                }
-            }
+            return parseExternalReferencesFromExcelWorkbook(workbook, sheetName, null);
         } catch (final InvalidFormatException | IOException | POIXMLException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
+    }
+
+    @Override
+    public Set<ExternalReferenceDTO> parseExternalReferencesFromExcelWorkbook(final Workbook workbook,
+                                                                              final String sheetName,
+                                                                              final CodeScheme codeScheme) {
+        final Set<ExternalReferenceDTO> externalReferences = new HashSet<>();
+        final DataFormatter formatter = new DataFormatter();
+        Sheet sheet = workbook.getSheet(sheetName);
+        if (sheet == null) {
+            sheet = workbook.getSheetAt(0);
+        }
+        final Iterator<Row> rowIterator = sheet.rowIterator();
+        Map<String, Integer> headerMap = null;
+        Map<String, Integer> titleHeaders = null;
+        Map<String, Integer> descriptionHeaders = null;
+        boolean firstRow = true;
+        while (rowIterator.hasNext()) {
+            final Row row = rowIterator.next();
+            if (firstRow) {
+                headerMap = resolveHeaderMap(row);
+                titleHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_TITLE_PREFIX);
+                descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
+                firstRow = false;
+            } else if (!checkIfRowIsEmpty(row)) {
+                validateRequiredDataOnRow(row, headerMap, formatter);
+                final ExternalReferenceDTO externalReference = new ExternalReferenceDTO();
+                if (headerMap.containsKey(CONTENT_HEADER_ID)) {
+                    externalReference.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_PARENTCODESCHEMEID)) {
+                    final UUID parentCodeSchemeId = parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PARENTCODESCHEMEID))));
+                    if (parentCodeSchemeId != null) {
+                        final CodeSchemeDTO parentCodeScheme = new CodeSchemeDTO();
+                        parentCodeScheme.setId(parentCodeSchemeId);
+                        externalReference.setParentCodeScheme(parentCodeScheme);
+                    }
+                } else if (codeScheme != null) {
+                    final CodeSchemeDTO parentCodeScheme = new CodeSchemeDTO();
+                    parentCodeScheme.setId(codeScheme.getId());
+                    externalReference.setParentCodeScheme(parentCodeScheme);
+                }
+                final String href = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HREF)));
+                if (href == null || href.isEmpty()) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_HREF));
+                }
+                externalReference.setHref(href);
+                final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE)));
+                if (propertyTypeLocalName == null || propertyTypeLocalName.isEmpty()) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_PROPERTYTYPE));
+                }
+                final PropertyTypeDTO propertyType = new PropertyTypeDTO();
+                propertyType.setLocalName(propertyTypeLocalName);
+                externalReference.setPropertyType(propertyType);
+                externalReference.setTitle(parseLocalizedValueFromExcelRow(titleHeaders, row, formatter));
+                externalReference.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
+                externalReferences.add(externalReference);
+            }
+        }
         return externalReferences;
+    }
+
+    private void validateRequiredDataOnRow(final Row row,
+                                           final Map<String, Integer> headerMap,
+                                           final DataFormatter formatter) {
+        if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HREF))) == null ||
+            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HREF))).isEmpty()) {
+            throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_ROW_MISSING_HREF, getRowIdentifier(row)));
+        }
+        if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE))) == null ||
+            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE))).isEmpty()) {
+            throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_ROW_MISSING_PROPERTYTYPE, getRowIdentifier(row)));
+        }
     }
 }

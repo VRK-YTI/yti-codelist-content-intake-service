@@ -3,6 +3,7 @@ package fi.vm.yti.codelist.intake.service.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -27,6 +28,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
@@ -52,6 +54,7 @@ import fi.vm.yti.codelist.intake.service.CloningService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExtensionService;
+import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import fi.vm.yti.codelist.intake.service.MemberService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -74,6 +77,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
     private final DtoMapperService dtoMapperService;
     private final CloningService cloningService;
     private final CodeSchemeRepository codeSchemeRepository;
+    private final ExternalReferenceService externalReferenceService;
 
     @Inject
     public CodeSchemeServiceImpl(final AuthorizationManager authorizationManager,
@@ -88,7 +92,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                  final ExternalReferenceDao externalReferenceDao,
                                  final DtoMapperService dtoMapperService,
                                  @Lazy final CloningService cloningService,
-                                 CodeSchemeRepository codeSchemeRepository) {
+                                 final CodeSchemeRepository codeSchemeRepository,
+                                 final ExternalReferenceService externalReferenceService) {
         this.codeRegistryDao = codeRegistryDao;
         this.authorizationManager = authorizationManager;
         this.codeSchemeParser = codeSchemeParser;
@@ -102,6 +107,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         this.dtoMapperService = dtoMapperService;
         this.cloningService = cloningService;
         this.codeSchemeRepository = codeSchemeRepository;
+        this.externalReferenceService = externalReferenceService;
     }
 
     @Transactional
@@ -154,8 +160,9 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                 case FORMAT_EXCEL:
                     try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
+                        final Map<CodeSchemeDTO, String> externalReferencesSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> extensionsSheetNames = new HashMap<>();
-                        final Set<CodeSchemeDTO> codeSchemeDTOs = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionsSheetNames);
+                        final Set<CodeSchemeDTO> codeSchemeDTOs = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, externalReferencesSheetNames, extensionsSheetNames);
                         doTheValidationsAfterLoadingAndParsingTheContentsOfFile(codeRegistry, codeSchemeDTOs);
                     } catch (final InvalidFormatException | IOException | POIXMLException e) {
                         LOG.error("Error parsing Excel file!", e);
@@ -255,9 +262,31 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                 case FORMAT_EXCEL:
                     try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
+                        final Map<CodeSchemeDTO, String> externalReferencesSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> extensionsSheetNames = new HashMap<>();
-                        final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, extensionsSheetNames);
+                        final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, externalReferencesSheetNames, extensionsSheetNames);
                         codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, false);
+                        if (!externalReferencesSheetNames.isEmpty()) {
+                            externalReferencesSheetNames.forEach((codeSchemeDto, sheetName) -> {
+                                if (workbook.getSheet(sheetName) != null) {
+                                    for (final CodeScheme codeScheme : codeSchemes) {
+                                        if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
+                                            externalReferenceService.parseAndPersistExternalReferencesFromExcelWorkbook(workbook, sheetName, codeScheme);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                        if (!codeSchemeDtos.isEmpty()) {
+                            codeSchemeDtos.forEach(codeSchemeDto -> {
+                                for (final CodeScheme codeScheme : codeSchemes) {
+                                    if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
+                                        final Set<ExternalReference> externalReferences = findOrCreateExternalReferences(codeScheme, codeSchemeDto.getExternalReferences());
+                                        codeScheme.setExternalReferences(externalReferences);
+                                    }
+                                }
+                            });
+                        }
                         if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
                             final CodeScheme codeScheme = codeSchemes.iterator().next();
                             codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeScheme);
@@ -276,8 +305,6 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         }
                         if (codeSchemes != null && !codeSchemes.isEmpty()) {
                             extensionsSheetNames.forEach((codeSchemeDto, sheetName) -> {
-
-
                                 for (final CodeScheme codeScheme : codeSchemes) {
                                     if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
                                         parseExtensions(workbook, sheetName, codeScheme);
@@ -285,11 +312,9 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                 }
                             });
                         }
-
                         if (userIsCreatingANewVersionOfACodeScheme) {
                             otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = handleNewVersionCreationFromFileRelatedActivities(codeSchemes, originalCodeSchemeIdIfCreatingNewVersion);
                         }
-
                     } catch (final InvalidFormatException | IOException | POIXMLException e) {
                         LOG.error("Error parsing Excel file!", e);
                         throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
@@ -315,6 +340,21 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
         resultingCodeSchemeSetForIndexing.addAll(dtoMapperService.mapCodeSchemeDtos(codeSchemes, true));
         return resultingCodeSchemeSetForIndexing;
+    }
+
+    private Set<ExternalReference> findOrCreateExternalReferences(final CodeScheme codeScheme,
+                                                                  final Set<ExternalReferenceDTO> externalReferenceDtos) {
+        if (externalReferenceDtos != null && !externalReferenceDtos.isEmpty()) {
+            final Set<ExternalReference> externalReferences = new HashSet<>();
+            externalReferenceDtos.forEach(externalReferenceDto -> {
+                final ExternalReference externalReference = externalReferenceDao.createOrUpdateExternalReference(false, externalReferenceDto, codeScheme);
+                if (externalReference != null) {
+                    externalReferences.add(externalReference);
+                }
+            });
+            return externalReferences;
+        }
+        return null;
     }
 
     @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")

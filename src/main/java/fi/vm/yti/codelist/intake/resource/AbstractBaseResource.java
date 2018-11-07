@@ -1,9 +1,13 @@
 package fi.vm.yti.codelist.intake.resource;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
+
+import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -15,7 +19,10 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.jaxrs.cfg.EndpointConfigBase;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterModifier;
 
+import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
 
 public interface AbstractBaseResource {
 
@@ -75,6 +82,14 @@ public interface AbstractBaseResource {
                                    final ObjectWriter w,
                                    final JsonGenerator g) {
             return w.with(provider);
+        }
+    }
+
+    default String urlDecodeString(final String string) {
+        try {
+            return URLDecoder.decode(string, "UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
     }
 }

@@ -14,11 +14,13 @@ public interface ExternalReferenceRepository extends CrudRepository<ExternalRefe
 
     Set<ExternalReference> findByParentCodeSchemeId(final UUID codeSchemeId);
 
-    Set<ExternalReference> findByParentCodeSchemeIdAndGlobalIsNull(final UUID codeSchemeId);
+    ExternalReference findByParentCodeSchemeIdAndHref(final UUID parentCodeSchemeId,
+                                                      final String href);
 
     ExternalReference findById(final UUID id);
 
-    ExternalReference findByIdAndParentCodeScheme(final UUID id, final CodeScheme codeScheme);
+    ExternalReference findByIdAndParentCodeScheme(final UUID id,
+                                                  final CodeScheme codeScheme);
 
     Set<ExternalReference> findAll();
 }

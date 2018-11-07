@@ -176,6 +176,9 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 code.setConceptUriInVocabularies(parseConceptUriFromExcelRow(headerMap, row, formatter));
                 code.setHierarchyLevel(resolveHierarchyLevelFromExcelRow(headerMap, row, formatter));
                 code.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
+                if (headerMap.containsKey(CONTENT_HEADER_HREF)) {
+                    code.setExternalReferences(resolveHrefs(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HREF)))));
+                }
                 if (headerMap.containsKey(CONTENT_HEADER_BROADER)) {
                     final String broaderCodeCodeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_BROADER)));
                     if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {

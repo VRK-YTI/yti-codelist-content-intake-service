@@ -112,13 +112,14 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     }
 
     @Override
-    public Set<ExternalReference> findByParentCodeSchemeId(UUID parentCodeSchemeId) {
+    public Set<ExternalReference> findByParentCodeSchemeId(final UUID parentCodeSchemeId) {
         return externalReferenceRepository.findByParentCodeSchemeId(parentCodeSchemeId);
     }
 
     @Override
-    public Set<ExternalReference> findByParentCodeSchemeIdAndGlobalIsNull(UUID parentCodeSchemeId) {
-        return externalReferenceRepository.findByParentCodeSchemeIdAndGlobalIsNull(parentCodeSchemeId);
+    public ExternalReference findByParentCodeSchemeIdAndHref(final UUID parentCodeSchemeId,
+                                                             final String href) {
+        return externalReferenceRepository.findByParentCodeSchemeIdAndHref(parentCodeSchemeId, href);
     }
 
     public ExternalReference createOrUpdateExternalReference(final boolean internal,
@@ -130,6 +131,8 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
             existingExternalReference = externalReferenceRepository.findByIdAndParentCodeScheme(fromExternalReference.getId(), codeScheme);
         } else if (fromExternalReference.getId() != null && isGlobal) {
             existingExternalReference = externalReferenceRepository.findById(fromExternalReference.getId());
+        } else if (fromExternalReference.getHref() != null && codeScheme != null) {
+            existingExternalReference = externalReferenceRepository.findByParentCodeSchemeIdAndHref(codeScheme.getId(), fromExternalReference.getHref());
         } else {
             existingExternalReference = null;
         }

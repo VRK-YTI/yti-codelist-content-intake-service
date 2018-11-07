@@ -169,6 +169,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
     public Set<CodeSchemeDTO> parseCodeSchemesFromExcelWorkbook(final CodeRegistry codeRegistry,
                                                                 final Workbook workbook,
                                                                 final Map<CodeSchemeDTO, String> codesSheetNames,
+                                                                final Map<CodeSchemeDTO, String> externalReferencesSheetNames,
                                                                 final Map<CodeSchemeDTO, String> extensionsSheetNames) {
         final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
@@ -222,6 +223,9 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 if (headerMap.containsKey(CONTENT_HEADER_ORGANIZATION)) {
                     codeScheme.setOrganizations(resolveOrganizations(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORGANIZATION)))));
                 }
+                if (headerMap.containsKey(CONTENT_HEADER_HREF)) {
+                    codeScheme.setExternalReferences(resolveHrefs(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HREF)))));
+                }
                 codeScheme.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 codeScheme.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
                 codeScheme.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
@@ -265,6 +269,12 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     final String codesSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODESSHEET)));
                     if (codesSheetName != null && !codesSheetName.isEmpty()) {
                         codesSheetNames.put(codeScheme, codesSheetName);
+                    }
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_EXTERNALREFERENCESSHEET)) {
+                    final String externalReferencesSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTERNALREFERENCESSHEET)));
+                    if (externalReferencesSheetName != null && !externalReferencesSheetName.isEmpty()) {
+                        externalReferencesSheetNames.put(codeScheme, externalReferencesSheetName);
                     }
                 }
                 validateStartDateIsBeforeEndDate(codeScheme);

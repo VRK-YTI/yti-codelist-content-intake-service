@@ -29,7 +29,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
+import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -334,6 +336,31 @@ public abstract class AbstractBaseParser {
             }
         }
         return organizations;
+    }
+
+    Set<ExternalReferenceDTO> resolveHrefs(final String externalReferencesString) {
+        final Set<ExternalReferenceDTO> externalReferences = new HashSet<>();
+        if (externalReferencesString != null && !externalReferencesString.isEmpty()) {
+            for (final String externalReferenceIdentifier : externalReferencesString.split("\\|")) {
+                final ExternalReferenceDTO externalReference = new ExternalReferenceDTO();
+                final PropertyTypeDTO propertyType = new PropertyTypeDTO();
+                propertyType.setLocalName("link");
+                externalReference.setPropertyType(propertyType);
+                UUID uuid = null;
+                try {
+                    uuid = UUID.fromString(externalReferenceIdentifier);
+                } catch (final Exception e) {
+                    // Nothing on purpose
+                }
+                if (uuid != null) {
+                    externalReference.setId(uuid);
+                } else {
+                    externalReference.setHref(externalReferenceIdentifier);
+                }
+                externalReferences.add(externalReference);
+            }
+        }
+        return externalReferences;
     }
 
     String getRowIdentifier(final Row row) {

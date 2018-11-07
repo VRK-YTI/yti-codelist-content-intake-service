@@ -102,7 +102,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
             }
             final HashMap<String, String> broaderCodeMapping = new HashMap<>();
             final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelWorkbook(workbook, sheetName, broaderCodeMapping);
-            codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, false);
+            codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, true);
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
