@@ -127,7 +127,12 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
                                                              final CodeScheme codeScheme) {
         final boolean isGlobal = fromExternalReference.getGlobal() != null ? fromExternalReference.getGlobal() : false;
         final ExternalReference existingExternalReference;
-        if (fromExternalReference.getId() != null && codeScheme != null && !isGlobal) {
+        if (fromExternalReference.getId() != null && fromExternalReference.getHref() == null) {
+            existingExternalReference = externalReferenceRepository.findByIdAndParentCodeScheme(fromExternalReference.getId(), codeScheme);
+            if (existingExternalReference != null) {
+                return existingExternalReference;
+            }
+        } else if (fromExternalReference.getId() != null && codeScheme != null && !isGlobal) {
             existingExternalReference = externalReferenceRepository.findByIdAndParentCodeScheme(fromExternalReference.getId(), codeScheme);
         } else if (fromExternalReference.getId() != null && isGlobal) {
             existingExternalReference = externalReferenceRepository.findById(fromExternalReference.getId());
