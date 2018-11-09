@@ -195,12 +195,12 @@ public class ExternalReferenceParserImpl extends AbstractBaseParser implements E
                                            final DataFormatter formatter) {
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HREF))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HREF))).isEmpty()) {
-            throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ROW_MISSING_HREF, getRowIdentifier(row)));
         }
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE))).isEmpty()) {
-            throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ROW_MISSING_PROPERTYTYPE, getRowIdentifier(row)));
         }
     }

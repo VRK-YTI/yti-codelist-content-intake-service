@@ -272,6 +272,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                     for (final CodeScheme codeScheme : codeSchemes) {
                                         if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
                                             externalReferenceService.parseAndPersistExternalReferencesFromExcelWorkbook(workbook, sheetName, codeScheme);
+                                            codeSchemeDao.save(codeScheme);
                                         }
                                     }
                                 }
@@ -282,7 +283,11 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                 for (final CodeScheme codeScheme : codeSchemes) {
                                     if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
                                         final Set<ExternalReference> externalReferences = findOrCreateExternalReferences(codeScheme, codeSchemeDto.getExternalReferences());
+                                        if (externalReferences != null && !externalReferences.isEmpty()) {
+                                            externalReferenceDao.save(externalReferences);
+                                        }
                                         codeScheme.setExternalReferences(externalReferences);
+                                        codeSchemeDao.save(codeScheme);
                                     }
                                 }
                             });

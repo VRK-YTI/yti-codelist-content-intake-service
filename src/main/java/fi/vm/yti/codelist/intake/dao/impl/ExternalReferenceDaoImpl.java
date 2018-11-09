@@ -23,13 +23,13 @@ import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
 public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
     private static final String CONTEXT_EXTERNALREFERENCE = "ExternalReference";
+    private static final String EXTERNALREFERENCE_LINK_TYPE = "link";
 
     private final EntityChangeLogger entityChangeLogger;
     private final ExternalReferenceRepository externalReferenceRepository;
@@ -127,8 +127,8 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
                                                              final CodeScheme codeScheme) {
         final boolean isGlobal = fromExternalReference.getGlobal() != null ? fromExternalReference.getGlobal() : false;
         final ExternalReference existingExternalReference;
-        if (fromExternalReference.getId() != null && fromExternalReference.getHref() == null) {
-            existingExternalReference = externalReferenceRepository.findByIdAndParentCodeScheme(fromExternalReference.getId(), codeScheme);
+        if (codeScheme != null && fromExternalReference.getId() == null && fromExternalReference.getHref() != null && fromExternalReference.getPropertyType() == null) {
+            existingExternalReference = externalReferenceRepository.findByParentCodeSchemeIdAndHref(codeScheme.getId(), fromExternalReference.getHref());
             if (existingExternalReference != null) {
                 return existingExternalReference;
             }
@@ -163,9 +163,15 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
             existingExternalReference.setParentCodeScheme(parentCodeScheme);
             existingExternalReference.setGlobal(parentCodeScheme == null);
         }
-        final PropertyType propertyType = propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, fromExternalReference.getPropertyType().getLocalName());
+        PropertyType propertyType = null;
+        if (fromExternalReference.getPropertyType() != null) {
+            propertyType = propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, fromExternalReference.getPropertyType().getLocalName());
+            if (propertyType == null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTERNALREFERENCE_PROPERTYTYPE_NOT_FOUND));
+            }
+        }
         if (propertyType == null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            propertyType = propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, EXTERNALREFERENCE_LINK_TYPE);
         }
         if (!Objects.equals(existingExternalReference.getPropertyType(), propertyType)) {
             existingExternalReference.setPropertyType(propertyType);
@@ -205,11 +211,17 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         externalReference.setParentCodeScheme(parentCodeScheme);
         externalReference.setHref(fromExternalReference.getHref());
         externalReference.setGlobal(parentCodeScheme == null);
-        final PropertyType propertyType = propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, fromExternalReference.getPropertyType().getLocalName());
-        if (propertyType == null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+        PropertyType propertyType = null;
+        if (fromExternalReference.getPropertyType() != null) {
+            propertyType = propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, fromExternalReference.getPropertyType().getLocalName());
+            if (propertyType == null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTERNALREFERENCE_PROPERTYTYPE_NOT_FOUND));
+            }
         }
-        externalReference.setPropertyType(propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, fromExternalReference.getPropertyType().getLocalName()));
+        if (propertyType == null) {
+            propertyType = propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, EXTERNALREFERENCE_LINK_TYPE);
+        }
+        externalReference.setPropertyType(propertyType);
         for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
             final String language = entry.getKey();
             languageService.validateInputLanguageForCodeScheme(parentCodeScheme, language);

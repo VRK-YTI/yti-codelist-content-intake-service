@@ -343,9 +343,6 @@ public abstract class AbstractBaseParser {
         if (externalReferencesString != null && !externalReferencesString.isEmpty()) {
             for (final String externalReferenceIdentifier : externalReferencesString.split("\\|")) {
                 final ExternalReferenceDTO externalReference = new ExternalReferenceDTO();
-                final PropertyTypeDTO propertyType = new PropertyTypeDTO();
-                propertyType.setLocalName("link");
-                externalReference.setPropertyType(propertyType);
                 UUID uuid = null;
                 try {
                     uuid = UUID.fromString(externalReferenceIdentifier);
