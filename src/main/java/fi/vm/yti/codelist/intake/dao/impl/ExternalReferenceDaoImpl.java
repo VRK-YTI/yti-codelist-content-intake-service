@@ -126,13 +126,21 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
                                                              final ExternalReferenceDTO fromExternalReference,
                                                              final CodeScheme codeScheme) {
         final boolean isGlobal = fromExternalReference.getGlobal() != null ? fromExternalReference.getGlobal() : false;
-        final ExternalReference existingExternalReference;
+        ExternalReference existingExternalReference;
+        if (!internal && codeScheme != null && fromExternalReference.getHref() != null) {
+            final String href = fromExternalReference.getHref();
+            existingExternalReference = externalReferenceRepository.findByGlobalTrueAndHref(href);
+            if (existingExternalReference != null) {
+                return existingExternalReference;
+            }
+        }
         if (codeScheme != null && fromExternalReference.getId() == null && fromExternalReference.getHref() != null && fromExternalReference.getPropertyType() == null) {
             existingExternalReference = externalReferenceRepository.findByParentCodeSchemeIdAndHref(codeScheme.getId(), fromExternalReference.getHref());
             if (existingExternalReference != null) {
                 return existingExternalReference;
             }
-        } else if (fromExternalReference.getId() != null && codeScheme != null && !isGlobal) {
+        }
+        if (fromExternalReference.getId() != null && codeScheme != null && !isGlobal) {
             existingExternalReference = externalReferenceRepository.findByIdAndParentCodeScheme(fromExternalReference.getId(), codeScheme);
         } else if (fromExternalReference.getId() != null && isGlobal) {
             existingExternalReference = externalReferenceRepository.findById(fromExternalReference.getId());
