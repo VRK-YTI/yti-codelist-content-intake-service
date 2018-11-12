@@ -111,7 +111,7 @@ public class ExternalReferenceServiceImpl implements ExternalReferenceService {
                 }
                 break;
             case FORMAT_EXCEL:
-                externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(isAuthorized, externalReferenceParser.parseExternalReferencesFromExcelInputStream(inputStream, ApiConstants.EXCEL_SHEET_EXTERNALREFERENCES), codeScheme);
+                externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(isAuthorized, externalReferenceParser.parseExternalReferencesFromExcelInputStream(inputStream, ApiConstants.EXCEL_SHEET_LINKS), codeScheme);
                 break;
             case FORMAT_CSV:
                 externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(isAuthorized, externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream), codeScheme);
