@@ -140,6 +140,12 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
                 return existingExternalReference;
             }
         }
+        if (codeScheme != null && fromExternalReference.getId() != null && fromExternalReference.getHref() == null && fromExternalReference.getPropertyType() == null) {
+            existingExternalReference = externalReferenceRepository.findByParentCodeSchemeIdAndId(codeScheme.getId(), fromExternalReference.getId());
+            if (existingExternalReference != null) {
+                return existingExternalReference;
+            }
+        }
         if (fromExternalReference.getId() != null && codeScheme != null && !isGlobal) {
             existingExternalReference = externalReferenceRepository.findByIdAndParentCodeScheme(fromExternalReference.getId(), codeScheme);
         } else if (fromExternalReference.getId() != null && isGlobal) {

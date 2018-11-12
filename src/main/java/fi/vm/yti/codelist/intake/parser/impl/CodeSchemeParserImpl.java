@@ -271,8 +271,8 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                         codesSheetNames.put(codeScheme, codesSheetName);
                     }
                 }
-                if (headerMap.containsKey(CONTENT_HEADER_EXTERNALREFERENCESSHEET)) {
-                    final String externalReferencesSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTERNALREFERENCESSHEET)));
+                if (headerMap.containsKey(CONTENT_HEADER_LINKSSHEET)) {
+                    final String externalReferencesSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LINKSSHEET)));
                     if (externalReferencesSheetName != null && !externalReferencesSheetName.isEmpty()) {
                         externalReferencesSheetNames.put(codeScheme, externalReferencesSheetName);
                     }
