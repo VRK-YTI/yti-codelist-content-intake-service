@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.UncaughtExceptionMapper;
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.YtiCodeListExceptionMapper;
 import fi.vm.yti.codelist.intake.filter.CacheFilter;
+import fi.vm.yti.codelist.intake.filter.CharsetResponseFilter;
 import fi.vm.yti.codelist.intake.filter.RequestLoggingFilter;
 import fi.vm.yti.codelist.intake.resource.AdminResource;
 import fi.vm.yti.codelist.intake.resource.AuthenticatedUserResource;
@@ -64,6 +65,10 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.API_CONTEXT_PATH_
 public class JerseyConfig extends ResourceConfig {
 
     public JerseyConfig() {
+
+        // Charset filter
+        register(CharsetResponseFilter.class);
+
         // Cache control headers to no cache.
         register(CacheFilter.class);
 
