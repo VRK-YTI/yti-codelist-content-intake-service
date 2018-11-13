@@ -1,8 +1,7 @@
 package fi.vm.yti.codelist.intake.parser.impl;
 
-import java.text.ParseException;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -24,14 +23,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
-import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -104,14 +101,12 @@ public abstract class AbstractBaseParser {
     }
 
     LocalDate parseStartDateFromString(final String dateString,
-                                  final String rowIdentifier) {
+                                       final String rowIdentifier) {
         LocalDate date = null;
-        final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
         if (!dateString.isEmpty()) {
             try {
-                java.util.Date utilDate = dateFormat.parse(dateString);
-                date = utilDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            } catch (final ParseException e) {
+                date = LocalDate.parse(dateString);
+            } catch (final DateTimeParseException e) {
                 LOG.error(String.format("Parsing startDate failed from string: %s", dateString));
                 throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                     ERR_MSG_USER_ERRONEOUS_START_DATE, rowIdentifier));
@@ -121,14 +116,12 @@ public abstract class AbstractBaseParser {
     }
 
     LocalDate parseEndDateFromString(final String dateString,
-                                final String rowIdentifier) {
+                                     final String rowIdentifier) {
         LocalDate date = null;
-        final ISO8601DateFormat dateFormat = new ISO8601DateFormat();
         if (!dateString.isEmpty()) {
             try {
-                java.util.Date utilDate = dateFormat.parse(dateString);
-                date = utilDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            } catch (final ParseException e) {
+                date = LocalDate.parse(dateString);
+            } catch (final DateTimeParseException e) {
                 LOG.error(String.format("Parsing endDate failed from string: %s", dateString));
                 throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                     ERR_MSG_USER_ERRONEOUS_END_DATE, rowIdentifier));
