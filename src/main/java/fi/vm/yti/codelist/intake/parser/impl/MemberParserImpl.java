@@ -282,10 +282,6 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 }
             });
         }
-        if (!headerMap.containsKey(CONTENT_HEADER_ORDER)) {
-            throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_MISSING_HEADER_ORDER));
-        }
         if (!headerMap.containsKey(CONTENT_HEADER_CODE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_CODE));
