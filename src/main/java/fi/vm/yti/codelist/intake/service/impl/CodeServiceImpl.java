@@ -2,7 +2,6 @@ package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -199,38 +198,18 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         return dtoMapperService.mapDeepCodeDtos(codes);
     }
 
-    private Set<CodeDTO> decreaseChildHierarchyLevel(final UUID broaderCodeId) {
-        final Set<Code> childCodes = codeDao.findByBroaderCodeId(broaderCodeId);
-        childCodes.forEach(code -> {
-            final int hierarchyLevel;
-            if (code.getHierarchyLevel() == null || code.getHierarchyLevel() < 1) {
-                hierarchyLevel = 1;
-            } else {
-                hierarchyLevel = code.getHierarchyLevel() - 1;
-            }
-            code.setHierarchyLevel(hierarchyLevel);
-            if (code.getBroaderCode() != null) {
-                decreaseChildHierarchyLevel(code.getId());
-            }
-        });
-        codeDao.save(childCodes);
-        return dtoMapperService.mapDeepCodeDtos(childCodes);
-    }
-
-    @Transactional
-    public Set<CodeDTO> removeBroaderCodeId(final UUID broaderCodeId) {
-        final Set<CodeDTO> updateCodes = new HashSet<>();
+    private void removeBroaderCodeId(final UUID broaderCodeId,
+                                     final Set<CodeDTO> affectedCodes) {
         final Set<Code> childCodes = codeDao.findByBroaderCodeId(broaderCodeId);
         if (childCodes != null && !childCodes.isEmpty()) {
             childCodes.forEach(code -> {
                 code.setBroaderCode(null);
                 code.setHierarchyLevel(1);
-                updateCodes.addAll(decreaseChildHierarchyLevel(code.getId()));
+                removeBroaderCodeId(code.getId(), affectedCodes);
             });
-            updateCodes.addAll(dtoMapperService.mapDeepCodeDtos(childCodes));
+            affectedCodes.addAll(dtoMapperService.mapDeepCodeDtos(childCodes));
             codeDao.save(childCodes);
         }
-        return updateCodes;
     }
 
     @Transactional
@@ -261,7 +240,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                         codeScheme.setDefaultCode(null);
                         codeSchemeDao.save(codeScheme);
                     }
-                    affectedCodes.addAll(removeBroaderCodeId(codeToBeDeleted.getId()));
+                    removeBroaderCodeId(codeToBeDeleted.getId(), affectedCodes);
                     final CodeDTO codeToBeDeletedDTO = dtoMapperService.mapCodeDto(codeToBeDeleted, true, true, true);
                     codeDao.delete(codeToBeDeleted);
                     return codeToBeDeletedDTO;
