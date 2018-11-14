@@ -219,7 +219,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
     })
     public Response addOrUpdateCodeSchemesFromFile(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("csv") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                                   @ApiParam(value = "New Codelist version", required = true) @QueryParam("newVersionOfCodeScheme") final boolean userIsCreatingANewVersionOfACodeScheme,
+                                                   @ApiParam(value = "New Codelist version") @QueryParam("newVersionOfCodeScheme") @DefaultValue("false") final boolean userIsCreatingANewVersionOfACodeScheme,
                                                    @ApiParam(value = "If creating new version, id of previous code list version") @QueryParam("originalCodeSchemeIdIfCreatingNewVersion") final String originalCodeSchemeIdIfCreatingNewVersion,
                                                    @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         LOG.debug("Updating codeschemes from file.");
