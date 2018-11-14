@@ -92,7 +92,7 @@ public class InfoDomainResource implements AbstractBaseResource {
         });
         if (language != null && !language.isEmpty()) {
             final List<InfoDomainDTO> sortedInfoDomains = new ArrayList<>(infoDomains);
-            sortedInfoDomains.sort(Comparator.comparing(infoDomain -> infoDomain.getPrefLabel(language)));
+            sortedInfoDomains.sort(Comparator.comparing(infoDomain -> infoDomain.getPrefLabel(language), Comparator.nullsLast(Comparator.reverseOrder())));
             final Set<InfoDomainDTO> sortedSet = new LinkedHashSet<>(sortedInfoDomains);
             wrapper.setResults(sortedSet);
         } else {
