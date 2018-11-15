@@ -22,15 +22,15 @@ import org.springframework.stereotype.Service;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
-import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
+import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
-import fi.vm.yti.codelist.intake.parser.MemberParser;
 import fi.vm.yti.codelist.intake.parser.ExtensionParser;
+import fi.vm.yti.codelist.intake.parser.MemberParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.ExtensionService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
@@ -93,7 +93,7 @@ public class ExtensionServiceImpl implements ExtensionService {
 
     @Transactional
     public ExtensionDTO findByCodeSchemeIdAndCodeValue(final UUID codeSchemeId,
-                                                             final String codeValue) {
+                                                       final String codeValue) {
         final Extension extension = extensionDao.findByParentCodeSchemeIdAndCodeValue(codeSchemeId, codeValue);
         if (extension == null) {
             return null;
@@ -103,7 +103,7 @@ public class ExtensionServiceImpl implements ExtensionService {
 
     @Transactional
     public ExtensionDTO findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
-                                                           final String codeValue) {
+                                                     final String codeValue) {
         final Extension extension = extensionDao.findByParentCodeSchemeAndCodeValue(codeScheme, codeValue);
         if (extension == null) {
             return null;
@@ -129,7 +129,7 @@ public class ExtensionServiceImpl implements ExtensionService {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionParser.parseExtensionsFromJson(jsonPayload));
                     } else {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                     }
                     break;
                 case FORMAT_EXCEL:
@@ -153,11 +153,11 @@ public class ExtensionServiceImpl implements ExtensionService {
                     extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionParser.parseExtensionsFromCsvInputStream(inputStream));
                     break;
                 default:
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
             }
             return dtoMapperService.mapDeepExtensionDtos(extensions);
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
         }
     }
 
@@ -197,20 +197,20 @@ public class ExtensionServiceImpl implements ExtensionService {
                         }
                         extension = extensionDao.updateExtensionEntityFromDto(parentCodeScheme, extensionDTO);
                     } else {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                     }
                 } catch (final YtiCodeListException e) {
                     throw e;
                 } catch (final Exception e) {
                     LOG.error("Caught exception in parseAndPersistExtensionFromJson.", e);
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PARSING_ERROR));
                 }
             } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
             }
             return dtoMapperService.mapDeepExtensionDto(extension);
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
         }
     }
 
@@ -228,23 +228,23 @@ public class ExtensionServiceImpl implements ExtensionService {
                     }
                     final CodeScheme codeScheme = codeSchemeDao.findById(extensionDto.getParentCodeScheme().getId());
                     if (codeScheme == null) {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
                     }
                     if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
                         throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                     }
                     extension = extensionDao.updateExtensionEntityFromDto(codeScheme, extensionDto);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                 }
             } catch (final YtiCodeListException e) {
                 throw e;
             } catch (final Exception e) {
                 LOG.error("Caught exception in parseAndPersistExtensionFromJson.", e);
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PARSING_ERROR));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
         }
         return dtoMapperService.mapDeepExtensionDto(extension);
     }

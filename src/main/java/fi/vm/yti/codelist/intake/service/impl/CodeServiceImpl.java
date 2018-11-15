@@ -2,7 +2,6 @@ package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -104,7 +103,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
             final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelWorkbook(workbook, sheetName, broaderCodeMapping);
             codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, true);
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
         }
         return dtoMapperService.mapDeepCodeDtos(codes);
     }
@@ -140,7 +139,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                             final Set<CodeDTO> codeDtos = codeParser.parseCodesFromJsonData(jsonPayload);
                             codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, true);
                         } else {
-                            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                         }
                         break;
                     case FORMAT_EXCEL:
@@ -150,13 +149,13 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeParser.parseCodesFromCsvInputStream(inputStream, broaderCodeMapping), broaderCodeMapping, false);
                         break;
                     default:
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
                 }
             } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
         }
         return dtoMapperService.mapDeepCodeDtos(codes);
     }
@@ -182,55 +181,35 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                         }
                         codes = codeDao.updateCodeFromDto(codeScheme, codeDto);
                     } else {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                     }
                 } catch (final YtiCodeListException e) {
                     throw e;
                 } catch (final Exception e) {
                     LOG.error("Caught exception in parseAndPersistCodeFromJson.", e);
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PARSING_ERROR));
                 }
             } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
         }
         return dtoMapperService.mapDeepCodeDtos(codes);
     }
 
-    private Set<CodeDTO> decreaseChildHierarchyLevel(final UUID broaderCodeId) {
-        final Set<Code> childCodes = codeDao.findByBroaderCodeId(broaderCodeId);
-        childCodes.forEach(code -> {
-            final int hierarchyLevel;
-            if (code.getHierarchyLevel() == null || code.getHierarchyLevel() < 1) {
-                hierarchyLevel = 1;
-            } else {
-                hierarchyLevel = code.getHierarchyLevel() - 1;
-            }
-            code.setHierarchyLevel(hierarchyLevel);
-            if (code.getBroaderCode() != null) {
-                decreaseChildHierarchyLevel(code.getId());
-            }
-        });
-        codeDao.save(childCodes);
-        return dtoMapperService.mapDeepCodeDtos(childCodes);
-    }
-
-    @Transactional
-    public Set<CodeDTO> removeBroaderCodeId(final UUID broaderCodeId) {
-        final Set<CodeDTO> updateCodes = new HashSet<>();
+    private void removeBroaderCodeId(final UUID broaderCodeId,
+                                     final Set<CodeDTO> affectedCodes) {
         final Set<Code> childCodes = codeDao.findByBroaderCodeId(broaderCodeId);
         if (childCodes != null && !childCodes.isEmpty()) {
             childCodes.forEach(code -> {
                 code.setBroaderCode(null);
                 code.setHierarchyLevel(1);
-                updateCodes.addAll(decreaseChildHierarchyLevel(code.getId()));
+                removeBroaderCodeId(code.getId(), affectedCodes);
             });
-            updateCodes.addAll(dtoMapperService.mapDeepCodeDtos(childCodes));
+            affectedCodes.addAll(dtoMapperService.mapDeepCodeDtos(childCodes));
             codeDao.save(childCodes);
         }
-        return updateCodes;
     }
 
     @Transactional
@@ -261,7 +240,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                         codeScheme.setDefaultCode(null);
                         codeSchemeDao.save(codeScheme);
                     }
-                    affectedCodes.addAll(removeBroaderCodeId(codeToBeDeleted.getId()));
+                    removeBroaderCodeId(codeToBeDeleted.getId(), affectedCodes);
                     final CodeDTO codeToBeDeletedDTO = dtoMapperService.mapCodeDto(codeToBeDeleted, true, true, true);
                     codeDao.delete(codeToBeDeleted);
                     return codeToBeDeletedDTO;
@@ -269,10 +248,10 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                     throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                 }
             } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_NOT_FOUND));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
         }
     }
 

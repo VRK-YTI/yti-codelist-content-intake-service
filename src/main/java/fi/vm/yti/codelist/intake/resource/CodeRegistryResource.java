@@ -20,6 +20,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -69,6 +71,8 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Api(value = "coderegistries")
 @Produces("text/plain")
 public class CodeRegistryResource implements AbstractBaseResource {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryResource.class);
 
     private final CodeService codeService;
     private final CodeSchemeService codeSchemeService;
@@ -198,11 +202,12 @@ public class CodeRegistryResource implements AbstractBaseResource {
     public Response addOrUpdateCodeSchemesFromJson(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("json") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                    @ApiParam(value = "JSON playload for CodeScheme data.", required = true) final String jsonPayload) {
+        LOG.debug("Updating codeschemes from from JSON.");
         return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, FORMAT_JSON, null, jsonPayload, false, "");
     }
 
     @POST
-    @Path("{codeRegistryCodeValue}/codeschemes/{newVersionOfCodeScheme}")
+    @Path("{codeRegistryCodeValue}/codeschemes")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses and creates or updates CodeSchemes from Excel or CSV file.")
@@ -214,10 +219,11 @@ public class CodeRegistryResource implements AbstractBaseResource {
     })
     public Response addOrUpdateCodeSchemesFromFile(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("csv") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
-                                                   @ApiParam(value = "New Codelist version", required = true) @PathParam("newVersionOfCodeScheme") final boolean userIsCreatingANewVersionOfACodeSchene,
+                                                   @ApiParam(value = "New Codelist version") @QueryParam("newVersionOfCodeScheme") @DefaultValue("false") final boolean userIsCreatingANewVersionOfACodeScheme,
                                                    @ApiParam(value = "If creating new version, id of previous code list version") @QueryParam("originalCodeSchemeIdIfCreatingNewVersion") final String originalCodeSchemeIdIfCreatingNewVersion,
                                                    @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, format, inputStream, null, userIsCreatingANewVersionOfACodeSchene, originalCodeSchemeIdIfCreatingNewVersion);
+        LOG.debug("Updating codeschemes from file.");
+        return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, format, inputStream, null, userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeIdIfCreatingNewVersion);
     }
 
     @POST
@@ -265,6 +271,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
     public Response updateCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                      @ApiParam(value = "JSON playload for CodeScheme data.") final String jsonPayload) {
+        LOG.debug("Updating codescheme from JSON payload.");
 
         final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
 
@@ -1064,7 +1071,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             responseWrapper.setResults(members);
             return Response.ok(responseWrapper).build();
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
         }
     }
 

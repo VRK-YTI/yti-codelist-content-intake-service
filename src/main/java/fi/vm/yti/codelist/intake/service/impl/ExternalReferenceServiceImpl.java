@@ -79,7 +79,7 @@ public class ExternalReferenceServiceImpl implements ExternalReferenceService {
             final Set<ExternalReferenceDTO> externalReferenceDtos = externalReferenceParser.parseExternalReferencesFromExcelWorkbook(workbook, sheetName, codeScheme);
             externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(externalReferenceDtos, codeScheme);
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
         }
         return dtoMapperService.mapDeepExternalReferenceDtos(externalReferences);
     }
@@ -107,7 +107,7 @@ public class ExternalReferenceServiceImpl implements ExternalReferenceService {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(isAuthorized, externalReferenceParser.parseExternalReferencesFromJson(jsonPayload), codeScheme);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                 }
                 break;
             case FORMAT_EXCEL:
@@ -117,7 +117,7 @@ public class ExternalReferenceServiceImpl implements ExternalReferenceService {
                 externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(isAuthorized, externalReferenceParser.parseExternalReferencesFromCsvInputStream(inputStream), codeScheme);
                 break;
             default:
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
         }
         return dtoMapperService.mapDeepExternalReferenceDtos(externalReferences);
     }
@@ -140,16 +140,16 @@ public class ExternalReferenceServiceImpl implements ExternalReferenceService {
                     }
                     externalReference = externalReferenceDao.updateExternalReferenceFromDto(externalReferenceDto, codeScheme);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                 }
             } catch (final YtiCodeListException e) {
                 throw e;
             } catch (final Exception e) {
                 LOG.error("Caught exception in parseAndPersistExternalReferenceFromJson.", e);
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PARSING_ERROR));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTERNALREFERENCE_NOT_FOUND));
         }
         return dtoMapperService.mapDeepExternalReferenceDto(externalReference);
     }

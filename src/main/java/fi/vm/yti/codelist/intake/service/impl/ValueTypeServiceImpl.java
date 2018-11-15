@@ -77,7 +77,7 @@ public class ValueTypeServiceImpl implements ValueTypeService {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     valueTypes = valueTypeDao.updateValueTypesFromDtos(valueTypeParser.parseValueTypesFromJson(jsonPayload));
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                 }
                 break;
             case FORMAT_EXCEL:
@@ -87,7 +87,7 @@ public class ValueTypeServiceImpl implements ValueTypeService {
                 valueTypes = valueTypeDao.updateValueTypesFromDtos(valueTypeParser.parseValueTypesFromCsvInputStream(inputStream));
                 break;
             default:
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
         }
         return dtoMapperService.mapValueTypeDtos(valueTypes);
     }
@@ -109,16 +109,16 @@ public class ValueTypeServiceImpl implements ValueTypeService {
                     }
                     valueType = valueTypeDao.updateValueTypeFromDto(valueTypeDto);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                 }
             } catch (final YtiCodeListException e) {
                 throw e;
             } catch (final Exception e) {
                 LOG.error("Caught exception in parseAndPersistValueTypeFromJson.", e);
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PARSING_ERROR));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_VALUETYPE_NOT_FOUND));
         }
         return dtoMapperService.mapValueTypeDto(valueType);
     }

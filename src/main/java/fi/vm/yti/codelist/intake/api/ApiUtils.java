@@ -31,7 +31,7 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ERROR_ENCODING_STRING;
 
 @Component
 public class ApiUtils {
@@ -67,13 +67,6 @@ public class ApiUtils {
         return contentIntakeServiceProperties.getEnv();
     }
 
-    /**
-     * Creates a resource URI for given resource id with dynamic hostname, port and API context path mapping.
-     *
-     * @param apiPath    API path that serves the resource.
-     * @param resourceId ID of the REST resource.
-     * @return Fully concatenated resource URL that can be used in API responses as a link to the resource.
-     */
     private String createResourceUrl(final String apiPath,
                                      final String resourceId) {
         final String port = publicApiServiceProperties.getPort();
@@ -94,12 +87,6 @@ public class ApiUtils {
         return builder.toString();
     }
 
-    /**
-     * Creates a resource URI for given resource id with dynamic hostname, port and API context path mapping.
-     *
-     * @param resourcePath ID of the REST resource.
-     * @return Fully concatenated resource URL that can be used in API responses as a link to the resource.
-     */
     private String createResourceUri(final String resourcePath) {
         final String port = uriSuomiProperties.getPort();
         final StringBuilder builder = new StringBuilder();
@@ -239,7 +226,7 @@ public class ApiUtils {
             return URLEncoder.encode(value, "UTF-8");
         } catch (final UnsupportedEncodingException e) {
             LOG.error("Issue with url encoding a string.", e);
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ERROR_ENCODING_STRING));
         }
     }
 }

@@ -42,8 +42,6 @@ public interface CodeService {
                                              final String codeCodeValue,
                                              final String jsonPayload);
 
-    Set<CodeDTO> removeBroaderCodeId(final UUID broaderCodeId);
-
     CodeDTO deleteCode(final String codeRegistryCodeValue,
                        final String codeSchemeCodeValue,
                        final String codeCodeValue,

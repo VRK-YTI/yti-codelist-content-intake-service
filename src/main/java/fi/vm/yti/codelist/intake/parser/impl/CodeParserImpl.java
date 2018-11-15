@@ -211,7 +211,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
             validateStartDateIsBeforeEndDate(code);
         } catch (final IOException e) {
             LOG.error("Code parsing failed from JSON!", e);
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+            throw new JsonParsingException(ERR_MSG_USER_CODE_PARSING_FAILED);
         }
         return code;
     }
@@ -232,7 +232,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
             checkOrdersForDuplicateValues(codes);
         } catch (final IOException e) {
             LOG.error("Codes parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_CODE_PARSING_FAILED);
         }
         return codes;
     }

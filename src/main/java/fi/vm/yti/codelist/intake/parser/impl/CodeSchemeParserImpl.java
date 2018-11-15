@@ -61,7 +61,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
             validateStartDateIsBeforeEndDate(codeScheme);
         } catch (final IOException e) {
             LOG.error("CodeScheme parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_CODESCHEME_PARSING_FAILED);
         }
         return codeScheme;
     }
@@ -76,7 +76,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
             });
         } catch (final IOException e) {
             LOG.error("CodeSchemes parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_CODESCHEME_PARSING_FAILED);
         }
         for (final CodeSchemeDTO codeScheme : codeSchemes) {
             final String codeValue = codeScheme.getCodeValue();

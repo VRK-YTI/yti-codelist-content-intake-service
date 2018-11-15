@@ -231,7 +231,7 @@ public class MemberDaoImpl implements MemberDao {
                                        final MemberDTO fromMember) {
         final MemberDTO relatedMember = fromMember.getRelatedMember();
         if (relatedMember != null && relatedMember.getId() != null && fromMember.getId() != null && member.getId().equals(relatedMember.getId())) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_RELATION_SET_TO_ITSELF));
         }
         final Set<Member> linkedMembers = new HashSet<>();
         if (relatedMember != null && relatedMember.getId() != null) {
@@ -320,7 +320,7 @@ public class MemberDaoImpl implements MemberDao {
             }
             return member;
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
         }
     }
 
@@ -350,7 +350,7 @@ public class MemberDaoImpl implements MemberDao {
                 existingMember.setCode(code);
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_SET));
         }
         if (!Objects.equals(existingMember.getStartDate(), fromMember.getStartDate())) {
             existingMember.setStartDate(fromMember.getStartDate());
@@ -401,7 +401,7 @@ public class MemberDaoImpl implements MemberDao {
     private void validateExtension(final Member member,
                                    final Extension extension) {
         if (member.getExtension() != extension) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_EXTENSION_DOES_NOT_MATCH));
         }
     }
 

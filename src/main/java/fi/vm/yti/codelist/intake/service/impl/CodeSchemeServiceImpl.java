@@ -178,10 +178,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                     doTheValidationsAfterLoadingAndParsingTheContentsOfFile(codeRegistry, codeSchemeDTOs);
                     break;
                 default:
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
         }
         return result;
     }
@@ -202,7 +202,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         }
     }
 
-    private LinkedHashSet<CodeSchemeDTO> handleNewVersionCreationFromFileRelatedActivities(final Set<CodeScheme> codeSchemes, final String originalCodeSchemeIdIfCreatingNewVersion) {
+    private LinkedHashSet<CodeSchemeDTO> handleNewVersionCreationFromFileRelatedActivities(final Set<CodeScheme> codeSchemes,
+                                                                                           final String originalCodeSchemeIdIfCreatingNewVersion) {
         if (codeSchemes.size() > 1) {
             throw new TooManyCodeSchemesException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_TOO_MANY_CODESCHEMES_IN_FILE));
         }
@@ -229,7 +230,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
         LinkedHashSet<CodeSchemeDTO> previousVersionsAsDTOs = new LinkedHashSet<>();
         previousVersionsAsDTOs = this.getPreviousVersions(codeScheme.getId(), previousVersionsAsDTOs);
-        previousVersionsAsDTOs.forEach( pv -> {
+        previousVersionsAsDTOs.forEach(pv -> {
             pv.getAllVersions().add(listItem);
             updateCodeSchemeFromDto(pv.getCodeRegistry().getCodeValue(), pv);
         });
@@ -256,7 +257,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromJsonData(jsonPayload);
                         codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, true);
                     } else {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                     }
                     break;
                 case FORMAT_EXCEL:
@@ -266,57 +267,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         final Map<CodeSchemeDTO, String> extensionsSheetNames = new HashMap<>();
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, externalReferencesSheetNames, extensionsSheetNames);
                         codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, false);
-                        if (!externalReferencesSheetNames.isEmpty()) {
-                            externalReferencesSheetNames.forEach((codeSchemeDto, sheetName) -> {
-                                if (workbook.getSheet(sheetName) != null) {
-                                    for (final CodeScheme codeScheme : codeSchemes) {
-                                        if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
-                                            externalReferenceService.parseAndPersistExternalReferencesFromExcelWorkbook(workbook, sheetName, codeScheme);
-                                            codeSchemeDao.save(codeScheme);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                        if (!codeSchemeDtos.isEmpty()) {
-                            codeSchemeDtos.forEach(codeSchemeDto -> {
-                                for (final CodeScheme codeScheme : codeSchemes) {
-                                    if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
-                                        final Set<ExternalReference> externalReferences = findOrCreateExternalReferences(codeScheme, codeSchemeDto.getExternalReferences());
-                                        if (externalReferences != null && !externalReferences.isEmpty()) {
-                                            externalReferenceDao.save(externalReferences);
-                                        }
-                                        codeScheme.setExternalReferences(externalReferences);
-                                        codeSchemeDao.save(codeScheme);
-                                    }
-                                }
-                            });
-                        }
-                        if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
-                            final CodeScheme codeScheme = codeSchemes.iterator().next();
-                            codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeScheme);
-                            resolveAndSetCodeSchemeDefaultCode(codeScheme, codeSchemeDtos.iterator().next());
-                        } else if (!codesSheetNames.isEmpty()) {
-                            codesSheetNames.forEach((codeSchemeDto, sheetName) -> {
-                                if (workbook.getSheet(sheetName) != null) {
-                                    for (final CodeScheme codeScheme : codeSchemes) {
-                                        if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
-                                            codeService.parseAndPersistCodesFromExcelWorkbook(workbook, sheetName, codeScheme);
-                                            resolveAndSetCodeSchemeDefaultCode(codeScheme, codeSchemeDto);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                        if (codeSchemes != null && !codeSchemes.isEmpty()) {
-                            extensionsSheetNames.forEach((codeSchemeDto, sheetName) -> {
-                                for (final CodeScheme codeScheme : codeSchemes) {
-                                    if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
-                                        parseExtensions(workbook, sheetName, codeScheme);
-                                    }
-                                }
-                            });
-                        }
+                        parseExternalReferences(codeSchemes, externalReferencesSheetNames, workbook);
+                        parseExternalReferencesFromDtos(codeSchemes, codeSchemeDtos);
+                        parseCodes(codeSchemes, codeSchemeDtos, codesSheetNames, workbook);
+                        parseExtensions(codeSchemes, extensionsSheetNames, workbook);
                         if (userIsCreatingANewVersionOfACodeScheme) {
                             otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = handleNewVersionCreationFromFileRelatedActivities(codeSchemes, originalCodeSchemeIdIfCreatingNewVersion);
                         }
@@ -334,10 +288,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
                     break;
                 default:
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
         }
         if (userIsCreatingANewVersionOfACodeScheme) {
             resultingCodeSchemeSetForIndexing.addAll(otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated);
@@ -345,6 +299,81 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
         resultingCodeSchemeSetForIndexing.addAll(dtoMapperService.mapCodeSchemeDtos(codeSchemes, true));
         return resultingCodeSchemeSetForIndexing;
+    }
+
+    private void parseExternalReferences(final Set<CodeScheme> codeSchemes,
+                                         final Map<CodeSchemeDTO, String> externalReferencesSheetNames,
+                                         final Workbook workbook) {
+        if (externalReferencesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_LINKS) != null) {
+            final CodeScheme codeScheme = codeSchemes.iterator().next();
+            externalReferenceService.parseAndPersistExternalReferencesFromExcelWorkbook(workbook, EXCEL_SHEET_LINKS, codeScheme);
+            codeSchemeDao.save(codeScheme);
+        } else if (!externalReferencesSheetNames.isEmpty()) {
+            externalReferencesSheetNames.forEach((codeSchemeDto, sheetName) -> {
+                if (workbook.getSheet(sheetName) != null) {
+                    for (final CodeScheme codeScheme : codeSchemes) {
+                        if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
+                            externalReferenceService.parseAndPersistExternalReferencesFromExcelWorkbook(workbook, sheetName, codeScheme);
+                            codeSchemeDao.save(codeScheme);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    private void parseExternalReferencesFromDtos(final Set<CodeScheme> codeSchemes,
+                                                 final Set<CodeSchemeDTO> codeSchemeDtos) {
+        if (!codeSchemeDtos.isEmpty()) {
+            codeSchemeDtos.forEach(codeSchemeDto -> {
+                for (final CodeScheme codeScheme : codeSchemes) {
+                    if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
+                        final Set<ExternalReference> externalReferences = findOrCreateExternalReferences(codeScheme, codeSchemeDto.getExternalReferences());
+                        if (externalReferences != null && !externalReferences.isEmpty()) {
+                            externalReferenceDao.save(externalReferences);
+                        }
+                        codeScheme.setExternalReferences(externalReferences);
+                        codeSchemeDao.save(codeScheme);
+                    }
+                }
+            });
+        }
+    }
+
+    private void parseCodes(final Set<CodeScheme> codeSchemes,
+                            final Set<CodeSchemeDTO> codeSchemeDtos,
+                            final Map<CodeSchemeDTO, String> codesSheetNames,
+                            final Workbook workbook) {
+        if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
+            final CodeScheme codeScheme = codeSchemes.iterator().next();
+            codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeScheme);
+            resolveAndSetCodeSchemeDefaultCode(codeScheme, codeSchemeDtos.iterator().next());
+        } else if (!codesSheetNames.isEmpty()) {
+            codesSheetNames.forEach((codeSchemeDto, sheetName) -> {
+                if (workbook.getSheet(sheetName) != null) {
+                    for (final CodeScheme codeScheme : codeSchemes) {
+                        if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
+                            codeService.parseAndPersistCodesFromExcelWorkbook(workbook, sheetName, codeScheme);
+                            resolveAndSetCodeSchemeDefaultCode(codeScheme, codeSchemeDto);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    private void parseExtensions(final Set<CodeScheme> codeSchemes,
+                                 final Map<CodeSchemeDTO, String> extensionsSheetNames,
+                                 final Workbook workbook) {
+        if (codeSchemes != null && !codeSchemes.isEmpty()) {
+            extensionsSheetNames.forEach((codeSchemeDto, sheetName) -> {
+                for (final CodeScheme codeScheme : codeSchemes) {
+                    if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
+                        parseExtensions(workbook, sheetName, codeScheme);
+                    }
+                }
+            });
+        }
     }
 
     private Set<ExternalReference> findOrCreateExternalReferences(final CodeScheme codeScheme,
@@ -386,7 +415,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         if (workbook.getSheet(sheetName) != null) {
             memberService.parseAndPersistMembersFromExcelWorkbook(extension, workbook, sheetName);
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_SHEET_NOT_FOUND));
         }
     }
 
@@ -405,16 +434,16 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                     }
                     codeScheme = codeSchemeDao.updateCodeSchemeFromDto(codeRegistry, codeSchemeDto);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                 }
             } catch (final YtiCodeListException e) {
                 throw e;
             } catch (final Exception e) {
                 LOG.error("Caught exception in parseAndPersistCodeSchemeFromJson.", e);
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PARSING_ERROR));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
         }
         CodeSchemeDTO codeSchemeDTO = dtoMapperService.mapCodeSchemeDto(codeScheme, true);
         if (codeSchemeDTO.getId() != null && codeSchemeDTO.getLastCodeschemeId() != null) {
@@ -440,7 +469,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                     } else {
                         identifier.append("\n").append(relatedExtension.getUri());
                     }
-                };
+                }
+                ;
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE, identifier.toString()));
             }
             if (codeScheme.getCodes() != null && !codeScheme.getCodes().isEmpty()) {
@@ -454,7 +484,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                             } else {
                                 identifier.append("\n").append(relatedMember.getUri());
                             }
-                        };
+                        }
+                        ;
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE, identifier.toString()));
                     }
                 });

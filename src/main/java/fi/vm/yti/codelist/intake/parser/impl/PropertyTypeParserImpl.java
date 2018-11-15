@@ -54,7 +54,7 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
             fromPropertyType = mapper.readValue(jsonPayload, PropertyTypeDTO.class);
         } catch (final IOException e) {
             LOG.error("PropertyType parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_PROPERTYTYPE_PARSING_FAILED);
         }
         return fromPropertyType;
     }
@@ -68,7 +68,7 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
             });
         } catch (final IOException e) {
             LOG.error("PropertyTypes parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_PROPERTYTYPE_PARSING_FAILED);
         }
         return propertyTypes;
     }
