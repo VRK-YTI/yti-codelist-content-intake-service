@@ -24,7 +24,7 @@ import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterModifier;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ERROR_DECODING_STRING;
 
 public interface AbstractBaseResource {
 
@@ -71,6 +71,14 @@ public interface AbstractBaseResource {
         return mapper;
     }
 
+    default String urlDecodeString(final String string) {
+        try {
+            return URLDecoder.decode(string, "UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ERROR_DECODING_STRING));
+        }
+    }
+
     class FilterModifier extends ObjectWriterModifier {
 
         private final FilterProvider provider;
@@ -86,14 +94,6 @@ public interface AbstractBaseResource {
                                    final ObjectWriter w,
                                    final JsonGenerator g) {
             return w.with(provider);
-        }
-    }
-
-    default String urlDecodeString(final String string) {
-        try {
-            return URLDecoder.decode(string, "UTF-8");
-        } catch (final UnsupportedEncodingException e) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
     }
 }

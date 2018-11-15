@@ -52,7 +52,7 @@ public class ValueTypeParserImpl extends AbstractBaseParser implements ValueType
             fromValueType = mapper.readValue(jsonPayload, ValueTypeDTO.class);
         } catch (final IOException e) {
             LOG.error("ValueType parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_VALUETYPE_PARSING_FAILED);
         }
         return fromValueType;
     }
@@ -66,7 +66,7 @@ public class ValueTypeParserImpl extends AbstractBaseParser implements ValueType
             });
         } catch (final IOException e) {
             LOG.error("ValueTypes parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_VALUETYPE_PARSING_FAILED);
         }
         return valueTypes;
     }

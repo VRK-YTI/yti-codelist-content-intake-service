@@ -63,7 +63,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
             validateStartDateIsBeforeEndDate(extension);
         } catch (final IOException e) {
             LOG.error("Extension parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_EXTENSION_PARSING_FAILED);
         }
         return extension;
     }
@@ -77,7 +77,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
             });
         } catch (final IOException e) {
             LOG.error("Extensions parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_EXTENSION_PARSING_FAILED);
         }
         extensions.forEach(this::validateStartDateIsBeforeEndDate);
         return extensions;

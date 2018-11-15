@@ -178,10 +178,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                     doTheValidationsAfterLoadingAndParsingTheContentsOfFile(codeRegistry, codeSchemeDTOs);
                     break;
                 default:
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
         }
         return result;
     }
@@ -202,7 +202,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         }
     }
 
-    private LinkedHashSet<CodeSchemeDTO> handleNewVersionCreationFromFileRelatedActivities(final Set<CodeScheme> codeSchemes, final String originalCodeSchemeIdIfCreatingNewVersion) {
+    private LinkedHashSet<CodeSchemeDTO> handleNewVersionCreationFromFileRelatedActivities(final Set<CodeScheme> codeSchemes,
+                                                                                           final String originalCodeSchemeIdIfCreatingNewVersion) {
         if (codeSchemes.size() > 1) {
             throw new TooManyCodeSchemesException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_TOO_MANY_CODESCHEMES_IN_FILE));
         }
@@ -229,7 +230,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
         LinkedHashSet<CodeSchemeDTO> previousVersionsAsDTOs = new LinkedHashSet<>();
         previousVersionsAsDTOs = this.getPreviousVersions(codeScheme.getId(), previousVersionsAsDTOs);
-        previousVersionsAsDTOs.forEach( pv -> {
+        previousVersionsAsDTOs.forEach(pv -> {
             pv.getAllVersions().add(listItem);
             updateCodeSchemeFromDto(pv.getCodeRegistry().getCodeValue(), pv);
         });
@@ -256,7 +257,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromJsonData(jsonPayload);
                         codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, true);
                     } else {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                     }
                     break;
                 case FORMAT_EXCEL:
@@ -287,10 +288,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
                     break;
                 default:
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
         }
         if (userIsCreatingANewVersionOfACodeScheme) {
             resultingCodeSchemeSetForIndexing.addAll(otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated);
@@ -414,7 +415,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         if (workbook.getSheet(sheetName) != null) {
             memberService.parseAndPersistMembersFromExcelWorkbook(extension, workbook, sheetName);
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_SHEET_NOT_FOUND));
         }
     }
 
@@ -433,16 +434,16 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                     }
                     codeScheme = codeSchemeDao.updateCodeSchemeFromDto(codeRegistry, codeSchemeDto);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                 }
             } catch (final YtiCodeListException e) {
                 throw e;
             } catch (final Exception e) {
                 LOG.error("Caught exception in parseAndPersistCodeSchemeFromJson.", e);
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PARSING_ERROR));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
         }
         CodeSchemeDTO codeSchemeDTO = dtoMapperService.mapCodeSchemeDto(codeScheme, true);
         if (codeSchemeDTO.getId() != null && codeSchemeDTO.getLastCodeschemeId() != null) {
@@ -468,7 +469,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                     } else {
                         identifier.append("\n").append(relatedExtension.getUri());
                     }
-                };
+                }
+                ;
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE, identifier.toString()));
             }
             if (codeScheme.getCodes() != null && !codeScheme.getCodes().isEmpty()) {
@@ -482,7 +484,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                             } else {
                                 identifier.append("\n").append(relatedMember.getUri());
                             }
-                        };
+                        }
+                        ;
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE, identifier.toString()));
                     }
                 });

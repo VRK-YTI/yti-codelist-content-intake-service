@@ -82,7 +82,7 @@ public class CodeRegistryServiceImpl implements CodeRegistryService {
                 if (jsonPayload != null && !jsonPayload.isEmpty()) {
                     codeRegistries = codeRegistryDao.updateCodeRegistriesFromDto(codeRegistryParser.parseCodeRegistriesFromJsonData(jsonPayload));
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                 }
                 break;
             case FORMAT_EXCEL:
@@ -92,7 +92,7 @@ public class CodeRegistryServiceImpl implements CodeRegistryService {
                 codeRegistries = codeRegistryDao.updateCodeRegistriesFromDto(codeRegistryParser.parseCodeRegistriesFromCsvInputStream(inputStream));
                 break;
             default:
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
         }
         return dtoMapperService.mapCodeRegistryDtos(codeRegistries);
     }
@@ -114,13 +114,13 @@ public class CodeRegistryServiceImpl implements CodeRegistryService {
                     }
                     codeRegistry = codeRegistryDao.updateCodeRegistryFromDto(codeRegistryDto);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                 }
             } catch (final YtiCodeListException e) {
                 throw e;
             } catch (final Exception e) {
                 LOG.error("Caught exception in parseAndPersistCodeRegistryFromJson.", e);
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PARSING_ERROR));
             }
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeRegistry with CodeValue: " + codeRegistryCodeValue + " does not exist yet, please create registry first."));

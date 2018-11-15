@@ -55,7 +55,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
             fromCodeRegistry = mapper.readValue(jsonPayload, CodeRegistryDTO.class);
         } catch (final IOException e) {
             LOG.error("CodeRegistry parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_CODEREGISTRY_PARSING_FAILED);
         }
         return fromCodeRegistry;
     }
@@ -70,7 +70,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
             });
         } catch (final IOException e) {
             LOG.error("CodeRegistries parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_CODEREGISTRY_PARSING_FAILED);
         }
         for (final CodeRegistryDTO fromCodeRegistry : fromCodeRegistries) {
             checkForDuplicateCodeValueInImportData(codeValues, fromCodeRegistry.getCodeValue());

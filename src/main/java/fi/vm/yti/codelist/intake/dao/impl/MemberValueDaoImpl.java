@@ -75,7 +75,7 @@ public class MemberValueDaoImpl implements MemberValueDao {
         if (fromMemberValue.getValueType() != null) {
             final ValueType valueType = valueTypeDao.findByLocalName(fromMemberValue.getValueType().getLocalName());
             if (valueType == null) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_VALUETYPE_NOT_SET));
             }
             existingMemberValue = memberValueRepository.findByMemberAndValueType(member, valueType);
         } else {
@@ -86,18 +86,18 @@ public class MemberValueDaoImpl implements MemberValueDao {
             validateMember(member, existingMemberValue.getMember());
             memberValue = updateMemberValue(member, existingMemberValue, fromMemberValue);
         } else {
-            checkForExistingValueMemberWithValueType(member, fromMemberValue);
+            checkForExistingMemberValueWithValueType(member, fromMemberValue);
             memberValue = createMemberValue(member, fromMemberValue);
         }
         return memberValue;
     }
 
-    private void checkForExistingValueMemberWithValueType(final Member member,
+    private void checkForExistingMemberValueWithValueType(final Member member,
                                                           final MemberValueDTO fromMemberValue) {
         final ValueType valueType = valueTypeDao.findByLocalName(fromMemberValue.getValueType().getLocalName());
         final MemberValue memberValue = memberValueRepository.findByMemberAndValueType(member, valueType);
         if (memberValue != null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_ALREADY_EXISTS_FOR_VALUETYPE));
         }
     }
 
@@ -132,7 +132,7 @@ public class MemberValueDaoImpl implements MemberValueDao {
     private void validateMember(final Member member,
                                 final Member existingMember) {
         if (!existingMember.getId().equals(member.getId())) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_ID_MISMATCH));
         }
     }
 

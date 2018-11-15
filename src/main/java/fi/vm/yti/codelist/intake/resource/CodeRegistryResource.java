@@ -1071,7 +1071,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             responseWrapper.setResults(members);
             return Response.ok(responseWrapper).build();
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
         }
     }
 

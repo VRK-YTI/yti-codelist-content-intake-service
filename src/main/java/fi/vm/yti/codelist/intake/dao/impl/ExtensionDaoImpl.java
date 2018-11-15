@@ -163,7 +163,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
     private void validateParentCodeScheme(final Extension extension,
                                           final CodeScheme codeScheme) {
         if (extension != null && extension.getParentCodeScheme() != codeScheme) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_PARENTCODESCHEME_DOES_NOT_MATCH));
         }
     }
 

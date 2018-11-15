@@ -65,7 +65,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
             validateStartDateIsBeforeEndDate(member);
         } catch (final IOException e) {
             LOG.error("Member parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_MEMBER_PARSING_FAILED);
         }
         return member;
     }
@@ -78,7 +78,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
             });
         } catch (final IOException e) {
             LOG.error("Member parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_MEMBER_PARSING_FAILED);
         }
         members.forEach(this::validateStartDateIsBeforeEndDate);
         return members;

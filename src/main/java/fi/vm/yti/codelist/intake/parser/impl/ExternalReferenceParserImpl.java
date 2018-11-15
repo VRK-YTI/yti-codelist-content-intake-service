@@ -61,7 +61,7 @@ public class ExternalReferenceParserImpl extends AbstractBaseParser implements E
             externalReference = mapper.readValue(jsonPayload, ExternalReferenceDTO.class);
         } catch (final IOException e) {
             LOG.error("ExternalReference parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_EXTERNALREFERENCE_PARSING_FAILED);
         }
         return externalReference;
     }
@@ -75,7 +75,7 @@ public class ExternalReferenceParserImpl extends AbstractBaseParser implements E
             });
         } catch (final IOException e) {
             LOG.error("ExternalReferences parsing failed from JSON!", e);
-            throw new JsonParsingException(ERR_MSG_USER_406);
+            throw new JsonParsingException(ERR_MSG_USER_EXTERNALREFERENCE_PARSING_FAILED);
         }
         return externalReferences;
     }

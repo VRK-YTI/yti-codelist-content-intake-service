@@ -224,7 +224,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     private void validateCodeRegistry(final CodeScheme codeScheme,
                                       final CodeRegistry codeRegistry) {
          if (codeScheme != null && codeScheme.getCodeRegistry() != codeRegistry) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_CODEREGISTRY_DOES_NOT_MATCH));
         }
     }
 
