@@ -8,4 +8,4 @@ afe20356-e4be-11e7-a47c-33e62d1303e4,isRequiredBy,ExternalReference,http://purl.
 b568015e-e4be-11e7-97e2-e75d9bd2e46f,license,ExternalReference,http://purl.org/dc/terms/license/,Lisenssi,,License,Viittaus viralliseen lisenssidokumenttiin.,,A legal document giving official permission to do something with the resource.,
 e028725c-9276-4943-9bc9-565e6544961d,definitionHierarchy,Extension,http://uri.suomi.fi/datamodel/ns/code#definitionHierarchy,Määrityshierarkia,,Definition hierarchy,,,,
 4b1aad3b-d390-44d9-ae07-912b7eeddaf3,calculationHierarchy,Extension,http://uri.suomi.fi/datamodel/ns/code#calculationHierarchy,Laskentahierarkia,,Calculation hierarchy,,,,unaryOperator;comparisonOperator
-ecd65ce5-28d7-438d-bf92-0082f243676e,crossReference,Extension,http://uri.suomi.fi/datamodel/ns/code#crossReference,Koodiliitos,,Cross referencing,,,,
+ecd65ce5-28d7-438d-bf92-0082f243676e,crossReferenceList,Extension,http://uri.suomi.fi/datamodel/ns/code#crossReferenceList,Koodiliitos,,Cross-Reference List,,,,
