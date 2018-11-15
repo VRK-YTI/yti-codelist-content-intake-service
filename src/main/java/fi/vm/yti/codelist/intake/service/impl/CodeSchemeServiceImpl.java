@@ -461,35 +461,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
             if (isServiceClassificationCodeScheme(codeScheme) || isLanguageCodeCodeScheme(codeScheme)) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_CANNOT_BE_DELETED));
             }
-            if (codeScheme.getRelatedExtensions() != null && !codeScheme.getRelatedExtensions().isEmpty()) {
-                final StringBuilder identifier = new StringBuilder();
-                for (final Extension relatedExtension : codeScheme.getRelatedExtensions()) {
-                    if (identifier.length() == 0) {
-                        identifier.append(relatedExtension.getUri());
-                    } else {
-                        identifier.append("\n").append(relatedExtension.getUri());
-                    }
-                }
-                ;
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE, identifier.toString()));
-            }
-            if (codeScheme.getCodes() != null && !codeScheme.getCodes().isEmpty()) {
-                final Set<Code> codes = codeScheme.getCodes();
-                codes.forEach(code -> {
-                    if (code.getMembers() != null && !code.getMembers().isEmpty()) {
-                        final StringBuilder identifier = new StringBuilder();
-                        for (final Member relatedMember : code.getMembers()) {
-                            if (identifier.length() == 0) {
-                                identifier.append(relatedMember.getUri());
-                            } else {
-                                identifier.append("\n").append(relatedMember.getUri());
-                            }
-                        }
-                        ;
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE, identifier.toString()));
-                    }
-                });
-            }
+            checkForExternalExtensionReferences(codeScheme);
+            checkForExternalExtensionMemberReferences(codeScheme);
             final CodeSchemeDTO codeSchemeDto = dtoMapperService.mapCodeSchemeDto(codeScheme, false);
             dealWithPossibleVersionHierarchyBeforeDeleting(codeSchemeDto, codeSchemeDTOsToIndex);
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
@@ -502,6 +475,70 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
             return codeSchemeDto;
         } else {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+        }
+    }
+
+    private Set<Extension> filterRelatedExternalExtensions(final CodeScheme codeScheme) {
+        final Set<Extension> filteredExtensions = new HashSet<>();
+        final Set<Extension> relatedExtensions = codeScheme.getRelatedExtensions();
+        if (relatedExtensions != null) {
+            for (final Extension extension : relatedExtensions) {
+                if (extension.getParentCodeScheme() != codeScheme) {
+                    filteredExtensions.add(extension);
+                }
+            }
+        }
+        return filteredExtensions;
+    }
+
+    private void checkForExternalExtensionReferences(final CodeScheme codeScheme) {
+        final Set<Extension> relatedExternalExtensions = filterRelatedExternalExtensions(codeScheme);
+        if (!relatedExternalExtensions.isEmpty()) {
+            final StringBuilder identifier = new StringBuilder();
+            for (final Extension relatedExtension : codeScheme.getRelatedExtensions()) {
+                if (identifier.length() == 0) {
+                    identifier.append(relatedExtension.getUri());
+                } else {
+                    identifier.append("\n");
+                    identifier.append(relatedExtension.getUri());
+                }
+            }
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE, identifier.toString()));
+        }
+    }
+
+    private Set<Member> filterRelatedMembers(final CodeScheme codeScheme,
+                                             final Code code) {
+        final Set<Member> filteredMembers = new HashSet<>();
+        final Set<Member> relatedMembers = code.getMembers();
+        if (relatedMembers != null) {
+            for (final Member member : relatedMembers) {
+                if (codeScheme != member.getExtension().getParentCodeScheme()) {
+                    filteredMembers.add(member);
+                }
+            }
+        }
+        return filteredMembers;
+    }
+
+    private void checkForExternalExtensionMemberReferences(final CodeScheme codeScheme) {
+        if (codeScheme.getCodes() != null && !codeScheme.getCodes().isEmpty()) {
+            final Set<Code> codes = codeScheme.getCodes();
+            codes.forEach(code -> {
+                final Set<Member> filteredMembers = filterRelatedMembers(codeScheme, code);
+                if (!filteredMembers.isEmpty()) {
+                    final StringBuilder identifier = new StringBuilder();
+                    for (final Member relatedMember : filteredMembers) {
+                        if (identifier.length() == 0) {
+                            identifier.append(relatedMember.getUri());
+                        } else {
+                            identifier.append("\n");
+                            identifier.append(relatedMember.getUri());
+                        }
+                    }
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE, identifier.toString()));
+                }
+            });
         }
     }
 
