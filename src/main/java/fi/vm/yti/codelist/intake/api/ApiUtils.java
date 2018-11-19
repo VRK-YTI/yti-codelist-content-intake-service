@@ -181,7 +181,7 @@ public class ApiUtils {
     public String createMemberUrl(final Member member) {
         return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + member.getExtension().getParentCodeScheme().getCodeRegistry().getCodeValue() +
             API_PATH_CODESCHEMES + "/" + member.getExtension().getParentCodeScheme().getCodeValue() +
-            API_PATH_EXTENSIONS + urlEncodeString(member.getExtension().getCodeValue()) +
+            API_PATH_EXTENSIONS + "/" + urlEncodeString(member.getExtension().getCodeValue()) +
             API_PATH_MEMBERS, member.getId().toString());
     }
 
