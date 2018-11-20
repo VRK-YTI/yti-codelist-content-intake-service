@@ -11,16 +11,21 @@ import java.util.UUID;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
+import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
+import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRepository;
@@ -29,6 +34,7 @@ import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -46,6 +52,8 @@ public class CodeDaoImpl implements CodeDao {
     private final CodeSchemeRepository codeSchemeRepository;
     private final ExternalReferenceDao externalReferenceDao;
     private final LanguageService languageService;
+    private final ExtensionDao extensionDao;
+    private final MemberDao memberDao;
 
     public CodeDaoImpl(final EntityChangeLogger entityChangeLogger,
                        final ApiUtils apiUtils,
@@ -53,7 +61,9 @@ public class CodeDaoImpl implements CodeDao {
                        final CodeRepository codeRepository,
                        final CodeSchemeRepository codeSchemeRepository,
                        final ExternalReferenceDao externalReferenceDao,
-                       final LanguageService languageService) {
+                       final LanguageService languageService,
+                       @Lazy final ExtensionDao extensionDao,
+                       @Lazy final MemberDao memberDao) {
         this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.authorizationManager = authorizationManager;
@@ -61,6 +71,8 @@ public class CodeDaoImpl implements CodeDao {
         this.codeSchemeRepository = codeSchemeRepository;
         this.externalReferenceDao = externalReferenceDao;
         this.languageService = languageService;
+        this.extensionDao = extensionDao;
+        this.memberDao = memberDao;
     }
 
     @Transactional
@@ -166,8 +178,23 @@ public class CodeDaoImpl implements CodeDao {
         codesAffected.add(code);
         evaluateAndSetHierarchyLevels(codesAffected, findByCodeSchemeId(codeScheme.getId()));
         save(code);
+        setInlineExtensionMemberValues(codeScheme, codeDto);
         codeSchemeRepository.save(codeScheme);
         return codesAffected;
+    }
+
+    private void setInlineExtensionMemberValues(final CodeScheme codeScheme,
+                                                final CodeDTO code) {
+        final Set<ExtensionDTO> inlineExtensionDtos = code.getInlineExtensions();
+        inlineExtensionDtos.forEach(extensionDto -> {
+            final Extension extension = extensionDao.findById(extensionDto.getId());
+            if (extension != null) {
+                final Set<MemberDTO> members = extensionDto.getMembers();
+                memberDao.updateMemberEntitiesFromDtos(extension, members);
+            } else {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
+            }
+        });
     }
 
     @Transactional

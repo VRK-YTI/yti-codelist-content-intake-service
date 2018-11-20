@@ -86,6 +86,11 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
     }
 
     @Transactional
+    public CodeDTO findById(final UUID codeId) {
+        return dtoMapperService.mapDeepCodeDto(codeDao.findById(codeId));
+    }
+
+    @Transactional
     public Set<CodeDTO> findByCodeSchemeId(final UUID codeSchemeId) {
         return dtoMapperService.mapDeepCodeDtos(codeDao.findByCodeSchemeId(codeSchemeId));
     }

@@ -3,6 +3,7 @@ package fi.vm.yti.codelist.intake.service.impl;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -12,9 +13,9 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
-import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.MemberValueDTO;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
@@ -25,12 +26,13 @@ import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
-import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.MemberValue;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.model.ValueType;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.INLINE_EXTENSION;
 
 @Component
 public class DtoMapperService {
@@ -51,7 +53,6 @@ public class DtoMapperService {
     public CodeDTO mapCodeDto(final Code code) {
         return mapCodeDto(code, false, false, true);
     }
-
 
     @Transactional
     public CodeDTO mapCodeDto(final Code code,
@@ -85,6 +86,10 @@ public class DtoMapperService {
             }
             if (code.getMembers() != null) {
                 codeDto.setMembers(mapMemberDtos(code.getMembers(), false));
+            }
+            if (code.getCodeScheme().getExtensions() != null && !code.getCodeScheme().getExtensions().isEmpty()) {
+                final Set<Extension> inlineExtensions = code.getCodeScheme().getExtensions().stream().filter(extension -> INLINE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())).collect(Collectors.toSet());
+                codeDto.setInlineExtensions(mapExtensionDtosWithCodeMembers(inlineExtensions, code));
             }
         }
         codeDto.setDescription(code.getDescription());
@@ -503,6 +508,40 @@ public class DtoMapperService {
             extensions.forEach(extension -> extensionDtos.add(mapExtensionDto(extension, deep)));
         }
         return extensionDtos;
+    }
+
+    @Transactional
+    public Set<ExtensionDTO> mapExtensionDtosWithCodeMembers(final Set<Extension> extensions,
+                                                             final Code code) {
+        final Set<ExtensionDTO> extensionDtos = new HashSet<>();
+        if (extensions != null && !extensions.isEmpty()) {
+            extensions.forEach(extension -> extensionDtos.add(mapExtensionDtoWithCodeMembers(extension, code)));
+        }
+        return extensionDtos;
+    }
+
+    @Transactional
+    public ExtensionDTO mapExtensionDtoWithCodeMembers(final Extension extension,
+                                                       final Code code) {
+        final ExtensionDTO extensionDto = new ExtensionDTO();
+        extensionDto.setId(extension.getId());
+        extensionDto.setPropertyType(mapPropertyTypeDto(extension.getPropertyType()));
+        extensionDto.setPrefLabel(extension.getPrefLabel());
+        extensionDto.setStatus(extension.getStatus());
+        final String codeValue = extension.getCodeValue();
+        extensionDto.setUrl(apiUtils.createExtensionUrl(extension));
+        extensionDto.setUri(apiUtils.createExtensionUri(extension));
+        extensionDto.setCodeValue(codeValue);
+        extensionDto.setStartDate(extension.getStartDate());
+        extensionDto.setEndDate(extension.getEndDate());
+        if (extension.getMembers() != null && code != null) {
+            final Set<Member> membersForCode = extension.getMembers().stream().filter(member -> member.getCode().getId().equals(code.getId())).collect(Collectors.toSet());
+            extensionDto.setMembers(mapMemberDtos(membersForCode, false));
+        }
+        extensionDto.setUrl(apiUtils.createExtensionUrl(extension.getParentCodeScheme().getCodeRegistry().getCodeValue(), extension.getParentCodeScheme().getCodeValue(), codeValue));
+        extensionDto.setCreated(extension.getCreated());
+        extensionDto.setModified(extension.getModified());
+        return extensionDto;
     }
 
     @Transactional

@@ -18,12 +18,14 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
+import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
+import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExtensionService;
 import fi.vm.yti.codelist.intake.service.MemberService;
 import io.swagger.annotations.Api;
@@ -32,6 +34,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_MEMBER;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.INLINE_EXTENSION;
 
 @Component
 @Path("/v1/members")
@@ -42,14 +45,17 @@ public class MemberResource implements AbstractBaseResource {
     private final Indexing indexing;
     private final MemberService memberService;
     private final ExtensionService extensionService;
+    private final CodeService codeService;
 
     @Inject
     public MemberResource(final Indexing indexing,
                           final MemberService memberService,
-                          final ExtensionService extensionService) {
+                          final ExtensionService extensionService,
+                          final CodeService codeService) {
         this.indexing = indexing;
         this.memberService = memberService;
         this.extensionService = extensionService;
+        this.codeService = codeService;
     }
 
     @POST
@@ -96,6 +102,11 @@ public class MemberResource implements AbstractBaseResource {
             final ExtensionDTO extension = extensionService.findById(members.iterator().next().getExtension().getId());
             if (extension != null) {
                 indexing.updateExtension(extension);
+            }
+            if (INLINE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())) {
+                final Set<CodeDTO> codes = new HashSet<>();
+                members.forEach(member -> codes.add(codeService.findById(member.getCode().getId())));
+                indexing.updateCodes(codes);
             }
         }
         final Meta meta = new Meta();

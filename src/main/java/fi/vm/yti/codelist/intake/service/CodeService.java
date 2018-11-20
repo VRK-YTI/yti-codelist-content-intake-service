@@ -18,6 +18,8 @@ public interface CodeService {
 
     Set<CodeDTO> findAll(final PageRequest pageRequest);
 
+    CodeDTO findById(final UUID codeId);
+
     Set<CodeDTO> findByCodeSchemeId(final UUID codeSchemeId);
 
     Set<CodeDTO> parseAndPersistCodesFromExcelWorkbook(final Workbook workbook,

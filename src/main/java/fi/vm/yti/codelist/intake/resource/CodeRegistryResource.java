@@ -698,6 +698,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             final Set<MemberDTO> affectedMembers = new HashSet<>();
             final MemberDTO memberToBeDeleted = memberService.deleteMember(existingMember.getId(), affectedMembers);
             indexing.updateMembers(affectedMembers);
+            indexing.updateCode(codeService.findById(existingMember.getCode().getId()));
             indexing.deleteMember(memberToBeDeleted);
         } else {
             return Response.status(404).build();
@@ -1031,11 +1032,13 @@ public class CodeRegistryResource implements AbstractBaseResource {
         if (!extensions.isEmpty()) {
             final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
             extensions.forEach(extension -> {
-                final CodeSchemeDTO codeScheme = codeSchemeService.findById(extension.getParentCodeScheme().getId());
+                final UUID parentCodeSchemeId = extension.getParentCodeScheme().getId();
+                final CodeSchemeDTO codeScheme = codeSchemeService.findById(parentCodeSchemeId);
                 codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
                 codeSchemes.add(codeScheme);
                 final Set<MemberDTO> members = memberService.findByExtensionId(extension.getId());
                 indexing.updateMembers(members);
+                indexing.updateCodes(codeService.findByCodeSchemeId(parentCodeSchemeId));
             });
             indexing.updateCodeSchemes(codeSchemes);
         }
@@ -1062,6 +1065,11 @@ public class CodeRegistryResource implements AbstractBaseResource {
             final ExtensionDTO extension = extensionService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionCodeValue);
             if (extension != null) {
                 indexing.updateExtension(extension);
+            }
+            if (INLINE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())) {
+                final Set<CodeDTO> codes = new HashSet<>();
+                members.forEach(member -> codes.add(codeService.findById(member.getCode().getId())));
+                indexing.updateCodes(codes);
             }
             final Meta meta = new Meta();
             ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_MEMBER, "extension,codeScheme,code,codeRegistry,propertyType,valueType,memberValue")));
