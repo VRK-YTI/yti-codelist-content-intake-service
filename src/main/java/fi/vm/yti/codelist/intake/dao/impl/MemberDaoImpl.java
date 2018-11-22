@@ -286,7 +286,7 @@ public class MemberDaoImpl implements MemberDao {
                                         final Set<Member> members,
                                         final Set<MemberDTO> fromMembers) {
         if (extension.getPropertyType().getLocalName().equals("crossReferenceList")) {
-            MAX_LEVEL = 2;
+            MAX_LEVEL = 10; // TODO THIS IS A TEMPORARY FIX (SET BACK TO 10)! MUST BE SET TO 2 AND FIX THE ROOT CAUSE LATER TODO
         }
         fromMembers.forEach(fromMember -> {
             Member member = null;
