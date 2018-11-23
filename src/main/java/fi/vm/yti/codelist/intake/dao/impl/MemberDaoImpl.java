@@ -38,7 +38,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Component
 public class MemberDaoImpl implements MemberDao {
 
-    private static final int MAX_LEVEL = 10;
+    private static int MAX_LEVEL = 10; // This is not final, because if the extension is of type Cross-Reference List, MAX_LEVEL = 2;
 
     private final EntityChangeLogger entityChangeLogger;
     private final MemberRepository memberRepository;
@@ -285,6 +285,9 @@ public class MemberDaoImpl implements MemberDao {
     private void resolveMemberRelations(final Extension extension,
                                         final Set<Member> members,
                                         final Set<MemberDTO> fromMembers) {
+        if (extension.getPropertyType().getLocalName().equals("crossReferenceList")) {
+            MAX_LEVEL = 10; // TODO THIS IS A TEMPORARY FIX (SET BACK TO 10)! MUST BE SET TO 2 AND FIX THE ROOT CAUSE LATER TODO
+        }
         fromMembers.forEach(fromMember -> {
             Member member = null;
             for (final Member mem : members) {
