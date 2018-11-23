@@ -44,6 +44,7 @@ public abstract class AbstractBaseParser {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractBaseParser.class);
     private static final String CODE_CODEVALUE_VALIDATOR = "^[a-zA-Z0-9_\\-\\.\\+\\&\\#\\*]*$";
     private static final String CODESCHEME_CODEVALUE_VALIDATOR = "^[a-zA-Z0-9_\\-]*$";
+    private static final String SUGGESTED_STATUS = "SUGGESTED";
 
     public static void validateCodeCodeValue(final String codeValue) {
         validateCodeCodeValue(codeValue, null);
@@ -132,7 +133,11 @@ public abstract class AbstractBaseParser {
 
     String parseStatusValueFromString(final String statusString) {
         try {
-            return Status.valueOf(statusString).toString();
+            final String status = Status.valueOf(statusString).toString();
+            if (SUGGESTED_STATUS.equalsIgnoreCase(status)) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID));
+            }
+            return status;
         } catch (final Exception e) {
             LOG.error("Caught exception in parseStatusValueFromString.", e);
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID));
