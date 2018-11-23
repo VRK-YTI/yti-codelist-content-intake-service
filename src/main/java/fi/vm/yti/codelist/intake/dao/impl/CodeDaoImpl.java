@@ -178,15 +178,15 @@ public class CodeDaoImpl implements CodeDao {
         codesAffected.add(code);
         evaluateAndSetHierarchyLevels(codesAffected, findByCodeSchemeId(codeScheme.getId()));
         save(code);
-        setInlineExtensionMemberValues(codeScheme, codeDto);
+        setCodeExtensionMemberValues(codeScheme, codeDto);
         codeSchemeRepository.save(codeScheme);
         return codesAffected;
     }
 
-    private void setInlineExtensionMemberValues(final CodeScheme codeScheme,
-                                                final CodeDTO code) {
-        final Set<ExtensionDTO> inlineExtensionDtos = code.getInlineExtensions();
-        inlineExtensionDtos.forEach(extensionDto -> {
+    private void setCodeExtensionMemberValues(final CodeScheme codeScheme,
+                                              final CodeDTO code) {
+        final Set<ExtensionDTO> codeExtensionDtos = code.getCodeExtensions();
+        codeExtensionDtos.forEach(extensionDto -> {
             final Extension extension = extensionDao.findById(extensionDto.getId());
             if (extension != null) {
                 final Set<MemberDTO> members = extensionDto.getMembers();

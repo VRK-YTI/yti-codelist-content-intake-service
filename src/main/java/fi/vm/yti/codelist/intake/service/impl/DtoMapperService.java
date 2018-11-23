@@ -32,7 +32,7 @@ import fi.vm.yti.codelist.intake.model.MemberValue;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.model.ValueType;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.INLINE_EXTENSION;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CODE_EXTENSION;
 
 @Component
 public class DtoMapperService {
@@ -88,8 +88,8 @@ public class DtoMapperService {
                 codeDto.setMembers(mapMemberDtos(code.getMembers(), false));
             }
             if (code.getCodeScheme().getExtensions() != null && !code.getCodeScheme().getExtensions().isEmpty()) {
-                final Set<Extension> inlineExtensions = code.getCodeScheme().getExtensions().stream().filter(extension -> INLINE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())).collect(Collectors.toSet());
-                codeDto.setInlineExtensions(mapExtensionDtosWithCodeMembers(inlineExtensions, code));
+                final Set<Extension> codeExtensions = code.getCodeScheme().getExtensions().stream().filter(extension -> CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())).collect(Collectors.toSet());
+                codeDto.setCodeExtensions(mapExtensionDtosWithCodeMembers(codeExtensions, code));
             }
         }
         codeDto.setDescription(code.getDescription());

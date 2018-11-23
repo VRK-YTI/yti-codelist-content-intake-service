@@ -33,8 +33,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CODE_EXTENSION;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_MEMBER;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.INLINE_EXTENSION;
 
 @Component
 @Path("/v1/members")
@@ -103,7 +103,7 @@ public class MemberResource implements AbstractBaseResource {
             if (extension != null) {
                 indexing.updateExtension(extension);
             }
-            if (INLINE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())) {
+            if (CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())) {
                 final Set<CodeDTO> codes = new HashSet<>();
                 members.forEach(member -> codes.add(codeService.findById(member.getCode().getId())));
                 indexing.updateCodes(codes);

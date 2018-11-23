@@ -1066,7 +1066,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             if (extension != null) {
                 indexing.updateExtension(extension);
             }
-            if (INLINE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())) {
+            if (CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())) {
                 final Set<CodeDTO> codes = new HashSet<>();
                 members.forEach(member -> codes.add(codeService.findById(member.getCode().getId())));
                 indexing.updateCodes(codes);
