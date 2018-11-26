@@ -38,7 +38,8 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Component
 public class MemberDaoImpl implements MemberDao {
 
-    private static int MAX_LEVEL = 10; // This is not final, because if the extension is of type Cross-Reference List, MAX_LEVEL = 2;
+    private static int MAX_LEVEL = 10;
+    private static int MAX_LEVEL_FOR_CROSS_REFERENCE_LIST = 2;
 
     private final EntityChangeLogger entityChangeLogger;
     private final MemberRepository memberRepository;
@@ -256,38 +257,43 @@ public class MemberDaoImpl implements MemberDao {
         } else if (relatedMember == null) {
             member.setRelatedMember(null);
         }
-        linkedMembers.forEach(this::checkExtensionHierarchyLevels);
+        linkedMembers.forEach(m -> checkExtensionHierarchyLevels(m, extension));
         save(linkedMembers);
     }
 
-    private void checkExtensionHierarchyLevels(final Member member) {
+    private void checkExtensionHierarchyLevels(final Member member, final Extension extension) {
         final Set<Member> chainedMembers = new HashSet<>();
         chainedMembers.add(member);
-        checkExtensionHierarchyLevels(chainedMembers, member, 1);
+        checkExtensionHierarchyLevels(chainedMembers, member, 1, extension);
     }
 
     private void checkExtensionHierarchyLevels(final Set<Member> chainedMembers,
                                                final Member member,
-                                               final int level) {
-        if (level > MAX_LEVEL) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_HIERARCHY_MAXLEVEL_REACHED));
+                                               final int level,
+                                               final Extension extension) {
+        if (extension.getPropertyType().getLocalName().equals("crossReferenceList")) {
+            if (level > MAX_LEVEL_FOR_CROSS_REFERENCE_LIST) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_HIERARCHY_MAXLEVEL_REACHED));
+            }
+        } else {
+            if (level > MAX_LEVEL) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_HIERARCHY_MAXLEVEL_REACHED));
+            }
         }
+
         final Member relatedMember = member.getRelatedMember();
         if (relatedMember != null) {
             if (chainedMembers.contains(relatedMember)) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CYCLIC_DEPENDENCY_ISSUE));
             }
             chainedMembers.add(relatedMember);
-            checkExtensionHierarchyLevels(chainedMembers, relatedMember, level + 1);
+            checkExtensionHierarchyLevels(chainedMembers, relatedMember, level + 1, extension);
         }
     }
 
     private void resolveMemberRelations(final Extension extension,
                                         final Set<Member> members,
                                         final Set<MemberDTO> fromMembers) {
-        if (extension.getPropertyType().getLocalName().equals("crossReferenceList")) {
-            MAX_LEVEL = 10; // TODO THIS IS A TEMPORARY FIX (SET BACK TO 10)! MUST BE SET TO 2 AND FIX THE ROOT CAUSE LATER TODO
-        }
         fromMembers.forEach(fromMember -> {
             Member member = null;
             for (final Member mem : members) {
