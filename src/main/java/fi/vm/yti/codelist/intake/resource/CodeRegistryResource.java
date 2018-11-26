@@ -471,7 +471,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         }
         codeSchemeService.updateCodeSchemeFromDto(variantCodeScheme.getCodeRegistry().getCodeValue(), variantCodeScheme);
 
-        return indexCodeschemesAfterVariantAttachmentOrDetachment(motherCodeScheme, variantCodeScheme);
+        return indexCodeSchemesAfterVariantAttachmentOrDetachment(motherCodeScheme, variantCodeScheme);
     }
 
     @POST
@@ -492,7 +492,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
         codeSchemeService.updateCodeSchemeFromDto(variantCodeScheme.getCodeRegistry().getCodeValue(), variantCodeScheme);
 
-        return indexCodeschemesAfterVariantAttachmentOrDetachment(motherCodeScheme, variantCodeScheme);
+        return indexCodeSchemesAfterVariantAttachmentOrDetachment(motherCodeScheme, variantCodeScheme);
     }
 
     @POST
@@ -933,7 +933,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
-    private Response indexCodeschemesAfterVariantAttachmentOrDetachment(final CodeSchemeDTO motherCodeScheme,
+    private Response indexCodeSchemesAfterVariantAttachmentOrDetachment(final CodeSchemeDTO motherCodeScheme,
                                                                         final CodeSchemeDTO variantCodeScheme) {
         final HashSet<CodeSchemeDTO> codeSchemes = new HashSet<>();
         codeSchemeService.populateAllVersionsToCodeSchemeDTO(variantCodeScheme);
@@ -941,7 +941,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         codeSchemes.add(motherCodeScheme);
         indexing.updateCodeSchemes(codeSchemes);
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry,code,extension,member")));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry,code,extension,valueType,member,memberValue")));
         final ResponseWrapper<CodeSchemeDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("A Variant was attached to a CodeScheme.");
         meta.setCode(200);
@@ -972,7 +972,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             }
         }
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry,code,extension,member")));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry,code,extension,valueType,member,memberValue")));
         final ResponseWrapper<CodeSchemeDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("A CodeScheme was cloned.");
         meta.setCode(200);
@@ -1013,7 +1013,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             }
         }
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry,code,extension,member")));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry,code,extension,valueType,member,memberValue")));
         final ResponseWrapper<CodeSchemeDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("CodeSchemes added or modified: " + codeSchemes.size());
         meta.setCode(200);
@@ -1096,7 +1096,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODE, "codeRegistry,codeScheme")));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODE, "codeRegistry,codeScheme,extension,valueType,member,memberValue")));
         final ResponseWrapper<CodeDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("Codes added or modified: " + codes.size());
         meta.setCode(200);

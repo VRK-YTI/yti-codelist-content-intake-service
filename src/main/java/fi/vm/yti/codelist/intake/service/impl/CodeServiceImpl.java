@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,6 +24,7 @@ import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
+import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
@@ -46,6 +48,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
     private final CodeDao codeDao;
     private final CodeParserImpl codeParser;
     private final DtoMapperService dtoMapperService;
+    private final MemberDao memberDao;
 
     @Inject
     public CodeServiceImpl(final AuthorizationManager authorizationManager,
@@ -53,13 +56,15 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                            final CodeSchemeDao codeSchemeDao,
                            final CodeParserImpl codeParser,
                            final CodeDao codeDao,
-                           final DtoMapperService dtoMapperService) {
+                           final DtoMapperService dtoMapperService,
+                           final MemberDao memberDao) {
         this.authorizationManager = authorizationManager;
         this.codeRegistryDao = codeRegistryDao;
         this.codeSchemeDao = codeSchemeDao;
         this.codeParser = codeParser;
         this.codeDao = codeDao;
         this.dtoMapperService = dtoMapperService;
+        this.memberDao = memberDao;
     }
 
     @Transactional
@@ -230,7 +235,8 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
             final Code codeToBeDeleted = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
             if (codeToBeDeleted != null) {
                 if (authorizationManager.canCodeBeDeleted(codeToBeDeleted)) {
-                    if (codeToBeDeleted.getMembers() != null && !codeToBeDeleted.getMembers().isEmpty()) {
+                    final Set<Member> filteredMembers = filterRelatedMembers(codeScheme, codeToBeDeleted);
+                    if (!filteredMembers.isEmpty()) {
                         final StringBuilder identifier = new StringBuilder();
                         for (final Member relatedMember : codeToBeDeleted.getMembers()) {
                             if (identifier.length() == 0) {
@@ -241,12 +247,17 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                         }
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_IN_USE, identifier.toString()));
                     }
+                    final Set<Member> membersToBeDeleted = filterToBeDeletedMembers(codeScheme, codeToBeDeleted);
+                    if (!membersToBeDeleted.isEmpty()) {
+                        memberDao.delete(membersToBeDeleted);
+                    }
                     if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(codeToBeDeleted.getCodeValue())) {
                         codeScheme.setDefaultCode(null);
                         codeSchemeDao.save(codeScheme);
                     }
                     removeBroaderCodeId(codeToBeDeleted.getId(), affectedCodes);
                     final CodeDTO codeToBeDeletedDTO = dtoMapperService.mapCodeDto(codeToBeDeleted, true, true, true);
+                    codeToBeDeleted.setMembers(null);
                     codeDao.delete(codeToBeDeleted);
                     return codeToBeDeletedDTO;
                 } else {
@@ -258,6 +269,34 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
         }
+    }
+
+    private Set<Member> filterRelatedMembers(final CodeScheme codeScheme,
+                                             final Code code) {
+        final Set<Member> filteredMembers = new HashSet<>();
+        final Set<Member> relatedMembers = code.getMembers();
+        if (relatedMembers != null) {
+            for (final Member member : relatedMembers) {
+                if (codeScheme != member.getExtension().getParentCodeScheme()) {
+                    filteredMembers.add(member);
+                }
+            }
+        }
+        return filteredMembers;
+    }
+
+    private Set<Member> filterToBeDeletedMembers(final CodeScheme codeScheme,
+                                                 final Code code) {
+        final Set<Member> filteredMembers = new HashSet<>();
+        final Set<Member> relatedMembers = code.getMembers();
+        if (relatedMembers != null) {
+            for (final Member member : relatedMembers) {
+                if (codeScheme == member.getExtension().getParentCodeScheme()) {
+                    filteredMembers.add(member);
+                }
+            }
+        }
+        return filteredMembers;
     }
 
     @Transactional

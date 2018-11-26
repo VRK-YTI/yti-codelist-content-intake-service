@@ -178,23 +178,29 @@ public class CodeDaoImpl implements CodeDao {
         codesAffected.add(code);
         evaluateAndSetHierarchyLevels(codesAffected, findByCodeSchemeId(codeScheme.getId()));
         save(code);
-        setCodeExtensionMemberValues(codeScheme, codeDto);
+        setCodeExtensionMemberValues(codeDto);
         codeSchemeRepository.save(codeScheme);
         return codesAffected;
     }
 
-    private void setCodeExtensionMemberValues(final CodeScheme codeScheme,
-                                              final CodeDTO code) {
+    private void setCodeExtensionMemberValues(final CodeDTO code) {
         final Set<ExtensionDTO> codeExtensionDtos = code.getCodeExtensions();
-        codeExtensionDtos.forEach(extensionDto -> {
-            final Extension extension = extensionDao.findById(extensionDto.getId());
-            if (extension != null) {
-                final Set<MemberDTO> members = extensionDto.getMembers();
-                memberDao.updateMemberEntitiesFromDtos(extension, members);
-            } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
-            }
-        });
+        if (codeExtensionDtos != null && !codeExtensionDtos.isEmpty()) {
+            codeExtensionDtos.forEach(extensionDto -> {
+                final Extension extension = extensionDao.findById(extensionDto.getId());
+                if (extension != null) {
+                    final Set<MemberDTO> members = extensionDto.getMembers();
+                    members.forEach(member -> {
+                        if (member.getCode() == null) {
+                            member.setCode(code);
+                        }
+                    });
+                    memberDao.updateMemberEntitiesFromDtos(extension, members);
+                } else {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
+                }
+            });
+        }
     }
 
     @Transactional
@@ -208,6 +214,7 @@ public class CodeDaoImpl implements CodeDao {
         for (final CodeDTO codeDto : codeDtos) {
             final Code code = createOrUpdateCode(codeScheme, codeDto, existingCodes, codesAffected, nextOrder);
             save(code, false);
+            setCodeExtensionMemberValues(codeDto);
             if (updateExternalReferences) {
                 updateExternalReferences(codeScheme, code, codeDto);
             }
