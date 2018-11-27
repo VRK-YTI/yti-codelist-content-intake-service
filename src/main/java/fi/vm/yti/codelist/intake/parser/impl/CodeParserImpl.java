@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -360,9 +361,20 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
 
     private CodeSchemeDTO parseSubCodeSchemeFromString(final String subCodeSchemeIdentifier) {
         if (subCodeSchemeIdentifier != null && !subCodeSchemeIdentifier.isEmpty()) {
-            final CodeSchemeDTO subCodeScheme = new CodeSchemeDTO();
-            subCodeScheme.setUri(subCodeSchemeIdentifier);
-            return subCodeScheme;
+            try {
+                final UUID subCodeSchemeId = UUID.fromString(subCodeSchemeIdentifier);
+                final CodeSchemeDTO subCodeScheme = new CodeSchemeDTO();
+                subCodeScheme.setId(subCodeSchemeId);
+                return subCodeScheme;
+            } catch (final IllegalArgumentException e) {
+                if (subCodeSchemeIdentifier.startsWith("http://uri.suomi.fi/codelist/")) {
+                    final CodeSchemeDTO subCodeScheme = new CodeSchemeDTO();
+                    subCodeScheme.setUri(subCodeSchemeIdentifier);
+                    return subCodeScheme;
+                } else {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
+                }
+            }
         }
         return null;
     }

@@ -64,9 +64,9 @@ public class CodeDaoImpl implements CodeDao {
                        final CodeSchemeRepository codeSchemeRepository,
                        final ExternalReferenceDao externalReferenceDao,
                        final LanguageService languageService,
+                       final CodeSchemeDao codeSchemeDao,
                        @Lazy final ExtensionDao extensionDao,
-                       @Lazy final MemberDao memberDao,
-                       final CodeSchemeDao codeSchemeDao) {
+                       @Lazy final MemberDao memberDao) {
         this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.authorizationManager = authorizationManager;
@@ -74,9 +74,9 @@ public class CodeDaoImpl implements CodeDao {
         this.codeSchemeRepository = codeSchemeRepository;
         this.externalReferenceDao = externalReferenceDao;
         this.languageService = languageService;
+        this.codeSchemeDao = codeSchemeDao;
         this.extensionDao = extensionDao;
         this.memberDao = memberDao;
-        this.codeSchemeDao = codeSchemeDao;
     }
 
     @Transactional
@@ -365,9 +365,9 @@ public class CodeDaoImpl implements CodeDao {
             }
         }
         if (fromCode.getSubCodeScheme() != null) {
-            final CodeScheme subCodeScheme = codeSchemeDao.findByUri(fromCode.getSubCodeScheme().getUri());
+            final CodeScheme subCodeScheme = resolveSubCodeScheme(fromCode);
             if (subCodeScheme != null) {
-                if (subCodeScheme != existingCode.getSubCodeScheme()) {
+                if (!Objects.equals(existingCode.getSubCodeScheme(), subCodeScheme)) {
                     existingCode.setSubCodeScheme(subCodeScheme);
                 }
             } else {
@@ -437,7 +437,7 @@ public class CodeDaoImpl implements CodeDao {
             code.setDefinition(language, entry.getValue());
         }
         if (fromCode.getSubCodeScheme() != null) {
-            final CodeScheme subCodeScheme = codeSchemeDao.findByUri(fromCode.getSubCodeScheme().getUri());
+            final CodeScheme subCodeScheme = resolveSubCodeScheme(fromCode);
             if (subCodeScheme != null) {
                 code.setSubCodeScheme(subCodeScheme);
             } else {
@@ -452,6 +452,16 @@ public class CodeDaoImpl implements CodeDao {
         code.setCreated(timeStamp);
         code.setModified(timeStamp);
         return code;
+    }
+
+    private CodeScheme resolveSubCodeScheme(final CodeDTO fromCode) {
+        CodeScheme subCodeScheme = null;
+        if (fromCode.getSubCodeScheme().getId() != null) {
+            subCodeScheme = codeSchemeDao.findById(fromCode.getSubCodeScheme().getId());
+        } else if (fromCode.getSubCodeScheme().getUri() != null){
+            subCodeScheme = codeSchemeDao.findByUri(fromCode.getSubCodeScheme().getUri());
+        }
+        return subCodeScheme;
     }
 
     private Code resolveBroaderCode(final CodeDTO fromCode,

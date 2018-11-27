@@ -229,7 +229,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinColumn(name = "subcodescheme_id", nullable = false, updatable = false)
+    @JoinColumn(name = "subcodescheme_id")
     public CodeScheme getSubCodeScheme() {
         return subCodeScheme;
     }
