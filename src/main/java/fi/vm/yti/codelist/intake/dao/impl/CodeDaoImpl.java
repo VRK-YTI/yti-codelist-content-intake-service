@@ -373,6 +373,8 @@ public class CodeDaoImpl implements CodeDao {
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_SUBCODESCHEME_NOT_FOUND));
             }
+        } else {
+            existingCode.setSubCodeScheme(null);
         }
         if (!Objects.equals(existingCode.getStartDate(), fromCode.getStartDate())) {
             existingCode.setStartDate(fromCode.getStartDate());
