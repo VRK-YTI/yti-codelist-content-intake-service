@@ -73,6 +73,9 @@ public class DtoMapperService {
         codeDto.setShortName(code.getShortName());
         codeDto.setPrefLabel(code.getPrefLabel());
         codeDto.setDefinition(code.getDefinition());
+        if (code.getSubCodeScheme() != null) {
+            codeDto.setSubCodeScheme(mapCodeSchemeDto(code.getCodeScheme()));
+        }
         if (includeCodeScheme) {
             codeDto.setCodeScheme(mapCodeSchemeDto(code.getCodeScheme(), false));
             codeDto.setUrl(apiUtils.createCodeUrl(codeDto));
@@ -168,7 +171,6 @@ public class DtoMapperService {
         if (!codeScheme.getVariantMothers().isEmpty()) {
             codeSchemeDto.setVariantMothersOfThisCodeScheme(getVariantMothersOfCodeSchemeAsListItems(codeScheme));
         }
-
         codeSchemeDto.setUrl(apiUtils.createCodeSchemeUrl(codeSchemeDto));
         codeSchemeDto.setCreated(codeScheme.getCreated());
         codeSchemeDto.setModified(codeScheme.getModified());

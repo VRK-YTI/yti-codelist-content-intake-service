@@ -39,6 +39,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     private Code broaderCode;
     private Integer order;
     private String conceptUriInVocabularies;
+    private CodeScheme subCodeScheme;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "codescheme_id", nullable = false, updatable = false)
@@ -225,5 +226,15 @@ public class Code extends AbstractHistoricalCode implements Serializable {
 
     public void setBroaderCode(final Code broaderCode) {
         this.broaderCode = broaderCode;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @JoinColumn(name = "subcodescheme_id", nullable = false, updatable = false)
+    public CodeScheme getSubCodeScheme() {
+        return subCodeScheme;
+    }
+
+    public void setSubCodeScheme(final CodeScheme subCodeScheme) {
+        this.subCodeScheme = subCodeScheme;
     }
 }

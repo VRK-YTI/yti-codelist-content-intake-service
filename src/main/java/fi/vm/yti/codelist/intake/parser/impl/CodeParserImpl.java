@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
@@ -102,6 +103,9 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                     code.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), recordIdentifier));
                 }
                 validateStartDateIsBeforeEndDate(code);
+                if (record.isMapped(CONTENT_HEADER_SUBCODESCHEME)) {
+                    code.setSubCodeScheme(parseSubCodeSchemeFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_SUBCODESCHEME).trim()));
+                }
 
                 codes.add(code);
             }
@@ -192,6 +196,9 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
                     code.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), rowIdentifier));
+                }
+                if (headerMap.containsKey(CONTENT_HEADER_SUBCODESCHEME)) {
+                    code.setSubCodeScheme(parseSubCodeSchemeFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SUBCODESCHEME)))));
                 }
                 validateStartDateIsBeforeEndDate(code);
                 codes.add(code);
@@ -340,8 +347,8 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
     }
 
     private String parseConceptUriFromExcelRow(final Map<String, Integer> genericHeaders,
-                                              final Row row,
-                                              final DataFormatter formatter) {
+                                               final Row row,
+                                               final DataFormatter formatter) {
         final String conceptUri;
         if (genericHeaders.get(CONTENT_HEADER_CONCEPTURI) != null) {
             conceptUri = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_CONCEPTURI)));
@@ -349,5 +356,14 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
             conceptUri = null;
         }
         return conceptUri;
+    }
+
+    private CodeSchemeDTO parseSubCodeSchemeFromString(final String subCodeSchemeIdentifier) {
+        if (subCodeSchemeIdentifier != null && !subCodeSchemeIdentifier.isEmpty()) {
+            final CodeSchemeDTO subCodeScheme = new CodeSchemeDTO();
+            subCodeScheme.setUri(subCodeSchemeIdentifier);
+            return subCodeScheme;
+        }
+        return null;
     }
 }

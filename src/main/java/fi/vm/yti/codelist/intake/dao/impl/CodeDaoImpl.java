@@ -23,6 +23,7 @@ import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
+import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
@@ -54,6 +55,7 @@ public class CodeDaoImpl implements CodeDao {
     private final LanguageService languageService;
     private final ExtensionDao extensionDao;
     private final MemberDao memberDao;
+    private final CodeSchemeDao codeSchemeDao;
 
     public CodeDaoImpl(final EntityChangeLogger entityChangeLogger,
                        final ApiUtils apiUtils,
@@ -63,7 +65,8 @@ public class CodeDaoImpl implements CodeDao {
                        final ExternalReferenceDao externalReferenceDao,
                        final LanguageService languageService,
                        @Lazy final ExtensionDao extensionDao,
-                       @Lazy final MemberDao memberDao) {
+                       @Lazy final MemberDao memberDao,
+                       final CodeSchemeDao codeSchemeDao) {
         this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.authorizationManager = authorizationManager;
@@ -73,6 +76,7 @@ public class CodeDaoImpl implements CodeDao {
         this.languageService = languageService;
         this.extensionDao = extensionDao;
         this.memberDao = memberDao;
+        this.codeSchemeDao = codeSchemeDao;
     }
 
     @Transactional
@@ -360,6 +364,16 @@ public class CodeDaoImpl implements CodeDao {
                 existingCode.setDefinition(language, value);
             }
         }
+        if (fromCode.getSubCodeScheme() != null) {
+            final CodeScheme subCodeScheme = codeSchemeDao.findByUri(fromCode.getCodeScheme().getUri());
+            if (subCodeScheme != null) {
+                if (subCodeScheme != existingCode.getSubCodeScheme()) {
+                    existingCode.setSubCodeScheme(subCodeScheme);
+                }
+            } else {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_SUBCODESCHEME_NOT_FOUND));
+            }
+        }
         if (!Objects.equals(existingCode.getStartDate(), fromCode.getStartDate())) {
             existingCode.setStartDate(fromCode.getStartDate());
         }
@@ -419,6 +433,14 @@ public class CodeDaoImpl implements CodeDao {
             final String language = entry.getKey();
             languageService.validateInputLanguageForCodeScheme(codeScheme, language);
             code.setDefinition(language, entry.getValue());
+        }
+        if (fromCode.getSubCodeScheme() != null) {
+            final CodeScheme subCodeScheme = codeSchemeDao.findByUri(fromCode.getCodeScheme().getUri());
+            if (subCodeScheme != null) {
+                code.setSubCodeScheme(subCodeScheme);
+            } else {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_SUBCODESCHEME_NOT_FOUND));
+            }
         }
         code.setStartDate(fromCode.getStartDate());
         code.setEndDate(fromCode.getEndDate());
