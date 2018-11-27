@@ -74,7 +74,7 @@ public class DtoMapperService {
         codeDto.setPrefLabel(code.getPrefLabel());
         codeDto.setDefinition(code.getDefinition());
         if (code.getSubCodeScheme() != null) {
-            codeDto.setSubCodeScheme(mapCodeSchemeDto(code.getCodeScheme()));
+            codeDto.setSubCodeScheme(mapCodeSchemeDto(code.getSubCodeScheme()));
         }
         if (includeCodeScheme) {
             codeDto.setCodeScheme(mapCodeSchemeDto(code.getCodeScheme(), false));
