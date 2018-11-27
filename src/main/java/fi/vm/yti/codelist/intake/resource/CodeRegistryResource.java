@@ -669,6 +669,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 indexing.deleteMembers(members);
                 indexing.deleteExtension(extension);
                 indexing.updateCodeScheme(codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue));
+                indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
             } else {
                 return Response.status(404).build();
             }
