@@ -365,7 +365,7 @@ public class CodeDaoImpl implements CodeDao {
             }
         }
         if (fromCode.getSubCodeScheme() != null) {
-            final CodeScheme subCodeScheme = codeSchemeDao.findByUri(fromCode.getCodeScheme().getUri());
+            final CodeScheme subCodeScheme = codeSchemeDao.findByUri(fromCode.getSubCodeScheme().getUri());
             if (subCodeScheme != null) {
                 if (subCodeScheme != existingCode.getSubCodeScheme()) {
                     existingCode.setSubCodeScheme(subCodeScheme);
@@ -435,7 +435,7 @@ public class CodeDaoImpl implements CodeDao {
             code.setDefinition(language, entry.getValue());
         }
         if (fromCode.getSubCodeScheme() != null) {
-            final CodeScheme subCodeScheme = codeSchemeDao.findByUri(fromCode.getCodeScheme().getUri());
+            final CodeScheme subCodeScheme = codeSchemeDao.findByUri(fromCode.getSubCodeScheme().getUri());
             if (subCodeScheme != null) {
                 code.setSubCodeScheme(subCodeScheme);
             } else {
