@@ -365,7 +365,7 @@ public class CodeDaoImpl implements CodeDao {
             }
         }
         if (fromCode.getSubCodeScheme() != null) {
-            final CodeScheme subCodeScheme = resolveSubCodeScheme(fromCode);
+            final CodeScheme subCodeScheme = resolveSubCodeScheme(codeScheme, fromCode);
             if (subCodeScheme != null) {
                 if (!Objects.equals(existingCode.getSubCodeScheme(), subCodeScheme)) {
                     existingCode.setSubCodeScheme(subCodeScheme);
@@ -437,7 +437,7 @@ public class CodeDaoImpl implements CodeDao {
             code.setDefinition(language, entry.getValue());
         }
         if (fromCode.getSubCodeScheme() != null) {
-            final CodeScheme subCodeScheme = resolveSubCodeScheme(fromCode);
+            final CodeScheme subCodeScheme = resolveSubCodeScheme(codeScheme, fromCode);
             if (subCodeScheme != null) {
                 code.setSubCodeScheme(subCodeScheme);
             } else {
@@ -454,12 +454,16 @@ public class CodeDaoImpl implements CodeDao {
         return code;
     }
 
-    private CodeScheme resolveSubCodeScheme(final CodeDTO fromCode) {
+    private CodeScheme resolveSubCodeScheme(final CodeScheme codeScheme,
+                                            final CodeDTO fromCode) {
         CodeScheme subCodeScheme = null;
         if (fromCode.getSubCodeScheme().getId() != null) {
             subCodeScheme = codeSchemeDao.findById(fromCode.getSubCodeScheme().getId());
         } else if (fromCode.getSubCodeScheme().getUri() != null){
             subCodeScheme = codeSchemeDao.findByUri(fromCode.getSubCodeScheme().getUri());
+        }
+        if (subCodeScheme != null && codeScheme.getId() == subCodeScheme.getId()) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_SUBCODESCHEME_SAME_AS_CODE_CODESCHEME));
         }
         return subCodeScheme;
     }
