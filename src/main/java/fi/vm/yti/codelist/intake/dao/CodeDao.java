@@ -28,6 +28,8 @@ public interface CodeDao {
 
     Code findByUri(final String uri);
 
+    Set<Code> findBySubCodeScheme(final CodeScheme subCodeScheme);
+
     Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
                                       final String codeValue);
 

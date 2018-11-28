@@ -463,6 +463,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
             }
             checkForExternalExtensionReferences(codeScheme);
             checkForExternalExtensionMemberReferences(codeScheme);
+            checkForCodeSubCodeSchemeReferences(codeScheme);
             final CodeSchemeDTO codeSchemeDto = dtoMapperService.mapCodeSchemeDto(codeScheme, false);
             dealWithPossibleVersionHierarchyBeforeDeleting(codeSchemeDto, codeSchemeDTOsToIndex);
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
@@ -501,6 +502,22 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                 } else {
                     identifier.append("\n");
                     identifier.append(relatedExtension.getUri());
+                }
+            }
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE, identifier.toString()));
+        }
+    }
+
+    private void checkForCodeSubCodeSchemeReferences(final CodeScheme codeScheme) {
+        final Set<Code> relatedCodes = codeDao.findBySubCodeScheme(codeScheme);
+        if (!relatedCodes.isEmpty()) {
+            final StringBuilder identifier = new StringBuilder();
+            for (final Code code : relatedCodes) {
+                if (identifier.length() == 0) {
+                    identifier.append(code.getUri());
+                } else {
+                    identifier.append("\n");
+                    identifier.append(code.getUri());
                 }
             }
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DELETE_IN_USE, identifier.toString()));

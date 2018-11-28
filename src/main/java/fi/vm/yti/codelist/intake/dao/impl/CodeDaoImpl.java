@@ -140,6 +140,11 @@ public class CodeDaoImpl implements CodeDao {
     }
 
     @Transactional
+    public Set<Code> findBySubCodeScheme(final CodeScheme subCodeScheme) {
+        return codeRepository.findBySubCodeScheme(subCodeScheme);
+    }
+
+    @Transactional
     public Code findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
                                              final String codeValue) {
         return codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeValue);

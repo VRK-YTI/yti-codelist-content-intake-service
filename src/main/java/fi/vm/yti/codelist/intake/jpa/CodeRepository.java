@@ -36,6 +36,8 @@ public interface CodeRepository extends PagingAndSortingRepository<Code, String>
     @Query(value = "SELECT c.flatorder FROM code AS c WHERE c.codescheme_id = :codeSchemeId ORDER BY c.flatorder DESC LIMIT 1", nativeQuery = true)
     Integer getCodeMaxOrder(@Param("codeSchemeId") final UUID codeSchemeId);
 
+    Set<Code> findBySubCodeScheme(final CodeScheme subCodeScheme);
+
     Set<Code> findByCodeScheme(final CodeScheme codeScheme);
 
     Set<Code> findByCodeSchemeId(final UUID codeSchemeId);
