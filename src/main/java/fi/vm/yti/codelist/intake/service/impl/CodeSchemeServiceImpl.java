@@ -399,19 +399,19 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
             final Map<ExtensionDTO, String> membersSheetNames = new HashMap<>();
             final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromExcelWorkbook(codeScheme, workbook, sheetName, membersSheetNames);
             if (extensions != null && !extensions.isEmpty()) {
-                membersSheetNames.forEach((extensionDto, extensionSheetName) -> {
+                membersSheetNames.forEach((extensionDto, memberSheetName) -> {
                     final Extension extension = extensionDao.findById(extensionDto.getId());
                     if (extension != null) {
-                        parseExtensions(workbook, extensionSheetName, extension);
+                        parseMembers(workbook, memberSheetName, extension);
                     }
                 });
             }
         }
     }
 
-    private void parseExtensions(final Workbook workbook,
-                                 final String sheetName,
-                                 final Extension extension) {
+    private void parseMembers(final Workbook workbook,
+                              final String sheetName,
+                              final Extension extension) {
         if (workbook.getSheet(sheetName) != null) {
             memberService.parseAndPersistMembersFromExcelWorkbook(extension, workbook, sheetName);
         } else {
