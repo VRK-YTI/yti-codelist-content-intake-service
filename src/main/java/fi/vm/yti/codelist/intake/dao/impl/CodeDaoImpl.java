@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
@@ -376,7 +377,8 @@ public class CodeDaoImpl implements CodeDao {
                     existingCode.setSubCodeScheme(subCodeScheme);
                 }
             } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_SUBCODESCHEME_NOT_FOUND));
+                final String subCodeSchemeIdentifier = resolveSubCodeSchemeIdentifier(fromCode.getSubCodeScheme());
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_SUBCODESCHEME_NOT_FOUND, subCodeSchemeIdentifier));
             }
         } else {
             existingCode.setSubCodeScheme(null);
@@ -446,7 +448,8 @@ public class CodeDaoImpl implements CodeDao {
             if (subCodeScheme != null) {
                 code.setSubCodeScheme(subCodeScheme);
             } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_SUBCODESCHEME_NOT_FOUND));
+                final String subCodeSchemeIdentifier = resolveSubCodeSchemeIdentifier(fromCode.getSubCodeScheme());
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_SUBCODESCHEME_NOT_FOUND, subCodeSchemeIdentifier));
             }
         }
         code.setStartDate(fromCode.getStartDate());
@@ -457,6 +460,16 @@ public class CodeDaoImpl implements CodeDao {
         code.setCreated(timeStamp);
         code.setModified(timeStamp);
         return code;
+    }
+
+    private String resolveSubCodeSchemeIdentifier(final CodeSchemeDTO subCodeScheme) {
+        if (subCodeScheme.getId() != null) {
+            return subCodeScheme.getId().toString();
+        } else if (subCodeScheme.getUri() != null) {
+            return subCodeScheme.getUri();
+        } else {
+            return null;
+        }
     }
 
     private CodeScheme resolveSubCodeScheme(final CodeScheme codeScheme,

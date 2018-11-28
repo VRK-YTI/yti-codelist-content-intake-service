@@ -372,7 +372,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                     subCodeScheme.setUri(subCodeSchemeIdentifier);
                     return subCodeScheme;
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_SUBCODESCHEME_NOT_FOUND, subCodeSchemeIdentifier));
                 }
             }
         }
