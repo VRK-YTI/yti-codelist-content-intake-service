@@ -21,6 +21,7 @@ import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.MemberValue;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.model.ValueType;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CODE_EXTENSION;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.util.ValidationUtils.validateStringAgainstRegexp;
 
@@ -70,7 +71,9 @@ public class MemberValueDaoImpl implements MemberValueDao {
 
     public MemberValue createOrUpdateMemberValue(final Member member,
                                                  final MemberValueDTO fromMemberValue) {
-        validateMemberValue(fromMemberValue, member.getExtension().getPropertyType());
+        if (!CODE_EXTENSION.equalsIgnoreCase(member.getExtension().getPropertyType().getContext())) {
+            validateMemberValue(fromMemberValue, member.getExtension().getPropertyType());
+        }
         final MemberValue existingMemberValue;
         if (fromMemberValue.getValueType() != null) {
             final ValueType valueType = valueTypeDao.findByLocalName(fromMemberValue.getValueType().getLocalName());
