@@ -165,13 +165,13 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 firstRow = false;
                 headerMap = resolveHeaderMap(row);
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
-                validateRequiredHeaders(valueTypes, headerMap);
+                validateRequiredHeaders(filterRequiredValueTypes(valueTypes), headerMap);
             } else if (!checkIfRowIsEmpty(row)) {
                 final String rowIdentifier = getRowIdentifier(row);
                 final MemberDTO member = new MemberDTO();
                 final String codeIdentifier = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
                 member.setCode(createCodeUsingIdentifier(codeIdentifier, rowIdentifier));
-                validateRequiredDataOnRow(valueTypes, row, headerMap, formatter);
+                validateRequiredDataOnRow(filterRequiredValueTypes(valueTypes), row, headerMap, formatter);
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     member.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
@@ -236,21 +236,18 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
         return valueTypes.stream().filter(ValueType::getRequired).collect(Collectors.toSet());
     }
 
-    private void validateRequiredDataOnRow(final Set<ValueType> valueTypes,
+    private void validateRequiredDataOnRow(final Set<ValueType> requiredValueTypes,
                                            final Row row,
                                            final Map<String, Integer> headerMap,
                                            final DataFormatter formatter) {
-        if (valueTypes != null) {
-            final Set<ValueType> requiredValueTypes = filterRequiredValueTypes(valueTypes);
-            if (!requiredValueTypes.isEmpty()) {
-                requiredValueTypes.forEach(valueType -> {
-                    if ((formatter.formatCellValue(row.getCell(headerMap.get(valueType.getLocalName().toUpperCase()))) == null ||
-                        formatter.formatCellValue(row.getCell(headerMap.get(valueType.getLocalName().toUpperCase()))).isEmpty())) {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ERR_MSG_USER_ROW_MISSING_MEMBERVALUE, getRowIdentifier(row)));
-                    }
-                });
-            }
+        if (requiredValueTypes != null && !requiredValueTypes.isEmpty()) {
+            requiredValueTypes.forEach(valueType -> {
+                if ((formatter.formatCellValue(row.getCell(headerMap.get(valueType.getLocalName().toUpperCase()))) == null ||
+                    formatter.formatCellValue(row.getCell(headerMap.get(valueType.getLocalName().toUpperCase()))).isEmpty())) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                        ERR_MSG_USER_ROW_MISSING_MEMBERVALUE, getRowIdentifier(row)));
+                }
+            });
         }
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE))).isEmpty()) {
