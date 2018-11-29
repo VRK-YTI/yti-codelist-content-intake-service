@@ -282,7 +282,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
             requiredValueTypes.forEach(valueType -> {
                 if (!headerMap.containsKey(valueType.getLocalName().toUpperCase())) {
                     throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                        ERR_MSG_USER_MISSING_HEADER_MEMBERVALUE));
+                        ERR_MSG_USER_MISSING_HEADER_MEMBERVALUE, valueType.getLocalName()));
                 }
             });
         }
