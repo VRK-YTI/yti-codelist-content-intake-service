@@ -102,16 +102,6 @@ public class ExtensionServiceImpl implements ExtensionService {
     }
 
     @Transactional
-    public ExtensionDTO findByCodeSchemeAndCodeValue(final CodeScheme codeScheme,
-                                                     final String codeValue) {
-        final Extension extension = extensionDao.findByParentCodeSchemeAndCodeValue(codeScheme, codeValue);
-        if (extension == null) {
-            return null;
-        }
-        return dtoMapperService.mapDeepExtensionDto(extension);
-    }
-
-    @Transactional
     public Set<ExtensionDTO> parseAndPersistExtensionsFromSourceData(final String codeRegistryCodeValue,
                                                                      final String codeSchemeCodeValue,
                                                                      final String format,
