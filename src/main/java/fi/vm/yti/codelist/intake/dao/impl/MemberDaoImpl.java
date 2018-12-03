@@ -40,8 +40,8 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Component
 public class MemberDaoImpl implements MemberDao {
 
-    private static int MAX_LEVEL = 10;
-    private static int MAX_LEVEL_FOR_CROSS_REFERENCE_LIST = 2;
+    private static final int MAX_LEVEL = 10;
+    private static final int MAX_LEVEL_FOR_CROSS_REFERENCE_LIST = 2;
 
     private final EntityChangeLogger entityChangeLogger;
     private final MemberRepository memberRepository;
