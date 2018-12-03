@@ -265,7 +265,8 @@ public class MemberDaoImpl implements MemberDao {
         save(linkedMembers);
     }
 
-    private void checkExtensionHierarchyLevels(final Member member, final Extension extension) {
+    private void checkExtensionHierarchyLevels(final Member member,
+                                               final Extension extension) {
         final Set<Member> chainedMembers = new HashSet<>();
         chainedMembers.add(member);
         checkExtensionHierarchyLevels(chainedMembers, member, 1, extension);
@@ -461,7 +462,7 @@ public class MemberDaoImpl implements MemberDao {
         }
     }
 
-    private Integer getNextOrderInSequence(final Extension extension) {
+    public Integer getNextOrderInSequence(final Extension extension) {
         final Integer maxOrder = memberRepository.getMemberMaxOrder(extension.getId());
         if (maxOrder == null) {
             return 1;

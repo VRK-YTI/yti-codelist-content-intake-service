@@ -28,20 +28,24 @@ public interface ExtensionService {
                                                               final String format,
                                                               final InputStream inputStream,
                                                               final String jsonPayload,
-                                                              final String sheetName);
+                                                              final String sheetName,
+                                                              final boolean autoCreateMembers);
 
     Set<ExtensionDTO> parseAndPersistExtensionsFromExcelWorkbook(final CodeScheme codeScheme,
                                                                  final Workbook workbook,
                                                                  final String sheetName,
-                                                                 final Map<ExtensionDTO, String> membersSheetNames);
+                                                                 final Map<ExtensionDTO, String> membersSheetNames,
+                                                                 final boolean autoCreateMembers);
 
     ExtensionDTO parseAndPersistExtensionFromJson(final String codeRegistryCodeValue,
                                                   final String codeSchemeCodeValue,
                                                   final String extensionCodeValue,
-                                                  final String jsonPayload);
+                                                  final String jsonPayload,
+                                                  final boolean autoCreateMembers);
 
     ExtensionDTO parseAndPersistExtensionFromJson(final UUID extensionId,
-                                                  final String jsonPayload);
+                                                  final String jsonPayload,
+                                                  final boolean autoCreateMembers);
 
     ExtensionDTO deleteExtension(final UUID extensionId);
 }

@@ -37,8 +37,10 @@ public interface ExtensionDao {
                                                  final String codeValue);
 
     Extension updateExtensionEntityFromDto(final CodeScheme codeScheme,
-                                           final ExtensionDTO extensionDto);
+                                           final ExtensionDTO extensionDto,
+                                           final boolean autoCreateMembers);
 
     Set<Extension> updateExtensionEntitiesFromDtos(final CodeScheme codeScheme,
-                                                   final Set<ExtensionDTO> extensionDtos);
+                                                   final Set<ExtensionDTO> extensionDtos,
+                                                   final boolean autoCreateMembers);
 }

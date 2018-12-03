@@ -502,7 +502,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                   @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                   @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                                   @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistExtensionsFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, null, EXCEL_SHEET_EXTENSIONS);
+        return parseAndPersistExtensionsFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, null, EXCEL_SHEET_EXTENSIONS, false);
     }
 
     @POST
@@ -516,8 +516,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
     public Response addOrUpdateExtensionsFromJson(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("json") final String format,
                                                   @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                   @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                                                  @ApiParam(value = "Auto-create members for all codes in the extensions codeschemes") @QueryParam("autoCreateMembers") @DefaultValue("false")  final boolean autoCreateMembers,
                                                   @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload) {
-        return parseAndPersistExtensionsFromSource(codeRegistryCodeValue, codeSchemeCodeValue, FORMAT_JSON, null, jsonPayload, null);
+        return parseAndPersistExtensionsFromSource(codeRegistryCodeValue, codeSchemeCodeValue, FORMAT_JSON, null, jsonPayload, null, autoCreateMembers);
     }
 
     @POST
@@ -533,7 +534,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                     @ApiParam(value = "Extension codeValue", required = true) @PathParam("extensionCodeValue") final String extensionCodeValue,
                                     @ApiParam(value = "JSON playload for Extension data.") final String jsonPayload) {
 
-        final ExtensionDTO extension = extensionService.parseAndPersistExtensionFromJson(codeRegistryCodeValue, codeSchemeCodeValue, extensionCodeValue, jsonPayload);
+        final ExtensionDTO extension = extensionService.parseAndPersistExtensionFromJson(codeRegistryCodeValue, codeSchemeCodeValue, extensionCodeValue, jsonPayload, false);
         indexing.updateExtension(extension);
         indexing.updateMembers(memberService.findByExtensionId(extension.getId()));
         final Meta meta = new Meta();
@@ -1019,8 +1020,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                          final String format,
                                                          final InputStream inputStream,
                                                          final String jsonPayload,
-                                                         final String sheetName) {
-        final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload, sheetName);
+                                                         final String sheetName,
+                                                         final boolean autoCreateMembers) {
+        final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload, sheetName, autoCreateMembers);
         indexing.updateExtensions(extensions);
         if (!extensions.isEmpty()) {
             final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();

@@ -60,7 +60,7 @@ public class ExtensionResource implements AbstractBaseResource {
 
     private Response parseAndPersistExtensionFromSource(final UUID extensionId,
                                                         final String jsonPayload) {
-        final ExtensionDTO extension = extensionService.parseAndPersistExtensionFromJson(extensionId, jsonPayload);
+        final ExtensionDTO extension = extensionService.parseAndPersistExtensionFromJson(extensionId, jsonPayload, false);
         final Set<ExtensionDTO> extensions = new HashSet<>();
         extensions.add(extension);
         indexing.updateExtensions(extensions);

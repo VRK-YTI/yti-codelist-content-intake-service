@@ -117,7 +117,8 @@ public class ExtensionServiceImpl implements ExtensionService {
                                                                      final String format,
                                                                      final InputStream inputStream,
                                                                      final String jsonPayload,
-                                                                     final String sheetName) {
+                                                                     final String sheetName,
+                                                                     final boolean autoCreateMembers) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
@@ -127,7 +128,7 @@ public class ExtensionServiceImpl implements ExtensionService {
             switch (format.toLowerCase()) {
                 case FORMAT_JSON:
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                        extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionParser.parseExtensionsFromJson(jsonPayload));
+                        extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionParser.parseExtensionsFromJson(jsonPayload), autoCreateMembers);
                     } else {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                     }
@@ -136,7 +137,7 @@ public class ExtensionServiceImpl implements ExtensionService {
                     try {
                         final Map<ExtensionDTO, String> membersSheetNames = new HashMap<>();
                         final Workbook workbook = WorkbookFactory.create(inputStream);
-                        extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionParser.parseExtensionsFromExcelWorkbook(workbook, sheetName, membersSheetNames));
+                        extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionParser.parseExtensionsFromExcelWorkbook(workbook, sheetName, membersSheetNames), autoCreateMembers);
                         if (!membersSheetNames.isEmpty()) {
                             membersSheetNames.forEach((extensionDto, membersSheetName) -> extensions.forEach(extension -> {
                                 if (extension.getCodeValue().equalsIgnoreCase(extensionDto.getCodeValue())) {
@@ -150,7 +151,7 @@ public class ExtensionServiceImpl implements ExtensionService {
                     }
                     break;
                 case FORMAT_CSV:
-                    extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionParser.parseExtensionsFromCsvInputStream(inputStream));
+                    extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionParser.parseExtensionsFromCsvInputStream(inputStream), autoCreateMembers);
                     break;
                 default:
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
@@ -165,12 +166,13 @@ public class ExtensionServiceImpl implements ExtensionService {
     public Set<ExtensionDTO> parseAndPersistExtensionsFromExcelWorkbook(final CodeScheme codeScheme,
                                                                         final Workbook workbook,
                                                                         final String sheetName,
-                                                                        final Map<ExtensionDTO, String> membersSheetNames) {
+                                                                        final Map<ExtensionDTO, String> membersSheetNames,
+                                                                        final boolean autoCreateMembers) {
         if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         final Set<ExtensionDTO> extensionDtos = extensionParser.parseExtensionsFromExcelWorkbook(workbook, sheetName, membersSheetNames);
-        final Set<Extension> extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionDtos);
+        final Set<Extension> extensions = extensionDao.updateExtensionEntitiesFromDtos(codeScheme, extensionDtos, autoCreateMembers);
         extensionDtos.forEach(extensionDto -> extensions.forEach(extension -> {
             if (extension.getCodeValue().equalsIgnoreCase(extensionDto.getCodeValue())) {
                 extensionDto.setId(extension.getId());
@@ -183,7 +185,8 @@ public class ExtensionServiceImpl implements ExtensionService {
     public ExtensionDTO parseAndPersistExtensionFromJson(final String codeRegistryCodeValue,
                                                          final String codeSchemeCodeValue,
                                                          final String extensionCodeValue,
-                                                         final String jsonPayload) {
+                                                         final String jsonPayload,
+                                                         final boolean autoCreateMembers) {
         final CodeScheme parentCodeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (parentCodeScheme != null) {
             final Extension existingExtension = extensionDao.findByParentCodeSchemeIdAndCodeValue(parentCodeScheme.getId(), extensionCodeValue);
@@ -195,7 +198,7 @@ public class ExtensionServiceImpl implements ExtensionService {
                         if (!authorizationManager.canBeModifiedByUserInOrganization(parentCodeScheme.getCodeRegistry().getOrganizations())) {
                             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                         }
-                        extension = extensionDao.updateExtensionEntityFromDto(parentCodeScheme, extensionDTO);
+                        extension = extensionDao.updateExtensionEntityFromDto(parentCodeScheme, extensionDTO, autoCreateMembers);
                     } else {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                     }
@@ -216,7 +219,8 @@ public class ExtensionServiceImpl implements ExtensionService {
 
     @Transactional
     public ExtensionDTO parseAndPersistExtensionFromJson(final UUID extensionId,
-                                                         final String jsonPayload) {
+                                                         final String jsonPayload,
+                                                         final boolean autoCreateMembers) {
         final Extension existingExtension = extensionDao.findById(extensionId);
         final Extension extension;
         if (existingExtension != null) {
@@ -233,7 +237,7 @@ public class ExtensionServiceImpl implements ExtensionService {
                     if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
                         throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                     }
-                    extension = extensionDao.updateExtensionEntityFromDto(codeScheme, extensionDto);
+                    extension = extensionDao.updateExtensionEntityFromDto(codeScheme, extensionDto, autoCreateMembers);
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                 }

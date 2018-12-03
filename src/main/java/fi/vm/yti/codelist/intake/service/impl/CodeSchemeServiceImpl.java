@@ -397,7 +397,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                  final CodeScheme codeScheme) {
         if (workbook.getSheet(sheetName) != null) {
             final Map<ExtensionDTO, String> membersSheetNames = new HashMap<>();
-            final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromExcelWorkbook(codeScheme, workbook, sheetName, membersSheetNames);
+            final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromExcelWorkbook(codeScheme, workbook, sheetName, membersSheetNames, false);
             if (extensions != null && !extensions.isEmpty()) {
                 membersSheetNames.forEach((extensionDto, memberSheetName) -> {
                     final Extension extension = extensionDao.findById(extensionDto.getId());

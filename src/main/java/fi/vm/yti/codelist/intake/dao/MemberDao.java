@@ -35,4 +35,6 @@ public interface MemberDao {
 
     Set<Member> updateMemberEntitiesFromDtos(final Extension extension,
                                              final Set<MemberDTO> memberDtos);
+
+    Integer getNextOrderInSequence(final Extension extension);
 }

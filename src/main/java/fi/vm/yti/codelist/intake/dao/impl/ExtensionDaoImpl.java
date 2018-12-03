@@ -20,6 +20,7 @@ import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
+import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.ExtensionRepository;
@@ -27,6 +28,7 @@ import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -42,6 +44,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
     private final PropertyTypeDao propertyTypeDao;
     private final CodeSchemeDao codeSchemeDao;
     private final LanguageService languageService;
+    private final MemberDao memberDao;
     private final ApiUtils apiUtils;
 
     @Inject
@@ -51,6 +54,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                             final PropertyTypeDao propertyTypeDao,
                             final CodeSchemeDao codeSchemeDao,
                             final LanguageService languageService,
+                            final MemberDao memberDao,
                             final ApiUtils apiUtils) {
         this.authorizationManager = authorizationManager;
         this.entityChangeLogger = entityChangeLogger;
@@ -58,6 +62,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         this.propertyTypeDao = propertyTypeDao;
         this.codeSchemeDao = codeSchemeDao;
         this.languageService = languageService;
+        this.memberDao = memberDao;
         this.apiUtils = apiUtils;
     }
 
@@ -120,19 +125,21 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
     @Transactional
     public Extension updateExtensionEntityFromDto(final CodeScheme codeScheme,
-                                                  final ExtensionDTO extensionDto) {
-        final Extension extension = createOrUpdateExtension(codeScheme, extensionDto);
+                                                  final ExtensionDTO extensionDto,
+                                                  final boolean autoCreateMembers) {
+        final Extension extension = createOrUpdateExtension(codeScheme, extensionDto, autoCreateMembers);
         save(extension);
         return extension;
     }
 
     @Transactional
     public Set<Extension> updateExtensionEntitiesFromDtos(final CodeScheme codeScheme,
-                                                          final Set<ExtensionDTO> extensionDtos) {
+                                                          final Set<ExtensionDTO> extensionDtos,
+                                                          final boolean autoCreateMembers) {
         final Set<Extension> extensions = new HashSet<>();
         if (extensionDtos != null) {
             for (final ExtensionDTO extensionDto : extensionDtos) {
-                final Extension extension = createOrUpdateExtension(codeScheme, extensionDto);
+                final Extension extension = createOrUpdateExtension(codeScheme, extensionDto, autoCreateMembers);
                 extensions.add(extension);
                 save(extension);
             }
@@ -141,7 +148,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
     }
 
     private Extension createOrUpdateExtension(final CodeScheme codeScheme,
-                                              final ExtensionDTO fromExtension) {
+                                              final ExtensionDTO fromExtension,
+                                              final boolean autoCreateMembers) {
         Extension existingExtension;
         if (fromExtension.getId() != null) {
             existingExtension = extensionRepository.findById(fromExtension.getId());
@@ -155,7 +163,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (existingExtension != null) {
             extension = updateExtension(existingExtension, fromExtension);
         } else {
-            extension = createExtension(fromExtension, codeScheme);
+            extension = createExtension(fromExtension, codeScheme, autoCreateMembers);
         }
         return extension;
     }
@@ -217,7 +225,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
     }
 
     private Extension createExtension(final ExtensionDTO fromExtension,
-                                      final CodeScheme codeScheme) {
+                                      final CodeScheme codeScheme,
+                                      final boolean autoCreateMembers) {
         final Extension extension = new Extension();
         if (fromExtension.getId() != null) {
             extension.setId(fromExtension.getId());
@@ -259,6 +268,25 @@ public class ExtensionDaoImpl implements ExtensionDao {
         final Date timeStamp = new Date(System.currentTimeMillis());
         extension.setCreated(timeStamp);
         extension.setModified(timeStamp);
+
+        if (autoCreateMembers) {
+            codeSchemes.forEach(cs ->
+                cs.getCodes().forEach(code -> {
+                    Member m = new Member();
+                    m.setId(UUID.randomUUID());
+                    m.setOrder(memberDao.getNextOrderInSequence(extension));
+                    m.setCode(code);
+                    m.setRelatedMember(null);
+                    m.setEndDate(code.getEndDate());
+                    m.setStartDate(code.getStartDate());
+                    m.setExtension(extension);
+                    m.setMemberValues(null);
+                    m.setPrefLabel(code.getPrefLabel());
+                    m.setUri(null);
+                    memberDao.save(m);
+                }));
+        }
+
         return extension;
     }
 
