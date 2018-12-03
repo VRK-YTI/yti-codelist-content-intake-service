@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -128,7 +129,14 @@ public class MemberDaoImpl implements MemberDao {
     public Set<Member> updateMemberEntityFromDto(final Extension extension,
                                                  final MemberDTO fromMemberDto) {
         final Set<Member> affectedMembers = new HashSet<>();
-        final Member member = createOrUpdateMember(extension, fromMemberDto, affectedMembers);
+        final Map<String, Code> codesMap = new HashMap<>();
+        final CodeScheme parentCodeScheme = extension.getParentCodeScheme();
+        final Set<Code> codes = codeDao.findByCodeSchemeId(parentCodeScheme.getId());
+        if (codes != null) {
+            codes.forEach(code -> codesMap.put(code.getUri(), code));
+        }
+        final Set<CodeScheme> allowedCodeSchemes = gatherAllowedCodeSchemes(parentCodeScheme, extension);
+        final Member member = createOrUpdateMember(extension, codesMap, allowedCodeSchemes, fromMemberDto, affectedMembers);
         fromMemberDto.setId(member.getId());
         save(member);
         updateMemberMemberValues(extension, member, fromMemberDto);
@@ -142,9 +150,16 @@ public class MemberDaoImpl implements MemberDao {
     public Set<Member> updateMemberEntitiesFromDtos(final Extension extension,
                                                     final Set<MemberDTO> memberDtos) {
         final Set<Member> affectedMembers = new HashSet<>();
+        final Map<String, Code> codesMap = new HashMap<>();
+        final CodeScheme parentCodeScheme = extension.getParentCodeScheme();
+        final Set<Code> codes = codeDao.findByCodeSchemeId(parentCodeScheme.getId());
+        if (codes != null) {
+            codes.forEach(code -> codesMap.put(code.getUri(), code));
+        }
+        final Set<CodeScheme> allowedCodeSchemes = gatherAllowedCodeSchemes(parentCodeScheme, extension);
         if (memberDtos != null) {
             for (final MemberDTO memberDto : memberDtos) {
-                final Member member = createOrUpdateMember(extension, memberDto, affectedMembers);
+                final Member member = createOrUpdateMember(extension, codesMap, allowedCodeSchemes, memberDto, affectedMembers);
                 memberDto.setId(member.getId());
                 affectedMembers.add(member);
                 save(member);
@@ -314,6 +329,8 @@ public class MemberDaoImpl implements MemberDao {
 
     @Transactional
     public Member createOrUpdateMember(final Extension extension,
+                                       final Map<String, Code> codesMap,
+                                       final Set<CodeScheme> allowedCodeSchemes,
                                        final MemberDTO fromMember,
                                        final Set<Member> members) {
         final Member existingMember;
@@ -328,9 +345,9 @@ public class MemberDaoImpl implements MemberDao {
             }
             final Member member;
             if (existingMember != null) {
-                member = updateMember(extension.getParentCodeScheme(), extension, existingMember, fromMember, members);
+                member = updateMember(extension.getParentCodeScheme(), codesMap, allowedCodeSchemes, extension, existingMember, fromMember, members);
             } else {
-                member = createMember(extension.getParentCodeScheme(), extension, fromMember, members);
+                member = createMember(extension.getParentCodeScheme(), codesMap, allowedCodeSchemes, extension, fromMember, members);
             }
             return member;
         } else {
@@ -339,6 +356,8 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     private Member updateMember(final CodeScheme codeScheme,
+                                final Map<String, Code> codesMap,
+                                final Set<CodeScheme> allowedCodeSchemes,
                                 final Extension extension,
                                 final Member existingMember,
                                 final MemberDTO fromMember,
@@ -359,7 +378,7 @@ public class MemberDaoImpl implements MemberDao {
             existingMember.setOrder(getNextOrderInSequence(extension));
         }
         if (fromMember.getCode() != null) {
-            final Code code = findCodeUsingCodeValueOrUri(codeScheme, extension, fromMember);
+            final Code code = findCodeUsingCodeValueOrUri(codeScheme, codesMap, allowedCodeSchemes, fromMember);
             if (!Objects.equals(existingMember.getCode(), code)) {
                 existingMember.setCode(code);
             }
@@ -377,6 +396,8 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     private Member createMember(final CodeScheme codeScheme,
+                                final Map<String, Code> codesMap,
+                                final Set<CodeScheme> allowedCodeSchemes,
                                 final Extension extension,
                                 final MemberDTO fromMember,
                                 final Set<Member> members) {
@@ -399,7 +420,7 @@ public class MemberDaoImpl implements MemberDao {
             member.setOrder(getNextOrderInSequence(extension));
         }
         if (fromMember.getCode() != null) {
-            final Code code = findCodeUsingCodeValueOrUri(codeScheme, extension, fromMember);
+            final Code code = findCodeUsingCodeValueOrUri(codeScheme, codesMap, allowedCodeSchemes, fromMember);
             member.setCode(code);
         }
         member.setStartDate(fromMember.getStartDate());
@@ -419,34 +440,51 @@ public class MemberDaoImpl implements MemberDao {
         }
     }
 
-    private Code findCodeUsingCodeValueOrUri(final CodeScheme codeScheme,
-                                             final Extension extension,
+    private Code findCodeUsingCodeValueOrUri(final CodeScheme parentCodeScheme,
+                                             final Map<String, Code> codesMap,
+                                             final Set<CodeScheme> allowedCodeSchemes,
                                              final MemberDTO member) {
         final CodeDTO fromCode = member.getCode();
         final Code code;
-        if (fromCode != null && fromCode.getUri() != null && !fromCode.getUri().isEmpty()) {
-            code = codeDao.findByUri(fromCode.getUri());
+        final String codeUri = resolveCodeUri(parentCodeScheme, fromCode);
+        if (codeUri != null && !codeUri.isEmpty()) {
+            if (codesMap.containsKey(codeUri)) {
+                code = codesMap.get(codeUri);
+            } else {
+                code = codeDao.findByUri(codeUri);
+            }
             if (code != null) {
-                checkThatCodeIsInAllowedCodeScheme(code.getCodeScheme(), codeScheme, extension);
+                checkThatCodeIsInAllowedCodeScheme(code.getCodeScheme(), allowedCodeSchemes);
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND));
             }
-        } else if (fromCode != null && codeScheme != null && fromCode.getCodeValue() != null && !fromCode.getCodeValue().isEmpty()) {
-            code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, member.getCode().getCodeValue());
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND));
-        }
-        if (code == null) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND));
         }
         return code;
     }
 
+    private String resolveCodeUri(final CodeScheme parentCodeScheme,
+                                  final CodeDTO fromCode) {
+        final String codeUri;
+        if (fromCode.getUri() != null) {
+            codeUri = fromCode.getUri();
+        } else if (fromCode.getCodeValue() != null && !fromCode.getCodeValue().isEmpty()) {
+            codeUri = createCodeUriForCodeScheme(parentCodeScheme, fromCode.getCodeValue());
+        } else {
+            codeUri = null;
+        }
+        return codeUri;
+    }
+
+    private String createCodeUriForCodeScheme(final CodeScheme codeScheme,
+                                              final String codeValue) {
+        return codeScheme.getUri() + "/code/" + codeValue;
+    }
+
     private void checkThatCodeIsInAllowedCodeScheme(final CodeScheme codeSchemeForCode,
-                                                    final CodeScheme parentCodeScheme,
-                                                    final Extension extension) {
-        final Set<CodeScheme> codeSchemes = extension.getCodeSchemes();
-        if (codeSchemeForCode != parentCodeScheme && (codeSchemes == null || !codeSchemes.contains(codeSchemeForCode))) {
+                                                    final Set<CodeScheme> allowedCodeSchemes) {
+        if (!allowedCodeSchemes.contains(codeSchemeForCode)) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_ALLOWED));
         }
     }
@@ -469,5 +507,16 @@ public class MemberDaoImpl implements MemberDao {
         } else {
             return maxOrder + 1;
         }
+    }
+
+    private Set<CodeScheme> gatherAllowedCodeSchemes(final CodeScheme parentCodeScheme,
+                                                     final Extension extension) {
+        final Set<CodeScheme> allowedCodeSchemes = new HashSet<>();
+        allowedCodeSchemes.add(parentCodeScheme);
+        final Set<CodeScheme> extensionCodeSchemes = extension.getCodeSchemes();
+        if (extensionCodeSchemes != null && !extensionCodeSchemes.isEmpty()) {
+            allowedCodeSchemes.addAll(extension.getCodeSchemes());
+        }
+        return allowedCodeSchemes;
     }
 }
