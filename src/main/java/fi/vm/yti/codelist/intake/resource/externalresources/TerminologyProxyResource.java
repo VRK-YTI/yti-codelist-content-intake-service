@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -57,8 +56,8 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_40
 @Api(value = "terminology")
 public class TerminologyProxyResource implements AbstractBaseResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TerminologyProxyResource.class);
     public static final String ERROR_CREATING_A_CONCEPT_IN_TERMINOLOGY_API = "Error creating a concept in terminology-api!";
+    private static final Logger LOG = LoggerFactory.getLogger(TerminologyProxyResource.class);
     private final RestTemplate restTemplate;
     private final AuthenticatedUserProvider authenticatedUserProvider;
     private final TerminologyProperties terminologyProperties;

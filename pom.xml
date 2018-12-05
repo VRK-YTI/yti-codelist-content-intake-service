@@ -249,6 +249,12 @@
             <version>${jersey.version}</version><!--$NO-MVN-MAN-VER$-->
         </dependency>
 
+        <!-- Hibernate EhCache config -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-ehcache</artifactId>
+        </dependency>
+
         <!-- Jsoup -->
         <dependency>
             <groupId>org.jsoup</groupId>

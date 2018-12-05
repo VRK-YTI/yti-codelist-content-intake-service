@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.log;
 
+import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -134,6 +135,10 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
             LOG.error(String.format("Failed to write log for member: %s", member.getId()), e);
         }
         endPayloadLogging(MEMBER, member.getId());
+    }
+
+    public void logMembers(final Set<Member> members) {
+        members.forEach(member -> logMember(member));
     }
 
     public void logValueType(final ValueType valueType) {

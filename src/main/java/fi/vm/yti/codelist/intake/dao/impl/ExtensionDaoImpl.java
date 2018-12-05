@@ -138,18 +138,19 @@ public class ExtensionDaoImpl implements ExtensionDao {
                                                           final boolean autoCreateMembers) {
         final Set<Extension> extensions = new HashSet<>();
         if (extensionDtos != null) {
-            for (final ExtensionDTO extensionDto : extensionDtos) {
+            extensionDtos.forEach(extensionDto -> {
                 final Extension extension = createOrUpdateExtension(codeScheme, extensionDto, autoCreateMembers);
                 extensions.add(extension);
-                save(extension);
-            }
+            });
         }
+        save(extensions);
         return extensions;
     }
 
-    private Extension createOrUpdateExtension(final CodeScheme codeScheme,
-                                              final ExtensionDTO fromExtension,
-                                              final boolean autoCreateMembers) {
+    @Transactional
+    public Extension createOrUpdateExtension(final CodeScheme codeScheme,
+                                             final ExtensionDTO fromExtension,
+                                             final boolean autoCreateMembers) {
         Extension existingExtension;
         if (fromExtension.getId() != null) {
             existingExtension = extensionRepository.findById(fromExtension.getId());

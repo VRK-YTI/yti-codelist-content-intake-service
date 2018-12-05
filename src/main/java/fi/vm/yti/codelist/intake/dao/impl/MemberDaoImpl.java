@@ -76,7 +76,7 @@ public class MemberDaoImpl implements MemberDao {
 
     @Transactional
     public void delete(final Set<Member> members) {
-        members.forEach(entityChangeLogger::logMemberChange);
+        entityChangeLogger.logMemberChanges(members);
         memberRepository.delete(members);
     }
 
@@ -91,7 +91,7 @@ public class MemberDaoImpl implements MemberDao {
                      final boolean logChange) {
         memberRepository.save(members);
         if (logChange) {
-            members.forEach(entityChangeLogger::logMemberChange);
+            entityChangeLogger.logMemberChanges(members);
         }
     }
 
@@ -135,14 +135,16 @@ public class MemberDaoImpl implements MemberDao {
         if (codes != null) {
             codes.forEach(code -> codesMap.put(code.getUri(), code));
         }
+        final Set<Member> existingMembers = findByExtensionId(extension.getId());
         final Set<CodeScheme> allowedCodeSchemes = gatherAllowedCodeSchemes(parentCodeScheme, extension);
-        final Member member = createOrUpdateMember(extension, codesMap, allowedCodeSchemes, fromMemberDto, affectedMembers);
+        final Member member = createOrUpdateMember(extension, existingMembers, codesMap, allowedCodeSchemes, fromMemberDto, affectedMembers);
+        existingMembers.add(member);
         fromMemberDto.setId(member.getId());
-        save(member);
         updateMemberMemberValues(extension, member, fromMemberDto);
+        save(member);
         resolveMemberRelation(extension, member, fromMemberDto);
         affectedMembers.add(member);
-        resolveAffectedRelatedMembers(affectedMembers, member.getId());
+        resolveAffectedRelatedMembers(existingMembers, affectedMembers, member.getId());
         return affectedMembers;
     }
 
@@ -157,23 +159,33 @@ public class MemberDaoImpl implements MemberDao {
             codes.forEach(code -> codesMap.put(code.getUri(), code));
         }
         final Set<CodeScheme> allowedCodeSchemes = gatherAllowedCodeSchemes(parentCodeScheme, extension);
+        final Set<Member> membersToBeStored = new HashSet<>();
         if (memberDtos != null) {
+            final Set<Member> existingMembers = findByExtensionId(extension.getId());
             for (final MemberDTO memberDto : memberDtos) {
-                final Member member = createOrUpdateMember(extension, codesMap, allowedCodeSchemes, memberDto, affectedMembers);
+                final Member member = createOrUpdateMember(extension, existingMembers, codesMap, allowedCodeSchemes, memberDto, affectedMembers);
+                existingMembers.add(member);
                 memberDto.setId(member.getId());
                 affectedMembers.add(member);
-                save(member);
                 updateMemberMemberValues(extension, member, memberDto);
-                resolveAffectedRelatedMembers(affectedMembers, member.getId());
+                membersToBeStored.add(member);
+                resolveAffectedRelatedMembers(existingMembers, affectedMembers, member.getId());
             }
+            save(membersToBeStored);
             resolveMemberRelations(extension, affectedMembers, memberDtos);
         }
         return affectedMembers;
     }
 
-    private void resolveAffectedRelatedMembers(final Set<Member> affectedMembers,
+    private void resolveAffectedRelatedMembers(final Set<Member> existingMembers,
+                                               final Set<Member> affectedMembers,
                                                final UUID memberId) {
-        final Set<Member> relatedMembers = findByRelatedMemberId(memberId);
+        final Set<Member> relatedMembers = new HashSet<>();
+        existingMembers.forEach(member -> {
+            if (member.getId() == memberId) {
+                relatedMembers.add(member);
+            }
+        });
         affectedMembers.addAll(relatedMembers);
     }
 
@@ -183,7 +195,6 @@ public class MemberDaoImpl implements MemberDao {
         final Set<MemberValue> memberValues = memberValueDao.updateMemberValueEntitiesFromDtos(member, fromMemberDto.getMemberValues());
         ensureThatRequiredMemberValuesArePresent(extension.getPropertyType().getValueTypes(), memberValues);
         member.setMemberValues(memberValues);
-        save(member);
     }
 
     private void ensureThatRequiredMemberValuesArePresent(final Set<ValueType> valueTypes,
@@ -243,9 +254,9 @@ public class MemberDaoImpl implements MemberDao {
         }
     }
 
-    private void resolveMemberRelation(final Extension extension,
-                                       final Member member,
-                                       final MemberDTO fromMember) {
+    private Set<Member> resolveMemberRelation(final Extension extension,
+                                              final Member member,
+                                              final MemberDTO fromMember) {
         final MemberDTO relatedMember = fromMember.getRelatedMember();
         if (CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext()) && relatedMember != null) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_RELATION_NOT_ALLOWED_FOR_CODE_EXTENSION));
@@ -276,8 +287,8 @@ public class MemberDaoImpl implements MemberDao {
         } else if (relatedMember == null) {
             member.setRelatedMember(null);
         }
-        linkedMembers.forEach(m -> checkExtensionHierarchyLevels(m, extension));
-        save(linkedMembers);
+        linkedMembers.forEach(mem -> checkExtensionHierarchyLevels(mem, extension));
+        return linkedMembers;
     }
 
     private void checkExtensionHierarchyLevels(final Member member,
@@ -314,6 +325,7 @@ public class MemberDaoImpl implements MemberDao {
     private void resolveMemberRelations(final Extension extension,
                                         final Set<Member> members,
                                         final Set<MemberDTO> fromMembers) {
+        final Set<Member> linkedMembersToBeStored = new HashSet<>();
         fromMembers.forEach(fromMember -> {
             Member member = null;
             for (final Member mem : members) {
@@ -322,21 +334,31 @@ public class MemberDaoImpl implements MemberDao {
                 }
             }
             if (member != null) {
-                resolveMemberRelation(extension, member, fromMember);
+                final Set<Member> linkedMembers = resolveMemberRelation(extension, member, fromMember);
+                if (linkedMembers != null && !linkedMembers.isEmpty()) {
+                    linkedMembersToBeStored.addAll(linkedMembers);
+                }
             }
         });
+        save(linkedMembersToBeStored, false);
     }
 
     @Transactional
     public Member createOrUpdateMember(final Extension extension,
+                                       final Set<Member> existingMembers,
                                        final Map<String, Code> codesMap,
                                        final Set<CodeScheme> allowedCodeSchemes,
                                        final MemberDTO fromMember,
                                        final Set<Member> members) {
-        final Member existingMember;
+        Member existingMember = null;
         if (extension != null) {
             if (fromMember.getId() != null) {
-                existingMember = memberRepository.findByExtensionAndId(extension, fromMember.getId());
+                for (final Member member : existingMembers) {
+                    if (member.getId() == fromMember.getId()) {
+                        existingMember = member;
+                        break;
+                    }
+                }
                 if (existingMember != null) {
                     validateExtension(existingMember, extension);
                 }

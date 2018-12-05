@@ -1,5 +1,7 @@
 package fi.vm.yti.codelist.intake.log;
 
+import java.util.Set;
+
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -24,6 +26,8 @@ public interface EntityPayloadLogger {
     void logExtension(final Extension extension);
 
     void logMember(final Member member);
+
+    void logMembers(final Set<Member> members);
 
     void logValueType(final ValueType member);
 }

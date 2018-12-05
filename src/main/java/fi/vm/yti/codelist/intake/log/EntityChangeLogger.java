@@ -29,5 +29,7 @@ public interface EntityChangeLogger {
 
     void logMemberChange(final Member member);
 
+    void logMemberChanges(final Set<Member> members);
+
     void logValueTypeChange(final ValueType member);
 }

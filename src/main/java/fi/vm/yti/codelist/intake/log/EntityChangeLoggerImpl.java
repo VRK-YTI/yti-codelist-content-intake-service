@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.log;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -108,6 +109,18 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         final EditedEntity editedEntity = new EditedEntity(createCommit());
         editedEntity.setMember(member);
         editedEntityRepository.save(editedEntity);
+    }
+
+    public void logMemberChanges(final Set<Member> members) {
+        final Set<EditedEntity> editedEntities = new HashSet<>();
+        final Commit commit = createCommit();
+        entityPayloadLogger.logMembers(members);
+        members.forEach(member -> {
+            final EditedEntity editedEntity = new EditedEntity(commit);
+            editedEntity.setMember(member);
+            editedEntities.add(editedEntity);
+        });
+        editedEntityRepository.save(editedEntities);
     }
 
     public void logValueTypeChange(final ValueType valueType) {

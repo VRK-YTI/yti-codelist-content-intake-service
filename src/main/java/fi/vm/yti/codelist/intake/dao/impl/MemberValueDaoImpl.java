@@ -44,6 +44,11 @@ public class MemberValueDaoImpl implements MemberValueDao {
     }
 
     @Transactional
+    public Set<MemberValue> findByMemberId(final UUID id) {
+        return memberValueRepository.findByMemberId(id);
+    }
+
+    @Transactional
     public void save(final Set<MemberValue> memberValues) {
         memberValueRepository.save(memberValues);
     }
@@ -57,51 +62,48 @@ public class MemberValueDaoImpl implements MemberValueDao {
     public Set<MemberValue> updateMemberValueEntitiesFromDtos(final Member member,
                                                               final Set<MemberValueDTO> memberValueDtos) {
         final Set<MemberValue> memberValues = new HashSet<>();
+        final Set<MemberValue> existingMemberValues = findByMemberId(member.getId());
         if (memberValueDtos != null) {
-            for (final MemberValueDTO memberValueDto : memberValueDtos) {
-                final MemberValue memberValue = createOrUpdateMemberValue(member, memberValueDto);
+            memberValueDtos.forEach(memberValueDto -> {
+                final MemberValue memberValue = createOrUpdateMemberValue(existingMemberValues, member, memberValueDto);
                 if (memberValue != null) {
+                    existingMemberValues.add(memberValue);
                     memberValues.add(memberValue);
-                    save(memberValue);
                 }
-            }
+            });
         }
         return memberValues;
     }
 
-    public MemberValue createOrUpdateMemberValue(final Member member,
-                                                 final MemberValueDTO fromMemberValue) {
+    private MemberValue createOrUpdateMemberValue(final Set<MemberValue> existingMemberValues,
+                                                  final Member member,
+                                                  final MemberValueDTO fromMemberValue) {
         if (!CODE_EXTENSION.equalsIgnoreCase(member.getExtension().getPropertyType().getContext())) {
             validateMemberValue(fromMemberValue, member.getExtension().getPropertyType());
         }
-        final MemberValue existingMemberValue;
+        MemberValue existingMemberValue = null;
         if (fromMemberValue.getValueType() != null) {
             final ValueType valueType = valueTypeDao.findByLocalName(fromMemberValue.getValueType().getLocalName());
             if (valueType == null) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_VALUETYPE_NOT_SET));
             }
-            existingMemberValue = memberValueRepository.findByMemberAndValueType(member, valueType);
+            for (final MemberValue memberValue : existingMemberValues) {
+                if (memberValue.getValueType().getId() == valueType.getId()) {
+                    existingMemberValue = memberValue;
+                    break;
+                }
+            }
         } else {
-            existingMemberValue = null;
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_VALUETYPE_NOT_SET));
         }
         final MemberValue memberValue;
         if (existingMemberValue != null) {
             validateMember(member, existingMemberValue.getMember());
             memberValue = updateMemberValue(member, existingMemberValue, fromMemberValue);
         } else {
-            checkForExistingMemberValueWithValueType(member, fromMemberValue);
             memberValue = createMemberValue(member, fromMemberValue);
         }
         return memberValue;
-    }
-
-    private void checkForExistingMemberValueWithValueType(final Member member,
-                                                          final MemberValueDTO fromMemberValue) {
-        final ValueType valueType = valueTypeDao.findByLocalName(fromMemberValue.getValueType().getLocalName());
-        final MemberValue memberValue = memberValueRepository.findByMemberAndValueType(member, valueType);
-        if (memberValue != null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_ALREADY_EXISTS_FOR_VALUETYPE));
-        }
     }
 
     private MemberValue updateMemberValue(final Member member,
