@@ -270,7 +270,10 @@ public class ExtensionDaoImpl implements ExtensionDao {
         extension.setModified(timeStamp);
 
         if (autoCreateMembers) {
-            codeSchemes.forEach(cs ->
+            final Set<CodeScheme> codeSchemesToGenerateAutoMembersFor = new HashSet<>();
+            codeSchemesToGenerateAutoMembersFor.addAll(codeSchemes);
+            codeSchemesToGenerateAutoMembersFor.add(codeScheme);
+            codeSchemesToGenerateAutoMembersFor.forEach(cs ->
                 cs.getCodes().forEach(code -> {
                     Member m = new Member();
                     m.setId(UUID.randomUUID());
