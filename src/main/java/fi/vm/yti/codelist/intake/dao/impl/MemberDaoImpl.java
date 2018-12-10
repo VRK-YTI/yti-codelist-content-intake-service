@@ -142,7 +142,7 @@ public class MemberDaoImpl implements MemberDao {
         fromMemberDto.setId(member.getId());
         updateMemberMemberValues(extension, member, fromMemberDto);
         save(member);
-        resolveMemberRelation(extension, member, fromMemberDto);
+        resolveMemberRelation(extension, existingMembers, member, fromMemberDto);
         affectedMembers.add(member);
         resolveAffectedRelatedMembers(existingMembers, affectedMembers, member.getId());
         return affectedMembers;
@@ -172,7 +172,7 @@ public class MemberDaoImpl implements MemberDao {
                 resolveAffectedRelatedMembers(existingMembers, affectedMembers, member.getId());
             }
             save(membersToBeStored);
-            resolveMemberRelations(extension, affectedMembers, memberDtos);
+            resolveMemberRelations(extension, existingMembers, affectedMembers, memberDtos);
         }
         return affectedMembers;
     }
@@ -255,6 +255,7 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     private Set<Member> resolveMemberRelation(final Extension extension,
+                                              final Set<Member> existingMembers,
                                               final Member member,
                                               final MemberDTO fromMember) {
         final MemberDTO relatedMember = fromMember.getRelatedMember();
@@ -269,17 +270,16 @@ public class MemberDaoImpl implements MemberDao {
             linkMemberWithId(member, relatedMember.getId());
             linkedMembers.add(member);
         } else if (relatedMember != null && relatedMember.getCode() != null) {
-            final Set<Member> members = findByExtensionId(extension.getId());
             final String identifier = relatedMember.getCode().getCodeValue();
             final UUID uuid = getUuidFromString(identifier);
             if (uuid != null) {
                 linkMemberWithId(member, uuid);
                 linkedMembers.add(member);
             }
-            for (final Member extensionMember : members) {
+            for (final Member extensionMember : existingMembers) {
                 if ((identifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && extensionMember.getCode() != null && extensionMember.getCode().getUri().equalsIgnoreCase(identifier)) ||
                     (extensionMember.getCode() != null && extensionMember.getCode().getCodeValue().equalsIgnoreCase(identifier))) {
-                    checkDuplicateCode(members, identifier);
+                    checkDuplicateCode(existingMembers, identifier);
                     linkMembers(member, extensionMember);
                     linkedMembers.add(member);
                 }
@@ -287,18 +287,18 @@ public class MemberDaoImpl implements MemberDao {
         } else if (relatedMember == null) {
             member.setRelatedMember(null);
         }
-        linkedMembers.forEach(mem -> checkExtensionHierarchyLevels(mem, extension));
+        linkedMembers.forEach(mem -> validateMemberHierarchyLevels(mem, extension));
         return linkedMembers;
     }
 
-    private void checkExtensionHierarchyLevels(final Member member,
+    private void validateMemberHierarchyLevels(final Member member,
                                                final Extension extension) {
         final Set<Member> chainedMembers = new HashSet<>();
         chainedMembers.add(member);
-        checkExtensionHierarchyLevels(chainedMembers, member, 1, extension);
+        validateMemberHierarchyLevels(chainedMembers, member, 1, extension);
     }
 
-    private void checkExtensionHierarchyLevels(final Set<Member> chainedMembers,
+    private void validateMemberHierarchyLevels(final Set<Member> chainedMembers,
                                                final Member member,
                                                final int level,
                                                final Extension extension) {
@@ -318,11 +318,12 @@ public class MemberDaoImpl implements MemberDao {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CYCLIC_DEPENDENCY_ISSUE));
             }
             chainedMembers.add(relatedMember);
-            checkExtensionHierarchyLevels(chainedMembers, relatedMember, level + 1, extension);
+            validateMemberHierarchyLevels(chainedMembers, relatedMember, level + 1, extension);
         }
     }
 
     private void resolveMemberRelations(final Extension extension,
+                                        final Set<Member> existingMembers,
                                         final Set<Member> members,
                                         final Set<MemberDTO> fromMembers) {
         final Set<Member> linkedMembersToBeStored = new HashSet<>();
@@ -334,7 +335,7 @@ public class MemberDaoImpl implements MemberDao {
                 }
             }
             if (member != null) {
-                final Set<Member> linkedMembers = resolveMemberRelation(extension, member, fromMember);
+                final Set<Member> linkedMembers = resolveMemberRelation(extension, existingMembers, member, fromMember);
                 if (linkedMembers != null && !linkedMembers.isEmpty()) {
                     linkedMembersToBeStored.addAll(linkedMembers);
                 }
@@ -514,11 +515,13 @@ public class MemberDaoImpl implements MemberDao {
     private void checkOrderAndShiftExistingMemberOrderIfInUse(final Extension extension,
                                                               final Integer order,
                                                               final Set<Member> members) {
-        final Member member = memberRepository.findByExtensionAndOrder(extension, order);
-        if (member != null) {
-            member.setOrder(getNextOrderInSequence(extension));
-            save(member);
-            members.add(member);
+        final Set<Member> membersWithOrder = memberRepository.findByExtensionAndOrder(extension, order);
+        if (membersWithOrder != null && !membersWithOrder.isEmpty()) {
+            membersWithOrder.forEach(member -> {
+                member.setOrder(getNextOrderInSequence(extension));
+                save(member);
+                members.add(member);
+            });
         }
     }
 

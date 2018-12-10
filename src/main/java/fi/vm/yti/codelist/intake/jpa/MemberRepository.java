@@ -21,8 +21,8 @@ public interface MemberRepository extends CrudRepository<Member, String> {
 
     Set<Member> findByCodeId(final UUID id);
 
-    Member findByExtensionAndOrder(final Extension extension,
-                                   final Integer order);
+    Set<Member> findByExtensionAndOrder(final Extension extension,
+                                        final Integer order);
 
     @Query(value = "SELECT m.memberorder FROM member as m WHERE m.extension_id = :extensionId ORDER BY m.memberorder DESC LIMIT 1", nativeQuery = true)
     Integer getMemberMaxOrder(@Param("extensionId") final UUID extensionId);
