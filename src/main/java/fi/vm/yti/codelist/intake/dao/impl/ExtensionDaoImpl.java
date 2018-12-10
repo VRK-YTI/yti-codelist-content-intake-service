@@ -143,8 +143,23 @@ public class ExtensionDaoImpl implements ExtensionDao {
                 extensions.add(extension);
             });
         }
+        validateDpmExtensionsForDuplicates(extensions);
         save(extensions);
         return extensions;
+    }
+
+    private void validateDpmExtensionsForDuplicates(final Set<Extension> extensionSchemes) {
+        if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
+            final Set<String> propertyTypes = new HashSet<>();
+            extensionSchemes.forEach(extension -> {
+                final String propertyTypeLocalName = extension.getPropertyType().getLocalName();
+                if (!propertyTypes.contains(propertyTypeLocalName)) {
+                    propertyTypes.add(propertyTypeLocalName);
+                } else {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MULTIPLE_CODEEXTENSIONS_FOUND_WITH_SAME_TYPE));
+                }
+            });
+        }
     }
 
     @Transactional

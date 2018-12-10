@@ -41,8 +41,8 @@ import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
-import fi.vm.yti.codelist.intake.exception.MissingHeaderInformationDomainException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderInformationDomainException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -157,7 +157,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
     public Set<ExtensionDTO> parseExtensionsFromExcelWorkbook(final Workbook workbook,
                                                               final String sheetName,
                                                               final Map<ExtensionDTO, String> membersSheetNames) {
-        final Set<ExtensionDTO> extensionsSchemes = new HashSet<>();
+        final Set<ExtensionDTO> extensions = new HashSet<>();
         final Set<String> codeValues = new HashSet<>();
         final DataFormatter formatter = new DataFormatter();
         Sheet sheet = workbook.getSheet(sheetName);
@@ -218,10 +218,10 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                         membersSheetNames.put(extension, membersSheetName);
                     }
                 }
-                extensionsSchemes.add(extension);
+                extensions.add(extension);
             }
         }
-        return extensionsSchemes;
+        return extensions;
     }
 
     private void validateRequiredDataOnRow(final Row row,
