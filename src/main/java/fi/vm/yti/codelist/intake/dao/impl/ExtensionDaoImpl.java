@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -31,6 +32,7 @@ import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.CODE_EXTENSION;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
@@ -143,7 +145,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                 extensions.add(extension);
             });
         }
-        validateDpmExtensionsForDuplicates(extensions);
+        validateDpmExtensionsForDuplicates(extensions.stream().filter(extension -> CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())).collect(Collectors.toSet()));
         save(extensions);
         return extensions;
     }
@@ -268,7 +270,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (fromExtension.getCodeSchemes() != null && !fromExtension.getCodeSchemes().isEmpty()) {
             fromExtension.getCodeSchemes().forEach(codeSchemeDto -> {
                 final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
-                if (relatedCodeScheme != null && relatedCodeScheme.getId() == codeScheme.getId()) {
+                if (relatedCodeScheme != null && relatedCodeScheme.getId().equals(codeScheme.getId())) {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_MAPPED_TO_PARENT));
                 } else if (relatedCodeScheme != null) {
                     codeSchemes.add(relatedCodeScheme);

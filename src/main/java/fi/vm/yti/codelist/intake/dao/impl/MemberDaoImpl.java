@@ -182,7 +182,7 @@ public class MemberDaoImpl implements MemberDao {
                                                final UUID memberId) {
         final Set<Member> relatedMembers = new HashSet<>();
         existingMembers.forEach(member -> {
-            if (member.getId() == memberId) {
+            if (member.getId().equals(memberId)) {
                 relatedMembers.add(member);
             }
         });
@@ -355,7 +355,7 @@ public class MemberDaoImpl implements MemberDao {
         if (extension != null) {
             if (fromMember.getId() != null) {
                 for (final Member member : existingMembers) {
-                    if (member.getId() == fromMember.getId()) {
+                    if (member.getId().equals(fromMember.getId())) {
                         existingMember = member;
                         break;
                     }

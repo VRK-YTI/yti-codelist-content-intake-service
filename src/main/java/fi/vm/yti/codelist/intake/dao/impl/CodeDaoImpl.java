@@ -480,7 +480,7 @@ public class CodeDaoImpl implements CodeDao {
         } else if (fromCode.getSubCodeScheme().getUri() != null){
             subCodeScheme = codeSchemeDao.findByUri(fromCode.getSubCodeScheme().getUri());
         }
-        if (subCodeScheme != null && codeScheme.getId() == subCodeScheme.getId()) {
+        if (subCodeScheme != null && codeScheme.getId().equals(subCodeScheme.getId())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_SUBCODESCHEME_SAME_AS_CODE_CODESCHEME));
         }
         return subCodeScheme;

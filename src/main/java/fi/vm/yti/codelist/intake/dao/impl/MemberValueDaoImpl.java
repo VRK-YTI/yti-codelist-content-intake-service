@@ -88,7 +88,7 @@ public class MemberValueDaoImpl implements MemberValueDao {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_VALUETYPE_NOT_SET));
             }
             for (final MemberValue memberValue : existingMemberValues) {
-                if (memberValue.getValueType().getId() == valueType.getId()) {
+                if (memberValue.getValueType().getId().equals(valueType.getId())) {
                     existingMemberValue = memberValue;
                     break;
                 }
