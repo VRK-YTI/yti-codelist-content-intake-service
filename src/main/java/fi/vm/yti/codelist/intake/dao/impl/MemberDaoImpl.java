@@ -368,9 +368,9 @@ public class MemberDaoImpl implements MemberDao {
             }
             final Member member;
             if (existingMember != null) {
-                member = updateMember(extension.getParentCodeScheme(), codesMap, allowedCodeSchemes, extension, existingMember, fromMember, members);
+                member = updateMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, existingMember, fromMember, members);
             } else {
-                member = createMember(extension.getParentCodeScheme(), codesMap, allowedCodeSchemes, extension, fromMember, members);
+                member = createMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, extension, fromMember, members);
             }
             return member;
         } else {
@@ -379,12 +379,12 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     private Member updateMember(final CodeScheme codeScheme,
+                                final Set<Member> existingMembers,
                                 final Map<String, Code> codesMap,
                                 final Set<CodeScheme> allowedCodeSchemes,
-                                final Extension extension,
                                 final Member existingMember,
                                 final MemberDTO fromMember,
-                                final Set<Member> members) {
+                                final Set<Member> affectedMembers) {
 
         for (final Map.Entry<String, String> entry : fromMember.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
@@ -395,10 +395,10 @@ public class MemberDaoImpl implements MemberDao {
             }
         }
         if (fromMember.getOrder() != null && !Objects.equals(existingMember.getOrder(), fromMember.getOrder())) {
-            checkOrderAndShiftExistingMemberOrderIfInUse(extension, fromMember.getOrder(), members);
+            checkOrderAndShiftExistingMemberOrderIfInUse(existingMembers, fromMember.getOrder(), affectedMembers);
             existingMember.setOrder(fromMember.getOrder());
         } else if (existingMember.getOrder() == null && fromMember.getOrder() == null) {
-            existingMember.setOrder(getNextOrderInSequence(extension));
+            existingMember.setOrder(findNextOrderFromMembers(existingMembers));
         }
         if (fromMember.getCode() != null) {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, codesMap, allowedCodeSchemes, fromMember);
@@ -419,11 +419,12 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     private Member createMember(final CodeScheme codeScheme,
+                                final Set<Member> existingMembers,
                                 final Map<String, Code> codesMap,
                                 final Set<CodeScheme> allowedCodeSchemes,
                                 final Extension extension,
                                 final MemberDTO fromMember,
-                                final Set<Member> members) {
+                                final Set<Member> affectedMembers) {
         final Member member = new Member();
         if (fromMember.getId() != null) {
             member.setId(fromMember.getId());
@@ -437,10 +438,10 @@ public class MemberDaoImpl implements MemberDao {
             member.setPrefLabel(language, entry.getValue());
         }
         if (fromMember.getOrder() != null) {
-            checkOrderAndShiftExistingMemberOrderIfInUse(extension, fromMember.getOrder(), members);
+            checkOrderAndShiftExistingMemberOrderIfInUse(existingMembers, fromMember.getOrder(), affectedMembers);
             member.setOrder(fromMember.getOrder());
         } else {
-            member.setOrder(getNextOrderInSequence(extension));
+            member.setOrder(findNextOrderFromMembers(existingMembers));
         }
         if (fromMember.getCode() != null) {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, codesMap, allowedCodeSchemes, fromMember);
@@ -512,17 +513,27 @@ public class MemberDaoImpl implements MemberDao {
         }
     }
 
-    private void checkOrderAndShiftExistingMemberOrderIfInUse(final Extension extension,
+    private void checkOrderAndShiftExistingMemberOrderIfInUse(final Set<Member> existingMembers,
                                                               final Integer order,
-                                                              final Set<Member> members) {
-        final Set<Member> membersWithOrder = memberRepository.findByExtensionAndOrder(extension, order);
-        if (membersWithOrder != null && !membersWithOrder.isEmpty()) {
-            membersWithOrder.forEach(member -> {
-                member.setOrder(getNextOrderInSequence(extension));
-                save(member);
-                members.add(member);
-            });
+                                                              final Set<Member> affectedMembers) {
+        final Set<Member> membersWithOrder = existingMembers.stream().filter(member -> member.getOrder().equals(order)).collect(Collectors.toSet());
+        membersWithOrder.forEach(member -> {
+            if (member.getOrder() != null && member.getOrder().equals(order)) {
+                member.setOrder(findNextOrderFromMembers(existingMembers));
+                affectedMembers.add(member);
+            }
+        });
+    }
+
+    private Integer findNextOrderFromMembers(final Set<Member> existingMembers) {
+        Integer maxOrder = 0;
+        for (final Member member : existingMembers) {
+            final Integer memberOrder = member.getOrder();
+            if (memberOrder != null && member.getOrder() > maxOrder) {
+                maxOrder = memberOrder;
+            }
         }
+        return maxOrder + 1;
     }
 
     public Integer getNextOrderInSequence(final Extension extension) {
