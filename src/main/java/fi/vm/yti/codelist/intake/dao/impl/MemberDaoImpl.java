@@ -141,8 +141,8 @@ public class MemberDaoImpl implements MemberDao {
         existingMembers.add(member);
         fromMemberDto.setId(member.getId());
         updateMemberMemberValues(extension, member, fromMemberDto);
-        save(member);
         resolveMemberRelation(extension, existingMembers, member, fromMemberDto);
+        save(member);
         affectedMembers.add(member);
         resolveAffectedRelatedMembers(existingMembers, affectedMembers, member.getId());
         return affectedMembers;
