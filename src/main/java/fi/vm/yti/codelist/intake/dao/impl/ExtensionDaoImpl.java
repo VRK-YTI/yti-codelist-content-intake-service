@@ -145,15 +145,15 @@ public class ExtensionDaoImpl implements ExtensionDao {
                 extensions.add(extension);
             });
         }
-        validateDpmExtensionsForDuplicates(extensions.stream().filter(extension -> CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())).collect(Collectors.toSet()));
+        validateCodeExtensionsForDuplicates(extensions.stream().filter(extension -> CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())).collect(Collectors.toSet()));
         save(extensions);
         return extensions;
     }
 
-    private void validateDpmExtensionsForDuplicates(final Set<Extension> extensionSchemes) {
-        if (extensionSchemes != null && !extensionSchemes.isEmpty()) {
+    private void validateCodeExtensionsForDuplicates(final Set<Extension> extensions) {
+        if (extensions != null && !extensions.isEmpty()) {
             final Set<String> propertyTypes = new HashSet<>();
-            extensionSchemes.forEach(extension -> {
+            extensions.forEach(extension -> {
                 final String propertyTypeLocalName = extension.getPropertyType().getLocalName();
                 if (!propertyTypes.contains(propertyTypeLocalName)) {
                     propertyTypes.add(propertyTypeLocalName);
@@ -181,9 +181,21 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (existingExtension != null) {
             extension = updateExtension(existingExtension, fromExtension);
         } else {
+            checkForExistingCodeExtensions(codeScheme, fromExtension);
             extension = createExtension(fromExtension, codeScheme, autoCreateMembers);
         }
         return extension;
+    }
+
+    private void checkForExistingCodeExtensions(final CodeScheme codeScheme,
+                                                final ExtensionDTO fromExtension) {
+        final PropertyType propertyType = propertyTypeDao.findByLocalName(fromExtension.getPropertyType().getLocalName());
+        if (propertyType != null && CODE_EXTENSION.equalsIgnoreCase(propertyType.getContext())) {
+            final Set<Extension> existingExtensions = extensionRepository.findByParentCodeSchemeIdAndPropertyTypeId(codeScheme.getId(), propertyType.getId());
+            if (existingExtensions != null && !existingExtensions.isEmpty()) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MULTIPLE_CODEEXTENSIONS_FOUND_WITH_SAME_TYPE));
+            }
+        }
     }
 
     private void validateParentCodeScheme(final Extension extension,

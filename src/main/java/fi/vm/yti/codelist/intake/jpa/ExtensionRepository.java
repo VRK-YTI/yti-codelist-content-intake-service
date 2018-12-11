@@ -25,6 +25,9 @@ public interface ExtensionRepository extends CrudRepository<Extension, String> {
 
     Set<Extension> findByParentCodeSchemeId(final UUID codeSchemeId);
 
+    Set<Extension> findByParentCodeSchemeIdAndPropertyTypeId(final UUID codeSchemeId,
+                                                             final UUID propertyTypeId);
+
     Extension findByParentCodeSchemeAndCodeValueIgnoreCase(final CodeScheme codeScheme,
                                                            final String codeValue);
 
