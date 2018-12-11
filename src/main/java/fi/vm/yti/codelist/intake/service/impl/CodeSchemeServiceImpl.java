@@ -117,7 +117,11 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
     @Transactional
     public CodeSchemeDTO findById(final UUID id) {
-        return dtoMapperService.mapDeepCodeSchemeDto(codeSchemeDao.findById(id));
+        final CodeScheme codeScheme = codeSchemeDao.findById(id);
+        if (codeScheme != null) {
+            return dtoMapperService.mapDeepCodeSchemeDto(codeScheme);
+        }
+        return null;
     }
 
     @Transactional
@@ -225,7 +229,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         });
 
         CodeSchemeDTO theNewVersion = this.findById(codeScheme.getId());
-        CodeSchemeListItem listItem = new CodeSchemeListItem(theNewVersion.getId(), theNewVersion.getPrefLabel(), theNewVersion.getUri(), theNewVersion.getStartDate(),
+        CodeSchemeListItem listItem = new CodeSchemeListItem(theNewVersion.getId(), theNewVersion.getPrefLabel(), theNewVersion.getCodeValue(), theNewVersion.getUri(), theNewVersion.getStartDate(),
             theNewVersion.getEndDate(), theNewVersion.getStatus());
 
         LinkedHashSet<CodeSchemeDTO> previousVersionsAsDTOs = new LinkedHashSet<>();
@@ -457,7 +461,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                           final String codeSchemeCodeValue,
                                           final LinkedHashSet<CodeSchemeDTO> codeSchemeDTOsToIndex) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-        if (authorizationManager.canCodeSchemeBeDeleted(codeScheme)) {
+        if (codeScheme != null && authorizationManager.canCodeSchemeBeDeleted(codeScheme)) {
             if (isServiceClassificationCodeScheme(codeScheme) || isLanguageCodeCodeScheme(codeScheme)) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_CANNOT_BE_DELETED));
             }
@@ -598,7 +602,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         allVersions = getPreviousVersions(latestVersion.getId(), allVersions);
         LinkedHashSet<CodeSchemeListItem> versionHistory = new LinkedHashSet<>();
         for (CodeSchemeDTO version : allVersions) {
-            CodeSchemeListItem listItem = new CodeSchemeListItem(version.getId(), version.getPrefLabel(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
+            CodeSchemeListItem listItem = new CodeSchemeListItem(version.getId(), version.getPrefLabel(), version.getCodeValue(), version.getUri(), version.getStartDate(), version.getEndDate(), version.getStatus());
             versionHistory.add(listItem);
         }
         currentCodeScheme.setAllVersions(versionHistory);

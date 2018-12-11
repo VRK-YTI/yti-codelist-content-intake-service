@@ -112,12 +112,12 @@ public class CloningServiceImpl implements CloningService {
         previousVersions = getPreviousVersions(originalCodeScheme.getId(), previousVersions);
         for (CodeScheme codeScheme : previousVersions) {
             codeScheme.setLastCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
-            CodeSchemeListItem olderVersion = new CodeSchemeListItem(codeScheme.getId(), codeScheme.getPrefLabel(), codeScheme.getUri(), codeScheme.getStartDate(), codeScheme.getEndDate(), codeScheme.getStatus());
+            CodeSchemeListItem olderVersion = new CodeSchemeListItem(codeScheme.getId(), codeScheme.getPrefLabel(), codeScheme.getCodeValue(), codeScheme.getUri(), codeScheme.getStartDate(), codeScheme.getEndDate(), codeScheme.getStatus());
             versionHistory.add(olderVersion);
         }
         codeSchemeDao.save(previousVersions);
 
-        CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getId(), codeSchemeWithUserChangesFromUi.getPrefLabel(),
+        CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getId(), codeSchemeWithUserChangesFromUi.getPrefLabel(), codeSchemeWithUserChangesFromUi.getCodeValue(),
             codeSchemeWithUserChangesFromUi.getUri(), codeSchemeWithUserChangesFromUi.getStartDate(),
             codeSchemeWithUserChangesFromUi.getEndDate(), codeSchemeWithUserChangesFromUi.getStatus());
         codeSchemeWithUserChangesFromUi.setLastCodeschemeId(newCodeScheme.getId());
@@ -167,12 +167,12 @@ public class CloningServiceImpl implements CloningService {
         previousVersions = getPreviousVersions(originalCodeScheme.getId(), previousVersions);
         for (CodeScheme codeScheme : previousVersions) {
             codeScheme.setLastCodeschemeId(codeSchemeWithUserChangesFromUi.getId());
-            CodeSchemeListItem olderVersion = new CodeSchemeListItem(codeScheme.getId(), codeScheme.getPrefLabel(), codeScheme.getUri(), codeScheme.getStartDate(), codeScheme.getEndDate(), codeScheme.getStatus());
+            CodeSchemeListItem olderVersion = new CodeSchemeListItem(codeScheme.getId(), codeScheme.getPrefLabel(), codeScheme.getCodeValue(), codeScheme.getUri(), codeScheme.getStartDate(), codeScheme.getEndDate(), codeScheme.getStatus());
             versionHistory.add(olderVersion);
         }
         codeSchemeDao.save(previousVersions);
 
-        CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getId(), codeSchemeWithUserChangesFromUi.getPrefLabel(),
+        CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getId(), codeSchemeWithUserChangesFromUi.getPrefLabel(), codeSchemeWithUserChangesFromUi.getCodeValue(),
             codeSchemeWithUserChangesFromUi.getUri(), codeSchemeWithUserChangesFromUi.getStartDate(),
             codeSchemeWithUserChangesFromUi.getEndDate(), codeSchemeWithUserChangesFromUi.getStatus());
         codeSchemeWithUserChangesFromUi.setLastCodeschemeId(newCodeScheme.getId());

@@ -443,7 +443,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         }
         if (!found) {
             motherCodeScheme.getVariantsOfThisCodeScheme().add(
-                new CodeSchemeListItem(variantCodeScheme.getId(), variantCodeScheme.getPrefLabel(),
+                new CodeSchemeListItem(variantCodeScheme.getId(), variantCodeScheme.getPrefLabel(), variantCodeScheme.getCodeValue(),
                     variantCodeScheme.getUri(), variantCodeScheme.getStartDate(),
                     variantCodeScheme.getEndDate(), variantCodeScheme.getStatus()));
             codeSchemeService.updateCodeSchemeFromDto(codeRegistryCodeValue, motherCodeScheme);
@@ -457,7 +457,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         }
         if (!found) {
             variantCodeScheme.getVariantMothersOfThisCodeScheme().add(
-                new CodeSchemeListItem(motherCodeScheme.getId(), motherCodeScheme.getPrefLabel(),
+                new CodeSchemeListItem(motherCodeScheme.getId(), motherCodeScheme.getPrefLabel(), motherCodeScheme.getCodeValue(),
                     motherCodeScheme.getUri(), motherCodeScheme.getStartDate(),
                     motherCodeScheme.getEndDate(), motherCodeScheme.getStatus()));
         }

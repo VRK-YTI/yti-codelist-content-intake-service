@@ -186,7 +186,7 @@ public class DtoMapperService {
         final LinkedHashSet<CodeSchemeListItem> result = new LinkedHashSet<>();
         if (!codeScheme.getVariants().isEmpty()) {
             for (CodeScheme variant : codeScheme.getVariants()) {
-                CodeSchemeListItem item = new CodeSchemeListItem(variant.getId(), variant.getPrefLabel(),
+                final CodeSchemeListItem item = new CodeSchemeListItem(variant.getId(), variant.getPrefLabel(), variant.getCodeValue(),
                     variant.getUri(), variant.getStartDate(), variant.getEndDate(), variant.getStatus());
                 result.add(item);
             }
@@ -199,7 +199,7 @@ public class DtoMapperService {
         final LinkedHashSet<CodeSchemeListItem> result = new LinkedHashSet<>();
         if (!codeScheme.getVariantMothers().isEmpty()) {
             for (CodeScheme variantMother : codeScheme.getVariantMothers()) {
-                CodeSchemeListItem item = new CodeSchemeListItem(variantMother.getId(), variantMother.getPrefLabel(),
+                final CodeSchemeListItem item = new CodeSchemeListItem(variantMother.getId(), variantMother.getPrefLabel(), variantMother.getCodeValue(),
                     variantMother.getUri(), variantMother.getStartDate(), variantMother.getEndDate(), variantMother.getStatus());
                 result.add(item);
             }
