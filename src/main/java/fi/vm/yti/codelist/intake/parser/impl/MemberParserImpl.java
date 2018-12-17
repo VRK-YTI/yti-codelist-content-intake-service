@@ -110,9 +110,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                         if (headerMap.containsKey(headerName)) {
                             final String value = parseStringFromCsvRecord(record, headerName).trim();
                             if (!value.isEmpty()) {
-                                if (!CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())) {
-                                    validateMemberValue(valueType.getRegexp(), value, recordIdentifier);
-                                }
+                                validateMemberValue(valueType.getRegexp(), value, recordIdentifier);
                                 memberValues.add(createMemberValueWithValue(value, valueType.getLocalName()));
                             } else if (valueType.getRequired()) {
                                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_MEMBERVALUE));
@@ -184,9 +182,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                             final String headerName = valueType.getLocalName().toUpperCase();
                             final String value = formatter.formatCellValue(row.getCell(headerMap.get(headerName))).trim();
                             if (!value.isEmpty()) {
-                                if (!CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())) {
-                                    validateMemberValue(valueType.getRegexp(), value, rowIdentifier);
-                                }
+                                validateMemberValue(valueType.getRegexp(), value, rowIdentifier);
                                 memberValues.add(createMemberValueWithValue(value, valueType.getLocalName()));
                             } else if (valueType.getRequired()) {
                                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_MEMBERVALUE));

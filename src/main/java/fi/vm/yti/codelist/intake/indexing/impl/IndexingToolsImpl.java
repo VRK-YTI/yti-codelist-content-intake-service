@@ -198,12 +198,18 @@ public class IndexingToolsImpl implements IndexingTools {
         "  },\n" +
         "  \"parentCodeScheme\": {\n" +
         "    \"properties\": {\n" +
+        "      \"id\": {\n" +
+        "        \"type\": \"keyword\"\n" +
+        "      },\n" +
         "      \"codeValue\": {\n" +
         "        \"type\": \"text\",\n" +
         "        \"analyzer\": \"text_analyzer\"\n" +
         "      },\n" +
         "      \"codeRegistry\": {\n" +
         "        \"properties\": {\n" +
+        "          \"id\": {\n" +
+        "            \"type\": \"keyword\"\n" +
+        "          },\n" +
         "          \"codeValue\": {\n" +
         "            \"type\": \"text\",\n" +
         "            \"analyzer\": \"text_analyzer\"\n" +
@@ -232,6 +238,17 @@ public class IndexingToolsImpl implements IndexingTools {
         "  },\n" +
         "  \"order\": {\n" +
         "    \"type\": \"integer\"\n" +
+        "  },\n" +
+        "  \"extension\": {\n" +
+        "    \"properties\": {\n" +
+        "      \"id\": {\n" +
+        "        \"type\": \"keyword\"\n" +
+        "      },\n" +
+        "      \"codeValue\": {\n" +
+        "        \"type\": \"text\",\n" +
+        "        \"analyzer\": \"text_analyzer\"\n" +
+        "      }\n" +
+        "    }\n" +
         "  }\n" +
         "}\n}";
 
