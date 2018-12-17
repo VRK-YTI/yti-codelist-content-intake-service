@@ -70,7 +70,7 @@ public class YtiDataAccess {
     private static final String MIGRATION_URIS_VERSION = "v3";
     private static final String MIGRATION_LANGUAGECODES_VERSION = "v1";
     private static final String PROPERTYTYPE_IDENTIFIER = "v15";
-    private static final String VALUETYPE_IDENTIFIER = "v6";
+    private static final String VALUETYPE_IDENTIFIER = "v7";
 
     private boolean isInitializing;
 

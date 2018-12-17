@@ -78,9 +78,7 @@ public class MemberValueDaoImpl implements MemberValueDao {
     private MemberValue createOrUpdateMemberValue(final Set<MemberValue> existingMemberValues,
                                                   final Member member,
                                                   final MemberValueDTO fromMemberValue) {
-        if (!CODE_EXTENSION.equalsIgnoreCase(member.getExtension().getPropertyType().getContext())) {
-            validateMemberValue(fromMemberValue, member.getExtension().getPropertyType());
-        }
+        validateMemberValue(fromMemberValue, member.getExtension().getPropertyType());
         MemberValue existingMemberValue = null;
         if (fromMemberValue.getValueType() != null) {
             final ValueType valueType = valueTypeDao.findByLocalName(fromMemberValue.getValueType().getLocalName());
