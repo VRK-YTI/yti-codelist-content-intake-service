@@ -315,7 +315,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                     m.setExtension(extension);
                     m.setMemberValues(null);
                     m.setPrefLabel(code.getPrefLabel());
-                    m.setUri(null);
+                    m.setUri(apiUtils.createMemberUri(m));
                     memberDao.save(m);
                 }));
         }
