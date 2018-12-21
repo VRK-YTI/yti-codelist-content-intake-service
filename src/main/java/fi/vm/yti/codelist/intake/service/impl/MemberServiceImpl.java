@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
@@ -172,5 +173,11 @@ public class MemberServiceImpl implements MemberService {
         final Set<MemberDTO> memberDtos = memberParser.parseMembersFromExcelWorkbook(extension, workbook, sheetName);
         members = memberDao.updateMemberEntitiesFromDtos(extension, memberDtos);
         return dtoMapperService.mapDeepMemberDtos(members);
+    }
+
+    @Transactional
+    public Set<MemberDTO> createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(final ExtensionDTO extension) {
+        Set<Member> createdMembers =  memberDao.createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(extension);
+        return dtoMapperService.mapDeepMemberDtos(createdMembers);
     }
 }

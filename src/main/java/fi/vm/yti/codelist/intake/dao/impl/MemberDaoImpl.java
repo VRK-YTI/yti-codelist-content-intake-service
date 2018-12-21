@@ -12,15 +12,18 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
+import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.dao.MemberValueDao;
 import fi.vm.yti.codelist.intake.exception.NotFoundException;
@@ -50,6 +53,7 @@ public class MemberDaoImpl implements MemberDao {
     private final LanguageService languageService;
     private final MemberValueDao memberValueDao;
     private final ApiUtils apiUtils;
+    private final ExtensionDao extensionDao;
 
     @Inject
     public MemberDaoImpl(final EntityChangeLogger entityChangeLogger,
@@ -58,7 +62,8 @@ public class MemberDaoImpl implements MemberDao {
                          final UriSuomiProperties uriSuomiProperties,
                          final LanguageService languageService,
                          final MemberValueDao memberValueDao,
-                         final ApiUtils apiUtils) {
+                         final ApiUtils apiUtils,
+                         @Lazy final ExtensionDao extensionDao) {
         this.entityChangeLogger = entityChangeLogger;
         this.memberRepository = memberRepository;
         this.codeDao = codeDao;
@@ -66,6 +71,7 @@ public class MemberDaoImpl implements MemberDao {
         this.languageService = languageService;
         this.memberValueDao = memberValueDao;
         this.apiUtils = apiUtils;
+        this.extensionDao = extensionDao;
     }
 
     @Transactional
@@ -554,5 +560,53 @@ public class MemberDaoImpl implements MemberDao {
             allowedCodeSchemes.addAll(extension.getCodeSchemes());
         }
         return allowedCodeSchemes;
+    }
+
+    @Transactional
+    public Set<Member> createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(final ExtensionDTO extensionDTO) {
+        Extension extension = extensionDao.findById(extensionDTO.getId());
+        Set<Member> createdMembers = new HashSet<>();
+        Set<CodeScheme> codeSchemes = new HashSet<>();
+        codeSchemes.addAll(extension.getCodeSchemes());
+        codeSchemes.add(extension.getParentCodeScheme());
+
+        Set<Code> codesWithMembersInThisExtension = new HashSet<>();
+        Set<Code> codesWithNoMembersInThisExtension = new HashSet<>();
+
+        codeSchemes.forEach(cs ->
+            cs.getCodes().forEach(c ->
+                c.getMembers().forEach( member -> {
+                    if (member.getExtension().getId().compareTo(extension.getId()) == 0) {
+                        codesWithMembersInThisExtension.add(c);
+                    }
+                })
+            )
+        );
+
+        codeSchemes.forEach(cs ->
+            cs.getCodes().forEach(c -> {
+                if (!codesWithMembersInThisExtension.contains(c)) {
+                    codesWithNoMembersInThisExtension.add(c);
+                }
+            })
+        );
+
+        codesWithNoMembersInThisExtension.forEach(code -> {
+            Member m = new Member();
+            m.setId(UUID.randomUUID());
+            m.setOrder(this.getNextOrderInSequence(extension));
+            m.setCode(code);
+            m.setRelatedMember(null);
+            m.setEndDate(code.getEndDate());
+            m.setStartDate(code.getStartDate());
+            m.setExtension(extension);
+            m.setMemberValues(null);
+            m.setPrefLabel(code.getPrefLabel());
+            m.setUri(apiUtils.createMemberUri(m));
+            this.save(m);
+            createdMembers.add(m);
+        });
+
+        return createdMembers;
     }
 }

@@ -3,6 +3,7 @@ package fi.vm.yti.codelist.intake.dao;
 import java.util.Set;
 import java.util.UUID;
 
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
@@ -37,4 +38,6 @@ public interface MemberDao {
                                              final Set<MemberDTO> memberDtos);
 
     Integer getNextOrderInSequence(final Extension extension);
+
+    Set<Member> createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(final ExtensionDTO extension);
 }

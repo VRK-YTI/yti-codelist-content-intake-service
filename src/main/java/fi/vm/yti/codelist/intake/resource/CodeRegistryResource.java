@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -577,6 +578,20 @@ public class CodeRegistryResource implements AbstractBaseResource {
         return parseAndPersistMembersFromSource(codeRegistryCodeValue, codeSchemeCodeValue, extensionCodeValue, FORMAT_JSON, null, jsonPayload, null);
     }
 
+    @POST
+    @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeId}/extensions/{extensionCodeValue}/members/createmissing/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    @ApiOperation(value = "Creates a Member for all Codes missing it, in all Codelists of a given Extension, from JSON input.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Missing Members created successfully.")
+    })
+    public Response createMissingMembersFromJson(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
+                                                 @ApiParam(value = "CodeScheme UUID", required = true) @PathParam("codeSchemeId") final String codeSchemeId,
+                                                 @ApiParam(value = "Extension codeValue", required = true) @PathParam("extensionCodeValue") final String extensionCodeValue) {
+        return createMissingMembersForExtension(UUID.fromString(codeSchemeId), extensionCodeValue);
+    }
+
     @DELETE
     @Path("{codeRegistryCodeValue}/codeschemes/{codeSchemeCodeValue}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -1043,6 +1058,25 @@ public class CodeRegistryResource implements AbstractBaseResource {
         meta.setMessage("Extensions added or modified: " + extensions.size());
         meta.setCode(200);
         responseWrapper.setResults(extensions);
+        return Response.ok(responseWrapper).build();
+    }
+
+    private Response createMissingMembersForExtension(final UUID codeSchemeId,
+                                                      final String extensionCodeValue) {
+        ExtensionDTO extension = extensionService.findByCodeSchemeIdAndCodeValue(codeSchemeId, extensionCodeValue);
+        Set<MemberDTO> createdMembers = memberService.createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(extension);
+        if (!createdMembers.isEmpty()) {
+            indexing.updateExtension(extension);
+            indexing.updateCodeSchemes(extension.getCodeSchemes());
+            indexing.updateCodeScheme(extension.getParentCodeScheme());
+            indexing.updateMembers(createdMembers);
+        }
+        final Meta meta = new Meta();
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_MEMBER, "extension,codeScheme,code,codeRegistry,propertyType,valueType,memberValue")));
+        final ResponseWrapper<MemberDTO> responseWrapper = new ResponseWrapper<>(meta);
+        meta.setMessage("Members created: " + createdMembers.size());
+        meta.setCode(200);
+        responseWrapper.setResults(createdMembers);
         return Response.ok(responseWrapper).build();
     }
 

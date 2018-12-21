@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.apache.poi.ss.usermodel.Workbook;
 
+import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.model.Extension;
 
@@ -35,4 +36,6 @@ public interface MemberService {
     Set<MemberDTO> parseAndPersistMembersFromExcelWorkbook(final Extension extension,
                                                            final Workbook workbook,
                                                            final String sheetName);
+
+    Set<MemberDTO> createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(final ExtensionDTO extension);
 }
