@@ -143,8 +143,12 @@ public class MemberValueDaoImpl implements MemberValueDao {
                                      final PropertyType propertyType) {
         final ValueType valueType = propertyType.getValueTypeWithLocalName(memberValue.getValueType().getLocalName());
         if (valueType != null) {
+            final String memberValueString = memberValue.getValue();
+            if (!valueType.getRequired() && (memberValueString == null || memberValueString.isEmpty())) {
+                return;
+            }
             final String regexp = valueType.getRegexp();
-            if (regexp != null && !regexp.isEmpty() && !validateStringAgainstRegexp(memberValue.getValue(), regexp)) {
+            if (regexp != null && !regexp.isEmpty() && !validateStringAgainstRegexp(memberValueString, regexp)) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_VALIDATION_FAILED));
             }
         } else {
