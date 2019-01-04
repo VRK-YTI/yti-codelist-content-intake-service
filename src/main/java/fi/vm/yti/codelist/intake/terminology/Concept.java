@@ -18,10 +18,11 @@ public final class Concept {
     private final Map definition;
     private final Map vocabularyPrefLabel;
     private final String uri;
+    private final String status;
 
     // Jackson constructor
     private Concept() {
-        this(randomUUID(), randomUUID(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), "");
+        this(randomUUID(), randomUUID(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), "", "");
     }
 
     public Concept(final UUID id,
@@ -29,13 +30,15 @@ public final class Concept {
                    final Map prefLabel,
                    final Map definition,
                    final Map vocabularyPrefLabel,
-                   final String uri) {
+                   final String uri,
+                   final String status) {
         this.id = id;
         this.vocabularyId = vocabularyId;
         this.prefLabel = prefLabel;
         this.definition = definition;
         this.vocabularyPrefLabel = vocabularyPrefLabel;
         this.uri = uri;
+        this.status = status;
     }
 
     public Concept(final ConceptSuggestion conceptSuggestion) {
@@ -45,6 +48,7 @@ public final class Concept {
         this.definition = getDefinitionFromSuggestion(conceptSuggestion.getDefinition());
         this.vocabularyPrefLabel = null;
         this.uri = conceptSuggestion.getUri();
+        this.status = "SUGGESTION";
     }
 
     private Map getPrefLabelFromSuggestion(final Attribute attribute) {
@@ -81,6 +85,10 @@ public final class Concept {
 
     public String getUri() {
         return uri;
+    }
+
+    public String getStatus() {
+        return status;
     }
 }
 

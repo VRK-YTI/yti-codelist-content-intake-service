@@ -1,7 +1,9 @@
 package fi.vm.yti.codelist.intake.resource.externalresources;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -12,6 +14,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -120,7 +123,8 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     @ApiResponse(code = 200, message = "Returns success.")
     @SuppressWarnings("Duplicates")
     public Response getConcepts(@PathParam("searchTerm") String searchTerm,
-                                @PathParam("vocabularyId") String vocabularyId) {
+                                @PathParam("vocabularyId") String vocabularyId,
+                                @QueryParam("status") String status) {
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
@@ -130,7 +134,9 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         final ResponseWrapper<Concept> wrapper = new ResponseWrapper<>(meta);
         String response;
         try {
-            response = restTemplate.getForObject(createTerminologyConceptsApiUrl(searchTerm, vocabularyId), String.class);
+            Map<String, String> params = new HashMap<>();
+            params.put("status", status);
+            response = restTemplate.getForObject(createTerminologyConceptsApiUrl(searchTerm, vocabularyId), String.class, params);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 // ok to continue
@@ -161,7 +167,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
 
     private String createTerminologyConceptsApiUrl(final String searchTerm,
                                                    final String vocabularyId) {
-        return terminologyProperties.getUrl() + API_PATH_TERMINOLOGY + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_CONCEPTS + "/searchterm" + "/" + searchTerm + "/" + "vocabulary" + "/" + vocabularyId;
+        return terminologyProperties.getUrl() + API_PATH_TERMINOLOGY + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_CONCEPTS + "/searchterm" + "/" + searchTerm + "/" + "vocabulary" + "/" + vocabularyId + "?status={status}";
     }
 
     @POST
