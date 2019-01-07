@@ -48,7 +48,7 @@ public final class Concept {
         this.definition = getDefinitionFromSuggestion(conceptSuggestion.getDefinition());
         this.vocabularyPrefLabel = null;
         this.uri = conceptSuggestion.getUri();
-        this.status = "SUGGESTION";
+        this.status = "SUGGESTED";
     }
 
     private Map getPrefLabelFromSuggestion(final Attribute attribute) {
