@@ -13,16 +13,19 @@ public final class Vocabulary {
 
     private final UUID id;
     private final Map prefLabel;
+    private final String status;
 
     // Jackson constructor
     private Vocabulary() {
-        this(randomUUID(), Collections.emptyMap());
+        this(randomUUID(), Collections.emptyMap(), null);
     }
 
     public Vocabulary(final UUID id,
-                      final Map prefLabel) {
+                      final Map prefLabel,
+                      final String status) {
         this.id = id;
         this.prefLabel = prefLabel;
+        this.status = status;
     }
 
     public UUID getId() {
@@ -32,4 +35,6 @@ public final class Vocabulary {
     public Map getPrefLabel() {
         return prefLabel;
     }
+
+    public String getStatus() { return status; }
 }
