@@ -1,7 +1,12 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -27,6 +32,7 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.ExtensionRepository;
 import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
+import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
@@ -300,11 +306,18 @@ public class ExtensionDaoImpl implements ExtensionDao {
         extension.setModified(timeStamp);
 
         if (autoCreateMembers) {
-            final Set<CodeScheme> codeSchemesToGenerateAutoMembersFor = new HashSet<>();
-            codeSchemesToGenerateAutoMembersFor.addAll(codeSchemes);
+
+            final LinkedHashSet<CodeScheme> codeSchemesToGenerateAutoMembersFor = new LinkedHashSet<>();
+            final LinkedHashMap<CodeScheme, LinkedHashSet<Code>> codeSchemesWithCodesOrdered = new LinkedHashMap<>();
+
             codeSchemesToGenerateAutoMembersFor.add(codeScheme);
-            codeSchemesToGenerateAutoMembersFor.forEach(cs ->
-                cs.getCodes().forEach(code -> {
+            codeSchemesToGenerateAutoMembersFor.addAll(codeSchemes);
+
+            codeSchemesToGenerateAutoMembersFor.forEach(cs -> populateMapWhereCodesAreOrderedBasedOnFlatOrderAscending(cs, codeSchemesWithCodesOrdered));
+
+            codeSchemesWithCodesOrdered.keySet().forEach(cs -> {
+                LinkedHashSet<Code> codesInCorrectOrder = codeSchemesWithCodesOrdered.get(cs);
+                codesInCorrectOrder.forEach(code -> {
                     Member m = new Member();
                     m.setId(UUID.randomUUID());
                     m.setOrder(memberDao.getNextOrderInSequence(extension));
@@ -317,10 +330,37 @@ public class ExtensionDaoImpl implements ExtensionDao {
                     m.setPrefLabel(code.getPrefLabel());
                     m.setUri(apiUtils.createMemberUri(m));
                     memberDao.save(m);
-                }));
+                });
+            });
         }
 
         return extension;
+    }
+
+    /**
+     * The why and how of this ordering-trick is the following - when the user creates an extension, and chooses to autocreate the members, a member is created for every code of
+     * every codescheme involved (that is , the extensions parent codescheme, and all the attached codeschemes (0-n pieces).
+     *
+     * For arguments sake lets assume there is the parent codescheme with codes a,b,c and 2 others with codes d,e,f and g,h,i.
+     *
+     * If we do nothing explicit about the ordering of the members during creation, the members listing could look this this: c a b f d e h i g , which looks chaotic.
+     *
+     * So we order, and guarantee that each code scheme retains its order (abc, def, ghi) and also guarantee that abc (the parent codescheme) is always first, but we cannot control
+     * the order in which the external codeschemes appear in the listing. So we could have abc def ghi OR we could have abd, ghi, def.
+     *
+     * Not perfect, but much better than total chaos in the ordering.
+     */
+    private void populateMapWhereCodesAreOrderedBasedOnFlatOrderAscending(CodeScheme cs, HashMap<CodeScheme, LinkedHashSet<Code>> codeSchemesWithCodesOrdered) {
+
+        Set<Code> items = cs.getCodes();
+        List<Code> codesSorted = items.stream().collect(Collectors.toList());
+        Collections.sort(codesSorted, (o1, o2) -> o1.getOrder().compareTo(o2.getOrder()));
+
+        LinkedHashSet<Code> codesOrdered = new LinkedHashSet<>();
+        for (Code code : codesSorted) {
+            codesOrdered.add(code);
+        }
+        codeSchemesWithCodesOrdered.put(cs, codesOrdered);
     }
 
     private void addExtensionToParentCodeScheme(final CodeScheme codeScheme,
