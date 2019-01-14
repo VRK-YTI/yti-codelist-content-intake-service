@@ -360,9 +360,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
         LinkedHashSet<Code> codesOrdered = new LinkedHashSet<>();
 
-        for (Code code : codesSorted) {
-            codesOrdered.add(code);
-        }
+        codesOrdered.addAll(codesSorted);
 
         codeSchemesWithCodesOrdered.put(cs, codesOrdered);
     }
@@ -377,9 +375,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
         LinkedHashSet<CodeScheme> result = new LinkedHashSet<>();
 
-        for (CodeScheme codeScheme : codeSchemesSorted) {
-            result.add(codeScheme);
-        }
+        result.addAll(codeSchemesSorted);
 
         return result;
     }
