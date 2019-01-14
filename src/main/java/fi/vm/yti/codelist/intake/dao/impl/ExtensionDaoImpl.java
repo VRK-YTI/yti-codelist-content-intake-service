@@ -354,14 +354,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
      */
     private void populateMapWhereCodesAreOrderedBasedOnFlatOrderAscending(CodeScheme cs,
                                                                           HashMap<CodeScheme, LinkedHashSet<Code>> codeSchemesWithCodesOrdered) {
-
         List<Code> codesSorted = new ArrayList<>(cs.getCodes());
-        Collections.sort(codesSorted, Comparator.comparing(Code::getOrder));
-
-        LinkedHashSet<Code> codesOrdered = new LinkedHashSet<>();
-
-        codesOrdered.addAll(codesSorted);
-
+        codesSorted.sort(Comparator.comparing(Code::getOrder));
+        LinkedHashSet<Code> codesOrdered = new LinkedHashSet<>(codesSorted);
         codeSchemesWithCodesOrdered.put(cs, codesOrdered);
     }
 
@@ -369,15 +364,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
      * @param codeSchemes these are all the other codeschemes, but not the extensions parent codescheme
      */
     private LinkedHashSet<CodeScheme> orderExtensionsCodeSchemesAlphabetically(Set<CodeScheme> codeSchemes) {
-
         List<CodeScheme> codeSchemesSorted = new ArrayList<>(codeSchemes);
-        Collections.sort(codeSchemesSorted, Comparator.comparing(CodeScheme::getCodeValue));
-
-        LinkedHashSet<CodeScheme> result = new LinkedHashSet<>();
-
-        result.addAll(codeSchemesSorted);
-
-        return result;
+        codeSchemesSorted.sort(Comparator.comparing(CodeScheme::getCodeValue));
+        return new LinkedHashSet<>(codeSchemesSorted);
     }
 
     private void addExtensionToParentCodeScheme(final CodeScheme codeScheme,
