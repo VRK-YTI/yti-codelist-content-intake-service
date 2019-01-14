@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -355,12 +356,14 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
         Set<Code> items = cs.getCodes();
         List<Code> codesSorted = items.stream().collect(Collectors.toList());
-        Collections.sort(codesSorted, (o1, o2) -> o1.getOrder().compareTo(o2.getOrder()));
+        Collections.sort(codesSorted, Comparator.comparing(Code::getOrder));
 
         LinkedHashSet<Code> codesOrdered = new LinkedHashSet<>();
+
         for (Code code : codesSorted) {
             codesOrdered.add(code);
         }
+
         codeSchemesWithCodesOrdered.put(cs, codesOrdered);
     }
 
@@ -370,13 +373,14 @@ public class ExtensionDaoImpl implements ExtensionDao {
     private LinkedHashSet<CodeScheme> orderExtensionsCodeSchemesAlphabetically(Set<CodeScheme> codeSchemes) {
 
         List<CodeScheme> codeSchemesSorted = codeSchemes.stream().collect(Collectors.toList());
-        Collections.sort(codeSchemesSorted, (o1, o2) -> o1.getCodeValue().compareTo(o2.getCodeValue()));
+        Collections.sort(codeSchemesSorted, Comparator.comparing(CodeScheme::getCodeValue));
 
         LinkedHashSet<CodeScheme> result = new LinkedHashSet<>();
 
         for (CodeScheme codeScheme : codeSchemesSorted) {
             result.add(codeScheme);
         }
+
         return result;
     }
 
