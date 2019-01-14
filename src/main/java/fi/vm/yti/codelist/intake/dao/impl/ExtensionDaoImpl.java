@@ -285,6 +285,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             extension.setPrefLabel(language, entry.getValue());
         }
         final Set<CodeScheme> codeSchemes = new HashSet<>();
+        LinkedHashSet<CodeScheme> codeSchemesAlphabeticallyOrdered = null;
         if (fromExtension.getCodeSchemes() != null && !fromExtension.getCodeSchemes().isEmpty()) {
             fromExtension.getCodeSchemes().forEach(codeSchemeDto -> {
                 final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
@@ -296,6 +297,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_NOT_FOUND));
                 }
             });
+            codeSchemesAlphabeticallyOrdered = orderExtensionsCodeSchemesAlphabetically(codeSchemes);
             extension.setCodeSchemes(codeSchemes);
         }
         extension.setParentCodeScheme(codeScheme);
@@ -311,7 +313,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             final LinkedHashMap<CodeScheme, LinkedHashSet<Code>> codeSchemesWithCodesOrdered = new LinkedHashMap<>();
 
             codeSchemesToGenerateAutoMembersFor.add(codeScheme);
-            codeSchemesToGenerateAutoMembersFor.addAll(codeSchemes);
+            codeSchemesToGenerateAutoMembersFor.addAll(codeSchemesAlphabeticallyOrdered);
 
             codeSchemesToGenerateAutoMembersFor.forEach(cs -> populateMapWhereCodesAreOrderedBasedOnFlatOrderAscending(cs, codeSchemesWithCodesOrdered));
 
@@ -327,7 +329,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                     m.setStartDate(code.getStartDate());
                     m.setExtension(extension);
                     m.setMemberValues(null);
-                    m.setPrefLabel(code.getPrefLabel());
+                    m.setPrefLabel(null);
                     m.setUri(apiUtils.createMemberUri(m));
                     memberDao.save(m);
                 });
@@ -340,17 +342,16 @@ public class ExtensionDaoImpl implements ExtensionDao {
     /**
      * The why and how of this ordering-trick is the following - when the user creates an extension, and chooses to autocreate the members, a member is created for every code of
      * every codescheme involved (that is , the extensions parent codescheme, and all the attached codeschemes (0-n pieces).
-     *
+     * <p>
      * For arguments sake lets assume there is the parent codescheme with codes a,b,c and 2 others with codes d,e,f and g,h,i.
-     *
+     * <p>
      * If we do nothing explicit about the ordering of the members during creation, the members listing could look this this: c a b f d e h i g , which looks chaotic.
-     *
-     * So we order, and guarantee that each code scheme retains its order (abc, def, ghi) and also guarantee that abc (the parent codescheme) is always first, but we cannot control
-     * the order in which the external codeschemes appear in the listing. So we could have abc def ghi OR we could have abd, ghi, def.
-     *
-     * Not perfect, but much better than total chaos in the ordering.
+     * <p>
+     * So we order, and guarantee that each codescheme retains the order of the codes (abc, def, ghi) and also guarantee that the parent codeschemes codes are always first,
+     * and the other codeschemes are ordered alphabetically according to their codeValue.
      */
-    private void populateMapWhereCodesAreOrderedBasedOnFlatOrderAscending(CodeScheme cs, HashMap<CodeScheme, LinkedHashSet<Code>> codeSchemesWithCodesOrdered) {
+    private void populateMapWhereCodesAreOrderedBasedOnFlatOrderAscending(CodeScheme cs,
+                                                                          HashMap<CodeScheme, LinkedHashSet<Code>> codeSchemesWithCodesOrdered) {
 
         Set<Code> items = cs.getCodes();
         List<Code> codesSorted = items.stream().collect(Collectors.toList());
@@ -361,6 +362,22 @@ public class ExtensionDaoImpl implements ExtensionDao {
             codesOrdered.add(code);
         }
         codeSchemesWithCodesOrdered.put(cs, codesOrdered);
+    }
+
+    /**
+     * @param codeSchemes these are all the other codeschemes, but not the extensions parent codescheme
+     */
+    private LinkedHashSet<CodeScheme> orderExtensionsCodeSchemesAlphabetically(Set<CodeScheme> codeSchemes) {
+
+        List<CodeScheme> codeSchemesSorted = codeSchemes.stream().collect(Collectors.toList());
+        Collections.sort(codeSchemesSorted, (o1, o2) -> o1.getCodeValue().compareTo(o2.getCodeValue()));
+
+        LinkedHashSet<CodeScheme> result = new LinkedHashSet<>();
+
+        for (CodeScheme codeScheme : codeSchemesSorted) {
+            result.add(codeScheme);
+        }
+        return result;
     }
 
     private void addExtensionToParentCodeScheme(final CodeScheme codeScheme,
