@@ -601,7 +601,7 @@ public class MemberDaoImpl implements MemberDao {
             m.setStartDate(code.getStartDate());
             m.setExtension(extension);
             m.setMemberValues(null);
-            m.setPrefLabel(code.getPrefLabel());
+            m.setPrefLabel(null);
             m.setUri(apiUtils.createMemberUri(m));
             this.save(m);
             createdMembers.add(m);
