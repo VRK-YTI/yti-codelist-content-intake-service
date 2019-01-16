@@ -287,7 +287,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             extension.setPrefLabel(language, entry.getValue());
         }
         final Set<CodeScheme> codeSchemes = new HashSet<>();
-        LinkedHashSet<CodeScheme> codeSchemesAlphabeticallyOrdered = null;
+        LinkedHashSet<CodeScheme> codeSchemesAlphabeticallyOrdered = new LinkedHashSet<>();
         if (fromExtension.getCodeSchemes() != null && !fromExtension.getCodeSchemes().isEmpty()) {
             fromExtension.getCodeSchemes().forEach(codeSchemeDto -> {
                 final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
