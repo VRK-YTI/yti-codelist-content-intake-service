@@ -1,8 +1,13 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -565,15 +570,18 @@ public class MemberDaoImpl implements MemberDao {
     @Transactional
     public Set<Member> createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(final ExtensionDTO extensionDTO) {
         Extension extension = extensionDao.findById(extensionDTO.getId());
-        Set<Member> createdMembers = new HashSet<>();
-        Set<CodeScheme> codeSchemes = new HashSet<>();
-        codeSchemes.addAll(extension.getCodeSchemes());
+        LinkedHashSet<Member> createdMembers = new LinkedHashSet<>();
+        LinkedHashSet<CodeScheme> codeSchemes = new LinkedHashSet<>();
         codeSchemes.add(extension.getParentCodeScheme());
+        codeSchemes.addAll(extension.getCodeSchemes());
 
-        Set<Code> codesWithMembersInThisExtension = new HashSet<>();
-        Set<Code> codesWithNoMembersInThisExtension = new HashSet<>();
+        LinkedHashSet<Code> codesWithMembersInThisExtension = new LinkedHashSet<>();
+        LinkedHashSet<Code> codesWithNoMembersInThisExtension = new LinkedHashSet<>();
 
-        codeSchemes.forEach(cs ->
+        final LinkedHashMap<CodeScheme, LinkedHashSet<Code>> codeSchemesWithCodesOrdered = new LinkedHashMap<>();
+        codeSchemes.forEach(cs -> populateMapWhereCodesAreOrderedBasedOnFlatOrderAscending(cs, codeSchemesWithCodesOrdered));
+
+        codeSchemesWithCodesOrdered.keySet().forEach(cs ->
             cs.getCodes().forEach(c ->
                 c.getMembers().forEach( member -> {
                     if (member.getExtension().getId().compareTo(extension.getId()) == 0) {
@@ -583,7 +591,7 @@ public class MemberDaoImpl implements MemberDao {
             )
         );
 
-        codeSchemes.forEach(cs ->
+        codeSchemesWithCodesOrdered.keySet().forEach(cs ->
             cs.getCodes().forEach(c -> {
                 if (!codesWithMembersInThisExtension.contains(c)) {
                     codesWithNoMembersInThisExtension.add(c);
@@ -591,22 +599,46 @@ public class MemberDaoImpl implements MemberDao {
             })
         );
 
-        codesWithNoMembersInThisExtension.forEach(code -> {
-            Member m = new Member();
-            m.setId(UUID.randomUUID());
-            m.setOrder(this.getNextOrderInSequence(extension));
-            m.setCode(code);
-            m.setRelatedMember(null);
-            m.setEndDate(code.getEndDate());
-            m.setStartDate(code.getStartDate());
-            m.setExtension(extension);
-            m.setMemberValues(null);
-            m.setPrefLabel(null);
-            m.setUri(apiUtils.createMemberUri(m));
-            this.save(m);
-            createdMembers.add(m);
+        codeSchemesWithCodesOrdered.keySet().forEach(cs -> {
+            LinkedHashSet<Code> codesInCorrectOrder = codeSchemesWithCodesOrdered.get(cs);
+            codesInCorrectOrder.forEach(code -> {
+                if (codesWithNoMembersInThisExtension.contains(code)) {
+                    Member m = new Member();
+                    m.setId(UUID.randomUUID());
+                    m.setOrder(this.getNextOrderInSequence(extension));
+                    m.setCode(code);
+                    m.setRelatedMember(null);
+                    m.setEndDate(code.getEndDate());
+                    m.setStartDate(code.getStartDate());
+                    m.setExtension(extension);
+                    m.setMemberValues(null);
+                    m.setPrefLabel(null);
+                    m.setUri(apiUtils.createMemberUri(m));
+                    this.save(m);
+                    createdMembers.add(m);
+                }
+            });
         });
 
         return createdMembers;
+    }
+
+    /**
+     * The why and how of this ordering-trick is the following - when someone has previoously created an extension, and now the user chooses to create the missing members,
+     * a member is created for every code of every codescheme involved (that is , the extensions parent codescheme, and all the attached codeschemes (0-n pieces), THAT DOES NOT YET
+     * have a corresponding member.
+     * <p>
+     * For arguments sake lets assume there is the parent codescheme with codes a,b,c (and existing member b) and 1 other codescheme with codes d,e,f and also a member for code e.
+     * <p>
+     * In this case we end up with the order b,e,a,c,d,f. b and e are first because they already exist. Then, the parent codescheme is processed first, and from there we get
+     * alphabetically (by codevalue) a, c. And then the other codeschemes, alphabetically according to the codevalue (although in this case there is only one codescheme) and from
+     * there we get alphabetically d, f.
+     */
+    private void populateMapWhereCodesAreOrderedBasedOnFlatOrderAscending(CodeScheme cs,
+                                                                          HashMap<CodeScheme, LinkedHashSet<Code>> codeSchemesWithCodesOrdered) {
+        List<Code> codesSorted = new ArrayList<>(cs.getCodes());
+        codesSorted.sort(Comparator.comparing(Code::getOrder));
+        LinkedHashSet<Code> codesOrdered = new LinkedHashSet<>(codesSorted);
+        codeSchemesWithCodesOrdered.put(cs, codesOrdered);
     }
 }
