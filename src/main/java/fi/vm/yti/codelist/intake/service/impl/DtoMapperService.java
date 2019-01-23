@@ -278,6 +278,9 @@ public class DtoMapperService {
     @Transactional
     public ExternalReferenceDTO mapExternalReferenceDto(final ExternalReference externalReference,
                                                         final boolean deep) {
+        if (externalReference == null) {
+            return null;
+        }
         final ExternalReferenceDTO externalReferenceDto = new ExternalReferenceDTO();
         externalReferenceDto.setId(externalReference.getId());
         externalReferenceDto.setDescription(externalReference.getDescription());

@@ -1065,12 +1065,8 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                       final String extensionCodeValue) {
         ExtensionDTO extension = extensionService.findByCodeSchemeIdAndCodeValue(codeSchemeId, extensionCodeValue);
         Set<MemberDTO> createdMembers = memberService.createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(extension);
-        if (!createdMembers.isEmpty()) {
-            indexing.updateExtension(extension);
-            indexing.updateCodeSchemes(extension.getCodeSchemes());
-            indexing.updateCodeScheme(extension.getParentCodeScheme());
-            indexing.updateMembers(createdMembers);
-        }
+        indexing.updateExtension(extension);
+        indexing.updateMembers(createdMembers);
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_MEMBER, "extension,codeScheme,code,codeRegistry,propertyType,valueType,memberValue")));
         final ResponseWrapper<MemberDTO> responseWrapper = new ResponseWrapper<>(meta);
