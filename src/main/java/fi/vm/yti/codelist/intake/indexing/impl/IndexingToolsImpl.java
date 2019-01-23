@@ -9,15 +9,14 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
-import org.elasticsearch.action.admin.indices.alias.IndicesAliasesResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
-import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -283,7 +282,7 @@ public class IndexingToolsImpl implements IndexingTools {
                 }
             }
             request.addAliasAction(IndicesAliasesRequest.AliasActions.add().alias(aliasName).index(indexName));
-            final IndicesAliasesResponse response = client.admin().indices().aliases(request).actionGet();
+            final AcknowledgedResponse response = client.admin().indices().aliases(request).actionGet();
             if (!response.isAcknowledged()) {
                 logAliasFailed(indexName);
             } else {
@@ -307,7 +306,7 @@ public class IndexingToolsImpl implements IndexingTools {
         final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
         if (exists) {
             try {
-                final DeleteIndexResponse response = client.admin().indices().delete(request).get();
+                final AcknowledgedResponse response = client.admin().indices().delete(request).get();
                 if (!response.isAcknowledged()) {
                     logDeleteFailed(indexName);
                 } else {
@@ -336,7 +335,7 @@ public class IndexingToolsImpl implements IndexingTools {
         if (!exists) {
             final CreateIndexRequestBuilder builder = client.admin().indices().prepareCreate(indexName);
             try {
-                builder.setSettings(Settings.builder().loadFromSource(jsonBuilder()
+                final XContentBuilder contentBuilder = jsonBuilder()
                     .startObject()
                     .startObject("index")
                     .field(MAX_RESULT_WINDOW, MAX_RESULT_WINDOW_SIZE)
@@ -361,7 +360,8 @@ public class IndexingToolsImpl implements IndexingTools {
                     .endObject()
                     .endObject()
                     .endObject()
-                    .endObject().string(), XContentType.JSON));
+                    .endObject();
+                builder.setSource(contentBuilder);
             } catch (final IOException e) {
                 LOG.error("Error parsing index request settings JSON!", e);
             }

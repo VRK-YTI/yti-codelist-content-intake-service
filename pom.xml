@@ -616,7 +616,7 @@
         <swagger-maven-plugin.version>3.1.6</swagger-maven-plugin.version>
         <postgresql.version>42.2.5</postgresql.version>
         <flyway.version>5.1.4</flyway.version>
-        <elastic.version>6.1.2</elastic.version>
+        <elastic.version>6.5.4</elastic.version>
         <apache.poi.version>3.17</apache.poi.version>
         <apache.httpclient.version>4.5.6</apache.httpclient.version>
         <psql.host>localhost</psql.host>
