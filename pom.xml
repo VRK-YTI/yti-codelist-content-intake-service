@@ -402,7 +402,7 @@
                     <portPropertyFile>target/test-classes/test-port.properties</portPropertyFile>
                     <images>
                         <image>
-                            <name>yti-codelist-elasticsearch:dev</name>
+                            <name>docker.elastic.co/elasticsearch/elasticsearch:6.5.4</name>
                             <alias>${project.artifactId}_test_elastic</alias>
                             <run>
                                 <namingStrategy>alias</namingStrategy>
@@ -414,6 +414,18 @@
                                     <port>testelasticsearch.transport.port:9300</port>
                                     <port>testelasticsearch.http.port:9200</port>
                                 </ports>
+                                <env>
+                                    <cluster.name>yti-codelist-elasticsearch</cluster.name>
+                                    <xpack.security.enabled>false</xpack.security.enabled>
+                                </env>
+                                <wait>
+                                    <http>
+                                        <url>http://127.0.0.1:${testelasticsearch.http.port}</url>
+                                        <method>GET</method>
+                                        <status>200</status>
+                                    </http>
+                                    <time>60000</time>
+                                </wait>
                             </run>
                         </image>
                         <image>
@@ -616,7 +628,7 @@
         <swagger-maven-plugin.version>3.1.6</swagger-maven-plugin.version>
         <postgresql.version>42.2.5</postgresql.version>
         <flyway.version>5.1.4</flyway.version>
-        <elastic.version>6.1.2</elastic.version>
+        <elastic.version>6.5.4</elastic.version>
         <apache.poi.version>3.17</apache.poi.version>
         <apache.httpclient.version>4.5.6</apache.httpclient.version>
         <psql.host>localhost</psql.host>
