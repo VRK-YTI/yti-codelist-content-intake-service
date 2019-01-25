@@ -193,7 +193,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "    \"type\": \"keyword\"\n" +
         "  },\n" +
         "  \"prefLabel\": {\n" +
-        "    \"type\": \"keyword\"\n" +
+        "    \"type\": \"nested\"\n" +
         "  },\n" +
         "  \"localName\": {\n" +
         "    \"type\": \"text\",\n" +
