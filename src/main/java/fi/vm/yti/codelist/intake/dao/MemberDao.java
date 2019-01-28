@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
+import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
 
@@ -28,6 +29,8 @@ public interface MemberDao {
     Set<Member> findByCodeId(final UUID id);
 
     Set<Member> findByRelatedMemberId(final UUID id);
+
+    Set<Member> findByRelatedMemberCode(final Code code);
 
     Set<Member> findByExtensionId(final UUID id);
 

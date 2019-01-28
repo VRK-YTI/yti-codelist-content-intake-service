@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.apache.poi.ss.usermodel.Workbook;
 
+import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.model.Extension;
@@ -22,6 +23,8 @@ public interface MemberService {
     Set<MemberDTO> findByCodeId(final UUID id);
 
     Set<MemberDTO> findByExtensionId(final UUID id);
+
+    Set<MemberDTO> findByRelatedMemberCode(final CodeDTO code);
 
     Set<MemberDTO> parseAndPersistMemberFromJson(final String jsonPayload);
 

@@ -10,6 +10,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
 
@@ -28,6 +29,8 @@ public interface MemberRepository extends CrudRepository<Member, String> {
     Integer getMemberMaxOrder(@Param("extensionId") final UUID extensionId);
 
     Set<Member> findByRelatedMemberId(final UUID id);
+
+    Set<Member> findByRelatedMemberCode(final Code id);
 
     Set<Member> findByExtensionId(final UUID id);
 

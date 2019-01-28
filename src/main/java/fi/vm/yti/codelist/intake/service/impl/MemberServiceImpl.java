@@ -12,9 +12,11 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
+import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
@@ -40,6 +42,7 @@ public class MemberServiceImpl implements MemberService {
     private final ExtensionDao extensionDao;
     private final CodeSchemeDao codeSchemeDao;
     private final DtoMapperService dtoMapperService;
+    private final CodeDao codeDao;
 
     @Inject
     public MemberServiceImpl(final AuthorizationManager authorizationManager,
@@ -47,13 +50,15 @@ public class MemberServiceImpl implements MemberService {
                              final MemberParser memberParser,
                              final ExtensionDao extensionDao,
                              final CodeSchemeDao codeSchemeDao,
-                             final DtoMapperService dtoMapperService) {
+                             final DtoMapperService dtoMapperService,
+                             final CodeDao codeDao) {
         this.authorizationManager = authorizationManager;
         this.memberDao = memberDao;
         this.memberParser = memberParser;
         this.extensionDao = extensionDao;
         this.codeSchemeDao = codeSchemeDao;
         this.dtoMapperService = dtoMapperService;
+        this.codeDao = codeDao;
     }
 
     @Transactional
@@ -91,6 +96,11 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public Set<MemberDTO> findByCodeId(final UUID id) {
         return dtoMapperService.mapDeepMemberDtos(memberDao.findByCodeId(id));
+    }
+
+    @Transactional
+    public Set<MemberDTO> findByRelatedMemberCode(final CodeDTO code) {
+        return dtoMapperService.mapDeepMemberDtos(memberDao.findByRelatedMemberCode(codeDao.findById(code.getId())));
     }
 
     @Transactional
@@ -177,7 +187,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Transactional
     public Set<MemberDTO> createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(final ExtensionDTO extension) {
-        Set<Member> createdMembers =  memberDao.createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(extension);
+        Set<Member> createdMembers = memberDao.createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(extension);
         return dtoMapperService.mapDeepMemberDtos(createdMembers);
     }
 }

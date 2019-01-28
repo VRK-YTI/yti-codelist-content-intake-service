@@ -132,6 +132,11 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Transactional
+    public Set<Member> findByRelatedMemberCode(final Code code) {
+        return memberRepository.findByRelatedMemberCode(code);
+    }
+
+    @Transactional
     public Set<Member> findByExtensionId(final UUID id) {
         return memberRepository.findByExtensionId(id);
     }
@@ -583,7 +588,7 @@ public class MemberDaoImpl implements MemberDao {
 
         codeSchemesWithCodesOrdered.keySet().forEach(cs ->
             cs.getCodes().forEach(c ->
-                c.getMembers().forEach( member -> {
+                c.getMembers().forEach(member -> {
                     if (member.getExtension().getId().compareTo(extension.getId()) == 0) {
                         codesWithMembersInThisExtension.add(c);
                     }

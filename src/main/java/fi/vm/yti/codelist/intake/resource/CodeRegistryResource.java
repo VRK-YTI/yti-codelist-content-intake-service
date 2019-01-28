@@ -771,6 +771,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         codes.forEach(code -> {
             indexing.updateExternalReferences(code.getExternalReferences());
             indexing.updateMembers(memberService.findByCodeId(code.getId()));
+            indexing.updateMembers(memberService.findByRelatedMemberCode(code));
         });
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
