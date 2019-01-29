@@ -102,6 +102,7 @@ public class MemberResource implements AbstractBaseResource {
             final ExtensionDTO extension = extensionService.findById(members.iterator().next().getExtension().getId());
             if (extension != null) {
                 indexing.updateExtension(extension);
+                indexing.updateMembers(memberService.findByExtensionId(extension.getId()));
             }
             if (CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())) {
                 final Set<CodeDTO> codes = new HashSet<>();
