@@ -235,6 +235,9 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
             final Code codeToBeDeleted = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
             if (codeToBeDeleted != null) {
                 if (authorizationManager.canCodeBeDeleted(codeToBeDeleted)) {
+                    if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(codeToBeDeleted.getCodeValue())) {
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_CANT_DELETE_DEFAULT_CODE));
+                    }
                     final Set<Member> filteredMembers = filterRelatedMembers(codeScheme, codeToBeDeleted);
                     if (!filteredMembers.isEmpty()) {
                         final StringBuilder identifier = new StringBuilder();
@@ -250,9 +253,6 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                     final Set<Member> membersToBeDeleted = filterToBeDeletedMembers(codeScheme, codeToBeDeleted);
                     if (!membersToBeDeleted.isEmpty()) {
                         memberDao.delete(membersToBeDeleted);
-                    }
-                    if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(codeToBeDeleted.getCodeValue())) {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_CANT_DELETE_DEFAULT_CODE));
                     }
                     removeBroaderCodeId(codeToBeDeleted.getId(), affectedCodes);
                     final CodeDTO codeToBeDeletedDTO = dtoMapperService.mapCodeDto(codeToBeDeleted, true, true, true);
