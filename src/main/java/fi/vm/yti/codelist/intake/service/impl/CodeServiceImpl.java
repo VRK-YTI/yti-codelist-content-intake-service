@@ -252,8 +252,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                         memberDao.delete(membersToBeDeleted);
                     }
                     if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(codeToBeDeleted.getCodeValue())) {
-                        codeScheme.setDefaultCode(null);
-                        codeSchemeDao.save(codeScheme);
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_CANT_DELETE_DEFAULT_CODE));
                     }
                     removeBroaderCodeId(codeToBeDeleted.getId(), affectedCodes);
                     final CodeDTO codeToBeDeletedDTO = dtoMapperService.mapCodeDto(codeToBeDeleted, true, true, true);
