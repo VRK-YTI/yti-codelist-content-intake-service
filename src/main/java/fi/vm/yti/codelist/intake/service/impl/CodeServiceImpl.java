@@ -277,10 +277,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         final Set<Member> relatedMembers = code.getMembers();
         if (relatedMembers != null) {
             for (final Member member : relatedMembers) {
-                if ((codeScheme != member.getExtension().getParentCodeScheme() && !member.getExtension().getPropertyType().getLocalName().equals("crossReferenceList") ) ||
-                    member.getExtension().getPropertyType().getLocalName().equals("crossReferenceList")) {
                     filteredMembers.add(member);
-                }
             }
         }
         return filteredMembers;
