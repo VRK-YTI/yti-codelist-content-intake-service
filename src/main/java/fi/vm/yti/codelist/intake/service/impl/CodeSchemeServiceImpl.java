@@ -569,8 +569,13 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
             final Code defaultCode = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeSchemeDto.getDefaultCode().getCodeValue());
             if (defaultCode != null) {
                 codeScheme.setDefaultCode(defaultCode);
+            } else {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_DEFAULTCODE_NOT_FOUND));
             }
+        } else {
+            codeScheme.setDefaultCode(null);
         }
+        codeSchemeDao.save(codeScheme);
     }
 
     @Transactional
