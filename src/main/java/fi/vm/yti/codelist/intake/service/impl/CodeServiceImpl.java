@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -238,7 +239,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                     if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(codeToBeDeleted.getCodeValue())) {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_CANT_DELETE_DEFAULT_CODE));
                     }
-                    final Set<Member> filteredMembers = filterRelatedMembers(codeScheme, codeToBeDeleted);
+                    final Set<Member> filteredMembers = filterRelatedExtensionMembers(codeToBeDeleted);
                     if (!filteredMembers.isEmpty()) {
                         final StringBuilder identifier = new StringBuilder();
                         for (final Member relatedMember : codeToBeDeleted.getMembers()) {
@@ -270,14 +271,11 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         }
     }
 
-    private Set<Member> filterRelatedMembers(final CodeScheme codeScheme,
-                                             final Code code) {
+    private Set<Member> filterRelatedExtensionMembers(final Code code) {
         final Set<Member> filteredMembers = new HashSet<>();
         final Set<Member> relatedMembers = code.getMembers();
         if (relatedMembers != null) {
-            for (final Member member : relatedMembers) {
-                    filteredMembers.add(member);
-            }
+            filteredMembers.addAll(relatedMembers.stream().filter(member -> EXTENSION.equalsIgnoreCase(member.getExtension().getPropertyType().getContext())).collect(Collectors.toSet()));
         }
         return filteredMembers;
     }
