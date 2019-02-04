@@ -314,6 +314,7 @@ public class CloningServiceImpl implements CloningService {
                 Member relatedMember = newMembersMap.get(oldIdToOldRelatedMemberIdMap.get(newMember.getId()));
                 newMember.setRelatedMember(relatedMember);
                 newMember.setId(oldIdToNewIdPointerMap.get(newMember.getId())); //Only at this point new UUIDs to everyone!!
+                newMember.setUri(apiUtils.createMemberUri(newMember));
             }
 
             LinkedHashSet<Member> membersInOrderOfTheirLevelTopLevelFirst = new LinkedHashSet<>();
