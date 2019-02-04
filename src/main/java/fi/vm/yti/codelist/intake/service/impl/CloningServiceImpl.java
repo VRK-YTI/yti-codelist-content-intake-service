@@ -209,29 +209,30 @@ public class CloningServiceImpl implements CloningService {
             codeSchemeWithUserChangesFromUi.setExtensions(extensionDTOS);
         }
 
+        CodeSchemeDTO result = codeSchemeService.updateCodeSchemeFromDto(true, codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
+
         //defaultCode is not coming in from the UI so we just take care of it here
         if (originalCodeScheme.getDefaultCode() != null) {
-            codeSchemeWithUserChangesFromUi.setDefaultCode(
+            result.setDefaultCode(
                 dtoMapperService.mapDeepCodeDto(populateNewDefaultCode(originalCodeScheme, newCodeScheme,
                     externalReferenceMap, newCodes)));
         }
 
-
-        return codeSchemeService.updateCodeSchemeFromDto(true, codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
+        return result;
     }
 
     @Transactional
     public Code populateNewDefaultCode(final CodeScheme originalCodeScheme,
-                                        final CodeScheme newCodeScheme,
-                                        final Map<UUID, ExternalReference> externalReferenceMap,
-                                        final Set<Code> newCodes) {
+                                       final CodeScheme newCodeScheme,
+                                       final Map<UUID, ExternalReference> externalReferenceMap,
+                                       final Set<Code> newCodes) {
         UUID newDefauldCodeUuid = null;
         for (Code newCode : newCodes) {
             if (newCode.getCodeValue().equals(originalCodeScheme.getDefaultCode().getCodeValue())) {
                 newDefauldCodeUuid = newCode.getId();
             }
         }
-        Code newDefaultCode = cloneCode(originalCodeScheme.getDefaultCode(), newCodeScheme,externalReferenceMap);
+        Code newDefaultCode = cloneCode(originalCodeScheme.getDefaultCode(), newCodeScheme, externalReferenceMap);
         newDefaultCode.setId(newDefauldCodeUuid);
         codeDao.save(newDefaultCode);
         newCodeScheme.setDefaultCode(newDefaultCode);
@@ -392,7 +393,7 @@ public class CloningServiceImpl implements CloningService {
      * This method is used in case there are references to CodeShemes OTHER than the one being cloned in the "main"
      * method of this class, (that is, the CodeScheme of which we are creating a new version of,) anywhere in the object
      * tree of the CodeScheme and its various children.
-     *
+     * <p>
      * For example, Extensions can hold zero to many CodeScheme references to any CodeSchemes anywhere. These get cloned
      * here as-is, and it is up to the caller to change the appropriate attribute(s) (if any) to the correct one. This design
      * decision keeps this method usable in any circumstances in the future. Continuing our example, in the case of
@@ -459,7 +460,7 @@ public class CloningServiceImpl implements CloningService {
 
         Set<MemberValue> newMemberValues = new HashSet<>();
 
-        originalMember.getMemberValues().forEach( originalMemberValue -> {
+        originalMember.getMemberValues().forEach(originalMemberValue -> {
             MemberValue newMemberValue = new MemberValue();
             newMemberValue.setId(UUID.randomUUID());
             newMemberValue.setMember(newMember);
@@ -591,7 +592,7 @@ public class CloningServiceImpl implements CloningService {
             getNextLevelItemsOfCodes(clonedCodes, nrOfItemsProcessed, nrOfItems, currentLevelParents, codesInOrderOfTheirLevelTopLevelFirst);
         }
         ArrayList<Code> orderedCodes = new ArrayList(codesInOrderOfTheirLevelTopLevelFirst); //ArrayList retains order in forEach
-        orderedCodes.forEach( code -> {
+        orderedCodes.forEach(code -> {
             codeDao.save(code);
             final CodeDTO clonedCodeDTO = dtoMapperService.mapDeepCodeDto(code);
             clonedCodeDTOs.add(clonedCodeDTO);
@@ -602,10 +603,10 @@ public class CloningServiceImpl implements CloningService {
     }
 
     private void getNextLevelItemsOfCodes(Set<Code> codes,
-                                            Long nrOfItemsProcessed,
-                                            Long nrOfItems,
-                                            LinkedHashSet<Code> currentLevelParents,
-                                            LinkedHashSet<Code> ordered) {
+                                          Long nrOfItemsProcessed,
+                                          Long nrOfItems,
+                                          LinkedHashSet<Code> currentLevelParents,
+                                          LinkedHashSet<Code> ordered) {
         LinkedHashSet<Code> newParents = new LinkedHashSet<>();
 
         for (Code code : codes) {
@@ -615,7 +616,7 @@ public class CloningServiceImpl implements CloningService {
                 nrOfItemsProcessed++;
             }
         }
-        
+
         if (nrOfItemsProcessed < nrOfItems) {
             getNextLevelItemsOfCodes(codes, nrOfItemsProcessed, nrOfItems, newParents, ordered);
         }
