@@ -805,6 +805,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                     indexing.deleteMembers(members);
                 }
                 indexing.deleteCode(code);
+                codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
                 indexing.updateCodeScheme(codeScheme);
                 final Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(codeScheme.getId());
                 indexing.updateExtensions(extensions);
