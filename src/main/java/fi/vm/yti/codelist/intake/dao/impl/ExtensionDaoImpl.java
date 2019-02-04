@@ -302,8 +302,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
             extension.setCodeSchemes(codeSchemes);
         }
         extension.setParentCodeScheme(codeScheme);
-        addExtensionToParentCodeScheme(codeScheme, extension);
         extension.setUri(apiUtils.createExtensionUri(extension));
+        addExtensionToParentCodeScheme(codeScheme, extension);
         final Date timeStamp = new Date(System.currentTimeMillis());
         extension.setCreated(timeStamp);
         extension.setModified(timeStamp);
