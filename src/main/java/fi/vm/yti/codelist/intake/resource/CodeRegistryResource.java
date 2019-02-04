@@ -1118,6 +1118,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         indexing.updateCodes(codes);
         codes.forEach(code -> indexing.updateMembers(memberService.findByCodeId(code.getId())));
         final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
         indexing.updateCodeScheme(codeScheme);
         indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
