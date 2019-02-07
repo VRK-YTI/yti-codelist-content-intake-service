@@ -440,10 +440,6 @@
                                 <ports>
                                     <port>testpostgres.port:5432</port>
                                 </ports>
-                                <wait>
-                                    <log>PostgreSQL init process complete; ready for start up.</log>
-                                    <time>200000</time>
-                                </wait>
                             </run>
                         </image>
                     </images>
