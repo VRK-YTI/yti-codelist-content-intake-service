@@ -52,6 +52,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private UUID prevCodeschemeId;
     private UUID lastCodeschemeId;
     private Set<Organization> organizations;
+    private boolean cumulative;
 
     public CodeScheme() {
         prefLabel = new HashMap<>();
@@ -419,5 +420,14 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     public void setRelatedExtensions(final Set<Extension> relatedExtensions) {
         this.relatedExtensions = relatedExtensions;
+    }
+
+    @Column(name = "cumulative")
+    public boolean isCumulative() {
+        return cumulative;
+    }
+
+    public void setCumulative(final boolean cumulative) {
+        this.cumulative = cumulative;
     }
 }

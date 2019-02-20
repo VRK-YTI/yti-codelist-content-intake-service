@@ -137,6 +137,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 codeScheme.setGovernancePolicy(parseGovernancePolicyFromCsvRecord(record));
                 codeScheme.setConceptUriInVocabularies(parseConceptUriFromCsvRecord(record));
                 codeScheme.setSource(parseSourceFromCsvRecord(record));
+                codeScheme.setCumulative( Boolean.parseBoolean(parseCumulativeFromCsvRecord(record)));
                 if (headerMap.containsKey(CONTENT_HEADER_DEFAULTCODE)) {
                     final String defaultCodeCodeValue = parseDefaultCodeFromCsvRecord(record);
                     if (defaultCodeCodeValue != null && !defaultCodeCodeValue.isEmpty()) {
@@ -277,6 +278,9 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                         externalReferencesSheetNames.put(codeScheme, externalReferencesSheetName);
                     }
                 }
+                if (headerMap.containsKey(CONTENT_HEADER_CUMULATIVE)) {
+                    codeScheme.setCumulative(Boolean.parseBoolean(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CUMULATIVE)))));
+                }
                 validateStartDateIsBeforeEndDate(codeScheme);
                 codeSchemes.add(codeScheme);
             }
@@ -365,6 +369,10 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
 
     private String parseVersionFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_VERSION);
+    }
+
+    private String parseCumulativeFromCsvRecord(final CSVRecord record) {
+        return parseStringFromCsvRecord(record, CONTENT_HEADER_CUMULATIVE);
     }
 
     private String parseLegalBaseFromCsvRecord(final CSVRecord record) {

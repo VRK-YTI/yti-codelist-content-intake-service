@@ -414,6 +414,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         codeScheme.setNextCodeschemeId(fromCodeScheme.getNextCodeschemeId());
         codeScheme.setPrevCodeschemeId(fromCodeScheme.getPrevCodeschemeId());
         codeScheme.setLastCodeschemeId(fromCodeScheme.getLastCodeschemeId());
+        codeScheme.setCumulative(fromCodeScheme.isCumulative());
         return codeScheme;
     }
 

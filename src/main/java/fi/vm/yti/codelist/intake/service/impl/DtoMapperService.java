@@ -178,6 +178,7 @@ public class DtoMapperService {
         codeSchemeDto.setNextCodeschemeId(codeScheme.getNextCodeschemeId());
         codeSchemeDto.setLastCodeschemeId(codeScheme.getLastCodeschemeId());
         codeSchemeDto.setOrganizations(mapOrganizationDtos(codeScheme.getOrganizations(), false));
+        codeSchemeDto.setCumulative(codeScheme.isCumulative());
         return codeSchemeDto;
     }
 
