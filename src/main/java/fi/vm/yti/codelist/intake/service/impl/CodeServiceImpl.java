@@ -3,6 +3,7 @@ package fi.vm.yti.codelist.intake.service.impl;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -15,6 +16,7 @@ import javax.transaction.Transactional;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,7 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.parser.impl.CodeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
+import fi.vm.yti.codelist.intake.service.CloningService;
 import fi.vm.yti.codelist.intake.service.CodeService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -51,6 +54,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
     private final CodeParserImpl codeParser;
     private final DtoMapperService dtoMapperService;
     private final MemberDao memberDao;
+    private final CloningService cloningService;
 
     @Inject
     public CodeServiceImpl(final AuthorizationManager authorizationManager,
@@ -59,7 +63,8 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                            final CodeParserImpl codeParser,
                            final CodeDao codeDao,
                            final DtoMapperService dtoMapperService,
-                           final MemberDao memberDao) {
+                           final MemberDao memberDao,
+                           @Lazy final CloningService cloningService) {
         this.authorizationManager = authorizationManager;
         this.codeRegistryDao = codeRegistryDao;
         this.codeSchemeDao = codeSchemeDao;
@@ -67,6 +72,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         this.codeDao = codeDao;
         this.dtoMapperService = dtoMapperService;
         this.memberDao = memberDao;
+        this.cloningService = cloningService;
     }
 
     @Transactional
@@ -234,8 +240,16 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_CANNOT_BE_DELETED));
         }
         if (codeScheme.isCumulative()) {
-            throw new UndeletableCodeDueToCumulativeCodeSchemeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_CODE_CANNOT_BE_DELETED_BECAUSE_CUMULATIVE_CODELIST));
+            LinkedHashSet<CodeScheme> previousVersions = new LinkedHashSet<>();
+            previousVersions = cloningService.getPreviousVersions(codeScheme.getPrevCodeschemeId(), previousVersions);
+            previousVersions.stream().forEach( cs -> {
+                cs.getCodes().stream().forEach( code -> {
+                    if (code.getCodeValue().equals(codeCodeValue)) {
+                        throw new UndeletableCodeDueToCumulativeCodeSchemeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                            ERR_MSG_USER_CODE_CANNOT_BE_DELETED_BECAUSE_CUMULATIVE_CODELIST));
+                    }
+                });
+            });
         }
         if (codeScheme != null) {
             final Code codeToBeDeleted = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
