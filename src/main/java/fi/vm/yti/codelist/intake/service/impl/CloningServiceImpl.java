@@ -438,6 +438,7 @@ public class CloningServiceImpl implements CloningService {
             cs.setCreated(o.getCreated());
             cs.setModified(o.getModified());
             cs.setId(o.getId());
+            cs.setCumulative(o.isCumulative());
             result.add(cs);
         }
         return result;
