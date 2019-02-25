@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
@@ -37,6 +38,7 @@ import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
+import fi.vm.yti.codelist.intake.exception.IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeScheme;
 import fi.vm.yti.codelist.intake.exception.InconsistencyInVersionHierarchyException;
 import fi.vm.yti.codelist.intake.exception.TooManyCodeSchemesException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
@@ -48,6 +50,7 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Member;
+import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CloningService;
@@ -78,6 +81,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
     private final CloningService cloningService;
     private final CodeSchemeRepository codeSchemeRepository;
     private final ExternalReferenceService externalReferenceService;
+    private final CodeParser codeParser;
 
     @Inject
     public CodeSchemeServiceImpl(final AuthorizationManager authorizationManager,
@@ -93,7 +97,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                  final DtoMapperService dtoMapperService,
                                  @Lazy final CloningService cloningService,
                                  final CodeSchemeRepository codeSchemeRepository,
-                                 final ExternalReferenceService externalReferenceService) {
+                                 final ExternalReferenceService externalReferenceService,
+                                 final CodeParser codeParser) {
         this.codeRegistryDao = codeRegistryDao;
         this.authorizationManager = authorizationManager;
         this.codeSchemeParser = codeSchemeParser;
@@ -108,6 +113,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         this.cloningService = cloningService;
         this.codeSchemeRepository = codeSchemeRepository;
         this.externalReferenceService = externalReferenceService;
+        this.codeParser = codeParser;
     }
 
     @Transactional
@@ -266,16 +272,40 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                     break;
                 case FORMAT_EXCEL:
                     try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-                        final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
+                        CodeScheme previousCodeScheme = null;
                         final Map<CodeSchemeDTO, String> externalReferencesSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> extensionsSheetNames = new HashMap<>();
+                        final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, externalReferencesSheetNames, extensionsSheetNames);
+                        if (userIsCreatingANewVersionOfACodeScheme) {
+                            previousCodeScheme = codeSchemeDao.findById(UUID.fromString(originalCodeSchemeIdIfCreatingNewVersion));
+                            if (previousCodeScheme.isCumulative()) {
+                                codeSchemeDtos.iterator().next().setCumulative(true); // this could be wrong in the Excel, if any prev version is cumulative, it cant change back to false
+                            }
+                        }
                         codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, false);
                         parseExternalReferences(codeSchemes, externalReferencesSheetNames, workbook);
                         parseExternalReferencesFromDtos(codeSchemes, codeSchemeDtos);
-                        parseCodes(codeSchemes, codeSchemeDtos, codesSheetNames, workbook);
+                        Map<CodeScheme, Set<CodeDTO>> codeParsingResult = parseCodes(codeSchemes, codeSchemeDtos, codesSheetNames, workbook);
                         parseExtensions(codeSchemes, extensionsSheetNames, workbook);
                         if (userIsCreatingANewVersionOfACodeScheme) {
+                            if (previousCodeScheme.isCumulative()) {
+                                Set<CodeDTO> missingCodes = getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(codeService.findByCodeSchemeId(previousCodeScheme.getId()), codeParsingResult.get(codeSchemes.iterator().next()));
+                                if (!missingCodes.isEmpty()) {
+                                    StringBuilder missingCodesForScreen = new StringBuilder();
+                                    int count = 1;
+                                    for (CodeDTO missingCode : missingCodes) {
+                                        missingCodesForScreen.append(missingCode.getCodeValue());
+                                        if (count < missingCodes.size()) {
+                                            missingCodesForScreen.append(", ");
+                                        }
+                                        count++;
+                                    }
+
+                                    throw new IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeScheme(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                        ERR_MSG_USER_INCOMPLETE_SET_OF_CODES_TRYING_TO_GET_IMPORTED_TO_CUMULATIVE_CODE_LIST, null, missingCodesForScreen.toString().replaceAll(" ", ", ")));
+                                }
+                            }
                             otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = handleNewVersionCreationFromFileRelatedActivities(codeSchemes, originalCodeSchemeIdIfCreatingNewVersion);
                         }
                     } catch (final InvalidFormatException | IOException | POIXMLException e) {
@@ -303,6 +333,28 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
         resultingCodeSchemeSetForIndexing.addAll(dtoMapperService.mapCodeSchemeDtos(codeSchemes, true));
         return resultingCodeSchemeSetForIndexing;
+    }
+
+    @Transactional
+    public Set<CodeDTO> getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(final Set<CodeDTO> previousVersionsCodes,
+                                                                                        final Set<CodeDTO> codeDtos) {
+        Set<String> oldCodeValues = new HashSet<>();
+        Map<String, CodeDTO> codeValueToCodeMapOfOldCodes = new HashMap<>();
+        Set<String> newCodeValues = new HashSet<>();
+        Set<CodeDTO> missingCodes = new HashSet<>();
+        for (CodeDTO code : previousVersionsCodes) {
+            oldCodeValues.add(code.getCodeValue());
+            codeValueToCodeMapOfOldCodes.put(code.getCodeValue(), code);
+        }
+        for (CodeDTO code : codeDtos) {
+            newCodeValues.add(code.getCodeValue());
+        }
+        for (String oldCodeValue : oldCodeValues) {
+            if (!newCodeValues.contains(oldCodeValue)) {
+                missingCodes.add(codeValueToCodeMapOfOldCodes.get(oldCodeValue));
+            }
+        }
+        return missingCodes;
     }
 
     private void parseExternalReferences(final Set<CodeScheme> codeSchemes,
@@ -344,26 +396,28 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         }
     }
 
-    private void parseCodes(final Set<CodeScheme> codeSchemes,
-                            final Set<CodeSchemeDTO> codeSchemeDtos,
-                            final Map<CodeSchemeDTO, String> codesSheetNames,
-                            final Workbook workbook) {
+    private Map<CodeScheme, Set<CodeDTO>> parseCodes(final Set<CodeScheme> codeSchemes,
+                                                     final Set<CodeSchemeDTO> codeSchemeDtos,
+                                                     final Map<CodeSchemeDTO, String> codesSheetNames,
+                                                     final Workbook workbook) {
+        Map<CodeScheme, Set<CodeDTO>> returnMap = new HashMap<>();
         if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
             final CodeScheme codeScheme = codeSchemes.iterator().next();
-            codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeScheme);
+            returnMap.put(codeScheme, codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeScheme));
             resolveAndSetCodeSchemeDefaultCode(codeScheme, codeSchemeDtos.iterator().next());
         } else if (!codesSheetNames.isEmpty()) {
             codesSheetNames.forEach((codeSchemeDto, sheetName) -> {
                 if (workbook.getSheet(sheetName) != null) {
                     for (final CodeScheme codeScheme : codeSchemes) {
                         if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
-                            codeService.parseAndPersistCodesFromExcelWorkbook(workbook, sheetName, codeScheme);
+                            returnMap.put(codeScheme, codeService.parseAndPersistCodesFromExcelWorkbook(workbook, sheetName, codeScheme));
                             resolveAndSetCodeSchemeDefaultCode(codeScheme, codeSchemeDto);
                         }
                     }
                 }
             });
         }
+        return returnMap;
     }
 
     private void parseExtensions(final Set<CodeScheme> codeSchemes,

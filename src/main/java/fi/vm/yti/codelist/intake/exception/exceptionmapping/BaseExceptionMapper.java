@@ -14,6 +14,7 @@ interface BaseExceptionMapper {
         meta.setMessage(e.getErrorModel().getMessage());
         meta.setCode(e.getErrorModel().getHttpStatusCode());
         meta.setEntityIdentifier(e.getErrorModel().getEntityIdentifier());
+        meta.setNonTranslatableMessage(e.getErrorModel().getNonTranslatableMessage());
         wrapper.setMeta(meta);
         return Response.status(e.getErrorModel().getHttpStatusCode()).entity(wrapper).build();
     }

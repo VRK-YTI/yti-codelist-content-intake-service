@@ -239,17 +239,22 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         if (isServiceClassificationCodeScheme(codeScheme) || isLanguageCodeCodeScheme(codeScheme)) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_CANNOT_BE_DELETED));
         }
-        if (codeScheme.isCumulative()) {
+        if (codeScheme.isCumulative()) { // in this case, if the previous version was also cumulative, we can't delete any of the codes which existed previously.
             LinkedHashSet<CodeScheme> previousVersions = new LinkedHashSet<>();
             previousVersions = cloningService.getPreviousVersions(codeScheme.getPrevCodeschemeId(), previousVersions);
-            previousVersions.stream().forEach( cs -> {
-                cs.getCodes().stream().forEach( code -> {
-                    if (code.getCodeValue().equals(codeCodeValue)) {
-                        throw new UndeletableCodeDueToCumulativeCodeSchemeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                            ERR_MSG_USER_CODE_CANNOT_BE_DELETED_BECAUSE_CUMULATIVE_CODELIST));
-                    }
-                });
-            });
+            if (previousVersions.iterator().hasNext()) {
+                CodeScheme previousVersion = previousVersions.iterator().next();
+                if (previousVersion.isCumulative()) {
+                    previousVersions.stream().forEach(cs -> {
+                        cs.getCodes().stream().forEach(code -> {
+                            if (code.getCodeValue().equals(codeCodeValue)) {
+                                throw new UndeletableCodeDueToCumulativeCodeSchemeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                    ERR_MSG_USER_CODE_CANNOT_BE_DELETED_BECAUSE_CUMULATIVE_CODELIST));
+                            }
+                        });
+                    });
+                }
+            }
         }
         if (codeScheme != null) {
             final Code codeToBeDeleted = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
