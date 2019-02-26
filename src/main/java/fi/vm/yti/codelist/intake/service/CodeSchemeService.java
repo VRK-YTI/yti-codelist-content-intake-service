@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 
 public interface CodeSchemeService {
@@ -56,4 +57,7 @@ public interface CodeSchemeService {
     boolean canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(final String codeRegistryCodeValue,
                                                                                    final String format,
                                                                                    final InputStream inputStream);
+
+    Set<CodeDTO> getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(final Set<CodeDTO> previousVersionsCodes,
+                                                                                 final Set<CodeDTO> codeDtos);
 }

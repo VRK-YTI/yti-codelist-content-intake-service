@@ -28,6 +28,7 @@ import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
+import fi.vm.yti.codelist.intake.exception.IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeScheme;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.UndeletableCodeDueToCumulativeCodeSchemeException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -38,6 +39,7 @@ import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.parser.impl.CodeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CloningService;
+import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -55,6 +57,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
     private final DtoMapperService dtoMapperService;
     private final MemberDao memberDao;
     private final CloningService cloningService;
+    private final CodeSchemeService codeSchemeService;
 
     @Inject
     public CodeServiceImpl(final AuthorizationManager authorizationManager,
@@ -64,7 +67,8 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                            final CodeDao codeDao,
                            final DtoMapperService dtoMapperService,
                            final MemberDao memberDao,
-                           @Lazy final CloningService cloningService) {
+                           @Lazy final CloningService cloningService,
+                           @Lazy final CodeSchemeService codeSchemeService) {
         this.authorizationManager = authorizationManager;
         this.codeRegistryDao = codeRegistryDao;
         this.codeSchemeDao = codeSchemeDao;
@@ -73,6 +77,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         this.dtoMapperService = dtoMapperService;
         this.memberDao = memberDao;
         this.cloningService = cloningService;
+        this.codeSchemeService = codeSchemeService;
     }
 
     @Transactional
@@ -146,6 +151,10 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
+            CodeScheme previousCodeScheme = null;
+            if (codeScheme.getPrevCodeschemeId() != null) {
+                previousCodeScheme = codeSchemeDao.findById(codeScheme.getPrevCodeschemeId());
+            }
             final HashMap<String, String> broaderCodeMapping = new HashMap<>();
             if (codeScheme != null) {
                 if (!isAuthorized && !authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
@@ -155,16 +164,24 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                     case FORMAT_JSON:
                         if (jsonPayload != null && !jsonPayload.isEmpty()) {
                             final Set<CodeDTO> codeDtos = codeParser.parseCodesFromJsonData(jsonPayload);
+                            if (previousCodeScheme != null && previousCodeScheme.isCumulative()) {
+                                checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
+                            }
+
                             codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, true);
                         } else {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
                         }
                         break;
                     case FORMAT_EXCEL:
-                        codes = codeDao.updateCodesFromDtos(codeScheme, codeParser.parseCodesFromExcelInputStream(inputStream, ApiConstants.EXCEL_SHEET_CODES, broaderCodeMapping), broaderCodeMapping, false);
+                        final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelInputStream(inputStream, ApiConstants.EXCEL_SHEET_CODES, broaderCodeMapping);
+                        checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
+                        codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, false);
                         break;
                     case FORMAT_CSV:
-                        codes = codeDao.updateCodesFromDtos(codeScheme, codeParser.parseCodesFromCsvInputStream(inputStream, broaderCodeMapping), broaderCodeMapping, false);
+                        final Set<CodeDTO> codeDtosFromCsv = codeParser.parseCodesFromCsvInputStream(inputStream, broaderCodeMapping);
+                        checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtosFromCsv);
+                        codes = codeDao.updateCodesFromDtos(codeScheme, codeDtosFromCsv, broaderCodeMapping, false);
                         break;
                     default:
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
@@ -176,6 +193,25 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
         }
         return dtoMapperService.mapDeepCodeDtos(codes);
+    }
+
+    private void checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(final CodeScheme previousCodeScheme,
+                                                                       final Set<CodeDTO> codeDtos) {
+        Set<CodeDTO> missingCodes = codeSchemeService.getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(findByCodeSchemeId(previousCodeScheme.getId()), codeDtos);
+        if (!missingCodes.isEmpty()) {
+            StringBuilder missingCodesForScreen = new StringBuilder();
+            int count = 1;
+            for (CodeDTO missingCode : missingCodes) {
+                missingCodesForScreen.append(missingCode.getCodeValue());
+                if (count < missingCodes.size()) {
+                    missingCodesForScreen.append(", ");
+                }
+                count++;
+            }
+
+            throw new IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeScheme(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_INCOMPLETE_SET_OF_CODES_TRYING_TO_GET_IMPORTED_TO_CUMULATIVE_CODE_LIST, null, missingCodesForScreen.toString().replaceAll(" ", ", ")));
+        }
     }
 
     @Transactional
