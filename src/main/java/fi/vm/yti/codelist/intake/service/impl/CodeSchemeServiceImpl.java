@@ -292,18 +292,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                             if (previousCodeScheme.isCumulative()) {
                                 Set<CodeDTO> missingCodes = getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(codeService.findByCodeSchemeId(previousCodeScheme.getId()), codeParsingResult.get(codeSchemes.iterator().next()));
                                 if (!missingCodes.isEmpty()) {
-                                    StringBuilder missingCodesForScreen = new StringBuilder();
-                                    int count = 1;
-                                    for (CodeDTO missingCode : missingCodes) {
-                                        missingCodesForScreen.append(missingCode.getCodeValue());
-                                        if (count < missingCodes.size()) {
-                                            missingCodesForScreen.append(", ");
-                                        }
-                                        count++;
-                                    }
-
-                                    throw new IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeScheme(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                                        ERR_MSG_USER_INCOMPLETE_SET_OF_CODES_TRYING_TO_GET_IMPORTED_TO_CUMULATIVE_CODE_LIST, null, missingCodesForScreen.toString().replaceAll(" ", ", ")));
+                                    return handleMissingCodesOfACumulativeCodeScheme(missingCodes);
                                 }
                             }
                             otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = handleNewVersionCreationFromFileRelatedActivities(codeSchemes, originalCodeSchemeIdIfCreatingNewVersion);
@@ -333,6 +322,22 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
         resultingCodeSchemeSetForIndexing.addAll(dtoMapperService.mapCodeSchemeDtos(codeSchemes, true));
         return resultingCodeSchemeSetForIndexing;
+    }
+
+    @Transactional
+    public Set<CodeSchemeDTO> handleMissingCodesOfACumulativeCodeScheme(final Set<CodeDTO> missingCodes) {
+        StringBuilder missingCodesForScreen = new StringBuilder();
+        int count = 1;
+        for (CodeDTO missingCode : missingCodes) {
+            missingCodesForScreen.append(missingCode.getCodeValue());
+            if (count < missingCodes.size()) {
+                missingCodesForScreen.append(", ");
+            }
+            count++;
+        }
+
+        throw new IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeScheme(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+            ERR_MSG_USER_INCOMPLETE_SET_OF_CODES_TRYING_TO_GET_IMPORTED_TO_CUMULATIVE_CODE_LIST, null, missingCodesForScreen.toString().replaceAll(" ", ", ")));
     }
 
     @Transactional

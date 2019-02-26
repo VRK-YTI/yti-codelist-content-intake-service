@@ -28,7 +28,6 @@ import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
-import fi.vm.yti.codelist.intake.exception.IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeScheme;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.UndeletableCodeDueToCumulativeCodeSchemeException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -165,7 +164,8 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                         if (jsonPayload != null && !jsonPayload.isEmpty()) {
                             final Set<CodeDTO> codeDtos = codeParser.parseCodesFromJsonData(jsonPayload);
                             if (previousCodeScheme != null && previousCodeScheme.isCumulative()) {
-                                checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
+                                Set<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
+                                handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodes);
                             }
 
                             codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, true);
@@ -175,12 +175,14 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                         break;
                     case FORMAT_EXCEL:
                         final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelInputStream(inputStream, ApiConstants.EXCEL_SHEET_CODES, broaderCodeMapping);
-                        checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
+                        Set<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
+                        handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodes);
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, false);
                         break;
                     case FORMAT_CSV:
                         final Set<CodeDTO> codeDtosFromCsv = codeParser.parseCodesFromCsvInputStream(inputStream, broaderCodeMapping);
-                        checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtosFromCsv);
+                        Set<CodeDTO> missingCodesFromCvs = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtosFromCsv);
+                        handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodesFromCvs);
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeDtosFromCsv, broaderCodeMapping, false);
                         break;
                     default:
@@ -195,22 +197,14 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         return dtoMapperService.mapDeepCodeDtos(codes);
     }
 
-    private void checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(final CodeScheme previousCodeScheme,
+    private Set<CodeDTO> checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(final CodeScheme previousCodeScheme,
                                                                        final Set<CodeDTO> codeDtos) {
-        Set<CodeDTO> missingCodes = codeSchemeService.getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(findByCodeSchemeId(previousCodeScheme.getId()), codeDtos);
-        if (!missingCodes.isEmpty()) {
-            StringBuilder missingCodesForScreen = new StringBuilder();
-            int count = 1;
-            for (CodeDTO missingCode : missingCodes) {
-                missingCodesForScreen.append(missingCode.getCodeValue());
-                if (count < missingCodes.size()) {
-                    missingCodesForScreen.append(", ");
-                }
-                count++;
-            }
+        return codeSchemeService.getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(findByCodeSchemeId(previousCodeScheme.getId()), codeDtos);
+    }
 
-            throw new IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeScheme(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_INCOMPLETE_SET_OF_CODES_TRYING_TO_GET_IMPORTED_TO_CUMULATIVE_CODE_LIST, null, missingCodesForScreen.toString().replaceAll(" ", ", ")));
+    private void handleMissingCodesInCaseOfCumulativeCodeScheme(Set<CodeDTO> missingCodes) {
+        if (!missingCodes.isEmpty()) {
+            codeSchemeService.handleMissingCodesOfACumulativeCodeScheme(missingCodes);
         }
     }
 

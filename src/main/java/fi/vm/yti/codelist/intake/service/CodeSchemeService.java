@@ -60,4 +60,6 @@ public interface CodeSchemeService {
 
     Set<CodeDTO> getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(final Set<CodeDTO> previousVersionsCodes,
                                                                                  final Set<CodeDTO> codeDtos);
+
+    Set<CodeSchemeDTO> handleMissingCodesOfACumulativeCodeScheme(final Set<CodeDTO> missingCodes);
 }
