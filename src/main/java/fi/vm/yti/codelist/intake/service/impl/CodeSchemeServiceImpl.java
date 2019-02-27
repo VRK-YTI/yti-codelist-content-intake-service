@@ -2,9 +2,12 @@ package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -343,23 +346,20 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
     @Transactional
     public Set<CodeDTO> getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(final Set<CodeDTO> previousVersionsCodes,
                                                                                         final Set<CodeDTO> codeDtos) {
-        Set<String> oldCodeValues = new HashSet<>();
-        Map<String, CodeDTO> codeValueToCodeMapOfOldCodes = new HashMap<>();
-        Set<String> newCodeValues = new HashSet<>();
         Set<CodeDTO> missingCodes = new HashSet<>();
-        for (CodeDTO code : previousVersionsCodes) {
-            oldCodeValues.add(code.getCodeValue());
-            codeValueToCodeMapOfOldCodes.put(code.getCodeValue(), code);
-        }
-        for (CodeDTO code : codeDtos) {
-            newCodeValues.add(code.getCodeValue());
-        }
-        for (String oldCodeValue : oldCodeValues) {
-            if (!newCodeValues.contains(oldCodeValue)) {
-                missingCodes.add(codeValueToCodeMapOfOldCodes.get(oldCodeValue));
+
+        previousVersionsCodes.forEach(oldCode -> {
+            boolean missing = codeDtos.stream().noneMatch(newCode -> {
+                return newCode.getCodeValue().equals(oldCode.getCodeValue());
+            });
+            if (missing) {
+                missingCodes.add(oldCode);
             }
-        }
-        return missingCodes;
+        });
+
+        final List<CodeDTO> sorted = new ArrayList<>(missingCodes);
+        sorted.sort(Comparator.comparing(code -> code.getCodeValue()));
+        return new HashSet<CodeDTO>(sorted);
     }
 
     private void parseExternalReferences(final Set<CodeScheme> codeSchemes,
