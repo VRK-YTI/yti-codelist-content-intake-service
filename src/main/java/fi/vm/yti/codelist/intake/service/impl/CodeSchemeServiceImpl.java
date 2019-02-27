@@ -53,7 +53,6 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Member;
-import fi.vm.yti.codelist.intake.parser.CodeParser;
 import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CloningService;
@@ -84,7 +83,6 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
     private final CloningService cloningService;
     private final CodeSchemeRepository codeSchemeRepository;
     private final ExternalReferenceService externalReferenceService;
-    private final CodeParser codeParser;
 
     @Inject
     public CodeSchemeServiceImpl(final AuthorizationManager authorizationManager,
@@ -100,8 +98,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                  final DtoMapperService dtoMapperService,
                                  @Lazy final CloningService cloningService,
                                  final CodeSchemeRepository codeSchemeRepository,
-                                 final ExternalReferenceService externalReferenceService,
-                                 final CodeParser codeParser) {
+                                 final ExternalReferenceService externalReferenceService) {
         this.codeRegistryDao = codeRegistryDao;
         this.authorizationManager = authorizationManager;
         this.codeSchemeParser = codeSchemeParser;
@@ -116,7 +113,6 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         this.cloningService = cloningService;
         this.codeSchemeRepository = codeSchemeRepository;
         this.externalReferenceService = externalReferenceService;
-        this.codeParser = codeParser;
     }
 
     @Transactional
