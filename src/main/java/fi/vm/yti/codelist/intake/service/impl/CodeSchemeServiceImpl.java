@@ -289,7 +289,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         parseExtensions(codeSchemes, extensionsSheetNames, workbook);
                         if (userIsCreatingANewVersionOfACodeScheme) {
                             if (previousCodeScheme.isCumulative()) {
-                                Set<CodeDTO> missingCodes = getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(codeService.findByCodeSchemeId(previousCodeScheme.getId()), codeParsingResult.get(codeSchemes.iterator().next()));
+                                LinkedHashSet<CodeDTO> missingCodes = getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(codeService.findByCodeSchemeId(previousCodeScheme.getId()), codeParsingResult.get(codeSchemes.iterator().next()));
                                 if (!missingCodes.isEmpty()) {
                                     return handleMissingCodesOfACumulativeCodeScheme(missingCodes);
                                 }
@@ -324,7 +324,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
     }
 
     @Transactional
-    public Set<CodeSchemeDTO> handleMissingCodesOfACumulativeCodeScheme(final Set<CodeDTO> missingCodes) {
+    public LinkedHashSet<CodeSchemeDTO> handleMissingCodesOfACumulativeCodeScheme(final LinkedHashSet<CodeDTO> missingCodes) {
         StringBuilder missingCodesForScreen = new StringBuilder();
         int count = 1;
         for (CodeDTO missingCode : missingCodes) {
@@ -336,13 +336,13 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         }
 
         throw new IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeScheme(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-            ERR_MSG_USER_INCOMPLETE_SET_OF_CODES_TRYING_TO_GET_IMPORTED_TO_CUMULATIVE_CODE_LIST, null, missingCodesForScreen.toString().replaceAll(" ", ", ")));
+            ERR_MSG_USER_INCOMPLETE_SET_OF_CODES_TRYING_TO_GET_IMPORTED_TO_CUMULATIVE_CODE_LIST, null, missingCodesForScreen.toString()));
     }
 
     @Transactional
-    public Set<CodeDTO> getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(final Set<CodeDTO> previousVersionsCodes,
+    public LinkedHashSet<CodeDTO> getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(final Set<CodeDTO> previousVersionsCodes,
                                                                                         final Set<CodeDTO> codeDtos) {
-        Set<CodeDTO> missingCodes = new HashSet<>();
+        LinkedHashSet<CodeDTO> missingCodes = new LinkedHashSet<>();
 
         previousVersionsCodes.forEach(oldCode -> {
             boolean missing = codeDtos.stream().noneMatch(newCode -> {
@@ -355,7 +355,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
         final List<CodeDTO> sorted = new ArrayList<>(missingCodes);
         sorted.sort(Comparator.comparing(code -> code.getCodeValue()));
-        return new HashSet<CodeDTO>(sorted);
+        return new LinkedHashSet<CodeDTO>(sorted);
     }
 
     private void parseExternalReferences(final Set<CodeScheme> codeSchemes,

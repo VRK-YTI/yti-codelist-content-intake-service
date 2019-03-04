@@ -164,7 +164,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                         if (jsonPayload != null && !jsonPayload.isEmpty()) {
                             final Set<CodeDTO> codeDtos = codeParser.parseCodesFromJsonData(jsonPayload);
                             if (previousCodeScheme != null && previousCodeScheme.isCumulative()) {
-                                Set<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
+                                LinkedHashSet<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
                                 handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodes);
                             }
 
@@ -175,13 +175,13 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                         break;
                     case FORMAT_EXCEL:
                         final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelInputStream(inputStream, ApiConstants.EXCEL_SHEET_CODES, broaderCodeMapping);
-                        Set<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
+                        LinkedHashSet<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
                         handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodes);
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, false);
                         break;
                     case FORMAT_CSV:
                         final Set<CodeDTO> codeDtosFromCsv = codeParser.parseCodesFromCsvInputStream(inputStream, broaderCodeMapping);
-                        Set<CodeDTO> missingCodesFromCvs = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtosFromCsv);
+                        LinkedHashSet<CodeDTO> missingCodesFromCvs = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtosFromCsv);
                         handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodesFromCvs);
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeDtosFromCsv, broaderCodeMapping, false);
                         break;
@@ -197,12 +197,12 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         return dtoMapperService.mapDeepCodeDtos(codes);
     }
 
-    private Set<CodeDTO> checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(final CodeScheme previousCodeScheme,
+    private LinkedHashSet<CodeDTO> checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(final CodeScheme previousCodeScheme,
                                                                        final Set<CodeDTO> codeDtos) {
         return codeSchemeService.getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(findByCodeSchemeId(previousCodeScheme.getId()), codeDtos);
     }
 
-    private void handleMissingCodesInCaseOfCumulativeCodeScheme(Set<CodeDTO> missingCodes) {
+    private void handleMissingCodesInCaseOfCumulativeCodeScheme(LinkedHashSet<CodeDTO> missingCodes) {
         if (!missingCodes.isEmpty()) {
             codeSchemeService.handleMissingCodesOfACumulativeCodeScheme(missingCodes);
         }

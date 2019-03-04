@@ -58,8 +58,8 @@ public interface CodeSchemeService {
                                                                                    final String format,
                                                                                    final InputStream inputStream);
 
-    Set<CodeDTO> getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(final Set<CodeDTO> previousVersionsCodes,
+    LinkedHashSet<CodeDTO> getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(final Set<CodeDTO> previousVersionsCodes,
                                                                                  final Set<CodeDTO> codeDtos);
 
-    Set<CodeSchemeDTO> handleMissingCodesOfACumulativeCodeScheme(final Set<CodeDTO> missingCodes);
+    LinkedHashSet<CodeSchemeDTO> handleMissingCodesOfACumulativeCodeScheme(final LinkedHashSet<CodeDTO> missingCodes);
 }
