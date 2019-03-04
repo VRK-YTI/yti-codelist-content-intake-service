@@ -41,7 +41,7 @@ import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
-import fi.vm.yti.codelist.intake.exception.IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeScheme;
+import fi.vm.yti.codelist.intake.exception.IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeSchemeException;
 import fi.vm.yti.codelist.intake.exception.InconsistencyInVersionHierarchyException;
 import fi.vm.yti.codelist.intake.exception.TooManyCodeSchemesException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
@@ -335,7 +335,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
             count++;
         }
 
-        throw new IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeScheme(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+        throw new IncompleteSetOfCodesTryingToGetImportedToACumulativeCodeSchemeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
             ERR_MSG_USER_INCOMPLETE_SET_OF_CODES_TRYING_TO_GET_IMPORTED_TO_CUMULATIVE_CODE_LIST, null, missingCodesForScreen.toString()));
     }
 
