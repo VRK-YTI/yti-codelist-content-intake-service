@@ -344,6 +344,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         existingCodeScheme.setPrevCodeschemeId(fromCodeScheme.getPrevCodeschemeId());
         existingCodeScheme.setNextCodeschemeId(fromCodeScheme.getNextCodeschemeId());
         existingCodeScheme.setModified(new Date(System.currentTimeMillis()));
+        existingCodeScheme.setCumulative(fromCodeScheme.isCumulative());
 
         return existingCodeScheme;
     }
