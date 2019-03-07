@@ -151,7 +151,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         if (codeRegistry != null) {
             final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
             CodeScheme previousCodeScheme = null;
-            if (codeScheme.getPrevCodeschemeId() != null) {
+            if (codeScheme != null && codeScheme.getPrevCodeschemeId() != null) {
                 previousCodeScheme = codeSchemeDao.findById(codeScheme.getPrevCodeschemeId());
             }
             final HashMap<String, String> broaderCodeMapping = new HashMap<>();
