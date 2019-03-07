@@ -175,14 +175,18 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                         break;
                     case FORMAT_EXCEL:
                         final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelInputStream(inputStream, ApiConstants.EXCEL_SHEET_CODES, broaderCodeMapping);
-                        LinkedHashSet<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
-                        handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodes);
+                        if (previousCodeScheme != null && previousCodeScheme.isCumulative()) {
+                            LinkedHashSet<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
+                            handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodes);
+                        }
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, false);
                         break;
                     case FORMAT_CSV:
                         final Set<CodeDTO> codeDtosFromCsv = codeParser.parseCodesFromCsvInputStream(inputStream, broaderCodeMapping);
-                        LinkedHashSet<CodeDTO> missingCodesFromCvs = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtosFromCsv);
-                        handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodesFromCvs);
+                        if (previousCodeScheme != null && previousCodeScheme.isCumulative()) {
+                            LinkedHashSet<CodeDTO> missingCodesFromCvs = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtosFromCsv);
+                            handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodesFromCvs);
+                        }
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeDtosFromCsv, broaderCodeMapping, false);
                         break;
                     default:
