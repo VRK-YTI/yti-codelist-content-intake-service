@@ -277,14 +277,14 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 if (currentCodeSchemeIsTheLatestVersion(codeScheme)) {
                     if (codeScheme.getStatus().equals(Status.VALID.toString())) { //When the latest version goes VALID, the prev version goes SUPERSEDED. Update all listings too.
                         previousCodeScheme = codeSchemeService.findById(codeScheme.getPrevCodeschemeId());
-                        if (previousCodeScheme.getStatus().equals(Status.VALID.toString())) {
+                        if (previousCodeScheme != null && previousCodeScheme.getStatus().equals(Status.VALID.toString())) {
                             previousCodeScheme.setStatus(Status.SUPERSEDED.toString());
                             codeSchemeService.updateCodeSchemeFromDto(previousCodeScheme.getCodeRegistry().getCodeValue(), previousCodeScheme);
                             versionsToReIndex.add(previousCodeScheme);
                             codeSchemeWhoseStatusMustBeSetToSuperseded = previousCodeScheme.getId();
                         }
 
-                        if (!previousCodeScheme.getVariantMothersOfThisCodeScheme().isEmpty()) {
+                        if (previousCodeScheme != null && !previousCodeScheme.getVariantMothersOfThisCodeScheme().isEmpty()) {
                             for (final CodeSchemeListItem mother : previousCodeScheme.getVariantMothersOfThisCodeScheme()) {
                                 CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(mother.getId());
                                 final LinkedHashSet<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
@@ -302,7 +302,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                             }
                         }
 
-                        if (!previousCodeScheme.getVariantsOfThisCodeScheme().isEmpty()) {
+                        if (previousCodeScheme != null && !previousCodeScheme.getVariantsOfThisCodeScheme().isEmpty()) {
                             for (final CodeSchemeListItem variant : previousCodeScheme.getVariantsOfThisCodeScheme()) {
                                 CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(variant.getId());
                                 final LinkedHashSet<CodeSchemeListItem> mothersOfTheVariant = variantCodeScheme.getVariantMothersOfThisCodeScheme();
