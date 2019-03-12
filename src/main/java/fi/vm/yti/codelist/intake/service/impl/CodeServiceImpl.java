@@ -163,11 +163,6 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                     case FORMAT_JSON:
                         if (jsonPayload != null && !jsonPayload.isEmpty()) {
                             final Set<CodeDTO> codeDtos = codeParser.parseCodesFromJsonData(jsonPayload);
-                            if (previousCodeScheme != null && previousCodeScheme.isCumulative()) {
-                                LinkedHashSet<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
-                                handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodes);
-                            }
-
                             codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, true);
                         } else {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
