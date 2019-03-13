@@ -766,9 +766,21 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         this.populateAllVersionsToCodeSchemeDTO(prev);
         this.populateAllVersionsToCodeSchemeDTO(next);
         for (final CodeSchemeDTO aVersion : allVersions) {
-            this.populateAllVersionsToCodeSchemeDTO(aVersion);
+            if (aVersion.getId().compareTo(next.getId()) != 0 && aVersion.getId().compareTo(prev.getId()) != 0) {
+                this.populateAllVersionsToCodeSchemeDTO(aVersion);
+            }
         }
-        codeSchemeDTOsToIndex.addAll(allVersions);
+
+        LinkedHashSet<CodeSchemeDTO> otherAffectedVersionsToIndex = new LinkedHashSet<>();
+        for (CodeSchemeDTO aVersion : allVersions) {
+            if (aVersion.getId().compareTo(next.getId()) != 0 && aVersion.getId().compareTo(prev.getId()) != 0) {
+                otherAffectedVersionsToIndex.add(aVersion);
+            }
+        }
+
+        codeSchemeDTOsToIndex.addAll(otherAffectedVersionsToIndex);
+        codeSchemeDTOsToIndex.add(prev);
+        codeSchemeDTOsToIndex.add(next);
     }
 
     private void dealWithBottomPositionInVersionHierarchyBeforeDeletion(final CodeSchemeDTO currentCodeScheme,
