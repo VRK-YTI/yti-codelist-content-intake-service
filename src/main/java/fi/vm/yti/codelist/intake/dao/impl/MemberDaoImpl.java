@@ -257,10 +257,19 @@ public class MemberDaoImpl implements MemberDao {
         }
     }
 
-    private void linkMemberWithId(final Member member,
+    private void linkMemberWithId(final Extension extension,
+                                  final Member member,
                                   final UUID id) {
         final Member relatedMember = findById(id);
-        linkMembers(member, relatedMember);
+        if (relatedMember != null) {
+            if (extension.getId().equals(relatedMember.getExtension().getId())) {
+                linkMembers(member, relatedMember);
+            } else {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_LINKED_FROM_ANOTHER_EXTENSION));
+            }
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_UUID, id.toString()));
+        }
     }
 
     private void linkMembers(final Member member,
@@ -283,13 +292,13 @@ public class MemberDaoImpl implements MemberDao {
         }
         final Set<Member> linkedMembers = new HashSet<>();
         if (relatedMember != null && relatedMember.getId() != null) {
-            linkMemberWithId(member, relatedMember.getId());
+            linkMemberWithId(extension, member, relatedMember.getId());
             linkedMembers.add(member);
         } else if (relatedMember != null && relatedMember.getCode() != null) {
             final String identifier = relatedMember.getCode().getCodeValue();
             final UUID uuid = getUuidFromString(identifier);
             if (uuid != null) {
-                linkMemberWithId(member, uuid);
+                linkMemberWithId(extension, member, uuid);
                 linkedMembers.add(member);
             }
             for (final Member extensionMember : existingMembers) {

@@ -492,6 +492,8 @@ public class CodeDaoImpl implements CodeDao {
             final Code broaderCode = findById(fromCode.getBroaderCode().getId());
             if (broaderCode != null && broaderCode.getCodeScheme() != codeScheme) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_EXISTING_CODE_MISMATCH));
+            } else if (broaderCode == null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_NOT_FOUND));
             }
             return broaderCode;
         }
