@@ -11,6 +11,8 @@ import java.util.UUID;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -38,6 +40,7 @@ import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
+import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateCodeCodeValue;
@@ -57,6 +60,8 @@ public class CodeDaoImpl implements CodeDao {
     private final ExtensionDao extensionDao;
     private final MemberDao memberDao;
     private final CodeSchemeDao codeSchemeDao;
+
+    private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParserImpl.class);
 
     public CodeDaoImpl(final EntityChangeLogger entityChangeLogger,
                        final ApiUtils apiUtils,
@@ -560,8 +565,10 @@ public class CodeDaoImpl implements CodeDao {
             int hierarchyLevel = 0;
             while (!allCodes.isEmpty()) {
                 ++hierarchyLevel;
-                if (hierarchyLevel > 10) {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_HIERARCHY_MAXLEVEL_REACHED));
+                if (hierarchyLevel > MAX_LEVEL) {
+                    YtiCodeListException e = new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_HIERARCHY_MAXLEVEL_REACHED));
+                    LOG.error("Too many levels of hierarchical codes!", e);
+                    throw e;
                 }
                 evaluateAndSetHierarchyLevels(allCodes, codesToEvaluate, hierarchyMapping, hierarchyLevel);
             }
@@ -612,7 +619,9 @@ public class CodeDaoImpl implements CodeDao {
                                           final Code code,
                                           final int level) {
         if (level > MAX_LEVEL) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_HIERARCHY_MAXLEVEL_REACHED));
+            YtiCodeListException e = new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_HIERARCHY_MAXLEVEL_REACHED));
+            LOG.error("Too many levels of hierarchical codes!", e);
+            throw e;
         }
         final Code broaderCode = code.getBroaderCode();
         if (broaderCode != null) {
