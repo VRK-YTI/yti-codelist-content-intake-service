@@ -5,6 +5,8 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.*;
 
 public interface AbstractBaseService {
 
+    public boolean preventPossibleImplicitCodeDeletionDuringFileImport = false;
+
     default boolean isServiceClassificationCodeScheme(final CodeScheme codeScheme) {
         return isCodeSchemeWithRegistryAndCodeValue(codeScheme, JUPO_REGISTRY, YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME);
     }

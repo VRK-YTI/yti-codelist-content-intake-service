@@ -171,16 +171,21 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                     case FORMAT_EXCEL:
                         final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelInputStream(inputStream, ApiConstants.EXCEL_SHEET_CODES, broaderCodeMapping);
                         if (previousCodeScheme != null && previousCodeScheme.isCumulative()) {
-                            LinkedHashSet<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
-                            handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodes);
+                            if (preventPossibleImplicitCodeDeletionDuringFileImport) {
+                                LinkedHashSet<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
+                                handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodes);
+                            }
+
                         }
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, false);
                         break;
                     case FORMAT_CSV:
                         final Set<CodeDTO> codeDtosFromCsv = codeParser.parseCodesFromCsvInputStream(inputStream, broaderCodeMapping);
                         if (previousCodeScheme != null && previousCodeScheme.isCumulative()) {
-                            LinkedHashSet<CodeDTO> missingCodesFromCvs = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtosFromCsv);
-                            handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodesFromCvs);
+                            if (preventPossibleImplicitCodeDeletionDuringFileImport) {
+                                LinkedHashSet<CodeDTO> missingCodesFromCvs = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtosFromCsv);
+                                handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodesFromCvs);
+                            }
                         }
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeDtosFromCsv, broaderCodeMapping, false);
                         break;

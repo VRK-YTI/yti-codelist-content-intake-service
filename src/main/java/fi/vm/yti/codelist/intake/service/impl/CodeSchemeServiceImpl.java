@@ -289,9 +289,11 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         parseExtensions(codeSchemes, extensionsSheetNames, workbook);
                         if (userIsCreatingANewVersionOfACodeScheme) {
                             if (previousCodeScheme.isCumulative()) {
-                                LinkedHashSet<CodeDTO> missingCodes = getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(codeService.findByCodeSchemeId(previousCodeScheme.getId()), codeParsingResult.get(codeSchemes.iterator().next()));
-                                if (!missingCodes.isEmpty()) {
-                                    return handleMissingCodesOfACumulativeCodeScheme(missingCodes);
+                                if (preventPossibleImplicitCodeDeletionDuringFileImport) {
+                                    LinkedHashSet<CodeDTO> missingCodes = getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(codeService.findByCodeSchemeId(previousCodeScheme.getId()), codeParsingResult.get(codeSchemes.iterator().next()));
+                                    if (!missingCodes.isEmpty()) {
+                                        return handleMissingCodesOfACumulativeCodeScheme(missingCodes);
+                                    }
                                 }
                             }
                             otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = handleNewVersionCreationFromFileRelatedActivities(codeSchemes, originalCodeSchemeIdIfCreatingNewVersion);
