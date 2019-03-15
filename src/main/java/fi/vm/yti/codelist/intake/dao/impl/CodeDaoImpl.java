@@ -430,8 +430,8 @@ public class CodeDaoImpl implements CodeDao {
             final int order = getNextOrderInSequence(codeScheme);
             code.setOrder(order);
         } else {
-            code.setOrder(nextOrder.getValue());
             nextOrder.setValue(nextOrder.getValue() + 1);
+            code.setOrder(nextOrder.getValue());
         }
         for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
