@@ -48,7 +48,7 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateC
 @Component
 public class CodeDaoImpl implements CodeDao {
 
-    private static final int MAX_LEVEL = 10;
+    private static final int MAX_LEVEL = 10; // TODO remove this comment just trying out if pre-commit-hook works in GIT
 
     private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
