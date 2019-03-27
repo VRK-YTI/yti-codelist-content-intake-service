@@ -422,16 +422,18 @@ public class CodeDaoImpl implements CodeDao {
         code.setBroaderCode(resolveBroaderCode(fromCode, codeScheme));
         if (fromCode.getOrder() != null) {
             checkOrderAndShiftExistingCodeOrderIfInUse(codeScheme, fromCode, codes);
-            code.setOrder(fromCode.getOrder());
-            if (fromCode.getOrder() > nextOrder.getValue()) {
-                nextOrder.setValue(fromCode.getOrder() + 1);
+            final int order = fromCode.getOrder();
+            code.setOrder(order);
+            if (order >= nextOrder.getValue()) {
+                nextOrder.setValue(order + 1);
             }
         } else if (nextOrder == null) {
             final int order = getNextOrderInSequence(codeScheme);
             code.setOrder(order);
         } else {
-            code.setOrder(nextOrder.getValue());
-            nextOrder.setValue(nextOrder.getValue() + 1);
+            final int order = nextOrder.getValue();
+            code.setOrder(order);
+            nextOrder.setValue(order + 1);
         }
         for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
             final String language = entry.getKey();
