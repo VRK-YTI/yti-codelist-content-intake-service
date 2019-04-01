@@ -239,6 +239,11 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
         LinkedHashSet<CodeSchemeDTO> previousVersionsAsDTOs = new LinkedHashSet<>();
         previousVersionsAsDTOs = this.getPreviousVersions(codeScheme.getId(), previousVersionsAsDTOs);
+        LOG.debug("LISTING ALL PREVIOUS VERSIONS IN CODESCHEMESERVICEIMPL#handleNewVersionCreationFromFileRelatedActivities 243");
+        previousVersionsAsDTOs.forEach(pv -> {
+            System.out.println(pv.getCodeRegistry().getCodeValue());
+            System.out.println(pv.getCodeValue());
+            });
         previousVersionsAsDTOs.forEach(pv -> {
             pv.getAllVersions().add(listItem);
             updateCodeSchemeFromDto(pv.getCodeRegistry().getCodeValue(), pv);
