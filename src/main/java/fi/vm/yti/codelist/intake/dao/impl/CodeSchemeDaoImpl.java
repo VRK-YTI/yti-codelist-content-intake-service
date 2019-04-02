@@ -195,16 +195,16 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     public CodeScheme createOrUpdateCodeScheme(final boolean isAuthorized,
                                                final CodeRegistry codeRegistry,
                                                final CodeSchemeDTO fromCodeScheme) {
-        validateCodeSchemeForCodeRegistry(fromCodeScheme);
+
+
         final CodeScheme existingCodeScheme;
-        if (fromCodeScheme.getId() != null) {
-            existingCodeScheme = codeSchemeRepository.findById(fromCodeScheme.getId());
-            if (existingCodeScheme == null) {
-                checkForExistingCodeSchemeInRegistry(codeRegistry, fromCodeScheme);
-            }
-            validateCodeRegistry(existingCodeScheme, codeRegistry);
+        existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, fromCodeScheme.getCodeValue());
+
+        if (existingCodeScheme == null) {
+            checkForExistingCodeSchemeInRegistry(codeRegistry, fromCodeScheme);
         } else {
-            existingCodeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, fromCodeScheme.getCodeValue());
+            validateCodeSchemeCodeValueForExistingCodeScheme(fromCodeScheme);
+            validateCodeRegistry(existingCodeScheme, codeRegistry);
         }
         final CodeScheme codeScheme;
         if (existingCodeScheme != null) {
@@ -459,7 +459,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         return codes;
     }
 
-    private void validateCodeSchemeForCodeRegistry(final CodeSchemeDTO codeScheme) {
+    private void validateCodeSchemeCodeValueForExistingCodeScheme(final CodeSchemeDTO codeScheme) {
         if (codeScheme.getId() != null) {
             final CodeScheme existingCodeScheme = codeSchemeRepository.findById(codeScheme.getId());
             if (existingCodeScheme != null && !existingCodeScheme.getCodeValue().equalsIgnoreCase(codeScheme.getCodeValue())) {

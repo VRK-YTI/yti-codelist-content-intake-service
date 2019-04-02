@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -23,6 +25,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -36,14 +39,15 @@ import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.intake.exception.BadInformationDomainException;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
-import fi.vm.yti.codelist.intake.exception.MissingHeaderInformationDomainException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderInformationDomainException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
+import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
@@ -51,6 +55,13 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSchemeParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParserImpl.class);
+
+    private CodeSchemeService codeSchemeService;
+
+    @Inject
+    public CodeSchemeParserImpl(@Lazy final CodeSchemeService codeSchemeService) {
+        this.codeSchemeService = codeSchemeService;
+    }
 
     @Override
     public CodeSchemeDTO parseCodeSchemeFromJsonData(final String jsonPayload) {
@@ -82,6 +93,11 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
             final String codeValue = codeScheme.getCodeValue();
             checkForDuplicateCodeValueInImportData(codeValues, codeValue);
             codeValues.add(codeValue.toLowerCase());
+            CodeSchemeDTO dtoFromDb = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeScheme.getCodeRegistry().getCodeValue(),
+                codeScheme.getCodeValue());
+            if (dtoFromDb != null) {
+                codeScheme.setId(dtoFromDb.getId());
+            }
             validateStartDateIsBeforeEndDate(codeScheme);
         }
         return codeSchemes;
@@ -112,7 +128,10 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 codeScheme.setCodeValue(codeValue);
-                codeScheme.setId(parseIdFromRecord(record));
+                CodeSchemeDTO dtoFromDb = this.codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistry.getCodeValue(), codeValue);
+                if (dtoFromDb != null) {
+                    codeScheme.setId(dtoFromDb.getId());
+                }
                 codeScheme.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 codeScheme.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                 codeScheme.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
@@ -125,7 +144,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 }
                 if ((!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) &&
                     (!codeValue.equals(YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) &&
-                        headerMap.get(CONTENT_HEADER_LANGUAGECODE) != null) {
+                    headerMap.get(CONTENT_HEADER_LANGUAGECODE) != null) {
                     final Set<CodeDTO> languageCodes = resolveLanguageCodesFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_LANGUAGECODE));
                     if (!languageCodes.isEmpty()) {
                         codeScheme.setLanguageCodes(languageCodes);
@@ -137,7 +156,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 codeScheme.setGovernancePolicy(parseGovernancePolicyFromCsvRecord(record));
                 codeScheme.setConceptUriInVocabularies(parseConceptUriFromCsvRecord(record));
                 codeScheme.setSource(parseSourceFromCsvRecord(record));
-                codeScheme.setCumulative( Boolean.parseBoolean(parseCumulativeFromCsvRecord(record)));
+                codeScheme.setCumulative(Boolean.parseBoolean(parseCumulativeFromCsvRecord(record)));
                 if (headerMap.containsKey(CONTENT_HEADER_DEFAULTCODE)) {
                     final String defaultCodeCodeValue = parseDefaultCodeFromCsvRecord(record);
                     if (defaultCodeCodeValue != null && !defaultCodeCodeValue.isEmpty()) {
