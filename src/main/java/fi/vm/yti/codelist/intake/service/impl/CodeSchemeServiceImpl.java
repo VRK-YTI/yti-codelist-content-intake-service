@@ -45,6 +45,7 @@ import fi.vm.yti.codelist.intake.exception.IncompleteSetOfCodesTryingToGetImport
 import fi.vm.yti.codelist.intake.exception.InconsistencyInVersionHierarchyException;
 import fi.vm.yti.codelist.intake.exception.TooManyCodeSchemesException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
+import fi.vm.yti.codelist.intake.exception.WrongCodeSchemeInFileUploadWhenUpdatingParticularCodeSchemeException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
 import fi.vm.yti.codelist.intake.model.Code;
@@ -153,8 +154,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                                                        final InputStream inputStream,
                                                                        final String jsonPayload,
                                                                        final boolean userIsCreatingANewVersionOfACodeSchene,
-                                                                       final String originalCodeSchemeIdIfCreatingNewVersion) {
-        return parseAndPersistCodeSchemesFromSourceData(false, codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeSchene, originalCodeSchemeIdIfCreatingNewVersion);
+                                                                       final String originalCodeSchemeId) {
+        return parseAndPersistCodeSchemesFromSourceData(false, codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeSchene, originalCodeSchemeId);
     }
 
     public boolean canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(final String codeRegistryCodeValue,
@@ -212,21 +213,21 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
     }
 
     private LinkedHashSet<CodeSchemeDTO> handleNewVersionCreationFromFileRelatedActivities(final Set<CodeScheme> codeSchemes,
-                                                                                           final String originalCodeSchemeIdIfCreatingNewVersion) {
+                                                                                           final String originalCodeSchemeId) {
         if (codeSchemes.size() > 1) {
             throw new TooManyCodeSchemesException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_TOO_MANY_CODESCHEMES_IN_FILE));
         }
         CodeScheme codeScheme = codeSchemes.iterator().next();
         codeScheme.setLastCodeschemeId(codeScheme.getId());
         codeScheme.setNextCodeschemeId(null);
-        codeScheme.setPrevCodeschemeId(UUID.fromString(originalCodeSchemeIdIfCreatingNewVersion));
+        codeScheme.setPrevCodeschemeId(UUID.fromString(originalCodeSchemeId));
         codeScheme.setStatus(Status.DRAFT.toString());
         codeSchemeDao.save(codeScheme);
 
         LinkedHashSet<CodeScheme> previousVersions = new LinkedHashSet<>();
         previousVersions = cloningService.getPreviousVersions(codeScheme.getId(), previousVersions);
         previousVersions.forEach(pv -> {
-            if (pv.getId().equals(UUID.fromString(originalCodeSchemeIdIfCreatingNewVersion))) {
+            if (pv.getId().equals(UUID.fromString(originalCodeSchemeId))) {
                 pv.setNextCodeschemeId(codeScheme.getId());
             }
             pv.setLastCodeschemeId(codeScheme.getId());
@@ -259,7 +260,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                                                        final InputStream inputStream,
                                                                        final String jsonPayload,
                                                                        final boolean userIsCreatingANewVersionOfACodeScheme,
-                                                                       final String originalCodeSchemeIdIfCreatingNewVersion) {
+                                                                       final String originalCodeSchemeId) {
         final Set<CodeScheme> codeSchemes;
         Set<CodeSchemeDTO> otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = new LinkedHashSet<>();
         Set<CodeSchemeDTO> resultingCodeSchemeSetForIndexing = new LinkedHashSet<>();
@@ -281,8 +282,21 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         final Map<CodeSchemeDTO, String> extensionsSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, externalReferencesSheetNames, extensionsSheetNames);
+
+                        // This check is here because if the user tries to update a particular codescheme from the codescheme page menu, we need to ensure the
+                        // codescheme in the file he is uploading is in fact the same codescheme he claims he is updating.
+                        if (!userIsCreatingANewVersionOfACodeScheme && originalCodeSchemeId != null && !originalCodeSchemeId.isEmpty()) {
+                            final CodeSchemeDTO newCodeScheme = codeSchemeDtos.iterator().next();
+                            final CodeSchemeDTO originalCodeScheme = this.findById(UUID.fromString(originalCodeSchemeId));
+                            if ( (!newCodeScheme.getCodeValue().equals(originalCodeScheme.getCodeValue()))) {
+                                throw new WrongCodeSchemeInFileUploadWhenUpdatingParticularCodeSchemeException(
+                                    new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_WRONG_CODESCHEME_IN_FILE_UPLOAD_WHEN_UPDATING_PARTICULAR_CODESCHEME)
+                                );
+                            }
+                        }
+
                         if (userIsCreatingANewVersionOfACodeScheme) {
-                            previousCodeScheme = codeSchemeDao.findById(UUID.fromString(originalCodeSchemeIdIfCreatingNewVersion));
+                            previousCodeScheme = codeSchemeDao.findById(UUID.fromString(originalCodeSchemeId));
                             if (previousCodeScheme.isCumulative()) {
                                 codeSchemeDtos.iterator().next().setCumulative(true); // this could be wrong in the Excel, if any prev version is cumulative, it cant change back to false
                             }
@@ -301,7 +315,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                     }
                                 }
                             }
-                            otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = handleNewVersionCreationFromFileRelatedActivities(codeSchemes, originalCodeSchemeIdIfCreatingNewVersion);
+                            otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = handleNewVersionCreationFromFileRelatedActivities(codeSchemes, originalCodeSchemeId);
                         }
                     } catch (final InvalidFormatException | IOException | POIXMLException e) {
                         LOG.error("Error parsing Excel file!", e);
@@ -312,7 +326,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                     codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream), false);
 
                     if (userIsCreatingANewVersionOfACodeScheme) {
-                        otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = handleNewVersionCreationFromFileRelatedActivities(codeSchemes, originalCodeSchemeIdIfCreatingNewVersion);
+                        otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = handleNewVersionCreationFromFileRelatedActivities(codeSchemes, originalCodeSchemeId);
                     }
 
                     break;

@@ -25,14 +25,14 @@ public interface CodeSchemeService {
                                                                 final InputStream inputStream,
                                                                 final String jsonPayload,
                                                                 final boolean userIsCreatingANewVersionOfACodeSchene,
-                                                                final String originalCodeSchemeIdIfCreatingNewVersion);
+                                                                final String originalCodeSchemeId);
 
     Set<CodeSchemeDTO> parseAndPersistCodeSchemesFromSourceData(final String codeRegistryCodeValue,
                                                                 final String format,
                                                                 final InputStream inputStream,
                                                                 final String jsonPayload,
                                                                 final boolean userIsCreatingANewVersionOfACodeSchene,
-                                                                final String originalCodeSchemeIdIfCreatingNewVersion);
+                                                                final String originalCodeSchemeId);
 
     CodeSchemeDTO parseAndPersistCodeSchemeFromJson(final String codeRegistryCodeValue,
                                                     final String codeSchemeCodeValue,

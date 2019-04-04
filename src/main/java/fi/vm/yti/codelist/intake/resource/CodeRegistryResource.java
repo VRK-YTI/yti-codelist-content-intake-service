@@ -215,9 +215,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
     public Response addOrUpdateCodeSchemesFromFile(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("csv") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                    @ApiParam(value = "New Codelist version") @QueryParam("newVersionOfCodeScheme") @DefaultValue("false") final boolean userIsCreatingANewVersionOfACodeScheme,
-                                                   @ApiParam(value = "If creating new version, id of previous code list version") @QueryParam("originalCodeSchemeIdIfCreatingNewVersion") final String originalCodeSchemeIdIfCreatingNewVersion,
+                                                   @ApiParam(value = "If creating new version, id of previous code list version") @QueryParam("originalCodeSchemeId") final String originalCodeSchemeId,
                                                    @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, format, inputStream, null, userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeIdIfCreatingNewVersion);
+        return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, format, inputStream, null, userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeId);
     }
 
     @POST
@@ -998,8 +998,8 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                           final InputStream inputStream,
                                                           final String jsonPayload,
                                                           final boolean userIsCreatingANewVersionOfACodeScheme,
-                                                          final String originalCodeSchemeIdIfCreatingNewVersion) {
-        final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeIdIfCreatingNewVersion);
+                                                          final String originalCodeSchemeId) {
+        final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeId);
         for (CodeSchemeDTO codeScheme : codeSchemes) {
             if (codeScheme.getLastCodeschemeId() != null) {
                 codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
