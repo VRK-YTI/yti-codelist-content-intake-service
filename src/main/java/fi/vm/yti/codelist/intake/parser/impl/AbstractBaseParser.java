@@ -292,7 +292,7 @@ public abstract class AbstractBaseParser {
                                      final DataFormatter formatter) {
         final Integer order;
         if (headerMap.containsKey(CONTENT_HEADER_ORDER)) {
-            order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER))));
+            order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER))), row.getRowNum());
         } else {
             order = null;
         }
@@ -302,14 +302,14 @@ public abstract class AbstractBaseParser {
     Integer resolveOrderFromCsvRecord(final CSVRecord record) {
         final Integer order;
         if (record.isMapped(CONTENT_HEADER_ORDER)) {
-            order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER));
+            order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER), new Integer((int)record.getRecordNumber()).intValue());
         } else {
             order = null;
         }
         return order;
     }
 
-    private Integer resolveOrderFromString(final String orderString) {
+    private Integer resolveOrderFromString(final String orderString, final int rowNum) {
         final Integer order;
         if (!orderString.isEmpty()) {
             try {
@@ -317,7 +317,7 @@ public abstract class AbstractBaseParser {
             } catch (final NumberFormatException e) {
                 LOG.error("Error parsing order from: " + orderString, e);
                 throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    ERR_MSG_USER_ORDER_INVALID_VALUE));
+                    ERR_MSG_USER_ORDER_INVALID_VALUE, new Integer(rowNum).toString()));
             }
         } else {
             order = null;
