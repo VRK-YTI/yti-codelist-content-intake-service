@@ -282,18 +282,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         final Map<CodeSchemeDTO, String> extensionsSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, externalReferencesSheetNames, extensionsSheetNames);
-
-                        // This check is here because if the user tries to update a particular codescheme from the codescheme page menu, we need to ensure the
-                        // codescheme in the file he is uploading is in fact the same codescheme he claims he is updating.
-                        if (!userIsCreatingANewVersionOfACodeScheme && originalCodeSchemeId != null && !originalCodeSchemeId.isEmpty()) {
-                            final CodeSchemeDTO newCodeScheme = codeSchemeDtos.iterator().next();
-                            final CodeSchemeDTO originalCodeScheme = this.findById(UUID.fromString(originalCodeSchemeId));
-                            if ( (!newCodeScheme.getCodeValue().equals(originalCodeScheme.getCodeValue()))) {
-                                throw new WrongCodeSchemeInFileUploadWhenUpdatingParticularCodeSchemeException(
-                                    new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_WRONG_CODESCHEME_IN_FILE_UPLOAD_WHEN_UPDATING_PARTICULAR_CODESCHEME)
-                                );
-                            }
+                        if (userIsUpdatingAParticularCodeSchemeWithAFileUpload(userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeId)) {
+                            dealWithThePossibleWrongCodeSchemeInTheFileUpdateScenario(originalCodeSchemeId, codeSchemeDtos);
                         }
+
 
                         if (userIsCreatingANewVersionOfACodeScheme) {
                             previousCodeScheme = codeSchemeDao.findById(UUID.fromString(originalCodeSchemeId));
@@ -323,6 +315,11 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                     }
                     break;
                 case FORMAT_CSV:
+                    final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream);
+                    if (userIsUpdatingAParticularCodeSchemeWithAFileUpload(userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeId)) {
+                        dealWithThePossibleWrongCodeSchemeInTheFileUpdateScenario(originalCodeSchemeId, codeSchemeDtos);
+                    }
+
                     codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream), false);
 
                     if (userIsCreatingANewVersionOfACodeScheme) {
@@ -342,6 +339,29 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
         resultingCodeSchemeSetForIndexing.addAll(dtoMapperService.mapCodeSchemeDtos(codeSchemes, true));
         return resultingCodeSchemeSetForIndexing;
+    }
+
+    private boolean userIsUpdatingAParticularCodeSchemeWithAFileUpload(final boolean userIsCreatingANewVersionOfACodeScheme,
+                                                                    final String originalCodeSchemeId) {
+
+        if (!userIsCreatingANewVersionOfACodeScheme && originalCodeSchemeId != null && !originalCodeSchemeId.isEmpty()) {
+            return true;
+        }
+        return false;
+    }
+    /**
+     * This check is here because if the user tries to update a particular codescheme from the codescheme page menu, we need to ensure the
+     * codescheme in the file he is uploading is in fact the same codescheme he claims he is updating.
+     */
+    private void dealWithThePossibleWrongCodeSchemeInTheFileUpdateScenario(final String originalCodeSchemeId,
+                                                                           final Set<CodeSchemeDTO> codeSchemeDtos) {
+        final CodeSchemeDTO newCodeScheme = codeSchemeDtos.iterator().next();
+        final CodeSchemeDTO originalCodeScheme = this.findById(UUID.fromString(originalCodeSchemeId));
+        if ((!newCodeScheme.getCodeValue().equals(originalCodeScheme.getCodeValue()))) {
+            throw new WrongCodeSchemeInFileUploadWhenUpdatingParticularCodeSchemeException(
+                new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_WRONG_CODESCHEME_IN_FILE_UPLOAD_WHEN_UPDATING_PARTICULAR_CODESCHEME)
+            );
+        }
     }
 
     @Transactional
