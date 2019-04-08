@@ -241,11 +241,6 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
         LinkedHashSet<CodeSchemeDTO> previousVersionsAsDTOs = new LinkedHashSet<>();
         previousVersionsAsDTOs = this.getPreviousVersions(codeScheme.getId(), previousVersionsAsDTOs);
-        LOG.debug("LISTING ALL PREVIOUS VERSIONS IN CODESCHEMESERVICEIMPL#handleNewVersionCreationFromFileRelatedActivities 243");
-        previousVersionsAsDTOs.forEach(pv -> {
-            System.out.println(pv.getCodeRegistry().getCodeValue());
-            System.out.println(pv.getCodeValue());
-            });
         previousVersionsAsDTOs.forEach(pv -> {
             pv.getAllVersions().add(listItem);
             updateCodeSchemeFromDto(pv.getCodeRegistry().getCodeValue(), pv);
@@ -286,7 +281,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, externalReferencesSheetNames, extensionsSheetNames);
 
                         if (updatingExistingCodeScheme) {
-                            ensureTheCodeschemeInTheFileIsIndeedTheIntendedTargetOfTheUpdate(originalCodeSchemeId, codeSchemeDtos);
+                            handleUpdatingOneParticularCodeSchemeThroughFileUpload(originalCodeSchemeId, codeSchemeDtos);
                         }
 
                         if (userIsCreatingANewVersionOfACodeScheme) {
@@ -319,7 +314,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                 case FORMAT_CSV:
                     final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream);
                     if (updatingExistingCodeScheme) {
-                        ensureTheCodeschemeInTheFileIsIndeedTheIntendedTargetOfTheUpdate(originalCodeSchemeId, codeSchemeDtos);
+                        handleUpdatingOneParticularCodeSchemeThroughFileUpload(originalCodeSchemeId, codeSchemeDtos);
                     }
 
                     codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, false);
@@ -344,14 +339,30 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
     }
 
     /**
+     * The is now the option to update a particular codescheme by using excel or CSV files. In this case many of the attributes are not coming in thru the file upload, but we have
+     * to manually populate them from the database. Otherwise data loss ensues. For example we would lose versionhistory , variants and cumulativity-information at least.
+     */
+    private void handleUpdatingOneParticularCodeSchemeThroughFileUpload(final String originalCodeSchemeId,
+                                                                        final Set<CodeSchemeDTO> codeSchemeDtos) {
+        CodeSchemeDTO theCodeSchemeDTO = codeSchemeDtos.iterator().next();
+        final CodeSchemeDTO originalCodeScheme = this.findById(UUID.fromString(originalCodeSchemeId));
+        ensureTheCodeschemeInTheFileIsIndeedTheIntendedTargetOfTheUpdate(theCodeSchemeDTO, originalCodeScheme);
+        theCodeSchemeDTO.setCumulative(originalCodeScheme.isCumulative());
+        theCodeSchemeDTO.setVariantMothersOfThisCodeScheme(originalCodeScheme.getVariantMothersOfThisCodeScheme());
+        theCodeSchemeDTO.setVariantsOfThisCodeScheme(originalCodeScheme.getVariantsOfThisCodeScheme());
+        theCodeSchemeDTO.setNextCodeschemeId(originalCodeScheme.getNextCodeschemeId());
+        theCodeSchemeDTO.setLastCodeschemeId(originalCodeScheme.getLastCodeschemeId());
+        theCodeSchemeDTO.setPrevCodeschemeId(originalCodeScheme.getPrevCodeschemeId());
+        this.populateAllVersionsToCodeSchemeDTO(theCodeSchemeDTO);
+    }
+
+    /**
      * This check is here because if the user tries to update a particular codescheme from the codescheme page menu, we need to ensure the
      * codescheme in the file he is uploading is in fact the same codescheme he claims he is updating.
      */
-    private void ensureTheCodeschemeInTheFileIsIndeedTheIntendedTargetOfTheUpdate(final String originalCodeSchemeId,
-                                                                                  final Set<CodeSchemeDTO> codeSchemeDtos) {
-        final CodeSchemeDTO newCodeScheme = codeSchemeDtos.iterator().next();
-        final CodeSchemeDTO originalCodeScheme = this.findById(UUID.fromString(originalCodeSchemeId));
-        if ((!newCodeScheme.getCodeValue().equals(originalCodeScheme.getCodeValue()))) {
+    private void ensureTheCodeschemeInTheFileIsIndeedTheIntendedTargetOfTheUpdate(final CodeSchemeDTO codeSchemeDto,
+                                                                                  final CodeSchemeDTO originalCodeScheme) {
+        if ((!codeSchemeDto.getCodeValue().equals(originalCodeScheme.getCodeValue()))) {
             throw new WrongCodeSchemeInFileUploadWhenUpdatingParticularCodeSchemeException(
                 new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_WRONG_CODESCHEME_IN_FILE_UPLOAD_WHEN_UPDATING_PARTICULAR_CODESCHEME)
             );
