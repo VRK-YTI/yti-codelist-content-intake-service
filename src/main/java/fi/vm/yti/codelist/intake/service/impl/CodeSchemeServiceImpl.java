@@ -154,8 +154,9 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                                                        final InputStream inputStream,
                                                                        final String jsonPayload,
                                                                        final boolean userIsCreatingANewVersionOfACodeSchene,
-                                                                       final String originalCodeSchemeId) {
-        return parseAndPersistCodeSchemesFromSourceData(false, codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeSchene, originalCodeSchemeId);
+                                                                       final String originalCodeSchemeId,
+                                                                       final boolean updatingExistingCodeScheme) {
+        return parseAndPersistCodeSchemesFromSourceData(false, codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeSchene, originalCodeSchemeId, updatingExistingCodeScheme);
     }
 
     public boolean canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(final String codeRegistryCodeValue,
@@ -260,7 +261,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                                                        final InputStream inputStream,
                                                                        final String jsonPayload,
                                                                        final boolean userIsCreatingANewVersionOfACodeScheme,
-                                                                       final String originalCodeSchemeId) {
+                                                                       final String originalCodeSchemeId,
+                                                                       final boolean updatingExistingCodeScheme) {
         final Set<CodeScheme> codeSchemes;
         Set<CodeSchemeDTO> otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = new LinkedHashSet<>();
         Set<CodeSchemeDTO> resultingCodeSchemeSetForIndexing = new LinkedHashSet<>();
@@ -282,10 +284,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         final Map<CodeSchemeDTO, String> extensionsSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, externalReferencesSheetNames, extensionsSheetNames);
-                        if (userIsUpdatingAParticularCodeSchemeWithAFileUpload(userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeId)) {
-                            dealWithThePossibleWrongCodeSchemeInTheFileUpdateScenario(originalCodeSchemeId, codeSchemeDtos);
-                        }
 
+                        if (updatingExistingCodeScheme) {
+                            ensureTheCodeschemeInTheFileIsIndeedTheIntendedTargetOfTheUpdate(originalCodeSchemeId, codeSchemeDtos);
+                        }
 
                         if (userIsCreatingANewVersionOfACodeScheme) {
                             previousCodeScheme = codeSchemeDao.findById(UUID.fromString(originalCodeSchemeId));
@@ -316,11 +318,11 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                     break;
                 case FORMAT_CSV:
                     final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream);
-                    if (userIsUpdatingAParticularCodeSchemeWithAFileUpload(userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeId)) {
-                        dealWithThePossibleWrongCodeSchemeInTheFileUpdateScenario(originalCodeSchemeId, codeSchemeDtos);
+                    if (updatingExistingCodeScheme) {
+                        ensureTheCodeschemeInTheFileIsIndeedTheIntendedTargetOfTheUpdate(originalCodeSchemeId, codeSchemeDtos);
                     }
 
-                    codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeParser.parseCodeSchemesFromCsvInputStream(codeRegistry, inputStream), false);
+                    codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, false);
 
                     if (userIsCreatingANewVersionOfACodeScheme) {
                         otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = handleNewVersionCreationFromFileRelatedActivities(codeSchemes, originalCodeSchemeId);
@@ -341,20 +343,12 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         return resultingCodeSchemeSetForIndexing;
     }
 
-    private boolean userIsUpdatingAParticularCodeSchemeWithAFileUpload(final boolean userIsCreatingANewVersionOfACodeScheme,
-                                                                    final String originalCodeSchemeId) {
-
-        if (!userIsCreatingANewVersionOfACodeScheme && originalCodeSchemeId != null && !originalCodeSchemeId.isEmpty()) {
-            return true;
-        }
-        return false;
-    }
     /**
      * This check is here because if the user tries to update a particular codescheme from the codescheme page menu, we need to ensure the
      * codescheme in the file he is uploading is in fact the same codescheme he claims he is updating.
      */
-    private void dealWithThePossibleWrongCodeSchemeInTheFileUpdateScenario(final String originalCodeSchemeId,
-                                                                           final Set<CodeSchemeDTO> codeSchemeDtos) {
+    private void ensureTheCodeschemeInTheFileIsIndeedTheIntendedTargetOfTheUpdate(final String originalCodeSchemeId,
+                                                                                  final Set<CodeSchemeDTO> codeSchemeDtos) {
         final CodeSchemeDTO newCodeScheme = codeSchemeDtos.iterator().next();
         final CodeSchemeDTO originalCodeScheme = this.findById(UUID.fromString(originalCodeSchemeId));
         if ((!newCodeScheme.getCodeValue().equals(originalCodeScheme.getCodeValue()))) {

@@ -198,7 +198,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
     public Response addOrUpdateCodeSchemesFromJson(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("json") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                    @ApiParam(value = "JSON playload for CodeScheme data.", required = true) final String jsonPayload) {
-        return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, FORMAT_JSON, null, jsonPayload, false, "");
+        return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, FORMAT_JSON, null, jsonPayload, false, "", false);
     }
 
     @POST
@@ -215,9 +215,10 @@ public class CodeRegistryResource implements AbstractBaseResource {
     public Response addOrUpdateCodeSchemesFromFile(@ApiParam(value = "Format for input.") @QueryParam("format") @DefaultValue("csv") final String format,
                                                    @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                                    @ApiParam(value = "New Codelist version") @QueryParam("newVersionOfCodeScheme") @DefaultValue("false") final boolean userIsCreatingANewVersionOfACodeScheme,
+                                                   @ApiParam(value = "True if user is updating a particular code list with a file from the code list page menu") @QueryParam("updatingExistingCodeScheme") @DefaultValue("false") final boolean updatingExistingCodeScheme,
                                                    @ApiParam(value = "If creating new version, id of previous code list version") @QueryParam("originalCodeSchemeId") final String originalCodeSchemeId,
                                                    @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, format, inputStream, null, userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeId);
+        return parseAndPersistCodeSchemesFromSource(codeRegistryCodeValue, format, inputStream, null, userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeId, updatingExistingCodeScheme);
     }
 
     @POST
@@ -998,8 +999,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                           final InputStream inputStream,
                                                           final String jsonPayload,
                                                           final boolean userIsCreatingANewVersionOfACodeScheme,
-                                                          final String originalCodeSchemeId) {
-        final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeId);
+                                                          final String originalCodeSchemeId,
+                                                          final boolean updatingExistingCodeScheme) {
+        final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeId, updatingExistingCodeScheme);
         for (CodeSchemeDTO codeScheme : codeSchemes) {
             if (codeScheme.getLastCodeschemeId() != null) {
                 codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
