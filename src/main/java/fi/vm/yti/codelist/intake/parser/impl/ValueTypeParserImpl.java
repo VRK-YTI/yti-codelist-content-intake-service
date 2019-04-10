@@ -116,6 +116,7 @@ public class ValueTypeParserImpl extends AbstractBaseParser implements ValueType
             Map<String, Integer> headerMap = null;
             Map<String, Integer> prefLabelHeaders = null;
             boolean firstRow = true;
+            checkIfExcelEmpty(rowIterator);
             while (rowIterator.hasNext()) {
                 final Row row = rowIterator.next();
                 if (firstRow) {

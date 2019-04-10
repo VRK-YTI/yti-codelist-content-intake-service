@@ -152,6 +152,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         Map<String, Integer> prefLabelHeaders = null;
         Map<String, Integer> definitionHeaders = null;
         Map<String, Integer> descriptionHeaders = null;
+        checkIfExcelEmpty(rowIterator);
         while (rowIterator.hasNext()) {
             final Row row = rowIterator.next();
             final String rowIdentifier = getRowIdentifier(row);

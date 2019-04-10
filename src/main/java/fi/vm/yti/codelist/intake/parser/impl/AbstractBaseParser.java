@@ -382,4 +382,10 @@ public abstract class AbstractBaseParser {
         }
         return true;
     }
+
+    void checkIfExcelEmpty(final Iterator<Row> rowIterator) {
+        if (!rowIterator.hasNext()) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EMPTY_EXCEL));
+        }
+    }
 }

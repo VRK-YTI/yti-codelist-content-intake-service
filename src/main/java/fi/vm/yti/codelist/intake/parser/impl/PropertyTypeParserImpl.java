@@ -135,6 +135,7 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
             Map<String, Integer> prefLabelHeaders = null;
             Map<String, Integer> definitionHeaders = null;
             boolean firstRow = true;
+            checkIfExcelEmpty(rowIterator);
             while (rowIterator.hasNext()) {
                 final Row row = rowIterator.next();
                 if (firstRow) {

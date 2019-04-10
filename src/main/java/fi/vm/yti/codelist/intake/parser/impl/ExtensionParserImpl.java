@@ -169,6 +169,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
         Map<String, Integer> headerMap = null;
         Map<String, Integer> prefLabelHeaders = null;
         boolean firstRow = true;
+        checkIfExcelEmpty(rowIterator);
         while (rowIterator.hasNext()) {
             final Row row = rowIterator.next();
             if (firstRow) {
