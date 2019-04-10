@@ -7,6 +7,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
 
+import fi.vm.yti.codelist.intake.exception.exceptionmapping.EOFExceptionMapper;
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.UncaughtExceptionMapper;
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.YtiCodeListExceptionMapper;
 import fi.vm.yti.codelist.intake.filter.CacheFilter;
@@ -75,6 +76,7 @@ public class JerseyConfig extends ResourceConfig {
         // ExceptionMappers
         register(YtiCodeListExceptionMapper.class);
         register(UncaughtExceptionMapper.class);
+        register(EOFExceptionMapper.class);
 
         // Logging
         register(RequestLoggingFilter.class);

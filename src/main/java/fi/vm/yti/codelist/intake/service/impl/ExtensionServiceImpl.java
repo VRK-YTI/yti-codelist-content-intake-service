@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
