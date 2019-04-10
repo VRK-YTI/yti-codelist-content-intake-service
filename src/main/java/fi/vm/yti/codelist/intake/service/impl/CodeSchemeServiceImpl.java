@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
+import org.apache.poi.EmptyFileException;
 import org.apache.poi.POIXMLException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -175,7 +176,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         final Map<CodeSchemeDTO, String> extensionsSheetNames = new HashMap<>();
                         final Set<CodeSchemeDTO> codeSchemeDTOs = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, externalReferencesSheetNames, extensionsSheetNames);
                         doTheValidationsAfterLoadingAndParsingTheContentsOfFile(codeRegistry, codeSchemeDTOs);
-                    } catch (final InvalidFormatException | IOException | POIXMLException e) {
+                    } catch (final InvalidFormatException | EmptyFileException | IOException | POIXMLException e) {
                         LOG.error("Error parsing Excel file!", e);
                         throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
                     } catch (final YtiCodeListException e) {
@@ -306,7 +307,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                             }
                             otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = handleNewVersionCreationFromFileRelatedActivities(codeSchemes, originalCodeSchemeId);
                         }
-                    } catch (final InvalidFormatException | IOException | POIXMLException e) {
+                    } catch (final InvalidFormatException | EmptyFileException | IOException | POIXMLException e) {
                         LOG.error("Error parsing Excel file!", e);
                         throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
                     }

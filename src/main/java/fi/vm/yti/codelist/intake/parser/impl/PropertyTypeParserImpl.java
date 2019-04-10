@@ -16,6 +16,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.poi.EmptyFileException;
 import org.apache.poi.POIXMLException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -155,7 +156,7 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
                     propertyTypes.add(propertyType);
                 }
             }
-        } catch (final InvalidFormatException | IOException | POIXMLException e) {
+        } catch (final InvalidFormatException | EmptyFileException | IOException | POIXMLException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
