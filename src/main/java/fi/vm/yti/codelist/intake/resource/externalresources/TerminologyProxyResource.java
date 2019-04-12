@@ -117,13 +117,13 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     }
 
     @GET
-    @Path("/concepts/searchterm/{searchTerm}/vocabulary/{vocabularyId}")
+    @Path("/concepts")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Returns a filtered list of concepts")
     @ApiResponse(code = 200, message = "Returns success.")
     @SuppressWarnings("Duplicates")
-    public Response getConcepts(@PathParam("searchTerm") String searchTerm,
-                                @PathParam("vocabularyId") String vocabularyId,
+    public Response getConcepts(@QueryParam("searchTerm") String searchTerm,
+                                @QueryParam("vocabularyId") String vocabularyId,
                                 @QueryParam("status") String status) {
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
@@ -136,7 +136,9 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         try {
             Map<String, String> params = new HashMap<>();
             params.put("status", status);
-            response = restTemplate.getForObject(createTerminologyConceptsApiUrl(searchTerm, vocabularyId), String.class, params);
+            params.put("searchTerm", searchTerm);
+            params.put("vocabularyId", vocabularyId);
+            response = restTemplate.getForObject(createTerminologyConceptsApiUrl(), String.class, params);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 // ok to continue
@@ -165,9 +167,8 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         }
     }
 
-    private String createTerminologyConceptsApiUrl(final String searchTerm,
-                                                   final String vocabularyId) {
-        return terminologyProperties.getUrl() + API_PATH_TERMINOLOGY + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_CONCEPTS + "/searchterm" + "/" + searchTerm + "/" + "vocabulary" + "/" + vocabularyId + "?status={status}";
+    private String createTerminologyConceptsApiUrl() {
+        return terminologyProperties.getUrl() + API_PATH_TERMINOLOGY + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_CONCEPTS + "?status={status}&vocabularyId={vocabularyId}&searchTerm={searchTerm}";
     }
 
     @POST
