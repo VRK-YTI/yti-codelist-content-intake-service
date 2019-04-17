@@ -42,6 +42,7 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
     private LocalDate endDate;
     private Set<MemberValue> memberValues;
     private String uri;
+    private Integer sequenceId;
 
     public Member() {
         memberValues = new HashSet<>();
@@ -188,5 +189,15 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
 
     public void setUri(final String uri) {
         this.uri = uri;
+    }
+
+    @Column(name = "sequence_id")
+    @JsonView(Views.Normal.class)
+    public Integer getSequenceId() {
+        return sequenceId;
+    }
+
+    public void setSequenceId(final Integer sequenceId) {
+        this.sequenceId = sequenceId;
     }
 }

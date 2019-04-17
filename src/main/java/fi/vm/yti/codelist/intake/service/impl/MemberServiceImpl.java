@@ -156,10 +156,20 @@ public class MemberServiceImpl implements MemberService {
                         }
                         break;
                     case FORMAT_EXCEL:
-                        members = memberDao.updateMemberEntitiesFromDtos(extension, memberParser.parseMembersFromExcelInputStream(extension, inputStream, sheetName));
+                        Set<MemberDTO> memberDTOs = memberParser.parseMembersFromExcelInputStream(extension, inputStream, sheetName);
+                        memberDTOs.forEach(memberDTO -> {
+                            Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDTO.getSequenceId());
+                            memberDTO.setId(correspondingMemberFromDb == null ? UUID.randomUUID() : correspondingMemberFromDb.getId());
+                        });
+                        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDTOs);
                         break;
                     case FORMAT_CSV:
-                        members = memberDao.updateMemberEntitiesFromDtos(extension, memberParser.parseMembersFromCsvInputStream(extension, inputStream));
+                        Set<MemberDTO> memberDTOsFromCsv = memberParser.parseMembersFromCsvInputStream(extension, inputStream);
+                        memberDTOsFromCsv.forEach(memberDTO -> {
+                            Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDTO.getSequenceId());
+                            memberDTO.setId(correspondingMemberFromDb == null ? UUID.randomUUID() : correspondingMemberFromDb.getId());
+                        });
+                        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDTOsFromCsv);
                         break;
                     default:
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
@@ -180,8 +190,12 @@ public class MemberServiceImpl implements MemberService {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         Set<Member> members;
-        final Set<MemberDTO> memberDtos = memberParser.parseMembersFromExcelWorkbook(extension, workbook, sheetName);
-        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDtos);
+        final Set<MemberDTO> memberDTOs = memberParser.parseMembersFromExcelWorkbook(extension, workbook, sheetName);
+        memberDTOs.forEach(memberDTO -> {
+            Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDTO.getSequenceId());
+            memberDTO.setId(correspondingMemberFromDb == null ? UUID.randomUUID() : correspondingMemberFromDb.getId());
+        });
+        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDTOs);
         return dtoMapperService.mapDeepMemberDtos(members);
     }
 

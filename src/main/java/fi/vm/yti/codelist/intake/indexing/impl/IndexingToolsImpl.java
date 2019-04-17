@@ -242,6 +242,9 @@ public class IndexingToolsImpl implements IndexingTools {
         "  \"order\": {\n" +
         "    \"type\": \"integer\"\n" +
         "  },\n" +
+        "  \"sequenceId\": {\n" +
+        "    \"type\": \"integer\"\n" +
+        "  },\n" +
         "  \"extension\": {\n" +
         "    \"properties\": {\n" +
         "      \"id\": {\n" +

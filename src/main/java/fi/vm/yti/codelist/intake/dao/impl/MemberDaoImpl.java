@@ -50,6 +50,7 @@ public class MemberDaoImpl implements MemberDao {
 
     private static final int MAX_LEVEL = 10;
     private static final int MAX_LEVEL_FOR_CROSS_REFERENCE_LIST = 2;
+    public static final String PREFIX_FOR_EXTENSION_SEQUENCE_NAME = "seq_for_ext_";
 
     private final EntityChangeLogger entityChangeLogger;
     private final MemberRepository memberRepository;
@@ -142,6 +143,12 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Transactional
+    public Member findByExtensionAndSequenceId(final Extension extension, final Integer sequenceId)  {
+        Member member = memberRepository.findByExtensionAndSequenceId(extension, sequenceId);
+        return member;
+    };
+
+    @Transactional
     public Set<Member> updateMemberEntityFromDto(final Extension extension,
                                                  final MemberDTO fromMemberDto) {
         final Set<Member> affectedMembers = new HashSet<>();
@@ -208,7 +215,16 @@ public class MemberDaoImpl implements MemberDao {
     private void updateMemberMemberValues(final Extension extension,
                                           final Member member,
                                           final MemberDTO fromMemberDto) {
-        final Set<MemberValue> memberValues = memberValueDao.updateMemberValueEntitiesFromDtos(member, fromMemberDto.getMemberValues());
+        Set<MemberValue> memberValues = new HashSet<>();
+        try {
+            memberValues = memberValueDao.updateMemberValueEntitiesFromDtos(member, fromMemberDto.getMemberValues());
+        } catch (Exception e) {
+            if (e.getMessage().contains("unique_order")) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_CONTAINS_DUPLICATE_VALUES));
+            } else {
+                throw e;
+            }
+        }
         ensureThatRequiredMemberValuesArePresent(extension.getPropertyType().getValueTypes(), memberValues);
         member.setMemberValues(memberValues);
     }
@@ -479,6 +495,10 @@ public class MemberDaoImpl implements MemberDao {
         member.setCreated(timeStamp);
         member.setModified(timeStamp);
         member.setUri(apiUtils.createMemberUri(member));
+        String postFixPartOfTheSequenceName = extension.getId().toString().replaceAll("-", "_");
+        String theNameOfTheSequence = PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
+        Integer sequenceId = memberRepository.getMemberSequenceId(theNameOfTheSequence);
+        member.setSequenceId(sequenceId);
         return member;
     }
 
@@ -628,6 +648,10 @@ public class MemberDaoImpl implements MemberDao {
                     m.setMemberValues(null);
                     m.setPrefLabel(null);
                     m.setUri(apiUtils.createMemberUri(m));
+                    String postFixPartOfTheSequenceName = extension.getId().toString().replaceAll("-", "_");
+                    String theNameOfTheSequence = PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
+                    Integer sequenceId = memberRepository.getMemberSequenceId(theNameOfTheSequence);
+                    m.setSequenceId(sequenceId);
                     this.save(m);
                     createdMembers.add(m);
                 }

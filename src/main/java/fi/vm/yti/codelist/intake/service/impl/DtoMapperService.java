@@ -416,6 +416,7 @@ public class DtoMapperService {
         final MemberDTO memberDto = new MemberDTO();
         memberDto.setId(member.getId());
         memberDto.setOrder(member.getOrder());
+        memberDto.setSequenceId(member.getSequenceId());
         if (member.getMemberValues() != null && !member.getMemberValues().isEmpty()) {
             memberDto.setMemberValues(mapMemberValueDtos(member.getMemberValues()));
         }

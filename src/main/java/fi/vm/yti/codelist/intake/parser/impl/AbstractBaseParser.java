@@ -299,10 +299,32 @@ public abstract class AbstractBaseParser {
         return order;
     }
 
+    Integer resolveSequenceIdFromExcelRow(final Map<String, Integer> headerMap,
+                                          final Row row,
+                                          final DataFormatter formatter) {
+        final Integer order;
+        if (headerMap.containsKey(CONTENT_HEADER_SEQUENCE_ID)) {
+            order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SEQUENCE_ID))), row.getRowNum());
+        } else {
+            order = null;
+        }
+        return order;
+    }
+
     Integer resolveOrderFromCsvRecord(final CSVRecord record) {
         final Integer order;
         if (record.isMapped(CONTENT_HEADER_ORDER)) {
             order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER), new Integer((int)record.getRecordNumber()).intValue());
+        } else {
+            order = null;
+        }
+        return order;
+    }
+
+    Integer resolveSequenceIdFromCsvRecord(final CSVRecord record) {
+        final Integer order;
+        if (record.isMapped(CONTENT_HEADER_SEQUENCE_ID)) {
+            order = resolveOrderFromString(record.get(CONTENT_HEADER_SEQUENCE_ID), new Integer((int)record.getRecordNumber()).intValue());
         } else {
             order = null;
         }

@@ -101,8 +101,8 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 final String recordIdentifier = getRecordIdentifier(record);
                 validateRequiredDataOnRecord(filterRequiredValueTypes(valueTypes), record);
                 final MemberDTO member = new MemberDTO();
-                member.setId(parseIdFromRecord(record));
                 member.setOrder(resolveOrderFromCsvRecord(record));
+                member.setSequenceId(resolveSequenceIdFromCsvRecord(record));
                 member.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 if (!valueTypes.isEmpty()) {
                     final HashSet<MemberValueDTO> memberValues = new HashSet<>();
@@ -172,11 +172,9 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 final String codeIdentifier = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODE)));
                 member.setCode(createCodeUsingIdentifier(codeIdentifier, rowIdentifier));
                 validateRequiredDataOnRow(filterRequiredValueTypes(valueTypes), row, headerMap, formatter);
-                if (headerMap.containsKey(CONTENT_HEADER_ID)) {
-                    member.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
-                }
                 member.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 member.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
+                member.setSequenceId(resolveSequenceIdFromExcelRow(headerMap, row, formatter));
                 if (valueTypes != null && !valueTypes.isEmpty()) {
                     final HashSet<MemberValueDTO> memberValues = new HashSet<>();
                     for (final ValueType valueType : valueTypes) {

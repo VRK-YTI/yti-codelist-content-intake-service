@@ -44,4 +44,10 @@ public interface MemberRepository extends CrudRepository<Member, String> {
 
     Member findByExtensionAndCodeUriIgnoreCase(final Extension extension,
                                                final String codeCodeValue);
+
+    @Query(value = "SELECT nextval(:sequenceName)", nativeQuery = true)
+    Integer getMemberSequenceId(@Param("sequenceName") final String sequenceName);
+
+    Member findByExtensionAndSequenceId(final Extension extension,
+                                        final Integer sequenceId);
 }
