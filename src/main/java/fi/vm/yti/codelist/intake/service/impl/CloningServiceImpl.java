@@ -33,6 +33,7 @@ import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.jpa.CodeSchemeRepository;
+import fi.vm.yti.codelist.intake.jpa.MemberRepository;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
@@ -58,6 +59,7 @@ public class CloningServiceImpl implements CloningService {
     private final AuthorizationManager authorizationManager;
     private final DtoMapperService dtoMapperService;
     private final ApiUtils apiUtils;
+    private final MemberRepository memberRepository;
 
     public CloningServiceImpl(final CodeSchemeRepository codeSchemeRepository,
                               final CodeSchemeService codeSchemeService,
@@ -68,7 +70,8 @@ public class CloningServiceImpl implements CloningService {
                               final AuthorizationManager authorizationManager,
                               final DtoMapperService dtoMapperService,
                               final ApiUtils apiUtils,
-                              final MemberDao memberDao) {
+                              final MemberDao memberDao,
+                              final MemberRepository memberRepository) {
         this.codeSchemeRepository = codeSchemeRepository;
         this.codeSchemeService = codeSchemeService;
         this.codeSchemeDao = codeSchemeDao;
@@ -79,6 +82,7 @@ public class CloningServiceImpl implements CloningService {
         this.dtoMapperService = dtoMapperService;
         this.apiUtils = apiUtils;
         this.memberDao = memberDao;
+        this.memberRepository = memberRepository;
     }
 
     @Transactional
@@ -454,7 +458,7 @@ public class CloningServiceImpl implements CloningService {
         newMember.setId(originalMember.getId());
         newMember.setExtension(extension);
         newMember.setOrder(originalMember.getOrder());
-        newMember.setSequenceId(originalMember.getSequenceId());
+        newMember.setSequenceId(memberRepository.getMemberSequenceId("seq_for_ext_'" + extension.getId().toString().replaceAll("-", "_" )));
         newMember.setPrefLabel(originalMember.getPrefLabel());
         newMember.setCreated(timeStamp);
         newMember.setModified(timeStamp);
