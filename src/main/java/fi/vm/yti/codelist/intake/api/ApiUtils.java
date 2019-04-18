@@ -182,7 +182,7 @@ public class ApiUtils {
         return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + member.getExtension().getParentCodeScheme().getCodeRegistry().getCodeValue() +
             API_PATH_CODESCHEMES + "/" + member.getExtension().getParentCodeScheme().getCodeValue() +
             API_PATH_EXTENSIONS + "/" + urlEncodeString(member.getExtension().getCodeValue()) +
-            API_PATH_MEMBERS, member.getSequenceId().toString());
+            API_PATH_MEMBERS, member.getSequenceId() == null ? member.getId().toString() : member.getSequenceId().toString());
     }
 
     public String getContentIntakeServiceHostname() {
