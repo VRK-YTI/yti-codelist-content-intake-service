@@ -31,6 +31,7 @@ import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.ExtensionRepository;
+import fi.vm.yti.codelist.intake.jpa.MemberRepository;
 import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.Code;
@@ -55,6 +56,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
     private final LanguageService languageService;
     private final MemberDao memberDao;
     private final ApiUtils apiUtils;
+    private final MemberRepository memberRepository;
 
     @Inject
     public ExtensionDaoImpl(final AuthorizationManager authorizationManager,
@@ -64,7 +66,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
                             final CodeSchemeDao codeSchemeDao,
                             final LanguageService languageService,
                             final MemberDao memberDao,
-                            final ApiUtils apiUtils) {
+                            final ApiUtils apiUtils,
+                            final MemberRepository memberRepository) {
         this.authorizationManager = authorizationManager;
         this.entityChangeLogger = entityChangeLogger;
         this.extensionRepository = extensionRepository;
@@ -73,6 +76,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         this.languageService = languageService;
         this.memberDao = memberDao;
         this.apiUtils = apiUtils;
+        this.memberRepository = memberRepository;
     }
 
     public void delete(final Extension extension) {
@@ -324,6 +328,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                     Member m = new Member();
                     m.setId(UUID.randomUUID());
                     m.setOrder(memberDao.getNextOrderInSequence(extension));
+                    m.setSequenceId(memberRepository.getMemberSequenceId("seq_for_ext_'" + extension.getId().toString().replaceAll("-", "_" )));
                     m.setCode(code);
                     m.setRelatedMember(null);
                     m.setEndDate(code.getEndDate());
