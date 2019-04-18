@@ -430,7 +430,7 @@ public class DtoMapperService {
                 memberDto.setExtension(mapExtensionDto(member.getExtension(), false, true, true));
             }
         }
-        memberDto.setUri(apiUtils.createMemberUri(member));
+        memberDto.setUri(member.getUri());
         memberDto.setUrl(apiUtils.createMemberUrl(member));
         memberDto.setStartDate(member.getStartDate());
         memberDto.setEndDate(member.getEndDate());
