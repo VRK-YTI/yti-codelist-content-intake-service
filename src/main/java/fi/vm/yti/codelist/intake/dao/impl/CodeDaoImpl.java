@@ -40,6 +40,7 @@ import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -194,6 +195,9 @@ public class CodeDaoImpl implements CodeDao {
         evaluateAndSetHierarchyLevels(codesAffected, findByCodeSchemeId(codeScheme.getId()));
         save(code);
         setCodeExtensionMemberValues(codeDto);
+        final Set<Member> codeMembers = memberDao.findByCodeId(code.getId());
+        code.setMembers(codeMembers);
+        save(code);
         codeSchemeRepository.save(codeScheme);
         return codesAffected;
     }
@@ -202,15 +206,21 @@ public class CodeDaoImpl implements CodeDao {
         final Set<ExtensionDTO> codeExtensionDtos = code.getCodeExtensions();
         if (codeExtensionDtos != null && !codeExtensionDtos.isEmpty()) {
             codeExtensionDtos.forEach(extensionDto -> {
-                final Extension extension = extensionDao.findById(extensionDto.getId());
-                if (extension != null) {
+                final Extension codeExtension = extensionDao.findById(extensionDto.getId());
+                if (codeExtension != null) {
                     final Set<MemberDTO> members = extensionDto.getMembers();
-                    members.forEach(member -> {
-                        if (member.getCode() == null) {
-                            member.setCode(code);
-                        }
-                    });
-                    memberDao.updateMemberEntitiesFromDtos(extension, members);
+                    if (members != null && members.size() == 1) {
+                        members.forEach(member -> {
+                            if (member.getCode() == null) {
+                                member.setCode(code);
+                            }
+                            if (member.getCode().getId().equals(code.getId())) {
+                                memberDao.updateMemberEntityFromDto(codeExtension, member);
+                            }
+                        });
+                    } else if (members != null && members.size() > 1) {
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_EXTENSION_MULTIPLE_MEMBERS));
+                    }
                 } else {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
                 }

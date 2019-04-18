@@ -443,6 +443,9 @@ public class MemberDaoImpl implements MemberDao {
         }
         if (fromMember.getCode() != null) {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, codesMap, allowedCodeSchemes, fromMember);
+            if (code == null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_NOT_FOUND));
+            }
             if (!Objects.equals(existingMember.getCode(), code)) {
                 existingMember.setCode(code);
             }
@@ -486,6 +489,9 @@ public class MemberDaoImpl implements MemberDao {
         }
         if (fromMember.getCode() != null) {
             final Code code = findCodeUsingCodeValueOrUri(codeScheme, codesMap, allowedCodeSchemes, fromMember);
+            if (code == null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_NOT_FOUND));
+            }
             member.setCode(code);
         }
         member.setStartDate(fromMember.getStartDate());
