@@ -143,7 +143,7 @@ public class ApiUtils {
     }
 
     public String createMemberUri(final Member member) {
-        return createResourceUri(member.getExtension().getParentCodeScheme().getCodeRegistry().getCodeValue() + "/" + member.getExtension().getParentCodeScheme().getCodeValue() + "/extension/" + urlEncodeString(member.getExtension().getCodeValue()) + "/member/" + member.getId());
+        return createResourceUri(member.getExtension().getParentCodeScheme().getCodeRegistry().getCodeValue() + "/" + member.getExtension().getParentCodeScheme().getCodeValue() + "/extension/" + urlEncodeString(member.getExtension().getCodeValue()) + "/member/" + member.getSequenceId() == null ? member.getId().toString() : member.getSequenceId().toString());
     }
 
     public String createCodeUrl(final CodeDTO code) {
