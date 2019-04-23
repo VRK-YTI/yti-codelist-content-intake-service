@@ -198,7 +198,7 @@ public class AdminResource implements AbstractBaseResource {
         if (authorizationManager.isSuperUser()) {
             final Set<Member> members = memberRepository.findAll();
             for (final Member member : members) {
-                member.setUri(apiUtils.createMemberUrl(member));
+                member.setUri(apiUtils.createMemberUri(member));
             }
             memberRepository.save(members);
             indexing.reIndexEverything();
