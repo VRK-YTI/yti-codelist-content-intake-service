@@ -328,7 +328,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                     Member m = new Member();
                     m.setId(UUID.randomUUID());
                     m.setOrder(memberDao.getNextOrderInSequence(extension));
-                    m.setSequenceId(memberRepository.getMemberSequenceId("seq_for_ext_'" + extension.getId().toString().replaceAll("-", "_" )));
+                    m.setSequenceId(memberRepository.getMemberSequenceId("seq_for_ext_" + extension.getId().toString().replaceAll("-", "_" )));
                     m.setCode(code);
                     m.setRelatedMember(null);
                     m.setEndDate(code.getEndDate());
