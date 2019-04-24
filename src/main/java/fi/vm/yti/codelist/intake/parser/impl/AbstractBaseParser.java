@@ -302,13 +302,13 @@ public abstract class AbstractBaseParser {
     Integer resolveSequenceIdFromExcelRow(final Map<String, Integer> headerMap,
                                           final Row row,
                                           final DataFormatter formatter) {
-        final Integer order;
+        final Integer sequenceId;
         if (headerMap.containsKey(CONTENT_HEADER_SEQUENCE_ID)) {
-            order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SEQUENCE_ID))), row.getRowNum());
+            sequenceId = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SEQUENCE_ID))), row.getRowNum());
         } else {
-            order = null;
+            sequenceId = null;
         }
-        return order;
+        return sequenceId;
     }
 
     Integer resolveOrderFromCsvRecord(final CSVRecord record) {

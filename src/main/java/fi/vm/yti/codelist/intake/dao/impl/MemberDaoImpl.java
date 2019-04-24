@@ -500,11 +500,11 @@ public class MemberDaoImpl implements MemberDao {
         final Date timeStamp = new Date(System.currentTimeMillis());
         member.setCreated(timeStamp);
         member.setModified(timeStamp);
-        member.setUri(apiUtils.createMemberUri(member));
         String postFixPartOfTheSequenceName = extension.getId().toString().replaceAll("-", "_");
         String theNameOfTheSequence = PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
         Integer sequenceId = memberRepository.getMemberSequenceId(theNameOfTheSequence);
         member.setSequenceId(sequenceId);
+        member.setUri(apiUtils.createMemberUri(member));
         return member;
     }
 
