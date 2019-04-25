@@ -320,7 +320,7 @@ public class MemberDaoImpl implements MemberDao {
             for (final Member extensionMember : existingMembers) {
                 if ((identifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && extensionMember.getCode() != null && extensionMember.getCode().getUri().equalsIgnoreCase(identifier)) ||
                     (extensionMember.getCode() != null && extensionMember.getCode().getCodeValue().equalsIgnoreCase(identifier))) {
-                    // YTI-503 temporarily disable this call : checkDuplicateCode(existingMembers, identifier); TODO remember to delete or uncomment this row!
+                    checkDuplicateCode(existingMembers, identifier);
                     linkMembers(member, extensionMember);
                     linkedMembers.add(member);
                 }
