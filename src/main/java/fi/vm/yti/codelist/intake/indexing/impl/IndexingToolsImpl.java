@@ -130,6 +130,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "\"properties\": {\n" +
         "  \"codeValue\": {\n" +
         "    \"type\": \"text\"," +
+        "    \"fielddata\": \"true\"," +
         "    \"analyzer\": \"text_analyzer\",\n" +
         "    \"fields\": {\n" +
         "      \"raw\": { \n" +
@@ -181,6 +182,7 @@ public class IndexingToolsImpl implements IndexingTools {
         "\"properties\": {\n" +
         "  \"codeValue\": {\n" +
         "    \"type\": \"text\"," +
+        "    \"fielddata\": \"true\"," +
         "    \"analyzer\": \"text_analyzer\",\n" +
         "    \"fields\": {\n" +
         "      \"raw\": { \n" +

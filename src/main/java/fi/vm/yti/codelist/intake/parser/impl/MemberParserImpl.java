@@ -153,18 +153,18 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
 
     private void handlePossibleDuplicateSequenceIds(final List<Integer> sequenceIds) {
         LinkedHashSet<Integer> possibleMembersWithDuplicatedSequenceId = findDuplicateSequenceIds(sequenceIds);
+        possibleMembersWithDuplicatedSequenceId.removeIf(integer -> integer == null);
         if (possibleMembersWithDuplicatedSequenceId.size() > 0) {
             String theSequenceIdsSeparatedByCommas = possibleMembersWithDuplicatedSequenceId
                 .stream()
-                .map(integer -> {
-                    return integer.toString();
-                }).collect(Collectors.joining(", "));
+                .map(integer -> integer.toString())
+                .collect(Collectors.joining(", "));
             throw new DuplicateSequenceIdInFileUploadException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_DUPLICATE_SEQUENCE_IDS_IN_FILE, theSequenceIdsSeparatedByCommas));
         }
     }
 
-    private LinkedHashSet<Integer> findDuplicateSequenceIds( List<Integer> sequenceIds) {
+    private LinkedHashSet<Integer> findDuplicateSequenceIds(List<Integer> sequenceIds) {
         LinkedHashSet<Integer> allItems = new LinkedHashSet<>();
         LinkedHashSet<Integer> duplicates = new LinkedHashSet<>();
         for (Integer sequenceId : sequenceIds) {
