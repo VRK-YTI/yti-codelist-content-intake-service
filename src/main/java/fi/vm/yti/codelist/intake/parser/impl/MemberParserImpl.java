@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +42,7 @@ import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.MemberValueDTO;
 import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
+import fi.vm.yti.codelist.intake.exception.DuplicateSequenceIdInFileUploadException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
@@ -89,7 +91,8 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
     public Set<MemberDTO> parseMembersFromCsvInputStream(final Extension extension,
                                                          final InputStream inputStream) {
         final Set<ValueType> valueTypes = extension.getPropertyType().getValueTypes();
-        final Set<MemberDTO> extensions = new LinkedHashSet<>();
+        final Set<MemberDTO> members = new LinkedHashSet<>();
+        List<Integer> sequenceIds = new LinkedList<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
@@ -103,6 +106,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 final MemberDTO member = new MemberDTO();
                 member.setOrder(resolveOrderFromCsvRecord(record));
                 member.setSequenceId(resolveSequenceIdFromCsvRecord(record));
+                sequenceIds.add(member.getSequenceId());
                 member.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
                 if (!valueTypes.isEmpty()) {
                     final HashSet<MemberValueDTO> memberValues = new HashSet<>();
@@ -132,7 +136,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                     member.setEndDate(parseEndDateFromString(parseEndDateStringFromCsvRecord(record), recordIdentifier));
                 }
                 validateStartDateIsBeforeEndDate(member);
-                extensions.add(member);
+                members.add(member);
             }
         } catch (final IllegalArgumentException e) {
             LOG.error("Duplicate header value found in CSV!", e);
@@ -141,7 +145,36 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
             LOG.error("Error parsing CSV file!", e);
             throw new CsvParsingException(ERR_MSG_USER_ERROR_PARSING_CSV_FILE);
         }
-        return extensions;
+
+        handlePossibleDuplicateSequenceIds(sequenceIds);
+
+        return members;
+    }
+
+    private void handlePossibleDuplicateSequenceIds(final List<Integer> sequenceIds) {
+        LinkedHashSet<Integer> possibleMembersWithDuplicatedSequenceId = findDuplicateSequenceIds(sequenceIds);
+        if (possibleMembersWithDuplicatedSequenceId.size() > 0) {
+            String theSequenceIdsSeparatedByCommas = possibleMembersWithDuplicatedSequenceId
+                .stream()
+                .map(integer -> {
+                    return integer.toString();
+                }).collect(Collectors.joining(", "));
+            throw new DuplicateSequenceIdInFileUploadException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_DUPLICATE_SEQUENCE_IDS_IN_FILE, theSequenceIdsSeparatedByCommas));
+        }
+    }
+
+    private LinkedHashSet<Integer> findDuplicateSequenceIds( List<Integer> sequenceIds) {
+        LinkedHashSet<Integer> allItems = new LinkedHashSet<>();
+        LinkedHashSet<Integer> duplicates = new LinkedHashSet<>();
+        for (Integer sequenceId : sequenceIds) {
+            if (!allItems.contains(sequenceId)) {
+                allItems.add(sequenceId);
+            } else {
+                duplicates.add(sequenceId);
+            }
+        }
+        return duplicates;
     }
 
     public Set<MemberDTO> parseMembersFromExcelWorkbook(final Extension extension,
@@ -159,6 +192,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
         Map<String, Integer> prefLabelHeaders = null;
         boolean firstRow = true;
         checkIfExcelEmpty(rowIterator);
+        List<Integer> sequenceIds = new LinkedList<>();
         while (rowIterator.hasNext()) {
             final Row row = rowIterator.next();
             if (firstRow) {
@@ -175,6 +209,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 member.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 member.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
                 member.setSequenceId(resolveSequenceIdFromExcelRow(headerMap, row, formatter));
+                sequenceIds.add(member.getSequenceId());
                 if (valueTypes != null && !valueTypes.isEmpty()) {
                     final HashSet<MemberValueDTO> memberValues = new HashSet<>();
                     for (final ValueType valueType : valueTypes) {
@@ -207,6 +242,8 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 members.add(member);
             }
         }
+
+        handlePossibleDuplicateSequenceIds(sequenceIds);
         return members;
     }
 

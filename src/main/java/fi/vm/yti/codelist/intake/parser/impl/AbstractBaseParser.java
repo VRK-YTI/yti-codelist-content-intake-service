@@ -304,7 +304,7 @@ public abstract class AbstractBaseParser {
                                           final DataFormatter formatter) {
         final Integer sequenceId;
         if (headerMap.containsKey(CONTENT_HEADER_SEQUENCE_ID)) {
-            sequenceId = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SEQUENCE_ID))), row.getRowNum());
+            sequenceId = resolveSequenceIdFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SEQUENCE_ID))), row.getRowNum());
         } else {
             sequenceId = null;
         }
@@ -324,7 +324,7 @@ public abstract class AbstractBaseParser {
     Integer resolveSequenceIdFromCsvRecord(final CSVRecord record) {
         final Integer order;
         if (record.isMapped(CONTENT_HEADER_SEQUENCE_ID)) {
-            order = resolveOrderFromString(record.get(CONTENT_HEADER_SEQUENCE_ID), new Integer((int)record.getRecordNumber()).intValue());
+            order = resolveSequenceIdFromString(record.get(CONTENT_HEADER_SEQUENCE_ID), new Integer((int)record.getRecordNumber()).intValue());
         } else {
             order = null;
         }
@@ -345,6 +345,22 @@ public abstract class AbstractBaseParser {
             order = null;
         }
         return order;
+    }
+
+    private Integer resolveSequenceIdFromString(final String sequenceIdString, final int rowNum) {
+        final Integer sequenceId;
+        if (!sequenceIdString.isEmpty()) {
+            try {
+                sequenceId = Integer.parseInt(sequenceIdString);
+            } catch (final NumberFormatException e) {
+                LOG.error("Error parsing sequenceId from: " + sequenceIdString, e);
+                throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    ERR_MSG_USER_SEQUENCE_ID_INVALID_VALUE, new Integer(rowNum).toString()));
+            }
+        } else {
+            sequenceId = null;
+        }
+        return sequenceId;
     }
 
     Set<OrganizationDTO> resolveOrganizations(final String organizationsString) {
