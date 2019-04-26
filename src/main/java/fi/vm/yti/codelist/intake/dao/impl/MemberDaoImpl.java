@@ -653,11 +653,11 @@ public class MemberDaoImpl implements MemberDao {
                     m.setExtension(extension);
                     m.setMemberValues(null);
                     m.setPrefLabel(null);
-                    m.setUri(apiUtils.createMemberUri(m));
                     String postFixPartOfTheSequenceName = extension.getId().toString().replaceAll("-", "_");
                     String theNameOfTheSequence = PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
                     Integer sequenceId = memberRepository.getMemberSequenceId(theNameOfTheSequence);
                     m.setSequenceId(sequenceId);
+                    m.setUri(apiUtils.createMemberUri(m));
                     this.save(m);
                     createdMembers.add(m);
                 }
