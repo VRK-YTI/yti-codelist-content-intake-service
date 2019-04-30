@@ -75,8 +75,9 @@ public class InfoDomainResource implements AbstractBaseResource {
     @ApiResponse(code = 200, message = "Returns data classifications (information domains) and counts.")
     @Transactional
     public Response getInfoDomains(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand,
-                                   @ApiParam(value = "Language code for sorting results.") @QueryParam("language") final String language) {
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_INFODOMAIN, expand)));
+                                   @ApiParam(value = "Language code for sorting results.") @QueryParam("language") final String language,
+                                   @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_INFODOMAIN, expand), pretty));
         final Meta meta = new Meta();
         final ResponseWrapper<InfoDomainDTO> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);

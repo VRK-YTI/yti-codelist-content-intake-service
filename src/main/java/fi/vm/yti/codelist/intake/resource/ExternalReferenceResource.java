@@ -55,8 +55,9 @@ public class ExternalReferenceResource implements AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses ExternalReferences from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response addOrUpdateExternalReferencesFromJson(@ApiParam(value = "JSON playload for ExternalReference data.") final String jsonPayload) {
-        return parseAndPersistExistingReferencesFromSource(FORMAT_JSON, null, jsonPayload);
+    public Response addOrUpdateExternalReferencesFromJson(@ApiParam(value = "JSON playload for ExternalReference data.") final String jsonPayload,
+                                                          @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
+        return parseAndPersistExistingReferencesFromSource(FORMAT_JSON, null, jsonPayload, pretty);
     }
 
     @POST
@@ -68,8 +69,9 @@ public class ExternalReferenceResource implements AbstractBaseResource {
         @ApiImplicitParam(name = "file", value = "Input-file", dataType = "file", paramType = "formData")
     })
     public Response addOrUpdateExternalReferencesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
-                                                          @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistExistingReferencesFromSource(format, inputStream, null);
+                                                          @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream,
+                                                          @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
+        return parseAndPersistExistingReferencesFromSource(format, inputStream, null, pretty);
     }
 
     @POST
@@ -89,11 +91,12 @@ public class ExternalReferenceResource implements AbstractBaseResource {
 
     private Response parseAndPersistExistingReferencesFromSource(final String format,
                                                                  final InputStream inputStream,
-                                                                 final String jsonPayload) {
+                                                                 final String jsonPayload,
+                                                                 final String pretty) {
         final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.parseAndPersistExternalReferencesFromSourceData(format, inputStream, jsonPayload, null);
         indexing.updateExternalReferences(externalReferences);
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null), pretty));
         final ResponseWrapper<ExternalReferenceDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("ExternalReferences added or modified: " + externalReferences.size());
         meta.setCode(200);

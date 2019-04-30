@@ -11,6 +11,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -67,8 +68,9 @@ public class MemberResource implements AbstractBaseResource {
         @ApiResponse(code = 200, message = "Returns success.")
     })
     public Response addOrUpdateMemberFromJson(@ApiParam(value = "Member UUID", required = true) @PathParam("memberId") final UUID memberId,
-                                              @ApiParam(value = "JSON playload for Member data.", required = true) final String jsonPayload) {
-        return parseAndPersistMemberFromSource(jsonPayload);
+                                              @ApiParam(value = "JSON playload for Member data.", required = true) final String jsonPayload,
+                                              @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
+        return parseAndPersistMemberFromSource(jsonPayload, pretty);
     }
 
     @DELETE
@@ -95,7 +97,8 @@ public class MemberResource implements AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
-    private Response parseAndPersistMemberFromSource(final String jsonPayload) {
+    private Response parseAndPersistMemberFromSource(final String jsonPayload,
+                                                     final String pretty) {
         final Set<MemberDTO> members = memberService.parseAndPersistMemberFromJson(jsonPayload);
         indexing.updateMembers(members);
         if (!members.isEmpty()) {
@@ -111,7 +114,7 @@ public class MemberResource implements AbstractBaseResource {
             }
         }
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_MEMBER, "member")));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_MEMBER, "member"), pretty));
         final ResponseWrapper<MemberDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("Member added or modified.");
         meta.setCode(200);

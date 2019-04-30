@@ -46,8 +46,9 @@ public class OrganizationResource implements AbstractBaseResource {
     @ApiResponse(code = 200, message = "Returns organizations.")
     @Transactional
     public Response getOrganizations(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand,
-                                     @ApiParam(value = "A boolean value for only returning organizations with code lists.") @QueryParam("onlyOrganizationsWithCodeSchemes") final boolean onlyOrganizationsWithCodeSchemes) {
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_ORGANIZATION, expand)));
+                                     @ApiParam(value = "A boolean value for only returning organizations with code lists.") @QueryParam("onlyOrganizationsWithCodeSchemes") final boolean onlyOrganizationsWithCodeSchemes,
+                                     @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_ORGANIZATION, expand), pretty));
         final Meta meta = new Meta();
         final ResponseWrapper<OrganizationDTO> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);

@@ -10,6 +10,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -54,18 +55,20 @@ public class ExtensionResource implements AbstractBaseResource {
         @ApiResponse(code = 200, message = "Returns success.")
     })
     public Response addOrUpdateExtensionsFromJson(@ApiParam(value = "Extension UUID", required = true) @PathParam("extensionId") final UUID extensionId,
-                                                  @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload) {
-        return parseAndPersistExtensionFromSource(extensionId, jsonPayload);
+                                                  @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload,
+                                                  @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
+        return parseAndPersistExtensionFromSource(extensionId, jsonPayload, pretty);
     }
 
     private Response parseAndPersistExtensionFromSource(final UUID extensionId,
-                                                        final String jsonPayload) {
+                                                        final String jsonPayload,
+                                                        final String pretty) {
         final ExtensionDTO extension = extensionService.parseAndPersistExtensionFromJson(extensionId, jsonPayload, false);
         final Set<ExtensionDTO> extensions = new HashSet<>();
         extensions.add(extension);
         indexing.updateExtensions(extensions);
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSION, "extension")));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSION, "extension"), pretty));
         final ResponseWrapper<ExtensionDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("Extensions added or modified.");
         meta.setCode(200);

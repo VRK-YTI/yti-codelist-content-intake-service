@@ -20,11 +20,11 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
+import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
-import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.service.ValueTypeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -46,7 +46,7 @@ public class ValueTypeResource implements AbstractBaseResource {
 
     @Inject
     public ValueTypeResource(final ValueTypeService valueTypeService,
-                                final Indexing indexing) {
+                             final Indexing indexing) {
         this.valueTypeService = valueTypeService;
         this.indexing = indexing;
     }
@@ -56,8 +56,9 @@ public class ValueTypeResource implements AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses ValueTypes from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response addOrUpdateValueTypesFromJson(@ApiParam(value = "JSON playload for ValueType data.") final String jsonPayload) {
-        return parseAndPersistValueTypesFromSource(FORMAT_JSON, null, jsonPayload);
+    public Response addOrUpdateValueTypesFromJson(@ApiParam(value = "JSON playload for ValueType data.") final String jsonPayload,
+                                                  @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
+        return parseAndPersistValueTypesFromSource(FORMAT_JSON, null, jsonPayload, pretty);
     }
 
     @POST
@@ -69,8 +70,9 @@ public class ValueTypeResource implements AbstractBaseResource {
         @ApiImplicitParam(name = "file", value = "Input-file", dataType = "file", paramType = "formData")
     })
     public Response addOrUpdateValueTypesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
-                                                     @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistValueTypesFromSource(format, inputStream, null);
+                                                  @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream,
+                                                  @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
+        return parseAndPersistValueTypesFromSource(format, inputStream, null, pretty);
     }
 
     @POST
@@ -80,7 +82,8 @@ public class ValueTypeResource implements AbstractBaseResource {
     @ApiOperation(value = "Parses ValueType from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
     public Response updateValueType(@ApiParam(value = "ValueType ID", required = true) @PathParam("ValueTypeId") final String valueTypeId,
-                                       @ApiParam(value = "JSON playload for ValueType data.") final String jsonPayload) {
+                                    @ApiParam(value = "JSON playload for ValueType data.") final String jsonPayload,
+                                    @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
         final UUID uuid = UUID.fromString(valueTypeId);
         final ValueTypeDTO valueType = valueTypeService.parseAndPersistValueTypeFromJson(uuid, jsonPayload);
         indexing.updateValueType(valueType);
@@ -90,12 +93,13 @@ public class ValueTypeResource implements AbstractBaseResource {
     }
 
     private Response parseAndPersistValueTypesFromSource(final String format,
-                                                            final InputStream inputStream,
-                                                            final String jsonPayload) {
+                                                         final InputStream inputStream,
+                                                         final String jsonPayload,
+                                                         final String pretty) {
         final Set<ValueTypeDTO> valueTypes = valueTypeService.parseAndPersistValueTypesFromSourceData(format, inputStream, jsonPayload);
         indexing.updateValueTypes(valueTypes);
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null), pretty));
         final ResponseWrapper<ValueTypeDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("ValueTypes added or modified: " + valueTypes.size());
         meta.setCode(200);

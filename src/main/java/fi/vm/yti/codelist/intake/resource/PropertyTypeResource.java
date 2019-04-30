@@ -55,8 +55,9 @@ public class PropertyTypeResource implements AbstractBaseResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @ApiOperation(value = "Parses PropertyTypes from input data.")
     @ApiResponse(code = 200, message = "Returns success.")
-    public Response addOrUpdatePropertyTypesFromJson(@ApiParam(value = "JSON playload for PropertyType data.") final String jsonPayload) {
-        return parseAndPersistPropertyTypesFromSource(FORMAT_JSON, null, jsonPayload);
+    public Response addOrUpdatePropertyTypesFromJson(@ApiParam(value = "JSON playload for PropertyType data.") final String jsonPayload,
+                                                     @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
+        return parseAndPersistPropertyTypesFromSource(FORMAT_JSON, null, jsonPayload, pretty);
     }
 
     @POST
@@ -68,8 +69,9 @@ public class PropertyTypeResource implements AbstractBaseResource {
         @ApiImplicitParam(name = "file", value = "Input-file", dataType = "file", paramType = "formData")
     })
     public Response addOrUpdatePropertyTypesFromFile(@ApiParam(value = "Format for input.", required = true) @QueryParam("format") @DefaultValue("json") final String format,
-                                                     @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
-        return parseAndPersistPropertyTypesFromSource(format, inputStream, null);
+                                                     @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream,
+                                                     @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
+        return parseAndPersistPropertyTypesFromSource(format, inputStream, null, pretty);
     }
 
     @POST
@@ -89,11 +91,12 @@ public class PropertyTypeResource implements AbstractBaseResource {
 
     private Response parseAndPersistPropertyTypesFromSource(final String format,
                                                             final InputStream inputStream,
-                                                            final String jsonPayload) {
+                                                            final String jsonPayload,
+                                                            final String pretty) {
         final Set<PropertyTypeDTO> propertyTypes = propertyTypeService.parseAndPersistPropertyTypesFromSourceData(format, inputStream, jsonPayload);
         indexing.updatePropertyTypes(propertyTypes);
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null)));
+        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODEREGISTRY, null), pretty));
         final ResponseWrapper<PropertyTypeDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("PropertyTypes added or modified: " + propertyTypes.size());
         meta.setCode(200);
