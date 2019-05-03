@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -39,6 +40,9 @@ import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderPrefLabelException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValuePrefLabelException;
 import fi.vm.yti.codelist.intake.parser.CodeRegistryParser;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -96,11 +100,13 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
                 final CodeRegistryDTO fromCodeRegistry = new CodeRegistryDTO();
                 final String codeValue = parseCodeValueFromRecord(record);
                 validateCodeValue(codeValue, recordIdentifier);
+                validateRequiredDataOnRecord(record, headerMap);
                 checkForDuplicateCodeValueInImportData(codeValues, codeValue);
                 codeValues.add(codeValue.toLowerCase());
                 fromCodeRegistry.setCodeValue(codeValue);
                 fromCodeRegistry.setOrganizations(resolveOrganizations(record.get(CONTENT_HEADER_ORGANIZATION)));
                 fromCodeRegistry.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
+                validateRequiredDataOnRecord(record, headerMap);
                 fromCodeRegistry.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
                 codeRegistries.add(fromCodeRegistry);
             });
@@ -134,9 +140,9 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
             while (rowIterator.hasNext()) {
                 final Row row = rowIterator.next();
                 final String rowIdentifier = getRowIdentifier(row);
+                headerMap = resolveHeaderMap(row);
                 if (firstRow) {
                     firstRow = false;
-                    headerMap = resolveHeaderMap(row);
                     prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
                     descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
                     validateRequiredHeaders(headerMap);
@@ -149,6 +155,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
                     fromCodeRegistry.setCodeValue(codeValue);
                     fromCodeRegistry.setOrganizations(resolveOrganizations(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORGANIZATION)))));
                     fromCodeRegistry.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
+                    validateRequiredDataOnRow(row, headerMap, formatter);
                     fromCodeRegistry.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
                     codeRegistries.add(fromCodeRegistry);
                 }
@@ -168,6 +175,35 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
         if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_CODEVALUE));
+        }
+        if (!headerMapContainsAtLeastOneHeaderWhichStartsWithPrefLabel(headerMap)) {
+            throw new MissingHeaderPrefLabelException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_MISSING_HEADER_PREFLABEL));
+        }
+    }
+
+    private void validateRequiredDataOnRecord(final CSVRecord record,
+                                              final Map<String, Integer> headerMap) {
+        if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).isEmpty()) {
+            throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, getRecordIdentifier(record)));
+        }
+        boolean foundAtLeastOnePrefLabelFromTheRecord = false;
+        List<String> columnNamesWhichStartWithPrefLabelPrefix = new ArrayList<>();
+        headerMap.keySet().forEach(key -> {
+            if (key.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                columnNamesWhichStartWithPrefLabelPrefix.add(key);
+            }
+        });
+        for (String prefLabelColumnName : columnNamesWhichStartWithPrefLabelPrefix) {
+            if (record.get(prefLabelColumnName) != null &&
+                !record.get(prefLabelColumnName).isEmpty()) {
+                foundAtLeastOnePrefLabelFromTheRecord = true;
+            }
+        }
+        if (!foundAtLeastOnePrefLabelFromTheRecord) {
+            throw new MissingRowValuePrefLabelException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_ROW_MISSING_PREFLABEL_VALUE, getRecordIdentifier(record)));
         }
     }
 }

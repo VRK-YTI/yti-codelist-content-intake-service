@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,8 +42,10 @@ import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderInformationDomainException;
+import fi.vm.yti.codelist.intake.exception.MissingHeaderPrefLabelException;
 import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValuePrefLabelException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
@@ -121,7 +124,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
             final List<CSVRecord> records = csvParser.getRecords();
             for (final CSVRecord record : records) {
                 final String recordIdentifier = getRecordIdentifier(record);
-                validateRequiredDataOnRecord(record);
+                validateRequiredDataOnRecord(record, headerMap);
                 final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
                 final String codeValue = parseCodeValueFromRecord(record);
                 validateCodeValue(codeValue, recordIdentifier);
@@ -346,30 +349,10 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         }
     }
 
-    private void validateRequiredDataOnRow(final Row row,
+    protected void validateRequiredDataOnRow(final Row row,
                                            final Map<String, Integer> headerMap,
                                            final DataFormatter formatter) {
-        if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))) == null ||
-            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).isEmpty()) {
-            throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_CODEVALUE, getRowIdentifier(row)));
-        }
-        if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))) == null ||
-            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))).isEmpty()) {
-            throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_STATUS, getRowIdentifier(row)));
-        }
-    }
-
-    private void validateRequiredDataOnRecord(final CSVRecord record) {
-        if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).isEmpty()) {
-            throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_CODEVALUE, getRecordIdentifier(record)));
-        }
-        if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).isEmpty()) {
-            throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_ROW_MISSING_STATUS, getRecordIdentifier(record)));
-        }
+        super.validateRequiredDataOnRow(row, headerMap, formatter);
     }
 
     private void validateRequiredHeaders(final Map<String, Integer> headerMap) {
@@ -384,6 +367,10 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         if (!headerMap.containsKey(CONTENT_HEADER_STATUS)) {
             throw new MissingHeaderStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_MISSING_HEADER_STATUS));
+        }
+        if (!headerMapContainsAtLeastOneHeaderWhichStartsWithPrefLabel(headerMap)) {
+            throw new MissingHeaderPrefLabelException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_MISSING_HEADER_PREFLABEL));
         }
     }
 
@@ -409,5 +396,34 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
 
     private String parseSourceFromCsvRecord(final CSVRecord record) {
         return parseStringFromCsvRecord(record, CONTENT_HEADER_SOURCE);
+    }
+
+    private void validateRequiredDataOnRecord(final CSVRecord record,
+                                                final Map<String, Integer> headerMap) {
+        if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).isEmpty()) {
+            throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, getRecordIdentifier(record)));
+        }
+        if (record.get(CONTENT_HEADER_STATUS) == null || record.get(CONTENT_HEADER_STATUS).isEmpty()) {
+            throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_ROW_MISSING_STATUS, getRecordIdentifier(record)));
+        }
+        boolean foundAtLeastOnePrefLabelFromTheRecord = false;
+        List<String> columnNamesWhichStartWithPrefLabelPrefix = new ArrayList<>();
+        headerMap.keySet().forEach(key -> {
+            if (key.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                columnNamesWhichStartWithPrefLabelPrefix.add(key);
+            }
+        });
+        for (String prefLabelColumnName : columnNamesWhichStartWithPrefLabelPrefix) {
+            if (record.get(prefLabelColumnName) != null &&
+                !record.get(prefLabelColumnName).isEmpty()) {
+                foundAtLeastOnePrefLabelFromTheRecord = true;
+            }
+        }
+        if (!foundAtLeastOnePrefLabelFromTheRecord) {
+            throw new MissingRowValuePrefLabelException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_ROW_MISSING_PREFLABEL_VALUE, getRecordIdentifier(record)));
+        }
     }
 }
