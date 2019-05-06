@@ -322,35 +322,43 @@ public class MemberDaoImpl implements MemberDao {
             linkMemberWithId(extension, member, relatedMember.getId());
             linkedMembers.add(member);
         } else if (relatedMember != null && relatedMember.getCode() != null) {
-            final String identifier = relatedMember.getCode().getCodeValue();
-            final UUID uuid = getUuidFromString(identifier);
+            final String memberUriIdentifier = relatedMember.getCode().getCodeValue();
+            final String memberCodeValueIdentifier = relatedMember.getCode().getCodeValue();
+            final UUID uuid = getUuidFromString(memberCodeValueIdentifier);
             if (uuid != null) {
                 linkMemberWithId(extension, member, uuid);
                 linkedMembers.add(member);
-            } else if (identifier.startsWith(uriSuomiProperties.getUriSuomiAddress())) {
-                for (final Member extensionMember : existingMembers) {
-                    final Code existingMemberCode = extensionMember.getCode();
-                    if ((existingMemberCode != null && existingMemberCode.getUri().equalsIgnoreCase(identifier)) ||
-                        (existingMemberCode != null && existingMemberCode.getCodeValue().equalsIgnoreCase(identifier) && existingMemberCode.getCodeScheme().getId().equals(extension.getParentCodeScheme().getId()))) {
-                        checkDuplicateCode(existingMembers, identifier);
-                        linkMembers(member, extensionMember, identifier);
-                        linkedMembers.add(member);
-                    }
-                }
-            } else if (isStringInt(identifier)) {
+            } else if (memberUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress())) {
                 boolean found = false;
                 for (final Member extensionMember : existingMembers) {
-                    if (extensionMember.getSequenceId().equals(Integer.parseInt(identifier))) {
-                        linkMembers(member, extensionMember, identifier);
+                    final Code existingMemberCode = extensionMember.getCode();
+                    if (existingMemberCode != null && existingMemberCode.getUri().equalsIgnoreCase(memberUriIdentifier)) {
+                        checkDuplicateCode(existingMembers, memberUriIdentifier);
+                        linkMembers(member, extensionMember, memberUriIdentifier);
+                        linkedMembers.add(member);
+                        found = true;
+                    } else if (existingMemberCode != null && existingMemberCode.getCodeValue().equalsIgnoreCase(memberCodeValueIdentifier) && existingMemberCode.getCodeScheme().getId().equals(extension.getParentCodeScheme().getId())) {
+                        checkDuplicateCode(existingMembers, memberCodeValueIdentifier);
+                        linkMembers(member, extensionMember, memberCodeValueIdentifier);
                         linkedMembers.add(member);
                         found = true;
                     }
                 }
                 if (!found) {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_SEQUENCE_ID, identifier));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND_WITH_IDENTIFIER, memberCodeValueIdentifier));
                 }
-            } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_RELATION_NOT_FOUND_FOR_IDENTIFIER, identifier));
+            } else if (isStringInt(memberCodeValueIdentifier)) {
+                boolean found = false;
+                for (final Member extensionMember : existingMembers) {
+                    if (extensionMember.getSequenceId().equals(Integer.parseInt(memberCodeValueIdentifier))) {
+                        linkMembers(member, extensionMember, memberCodeValueIdentifier);
+                        linkedMembers.add(member);
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_SEQUENCE_ID, memberCodeValueIdentifier));
+                }
             }
         } else if (relatedMember == null) {
             member.setRelatedMember(null);
