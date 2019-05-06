@@ -17,8 +17,6 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -49,8 +47,6 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
 public class MemberDaoImpl implements MemberDao {
-
-    private static final Logger LOG = LoggerFactory.getLogger(MemberDaoImpl.class);
 
     private static final String PREFIX_FOR_EXTENSION_SEQUENCE_NAME = "seq_for_ext_";
     private static final int MAX_LEVEL = 10;
@@ -455,10 +451,8 @@ public class MemberDaoImpl implements MemberDao {
             final Member member;
             if (existingMember != null) {
                 member = updateMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, existingMember, fromMember, members);
-                LOG.info("Updating member with id: " + member.getId());
             } else {
                 member = createMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, extension, fromMember, members);
-                LOG.info("Created member with id: " + member.getId());
             }
             return member;
         } else {

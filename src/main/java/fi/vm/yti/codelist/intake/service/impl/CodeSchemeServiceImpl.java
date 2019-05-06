@@ -388,7 +388,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
     @Transactional
     public LinkedHashSet<CodeDTO> getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(final Set<CodeDTO> previousVersionsCodes,
-                                                                                        final Set<CodeDTO> codeDtos) {
+                                                                                                  final Set<CodeDTO> codeDtos) {
         LinkedHashSet<CodeDTO> missingCodes = new LinkedHashSet<>();
 
         previousVersionsCodes.forEach(oldCode -> {
@@ -421,6 +421,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                             codeSchemeDao.save(codeScheme);
                         }
                     }
+                } else {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_LINKS_SHEET_NOT_FOUND, sheetName));
                 }
             });
         }
@@ -462,6 +464,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                             resolveAndSetCodeSchemeDefaultCode(codeScheme, codeSchemeDto);
                         }
                     }
+                } else {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODES_SHEET_NOT_FOUND, sheetName));
                 }
             });
         }
@@ -512,6 +516,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                     }
                 });
             }
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONS_SHEET_NOT_FOUND, sheetName));
         }
     }
 
@@ -521,7 +527,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         if (workbook.getSheet(sheetName) != null) {
             memberService.parseAndPersistMembersFromExcelWorkbook(extension, workbook, sheetName);
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_SHEET_NOT_FOUND));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERS_SHEET_NOT_FOUND, sheetName));
         }
     }
 

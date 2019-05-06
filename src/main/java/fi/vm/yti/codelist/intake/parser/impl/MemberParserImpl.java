@@ -185,7 +185,10 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
         final DataFormatter formatter = new DataFormatter();
         Sheet sheet = workbook.getSheet(sheetName);
         if (sheet == null) {
-            throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE_SHEET_NOT_FOUND);
+            sheet = workbook.getSheet(EXCEL_SHEET_MEMBERS);
+        }
+        if (sheet == null) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERS_SHEET_NOT_FOUND, sheetName));
         }
         final Iterator<Row> rowIterator = sheet.rowIterator();
         Map<String, Integer> headerMap = null;

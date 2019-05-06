@@ -198,6 +198,9 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         if (sheet == null) {
             sheet = workbook.getSheetAt(0);
         }
+        if (sheet == null) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEMES_SHEET_NOT_FOUND));
+        }
         final Iterator<Row> rowIterator = sheet.rowIterator();
         Map<String, Integer> headerMap = null;
         Map<String, Integer> prefLabelHeaders = null;
