@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -48,9 +50,11 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 @Component
 public class MemberDaoImpl implements MemberDao {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MemberDaoImpl.class);
+
+    private static final String PREFIX_FOR_EXTENSION_SEQUENCE_NAME = "seq_for_ext_";
     private static final int MAX_LEVEL = 10;
     private static final int MAX_LEVEL_FOR_CROSS_REFERENCE_LIST = 2;
-    public static final String PREFIX_FOR_EXTENSION_SEQUENCE_NAME = "seq_for_ext_";
 
     private final EntityChangeLogger entityChangeLogger;
     private final MemberRepository memberRepository;
@@ -143,10 +147,13 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Transactional
-    public Member findByExtensionAndSequenceId(final Extension extension, final Integer sequenceId)  {
+    public Member findByExtensionAndSequenceId(final Extension extension,
+                                               final Integer sequenceId) {
         Member member = memberRepository.findByExtensionAndSequenceId(extension, sequenceId);
         return member;
-    };
+    }
+
+    ;
 
     @Transactional
     public Set<Member> updateMemberEntityFromDto(final Extension extension,
@@ -215,10 +222,10 @@ public class MemberDaoImpl implements MemberDao {
     private void updateMemberMemberValues(final Extension extension,
                                           final Member member,
                                           final MemberDTO fromMemberDto) {
-        Set<MemberValue> memberValues = new HashSet<>();
+        final Set<MemberValue> memberValues;
         try {
             memberValues = memberValueDao.updateMemberValueEntitiesFromDtos(member, fromMemberDto.getMemberValues());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (e.getMessage().contains("unique_order")) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_CONTAINS_DUPLICATE_VALUES));
             } else {
@@ -264,7 +271,8 @@ public class MemberDaoImpl implements MemberDao {
             if (code == null) {
                 throw new NotFoundException();
             }
-            if ((identifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && code.getUri().equalsIgnoreCase(identifier)) || code.getCodeValue().equalsIgnoreCase(identifier)) {
+            if ((identifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && code.getUri().equalsIgnoreCase(identifier)) ||
+                (code.getCodeValue().equalsIgnoreCase(identifier) && code.getCodeScheme().getId().equals(member.getExtension().getParentCodeScheme().getId()))) {
                 if (found) {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERS_HAVE_DUPLICATE_CODE_USE_SEQUENCE_ID));
                 }
@@ -279,7 +287,7 @@ public class MemberDaoImpl implements MemberDao {
         final Member relatedMember = findById(id);
         if (relatedMember != null) {
             if (extension.getId().equals(relatedMember.getExtension().getId())) {
-                linkMembers(member, relatedMember);
+                linkMembers(member, relatedMember, id.toString());
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_LINKED_FROM_ANOTHER_EXTENSION));
             }
@@ -289,9 +297,12 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     private void linkMembers(final Member member,
-                             final Member relatedMember) {
+                             final Member relatedMember,
+                             final String identifier) {
         if (relatedMember != null) {
             member.setRelatedMember(relatedMember);
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND_WITH_IDENTIFIER, identifier));
         }
     }
 
@@ -316,20 +327,45 @@ public class MemberDaoImpl implements MemberDao {
             if (uuid != null) {
                 linkMemberWithId(extension, member, uuid);
                 linkedMembers.add(member);
-            }
-            for (final Member extensionMember : existingMembers) {
-                if ((identifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && extensionMember.getCode() != null && extensionMember.getCode().getUri().equalsIgnoreCase(identifier)) ||
-                    (extensionMember.getCode() != null && extensionMember.getCode().getCodeValue().equalsIgnoreCase(identifier))) {
-                    checkDuplicateCode(existingMembers, identifier);
-                    linkMembers(member, extensionMember);
-                    linkedMembers.add(member);
+            } else if (identifier.startsWith(uriSuomiProperties.getUriSuomiAddress())) {
+                for (final Member extensionMember : existingMembers) {
+                    final Code existingMemberCode = extensionMember.getCode();
+                    if ((existingMemberCode != null && existingMemberCode.getUri().equalsIgnoreCase(identifier)) ||
+                        (existingMemberCode != null && existingMemberCode.getCodeValue().equalsIgnoreCase(identifier) && existingMemberCode.getCodeScheme().getId().equals(extension.getParentCodeScheme().getId()))) {
+                        checkDuplicateCode(existingMembers, identifier);
+                        linkMembers(member, extensionMember, identifier);
+                        linkedMembers.add(member);
+                    }
                 }
+            } else if (isStringInt(identifier)) {
+                boolean found = false;
+                for (final Member extensionMember : existingMembers) {
+                    if (extensionMember.getSequenceId().equals(Integer.parseInt(identifier))) {
+                        linkMembers(member, extensionMember, identifier);
+                        linkedMembers.add(member);
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_SEQUENCE_ID, identifier));
+                }
+            } else {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_RELATION_NOT_FOUND_FOR_IDENTIFIER, identifier));
             }
         } else if (relatedMember == null) {
             member.setRelatedMember(null);
         }
         linkedMembers.forEach(mem -> validateMemberHierarchyLevels(mem, extension));
         return linkedMembers;
+    }
+
+    private boolean isStringInt(final String string) {
+        try {
+            Integer.parseInt(string);
+            return true;
+        } catch (final NumberFormatException e) {
+            return false;
+        }
     }
 
     private void validateMemberHierarchyLevels(final Member member,
@@ -396,7 +432,7 @@ public class MemberDaoImpl implements MemberDao {
         if (extension != null) {
             if (fromMember.getId() != null) {
                 for (final Member member : existingMembers) {
-                    if (member.getId().equals(fromMember.getId())) {
+                    if (member.getId().equals(fromMember.getId()) || member.getSequenceId().equals(fromMember.getSequenceId())) {
                         existingMember = member;
                         break;
                     }
@@ -407,15 +443,39 @@ public class MemberDaoImpl implements MemberDao {
             } else {
                 existingMember = null;
             }
+            validateMultipleLinkedCodesForCodeExtensionMembers(extension, existingMembers, existingMember, fromMember);
             final Member member;
             if (existingMember != null) {
                 member = updateMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, existingMember, fromMember, members);
+                LOG.info("Updating member with id: " + member.getId());
             } else {
                 member = createMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, extension, fromMember, members);
+                LOG.info("Created member with id: " + member.getId());
             }
             return member;
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
+        }
+    }
+
+    private void validateMultipleLinkedCodesForCodeExtensionMembers(final Extension extension,
+                                                                    final Set<Member> existingMembers,
+                                                                    final Member existingMember,
+                                                                    final MemberDTO fromMember) {
+        if (CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())) {
+            for (final Member member : existingMembers) {
+                if (existingMember != null && !existingMember.getId().equals(member.getId())) {
+                    continue;
+                }
+                final Code code = member.getCode();
+                final String uriIdentifier = fromMember.getCode().getUri();
+                final String codeValueIdentifier = fromMember.getCode().getCodeValue();
+                if ((fromMember.getCode().getId() != null && fromMember.getCode().getId().equals(code.getId())) ||
+                    (uriIdentifier != null && uriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && code.getUri().equalsIgnoreCase(uriIdentifier)) ||
+                    (codeValueIdentifier != null && code.getCodeScheme().getId().equals(extension.getParentCodeScheme().getId()) && code.getCodeValue().equalsIgnoreCase(codeValueIdentifier))) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_EXTENSION_MULTIPLE_MEMBERS));
+                }
+            }
         }
     }
 
