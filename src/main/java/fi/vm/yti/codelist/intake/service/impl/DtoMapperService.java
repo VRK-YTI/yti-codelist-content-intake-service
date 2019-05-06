@@ -88,7 +88,7 @@ public class DtoMapperService {
                 codeDto.setExternalReferences(mapExternalReferenceDtos(code.getExternalReferences(), false));
             }
             if (code.getMembers() != null) {
-                codeDto.setMembers(mapMemberDtos(code.getMembers(), false));
+                codeDto.setMembers(mapMemberDtos(code.getMembers().stream().filter(member -> CODE_EXTENSION.equalsIgnoreCase(member.getExtension().getPropertyType().getContext())).collect(Collectors.toSet()), false));
             }
             if (code.getCodeScheme().getExtensions() != null && !code.getCodeScheme().getExtensions().isEmpty()) {
                 final Set<Extension> codeExtensions = code.getCodeScheme().getExtensions().stream().filter(extension -> CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())).collect(Collectors.toSet());
