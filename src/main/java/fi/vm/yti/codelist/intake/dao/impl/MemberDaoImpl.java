@@ -466,7 +466,7 @@ public class MemberDaoImpl implements MemberDao {
                                                                     final MemberDTO fromMember) {
         if (CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())) {
             for (final Member member : existingMembers) {
-                if (existingMember != null && !existingMember.getId().equals(member.getId())) {
+                if (existingMember != null && existingMember.getSequenceId().equals(member.getSequenceId())) {
                     continue;
                 }
                 final Code code = member.getCode();
