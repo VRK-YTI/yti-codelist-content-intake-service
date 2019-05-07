@@ -324,25 +324,6 @@ public class MemberDaoImpl implements MemberDao {
             if (uuid != null) {
                 linkMemberWithId(extension, member, uuid);
                 linkedMembers.add(member);
-            } else if (memberUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress())) {
-                boolean found = false;
-                for (final Member extensionMember : existingMembers) {
-                    final Code existingMemberCode = extensionMember.getCode();
-                    if (existingMemberCode != null && existingMemberCode.getUri().equalsIgnoreCase(memberUriIdentifier)) {
-                        checkDuplicateCode(existingMembers, memberUriIdentifier);
-                        linkMembers(member, extensionMember, memberUriIdentifier);
-                        linkedMembers.add(member);
-                        found = true;
-                    } else if (existingMemberCode != null && existingMemberCode.getCodeValue().equalsIgnoreCase(memberCodeValueIdentifier) && existingMemberCode.getCodeScheme().getId().equals(extension.getParentCodeScheme().getId())) {
-                        checkDuplicateCode(existingMembers, memberCodeValueIdentifier);
-                        linkMembers(member, extensionMember, memberCodeValueIdentifier);
-                        linkedMembers.add(member);
-                        found = true;
-                    }
-                }
-                if (!found) {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND_WITH_IDENTIFIER, memberCodeValueIdentifier));
-                }
             } else if (isStringInt(memberCodeValueIdentifier)) {
                 boolean found = false;
                 for (final Member extensionMember : existingMembers) {
@@ -354,6 +335,25 @@ public class MemberDaoImpl implements MemberDao {
                 }
                 if (!found) {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_SEQUENCE_ID, memberCodeValueIdentifier));
+                }
+            } else {
+                boolean found = false;
+                for (final Member extensionMember : existingMembers) {
+                    final Code existingMemberCode = extensionMember.getCode();
+                    if (memberUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && existingMemberCode != null && existingMemberCode.getUri().equalsIgnoreCase(memberUriIdentifier)) {
+                        checkDuplicateCode(existingMembers, memberUriIdentifier);
+                        linkMembers(member, extensionMember, memberUriIdentifier);
+                        linkedMembers.add(member);
+                        found = true;
+                    } else if (existingMemberCode != null && existingMemberCode.getCodeValue().equalsIgnoreCase(memberUriIdentifier) && existingMemberCode.getCodeScheme().getId().equals(extension.getParentCodeScheme().getId())) {
+                        checkDuplicateCode(existingMembers, memberCodeValueIdentifier);
+                        linkMembers(member, extensionMember, memberCodeValueIdentifier);
+                        linkedMembers.add(member);
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND_WITH_IDENTIFIER, memberCodeValueIdentifier));
                 }
             }
         } else if (relatedMember == null) {
