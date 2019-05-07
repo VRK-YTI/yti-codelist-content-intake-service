@@ -324,7 +324,7 @@ public class MemberDaoImpl implements MemberDao {
             if (uuid != null) {
                 linkMemberWithId(extension, member, uuid);
                 linkedMembers.add(member);
-            } else if (isStringInt(memberCodeValueIdentifier)) {
+            } else if (memberCodeValueIdentifier != null && isStringInt(memberCodeValueIdentifier)) {
                 boolean found = false;
                 for (final Member extensionMember : existingMembers) {
                     if (extensionMember.getSequenceId().equals(Integer.parseInt(memberCodeValueIdentifier))) {
@@ -336,7 +336,7 @@ public class MemberDaoImpl implements MemberDao {
                 if (!found) {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_SEQUENCE_ID, memberCodeValueIdentifier));
                 }
-            } else {
+            } else if (memberCodeValueIdentifier != null) {
                 boolean found = false;
                 for (final Member extensionMember : existingMembers) {
                     final Code existingMemberCode = extensionMember.getCode();
