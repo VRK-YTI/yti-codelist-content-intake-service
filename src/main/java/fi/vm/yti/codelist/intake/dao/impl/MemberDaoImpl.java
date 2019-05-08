@@ -318,42 +318,54 @@ public class MemberDaoImpl implements MemberDao {
             linkMemberWithId(extension, member, relatedMember.getId());
             linkedMembers.add(member);
         } else if (relatedMember != null && relatedMember.getCode() != null) {
-            final String memberUriIdentifier = relatedMember.getCode().getCodeValue();
-            final String memberCodeValueIdentifier = relatedMember.getCode().getCodeValue();
-            final UUID uuid = getUuidFromString(memberCodeValueIdentifier);
+            final String memberCodeUriIdentifier = relatedMember.getCode().getUri();
+            final String memberCodeCodeValueIdentifier = relatedMember.getCode().getCodeValue();
+            UUID uuid = null;
+            if (memberCodeCodeValueIdentifier != null) {
+                uuid = getUuidFromString(memberCodeCodeValueIdentifier);
+            }
             if (uuid != null) {
                 linkMemberWithId(extension, member, uuid);
                 linkedMembers.add(member);
-            } else if (memberCodeValueIdentifier != null && isStringInt(memberCodeValueIdentifier)) {
+            } else if (memberCodeCodeValueIdentifier != null && isStringInt(memberCodeCodeValueIdentifier)) {
                 boolean found = false;
                 for (final Member extensionMember : existingMembers) {
-                    if (extensionMember.getSequenceId().equals(Integer.parseInt(memberCodeValueIdentifier))) {
-                        linkMembers(member, extensionMember, memberCodeValueIdentifier);
+                    if (extensionMember.getSequenceId().equals(Integer.parseInt(memberCodeCodeValueIdentifier))) {
+                        linkMembers(member, extensionMember, memberCodeCodeValueIdentifier);
                         linkedMembers.add(member);
                         found = true;
                     }
                 }
                 if (!found) {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_SEQUENCE_ID, memberCodeValueIdentifier));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_SEQUENCE_ID, memberCodeCodeValueIdentifier));
                 }
-            } else if (memberCodeValueIdentifier != null) {
+            } else if (memberCodeUriIdentifier != null) {
                 boolean found = false;
                 for (final Member extensionMember : existingMembers) {
                     final Code existingMemberCode = extensionMember.getCode();
-                    if (memberUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && existingMemberCode != null && existingMemberCode.getUri().equalsIgnoreCase(memberUriIdentifier)) {
-                        checkDuplicateCode(existingMembers, memberUriIdentifier);
-                        linkMembers(member, extensionMember, memberUriIdentifier);
-                        linkedMembers.add(member);
-                        found = true;
-                    } else if (existingMemberCode != null && existingMemberCode.getCodeValue().equalsIgnoreCase(memberUriIdentifier) && existingMemberCode.getCodeScheme().getId().equals(extension.getParentCodeScheme().getId())) {
-                        checkDuplicateCode(existingMembers, memberCodeValueIdentifier);
-                        linkMembers(member, extensionMember, memberCodeValueIdentifier);
+                    if (memberCodeUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && existingMemberCode != null && existingMemberCode.getUri().equalsIgnoreCase(memberCodeUriIdentifier)) {
+                        checkDuplicateCode(existingMembers, memberCodeUriIdentifier);
+                        linkMembers(member, extensionMember, memberCodeUriIdentifier);
                         linkedMembers.add(member);
                         found = true;
                     }
                 }
                 if (!found) {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND_WITH_IDENTIFIER, memberCodeValueIdentifier));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND_WITH_IDENTIFIER, memberCodeCodeValueIdentifier));
+                }
+            } else if (memberCodeCodeValueIdentifier != null) {
+                boolean found = false;
+                for (final Member extensionMember : existingMembers) {
+                    final Code existingMemberCode = extensionMember.getCode();
+                    if (existingMemberCode != null && existingMemberCode.getCodeValue().equalsIgnoreCase(memberCodeCodeValueIdentifier) && existingMemberCode.getCodeScheme().getId().equals(extension.getParentCodeScheme().getId())) {
+                        checkDuplicateCode(existingMembers, memberCodeCodeValueIdentifier);
+                        linkMembers(member, extensionMember, memberCodeCodeValueIdentifier);
+                        linkedMembers.add(member);
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND_WITH_IDENTIFIER, memberCodeCodeValueIdentifier));
                 }
             }
         } else if (relatedMember == null) {

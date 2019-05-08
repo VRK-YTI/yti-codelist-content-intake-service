@@ -126,7 +126,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 }
                 member.setCode(createCodeUsingIdentifier(parseCodeIdentifierFromCsvRecord(record), recordIdentifier));
                 final String relationCodeValue = parseMemberRelationFromCsvRecord(record);
-                if (relationCodeValue != null) {
+                if (relationCodeValue != null && !relationCodeValue.isEmpty()) {
                     member.setRelatedMember(createMemberWithCodeAndCodeValue(relationCodeValue));
                 }
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
@@ -352,10 +352,14 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
         }
     }
 
-    private MemberDTO createMemberWithCodeAndCodeValue(final String codeValue) {
+    private MemberDTO createMemberWithCodeAndCodeValue(final String identifier) {
         final MemberDTO member = new MemberDTO();
         final CodeDTO refCode = new CodeDTO();
-        refCode.setCodeValue(codeValue);
+        if (identifier.startsWith("http://uri.suomi.fi/codelist/")) {
+            refCode.setUri(identifier);
+        } else {
+            refCode.setCodeValue(identifier);
+        }
         member.setCode(refCode);
         return member;
     }
