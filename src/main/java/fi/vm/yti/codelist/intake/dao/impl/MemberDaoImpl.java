@@ -270,7 +270,7 @@ public class MemberDaoImpl implements MemberDao {
             if ((identifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && code.getUri().equalsIgnoreCase(identifier)) ||
                 (code.getCodeValue().equalsIgnoreCase(identifier) && code.getCodeScheme().getId().equals(member.getExtension().getParentCodeScheme().getId()))) {
                 if (found) {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERS_HAVE_DUPLICATE_CODE_USE_SEQUENCE_ID));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERS_HAVE_DUPLICATE_CODE_USE_MEMBER));
                 }
                 found = true;
             }
@@ -337,7 +337,7 @@ public class MemberDaoImpl implements MemberDao {
                     }
                 }
                 if (!found) {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_SEQUENCE_ID, memberCodeCodeValueIdentifier));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_MEMBER, memberCodeCodeValueIdentifier));
                 }
             } else if (memberCodeUriIdentifier != null) {
                 boolean found = false;
