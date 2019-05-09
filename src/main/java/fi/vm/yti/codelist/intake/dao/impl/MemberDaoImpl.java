@@ -318,7 +318,7 @@ public class MemberDaoImpl implements MemberDao {
             linkMemberWithId(extension, member, relatedMember.getId());
             linkedMembers.add(member);
         } else if (relatedMember != null && relatedMember.getCode() != null) {
-            final String memberCodeUriIdentifier = relatedMember.getCode().getUri();
+            final String memberRelationUriIdentifier = relatedMember.getCode().getUri();
             final String memberCodeCodeValueIdentifier = relatedMember.getCode().getCodeValue();
             UUID uuid = null;
             if (memberCodeCodeValueIdentifier != null) {
@@ -339,15 +339,26 @@ public class MemberDaoImpl implements MemberDao {
                 if (!found) {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_MEMBER_ID, memberCodeCodeValueIdentifier));
                 }
-            } else if (memberCodeUriIdentifier != null) {
+            } else if (memberRelationUriIdentifier != null && memberRelationUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress())) {
                 boolean found = false;
-                for (final Member extensionMember : existingMembers) {
-                    final Code existingMemberCode = extensionMember.getCode();
-                    if (memberCodeUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && existingMemberCode != null && existingMemberCode.getUri().equalsIgnoreCase(memberCodeUriIdentifier)) {
-                        checkDuplicateCode(existingMembers, memberCodeUriIdentifier);
-                        linkMembers(member, extensionMember, memberCodeUriIdentifier);
-                        linkedMembers.add(member);
-                        found = true;
+                if (memberRelationUriIdentifier.startsWith(extension.getUri())) {
+                    for (final Member existingMember : existingMembers) {
+                        if (existingMember.getUri().equalsIgnoreCase(memberRelationUriIdentifier)) {
+                            checkDuplicateCode(existingMembers, memberRelationUriIdentifier);
+                            linkMembers(member, existingMember, memberRelationUriIdentifier);
+                            linkedMembers.add(member);
+                            found = true;
+                        }
+                    }
+                } else {
+                    for (final Member existingMember : existingMembers) {
+                        final Code existingMemberCode = existingMember.getCode();
+                        if (memberRelationUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && existingMemberCode != null && existingMemberCode.getUri().equalsIgnoreCase(memberRelationUriIdentifier)) {
+                            checkDuplicateCode(existingMembers, memberRelationUriIdentifier);
+                            linkMembers(member, existingMember, memberRelationUriIdentifier);
+                            linkedMembers.add(member);
+                            found = true;
+                        }
                     }
                 }
                 if (!found) {
