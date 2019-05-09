@@ -303,8 +303,8 @@ public abstract class AbstractBaseParser {
                                           final Row row,
                                           final DataFormatter formatter) {
         final Integer sequenceId;
-        if (headerMap.containsKey(CONTENT_HEADER_MEMBER)) {
-            sequenceId = resolveSequenceIdFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBER))), row.getRowNum());
+        if (headerMap.containsKey(CONTENT_HEADER_MEMBER_ID)) {
+            sequenceId = resolveSequenceIdFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBER_ID))), row.getRowNum());
         } else {
             sequenceId = null;
         }
@@ -323,8 +323,8 @@ public abstract class AbstractBaseParser {
 
     Integer resolveSequenceIdFromCsvRecord(final CSVRecord record) {
         final Integer order;
-        if (record.isMapped(CONTENT_HEADER_MEMBER)) {
-            order = resolveSequenceIdFromString(record.get(CONTENT_HEADER_MEMBER), new Integer((int)record.getRecordNumber()).intValue());
+        if (record.isMapped(CONTENT_HEADER_MEMBER_ID)) {
+            order = resolveSequenceIdFromString(record.get(CONTENT_HEADER_MEMBER_ID), new Integer((int)record.getRecordNumber()).intValue());
         } else {
             order = null;
         }
@@ -355,7 +355,7 @@ public abstract class AbstractBaseParser {
             } catch (final NumberFormatException e) {
                 LOG.error("Error parsing sequenceId from: " + sequenceIdString, e);
                 throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    ERR_MSG_USER_MEMBER_INVALID_VALUE, new Integer(rowNum).toString()));
+                    ERR_MSG_USER_MEMBER_ID_INVALID_VALUE, new Integer(rowNum).toString()));
             }
         } else {
             sequenceId = null;

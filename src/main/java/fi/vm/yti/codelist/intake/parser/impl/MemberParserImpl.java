@@ -160,7 +160,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 .map(integer -> integer.toString())
                 .collect(Collectors.joining(", "));
             throw new DuplicateSequenceIdInFileUploadException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_DUPLICATE_MEMBERS_IN_FILE, theSequenceIdsSeparatedByCommas));
+                ERR_MSG_USER_DUPLICATE_MEMBER_IDS_IN_FILE, theSequenceIdsSeparatedByCommas));
         }
     }
 
