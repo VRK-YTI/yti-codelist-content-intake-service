@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.indexing.impl;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -9,15 +10,19 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.support.WriteRequest;
-import org.elasticsearch.client.Client;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,12 +33,14 @@ import fi.vm.yti.codelist.common.dto.AbstractIdentifyableCodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.common.dto.Views;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.indexing.IndexingTools;
 import fi.vm.yti.codelist.intake.jpa.IndexStatusRepository;
@@ -78,14 +85,14 @@ public class IndexingImpl implements Indexing {
     private final ValueTypeService valueTypeService;
     private final ExtensionService extensionService;
     private final MemberService memberService;
-    private final Client client;
+    private final RestHighLevelClient client;
     private final IndexingTools indexingTools;
     private boolean hasError;
     private boolean fullIndexInProgress;
 
     @Inject
     public IndexingImpl(final IndexingTools indexingTools,
-                        final Client client,
+                        final RestHighLevelClient client,
                         final IndexStatusRepository indexStatusRepository,
                         final CodeRegistryService codeRegistryService,
                         final CodeSchemeService codeSchemeService,
@@ -182,14 +189,19 @@ public class IndexingImpl implements Indexing {
                                    final String name) {
         boolean success;
         if (!set.isEmpty()) {
-            final BulkRequestBuilder bulkRequest = client.prepareBulk();
+            final BulkRequest bulkRequest = new BulkRequest();
             for (final T item : set) {
                 final AbstractIdentifyableCodeDTO identifyableCode = (AbstractIdentifyableCodeDTO) item;
-                bulkRequest.add(client.prepareDelete(elasticIndex, elasticType, identifyableCode.getId().toString()));
+                bulkRequest.add(new DeleteRequest(elasticIndex, elasticType, identifyableCode.getId().toString()));
                 bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
             }
-            final BulkResponse response = bulkRequest.get();
-            success = handleBulkResponse(name, response);
+            try {
+                final BulkResponse response = client.bulk(bulkRequest, RequestOptions.DEFAULT);
+                success = handleBulkResponse(name, response);
+            } catch (final IOException e) {
+                LOG.error("Bulk delete request failed!", e);
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ElasticSearch index query error!"));
+            }
         } else {
             noContent(name);
             success = true;
@@ -205,18 +217,24 @@ public class IndexingImpl implements Indexing {
         boolean success;
         if (!set.isEmpty()) {
             final ObjectMapper mapper = indexingTools.createObjectMapper();
-            final BulkRequestBuilder bulkRequest = client.prepareBulk();
+            final BulkRequest bulkRequest = new BulkRequest();
             for (final T item : set) {
                 try {
                     final AbstractIdentifyableCodeDTO identifyableCode = (AbstractIdentifyableCodeDTO) item;
-                    bulkRequest.add(client.prepareIndex(elasticIndex, elasticType, identifyableCode.getId().toString()).setSource(mapper.writerWithView(jsonViewClass).writeValueAsString(item).replace("\\\\n", "\\n"), XContentType.JSON));
+                    final String itemPayload = mapper.writerWithView(jsonViewClass).writeValueAsString(item).replace("\\\\n", "\\n");
+                    bulkRequest.add(new IndexRequest(elasticIndex, elasticType, identifyableCode.getId().toString()).source(itemPayload, XContentType.JSON));
                     bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
                 } catch (final JsonProcessingException e) {
                     handleBulkErrorWithException(name, e);
                 }
             }
-            final BulkResponse response = bulkRequest.get();
-            success = handleBulkResponse(name, response);
+            try {
+                final BulkResponse response = client.bulk(bulkRequest, RequestOptions.DEFAULT);
+                success = handleBulkResponse(name, response);
+            } catch (final IOException e) {
+                LOG.error("Bulk index request failed!", e);
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ElasticSearch index query error!"));
+            }
         } else {
             noContent(name);
             success = true;
@@ -440,7 +458,6 @@ public class IndexingImpl implements Indexing {
     private void reIndexData(final String indexAlias,
                              final String type) {
         final String indexName = createIndexName(indexAlias);
-
         final IndexStatus status = new IndexStatus();
         final Date timeStamp = new Date(System.currentTimeMillis());
         status.setId(UUID.randomUUID());
@@ -503,13 +520,5 @@ public class IndexingImpl implements Indexing {
 
     private String createIndexName(final String indexName) {
         return indexName + "_" + System.currentTimeMillis();
-    }
-
-    public boolean isHasError() {
-        return hasError;
-    }
-
-    public void setHasError(boolean hasError) {
-        this.hasError = hasError;
     }
 }

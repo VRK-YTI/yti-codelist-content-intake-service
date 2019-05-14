@@ -3,19 +3,23 @@ package fi.vm.yti.codelist.intake.indexing.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
+import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.client.Client;
+import org.elasticsearch.client.GetAliasesResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
@@ -23,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -260,11 +263,22 @@ public class IndexingToolsImpl implements IndexingTools {
         "  }\n" +
         "}\n}";
 
-    private final Client client;
+    private final RestHighLevelClient client;
 
     @Inject
-    public IndexingToolsImpl(final Client client) {
+    public IndexingToolsImpl(final RestHighLevelClient client) {
         this.client = client;
+    }
+
+    private boolean checkIfIndexExists(final String indexName) {
+        final GetIndexRequest request = new GetIndexRequest();
+        request.indices(indexName);
+        try {
+            return client.indices().exists(request, RequestOptions.DEFAULT);
+        } catch (final IOException e) {
+            LOG.error("Index checking request failed for index: " + indexName, e);
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ElasticSearch index exists query error!"));
+        }
     }
 
     /**
@@ -275,26 +289,32 @@ public class IndexingToolsImpl implements IndexingTools {
      */
     public void aliasIndex(final String indexName,
                            final String aliasName) {
-        final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
-        if (exists) {
+        if (checkIfIndexExists(indexName)) {
             final IndicesAliasesRequest request = new IndicesAliasesRequest();
-            final ImmutableOpenMap<String, List<AliasMetaData>> aliases = client.admin().indices().prepareGetAliases(aliasName).get().getAliases();
-            final List<String> oldIndexNames = new ArrayList<>();
-            for (ObjectObjectCursor<String, List<AliasMetaData>> alias : aliases) {
-                if (!alias.value.isEmpty()) {
-                    request.addAliasAction(IndicesAliasesRequest.AliasActions.remove().alias(aliasName).index(alias.key));
-                    oldIndexNames.add(alias.key);
+            final GetAliasesRequest getAliasesRequest = new GetAliasesRequest(aliasName);
+            try {
+                final GetAliasesResponse aliasGetResponse = client.indices().getAlias(getAliasesRequest, RequestOptions.DEFAULT);
+                final List<String> oldIndexNames = new ArrayList<>();
+                for (final Map.Entry<String, Set<AliasMetaData>> aliasEntry : aliasGetResponse.getAliases().entrySet()) {
+                    final String alias = aliasEntry.getKey();
+                    final Set<AliasMetaData> value = aliasEntry.getValue();
+                    if (!value.isEmpty()) {
+                        request.addAliasAction(IndicesAliasesRequest.AliasActions.remove().alias(aliasName).index(alias));
+                        oldIndexNames.add(alias);
+                    }
                 }
-            }
-            request.addAliasAction(IndicesAliasesRequest.AliasActions.add().alias(aliasName).index(indexName));
-            final AcknowledgedResponse response = client.admin().indices().aliases(request).actionGet();
-            if (!response.isAcknowledged()) {
-                logAliasFailed(indexName);
-            } else {
-                logAliasSuccessful(indexName);
-                for (final String oldIndexName : oldIndexNames) {
-                    logAliasRemovedSuccessful(oldIndexName);
+                request.addAliasAction(IndicesAliasesRequest.AliasActions.add().alias(aliasName).index(indexName));
+                final AcknowledgedResponse response = client.indices().updateAliases(request, RequestOptions.DEFAULT);
+                if (!response.isAcknowledged()) {
+                    logAliasFailed(indexName);
+                } else {
+                    logAliasSuccessful(indexName);
+                    for (final String oldIndexName : oldIndexNames) {
+                        logAliasRemovedSuccessful(oldIndexName);
+                    }
                 }
+            } catch (final IOException e) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
             }
         } else {
             logIndexDoesNotExist(indexName);
@@ -308,19 +328,15 @@ public class IndexingToolsImpl implements IndexingTools {
      */
     public void deleteIndex(final String indexName) {
         final DeleteIndexRequest request = new DeleteIndexRequest(indexName);
-        final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
-        if (exists) {
+        if (checkIfIndexExists(indexName)) {
             try {
-                final AcknowledgedResponse response = client.admin().indices().delete(request).get();
+                final AcknowledgedResponse response = client.indices().delete(request, RequestOptions.DEFAULT);
                 if (!response.isAcknowledged()) {
                     logDeleteFailed(indexName);
                 } else {
                     logDeleteSuccessful(indexName);
                 }
-            } catch (final ExecutionException e) {
-                LOG.error("Deleting ElasticSearch index failed for: " + indexName, e);
-            } catch (final InterruptedException e) {
-                Thread.currentThread().interrupt();
+            } catch (final IOException e) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), ERR_MSG_USER_500));
             }
         } else {
@@ -328,17 +344,11 @@ public class IndexingToolsImpl implements IndexingTools {
         }
     }
 
-    /**
-     * Creates index with name.
-     *
-     * @param indexName The name of the index to be created.
-     * @param type      Type for this index.
-     */
     public void createIndexWithNestedPrefLabel(final String indexName,
                                                final String type) {
-        final boolean exists = client.admin().indices().prepareExists(indexName).execute().actionGet().isExists();
-        if (!exists) {
-            final CreateIndexRequestBuilder builder = client.admin().indices().prepareCreate(indexName);
+        if (!checkIfIndexExists(indexName)) {
+            final CreateIndexRequest request = new CreateIndexRequest();
+            request.index(indexName);
             try {
                 final XContentBuilder contentBuilder = jsonBuilder()
                     .startObject()
@@ -366,32 +376,36 @@ public class IndexingToolsImpl implements IndexingTools {
                     .endObject()
                     .endObject()
                     .endObject();
-                builder.setSource(contentBuilder);
+                request.source(contentBuilder);
             } catch (final IOException e) {
                 LOG.error("Error parsing index request settings JSON!", e);
             }
             switch (type) {
                 case ELASTIC_TYPE_CODESCHEME:
-                    builder.addMapping(type, CODESCHEME_MAPPING, XContentType.JSON);
+                    request.mapping(type, CODESCHEME_MAPPING, XContentType.JSON);
                     break;
                 case ELASTIC_TYPE_CODE:
-                    builder.addMapping(type, CODE_MAPPING, XContentType.JSON);
+                    request.mapping(type, CODE_MAPPING, XContentType.JSON);
                     break;
                 case ELASTIC_TYPE_EXTENSION:
-                    builder.addMapping(type, EXTENSION_MAPPING, XContentType.JSON);
+                    request.mapping(type, EXTENSION_MAPPING, XContentType.JSON);
                     break;
                 case ELASTIC_TYPE_MEMBER:
-                    builder.addMapping(type, MEMBER_MAPPING, XContentType.JSON);
+                    request.mapping(type, MEMBER_MAPPING, XContentType.JSON);
                     break;
                 default:
-                    builder.addMapping(type, NESTED_PREFLABEL_MAPPING_JSON, XContentType.JSON);
+                    request.mapping(type, NESTED_PREFLABEL_MAPPING_JSON, XContentType.JSON);
                     break;
             }
-            final CreateIndexResponse response = builder.get();
-            if (!response.isAcknowledged()) {
-                logCreateFailed(indexName);
-            } else {
-                logCreateSuccessful(indexName);
+            try {
+                final CreateIndexResponse response = client.indices().create(request, RequestOptions.DEFAULT);
+                if (!response.isAcknowledged()) {
+                    logCreateFailed(indexName);
+                } else {
+                    logCreateSuccessful(indexName);
+                }
+            } catch (final IOException e) {
+                LOG.error("Error creating index JSON!", e);
             }
         } else {
             logIndexExist(indexName);
