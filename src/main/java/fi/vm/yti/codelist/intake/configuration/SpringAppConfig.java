@@ -71,10 +71,10 @@ public class SpringAppConfig {
     @Bean
     @SuppressWarnings("resource")
     protected RestHighLevelClient elasticSearchRestHighLevelClient() {
-        final RestHighLevelClient highLevelClient = new RestHighLevelClient(
+        final RestHighLevelClient client = new RestHighLevelClient(
             RestClient.builder(
                 new HttpHost(elasticsearchHost, elasticsearchPort, "http")));
-        return highLevelClient;
+        return client;
     }
 
     @Bean
