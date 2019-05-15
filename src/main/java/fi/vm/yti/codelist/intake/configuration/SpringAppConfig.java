@@ -31,8 +31,7 @@ import com.zaxxer.hikari.HikariDataSource;
 @PropertySource(value = "classpath", ignoreResourceNotFound = true)
 public class SpringAppConfig {
 
-    private static final int CONNECTION_TIMEOUT = 30000;
-    private static final int ES_CONNECTION_TIMEOUT = 300000;
+    private static final int CONNECTION_TIMEOUT = 300000;
 
     @Value("${yti_codelist_content_intake_service_elastic_host}")
     private String elasticsearchHost;
@@ -78,8 +77,8 @@ public class SpringAppConfig {
                 new HttpHost(elasticsearchHost, elasticsearchPort, "http"))
                 .setRequestConfigCallback(
                     requestConfigBuilder -> requestConfigBuilder
-                        .setConnectTimeout(ES_CONNECTION_TIMEOUT)
-                        .setSocketTimeout(ES_CONNECTION_TIMEOUT)));
+                        .setConnectTimeout(CONNECTION_TIMEOUT)
+                        .setSocketTimeout(CONNECTION_TIMEOUT)));
     }
 
     @Bean
