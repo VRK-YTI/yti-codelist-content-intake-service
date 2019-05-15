@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 import org.apache.catalina.connector.Connector;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
@@ -31,7 +32,9 @@ import com.zaxxer.hikari.HikariDataSource;
 @PropertySource(value = "classpath", ignoreResourceNotFound = true)
 public class SpringAppConfig {
 
-    private static final int CONNECTION_TIMEOUT = 300000;
+    private static final int CONNECTION_TIMEOUT = 30000;
+    private static final int ES_CONNECTION_TIMEOUT = 300000;
+    private static final int ES_RETRY_TIMEOUT = 60000;
 
     @Value("${yti_codelist_content_intake_service_elastic_host}")
     private String elasticsearchHost;
@@ -72,13 +75,14 @@ public class SpringAppConfig {
     @Bean
     @SuppressWarnings("resource")
     protected RestHighLevelClient elasticSearchRestHighLevelClient() {
-        return new RestHighLevelClient(
-            RestClient.builder(
-                new HttpHost(elasticsearchHost, elasticsearchPort, "http"))
-                .setRequestConfigCallback(
-                    requestConfigBuilder -> requestConfigBuilder
-                        .setConnectTimeout(CONNECTION_TIMEOUT)
-                        .setSocketTimeout(CONNECTION_TIMEOUT)));
+        final RestClientBuilder builder = RestClient.builder(
+            new HttpHost(elasticsearchHost, elasticsearchPort, "http"))
+            .setRequestConfigCallback(
+                requestConfigBuilder -> requestConfigBuilder
+                    .setConnectTimeout(ES_CONNECTION_TIMEOUT)
+                    .setSocketTimeout(ES_CONNECTION_TIMEOUT))
+            .setMaxRetryTimeoutMillis(ES_RETRY_TIMEOUT);
+        return new RestHighLevelClient(builder);
     }
 
     @Bean
