@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -115,6 +116,11 @@ public class MemberDaoImpl implements MemberDao {
     @Transactional
     public Set<Member> findAll() {
         return memberRepository.findAll();
+    }
+
+    @Transactional
+    public Set<Member> findAll(final PageRequest pageRequest) {
+        return new HashSet<>(memberRepository.findAll(pageRequest).getContent());
     }
 
     @Transactional
@@ -769,5 +775,10 @@ public class MemberDaoImpl implements MemberDao {
         codesSorted.sort(Comparator.comparing(Code::getOrder));
         LinkedHashSet<Code> codesOrdered = new LinkedHashSet<>(codesSorted);
         codeSchemesWithCodesOrdered.put(cs, codesOrdered);
+    }
+
+    @Transactional
+    public int getMemberCount() {
+        return memberRepository.getMemberCount();
     }
 }

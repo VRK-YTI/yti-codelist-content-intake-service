@@ -131,7 +131,7 @@ public class IndexingImpl implements Indexing {
         return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
     }
 
-    private int getCodePageCount(final int codeCount) {
+    private int getContentPageCount(final int codeCount) {
         return codeCount / MAX_PAGE_COUNT + 1;
     }
 
@@ -139,7 +139,7 @@ public class IndexingImpl implements Indexing {
     public boolean indexCodes(final String indexName) {
         final Stopwatch watch = Stopwatch.createStarted();
         final int codeCount = codeService.getCodeCount();
-        final int pageCount = getCodePageCount(codeCount);
+        final int pageCount = getContentPageCount(codeCount);
         LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of codes %d codes.", pageCount, codeCount));
         int page = 0;
         boolean success = true;
@@ -179,8 +179,27 @@ public class IndexingImpl implements Indexing {
     }
 
     private boolean indexMembers(final String indexName) {
-        final Set<MemberDTO> members = memberService.findAll();
-        return indexData(members, indexName, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
+
+        final Stopwatch watch = Stopwatch.createStarted();
+        final int memberCount = memberService.getMemberCount();
+        final int pageCount = getContentPageCount(memberCount);
+        LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of members %d members.", pageCount, memberCount));
+        int page = 0;
+        boolean success = true;
+        while (page + 1 <= pageCount) {
+            final PageRequest pageRequest = new PageRequest(page, MAX_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "uri")));
+            final Set<MemberDTO> members = memberService.findAll(pageRequest);
+            final boolean partIndexSuccess = indexData(members, indexName, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
+            if (!partIndexSuccess) {
+                success = false;
+            }
+            page++;
+        }
+        if (success) {
+            LOG.info(String.format("ElasticSearch indexing: Successfully indexed %d members in %s", memberCount, watch));
+        }
+        return success;
+
     }
 
     private <T> boolean deleteData(final Set<T> set,

@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.data.domain.PageRequest;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
@@ -13,10 +14,14 @@ import fi.vm.yti.codelist.intake.model.Extension;
 
 public interface MemberService {
 
+    int getMemberCount();
+
     MemberDTO deleteMember(final UUID id,
                            final Set<MemberDTO> affectedMembers);
 
     Set<MemberDTO> findAll();
+
+    Set<MemberDTO> findAll(final PageRequest pageRequest);
 
     MemberDTO findById(final UUID id);
 

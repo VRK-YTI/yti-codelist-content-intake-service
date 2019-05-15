@@ -9,6 +9,7 @@ import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
 import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -84,8 +85,19 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Transactional
+    public int getMemberCount() {
+        return memberDao.getMemberCount();
+    }
+
+    @Transactional
     public Set<MemberDTO> findAll() {
         return dtoMapperService.mapDeepMemberDtos(memberDao.findAll());
+    }
+
+    @Transactional
+    public Set<MemberDTO> findAll(final PageRequest pageRequest) {
+        final Set<Member> members = memberDao.findAll(pageRequest);
+        return dtoMapperService.mapDeepMemberDtos(members);
     }
 
     @Transactional

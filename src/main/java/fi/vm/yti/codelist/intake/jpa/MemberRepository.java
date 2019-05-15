@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +21,8 @@ import fi.vm.yti.codelist.intake.model.Member;
 public interface MemberRepository extends CrudRepository<Member, String> {
 
     Set<Member> findAll();
+
+    Page<Member> findAll(final Pageable pageable);
 
     Set<Member> findByCodeId(final UUID id);
 
@@ -50,4 +54,7 @@ public interface MemberRepository extends CrudRepository<Member, String> {
 
     Member findByExtensionAndSequenceId(final Extension extension,
                                         final Integer sequenceId);
+
+    @Query("SELECT COUNT(m) FROM Member as m")
+    int getMemberCount();
 }

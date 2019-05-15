@@ -3,6 +3,8 @@ package fi.vm.yti.codelist.intake.dao;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.data.domain.PageRequest;
+
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.model.Code;
@@ -23,6 +25,8 @@ public interface MemberDao {
               final boolean logChange);
 
     Set<Member> findAll();
+
+    Set<Member> findAll(final PageRequest pageRequest);
 
     Member findById(final UUID id);
 
@@ -46,4 +50,6 @@ public interface MemberDao {
     Integer getNextOrderInSequence(final Extension extension);
 
     Set<Member> createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(final ExtensionDTO extension);
+
+    int getMemberCount();
 }
