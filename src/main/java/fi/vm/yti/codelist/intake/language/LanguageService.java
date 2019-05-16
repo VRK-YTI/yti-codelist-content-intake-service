@@ -48,14 +48,14 @@ public class LanguageService {
             if (codes == null || codes.isEmpty()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "No codes available for languagecodes, critical failure!"));
             }
-            codes.forEach(code -> languageCodes.put(code.getCodeValue(), code));
+            codes.forEach(code -> languageCodes.put(code.getCodeValue().toLowerCase(), code));
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "No language codescheme found, critical failure!"));
         }
     }
 
     public Code getLanguageCode(final String languageCodeValue) {
-        final Code languageCode = languageCodes.get(languageCodeValue);
+        final Code languageCode = languageCodes.get(languageCodeValue.toLowerCase());
         if (languageCode == null) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "No language code found for codeValue " + languageCodeValue + "!"));
         }
@@ -73,9 +73,9 @@ public class LanguageService {
                                                    final String languageCodeCodeValue,
                                                    final boolean saveCodeScheme) {
         if (!ytiDataAccess.isInitializing()) {
-            final Code inputLanguageCode = languageCodes.get(languageCodeCodeValue);
+            final Code inputLanguageCode = languageCodes.get(languageCodeCodeValue.toLowerCase());
             if (inputLanguageCode == null) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_LANGUAGECODE));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_LANGUAGECODE, languageCodeCodeValue));
             }
             boolean found = false;
             Set<Code> codeSchemeLanguageCodes = codeScheme.getLanguageCodes();
