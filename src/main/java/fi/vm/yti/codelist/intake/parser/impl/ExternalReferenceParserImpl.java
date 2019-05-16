@@ -193,7 +193,7 @@ public class ExternalReferenceParserImpl extends AbstractBaseParser implements E
         return externalReferences;
     }
 
-    private void validateRequiredDataOnRow(final Row row,
+    protected void validateRequiredDataOnRow(final Row row,
                                            final Map<String, Integer> headerMap,
                                            final DataFormatter formatter) {
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HREF))) == null ||

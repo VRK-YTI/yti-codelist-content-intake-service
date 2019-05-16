@@ -2,9 +2,11 @@ package fi.vm.yti.codelist.intake.parser.impl;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -31,6 +33,9 @@ import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValuePrefLabelException;
+import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -424,6 +429,47 @@ public abstract class AbstractBaseParser {
     void checkIfExcelEmpty(final Iterator<Row> rowIterator) {
         if (!rowIterator.hasNext()) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EMPTY_EXCEL));
+        }
+    }
+
+    protected boolean headerMapContainsAtLeastOneHeaderWhichStartsWithPrefLabel(final Map<String, Integer> headerMap) {
+        for (String key : headerMap.keySet()) {
+            if (key.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected void validateRequiredDataOnRow(final Row row,
+                                             final Map<String, Integer> headerMap,
+                                             final DataFormatter formatter) {
+        if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))) == null ||
+            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).isEmpty()) {
+            throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_ROW_MISSING_CODEVALUE, getRowIdentifier(row)));
+        }
+        if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))) == null ||
+            formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS))).isEmpty()) {
+            throw new MissingRowValueStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_ROW_MISSING_STATUS, getRowIdentifier(row)));
+        }
+        boolean foundAtLeastOnePrefLabelFromTheRow = false;
+        List<String> columnNamesWhichStartWithPrefLabelPrefix = new ArrayList<>();
+        headerMap.keySet().forEach(key -> {
+            if (key.startsWith(CONTENT_HEADER_PREFLABEL_PREFIX)) {
+                columnNamesWhichStartWithPrefLabelPrefix.add(key);
+            }
+        });
+        for (String prefLabelColumnName : columnNamesWhichStartWithPrefLabelPrefix) {
+            if (formatter.formatCellValue(row.getCell(headerMap.get(prefLabelColumnName))) != null &&
+                !formatter.formatCellValue(row.getCell(headerMap.get(prefLabelColumnName))).isEmpty()) {
+                foundAtLeastOnePrefLabelFromTheRow = true;
+            }
+        }
+        if (!foundAtLeastOnePrefLabelFromTheRow) {
+            throw new MissingRowValuePrefLabelException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_ROW_MISSING_PREFLABEL_VALUE, getRowIdentifier(row)));
         }
     }
 }

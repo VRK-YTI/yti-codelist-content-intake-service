@@ -299,7 +299,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         }
     }
 
-    private void validateRequiredDataOnRow(final Row row,
+    protected void validateRequiredDataOnRow(final Row row,
                                            final Map<String, Integer> headerMap,
                                            final DataFormatter formatter) {
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))) == null ||
