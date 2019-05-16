@@ -124,7 +124,9 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     @SuppressWarnings("Duplicates")
     public Response getConcepts(@QueryParam("searchTerm") String searchTerm,
                                 @QueryParam("vocabularyId") String vocabularyId,
-                                @QueryParam("status") String status) {
+                                @QueryParam("status") String status,
+                                @QueryParam("language") String language) {
+
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
@@ -138,6 +140,11 @@ public class TerminologyProxyResource implements AbstractBaseResource {
             params.put("status", status);
             params.put("searchTerm", searchTerm);
             params.put("vocabularyId", vocabularyId);
+            if (!language.equals("all_selected") && !language.isEmpty()) {
+                params.put("language", language);
+            } else {
+                params.put("language", "");
+            }
             response = restTemplate.getForObject(createTerminologyConceptsApiUrl(), String.class, params);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -168,7 +175,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     }
 
     private String createTerminologyConceptsApiUrl() {
-        return terminologyProperties.getUrl() + API_PATH_TERMINOLOGY + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_CONCEPTS + "?status={status}&vocabularyId={vocabularyId}&searchTerm={searchTerm}";
+        return terminologyProperties.getUrl() + API_PATH_TERMINOLOGY + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_CONCEPTS + "?language={language}&status={status}&vocabularyId={vocabularyId}&searchTerm={searchTerm}";
     }
 
     @POST
