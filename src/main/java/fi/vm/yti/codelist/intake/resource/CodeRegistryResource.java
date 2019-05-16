@@ -687,10 +687,20 @@ public class CodeRegistryResource implements AbstractBaseResource {
         if (codeScheme != null) {
             final ExtensionDTO existingExtension = extensionService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionCodeValue);
             if (existingExtension != null) {
-                final Set<MemberDTO> members = memberService.findByExtensionId(existingExtension.getId());
-                final ExtensionDTO extension = extensionService.deleteExtension(existingExtension.getId());
+                final UUID extensionId = existingExtension.getId();
+                final Set<MemberDTO> members = memberService.findByExtensionId(extensionId);
+                final ExtensionDTO extension = extensionService.deleteExtension(extensionId);
                 indexing.deleteMembers(members);
                 indexing.deleteExtension(extension);
+                ExtensionDTO extensionToBeRemoved = null;
+                for (final ExtensionDTO extensionDto : codeScheme.getExtensions()) {
+                    if (extension.getId().equals(extensionId)) {
+                        extensionToBeRemoved = extensionDto;
+                    }
+                }
+                if (extensionToBeRemoved != null) {
+                    codeScheme.getExtensions().remove(extensionToBeRemoved);
+                }
                 codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
                 indexing.updateCodeScheme(codeScheme);
                 indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
