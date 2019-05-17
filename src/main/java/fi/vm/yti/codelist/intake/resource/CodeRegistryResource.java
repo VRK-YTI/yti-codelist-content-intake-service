@@ -694,7 +694,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 indexing.deleteExtension(extension);
                 ExtensionDTO extensionToBeRemoved = null;
                 for (final ExtensionDTO extensionDto : codeScheme.getExtensions()) {
-                    if (extension.getId().equals(extensionId)) {
+                    if (extensionDto.getId().equals(extensionId)) {
                         extensionToBeRemoved = extensionDto;
                     }
                 }
