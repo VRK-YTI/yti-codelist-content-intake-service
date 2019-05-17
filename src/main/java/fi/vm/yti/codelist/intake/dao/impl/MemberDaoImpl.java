@@ -519,8 +519,7 @@ public class MemberDaoImpl implements MemberDao {
                                 final Set<Member> affectedMembers) {
 
         for (final Map.Entry<String, String> entry : fromMember.getPrefLabel().entrySet()) {
-            final String language = entry.getKey();
-            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
+            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
             final String value = entry.getValue();
             if (!Objects.equals(existingMember.getPrefLabel(language), value)) {
                 existingMember.setPrefLabel(language, value);
@@ -568,8 +567,7 @@ public class MemberDaoImpl implements MemberDao {
             member.setId(uuid);
         }
         for (final Map.Entry<String, String> entry : fromMember.getPrefLabel().entrySet()) {
-            final String language = entry.getKey();
-            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
+            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
             member.setPrefLabel(language, entry.getValue());
         }
         if (fromMember.getOrder() != null) {

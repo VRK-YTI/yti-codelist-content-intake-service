@@ -248,8 +248,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
         existingExtension.setCodeSchemes(codeSchemes);
         for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
-            final String language = entry.getKey();
-            languageService.validateInputLanguageForCodeScheme(existingExtension.getParentCodeScheme(), language);
+            final String language = languageService.validateInputLanguageForCodeScheme(existingExtension.getParentCodeScheme(), entry.getKey());
             final String value = entry.getValue();
             if (!Objects.equals(existingExtension.getPrefLabel(language), value)) {
                 existingExtension.setPrefLabel(language, value);
@@ -285,8 +284,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
         extension.setPropertyType(propertyType);
         for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
-            final String language = entry.getKey();
-            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
+            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
             extension.setPrefLabel(language, entry.getValue());
         }
         final Set<CodeScheme> codeSchemes = new HashSet<>();

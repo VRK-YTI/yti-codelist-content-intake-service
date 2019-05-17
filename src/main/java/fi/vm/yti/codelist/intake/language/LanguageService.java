@@ -62,16 +62,17 @@ public class LanguageService {
         return languageCode;
     }
 
-    public void validateInputLanguageForCodeScheme(final CodeScheme codeScheme,
-                                                   final String languageCodeCodeValue) {
+    public String validateInputLanguageForCodeScheme(final CodeScheme codeScheme,
+                                                     final String languageCodeCodeValue) {
         if (!ytiDataAccess.isInitializing()) {
-            validateInputLanguageForCodeScheme(codeScheme, languageCodeCodeValue, true);
+            return validateInputLanguageForCodeScheme(codeScheme, languageCodeCodeValue, true);
         }
+        return languageCodeCodeValue;
     }
 
-    public void validateInputLanguageForCodeScheme(final CodeScheme codeScheme,
-                                                   final String languageCodeCodeValue,
-                                                   final boolean saveCodeScheme) {
+    public String validateInputLanguageForCodeScheme(final CodeScheme codeScheme,
+                                                     final String languageCodeCodeValue,
+                                                     final boolean saveCodeScheme) {
         if (!ytiDataAccess.isInitializing()) {
             final Code inputLanguageCode = languageCodes.get(languageCodeCodeValue.toLowerCase());
             if (inputLanguageCode == null) {
@@ -94,6 +95,8 @@ public class LanguageService {
                     codeSchemeDao.save(codeScheme);
                 }
             }
+            return inputLanguageCode.getCodeValue();
         }
+        return languageCodeCodeValue;
     }
 }

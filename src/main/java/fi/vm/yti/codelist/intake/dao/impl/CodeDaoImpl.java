@@ -367,24 +367,21 @@ public class CodeDaoImpl implements CodeDao {
         }
         existingCode.setBroaderCode(resolveBroaderCode(fromCode, codeScheme));
         for (final Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
-            final String language = entry.getKey();
-            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
+            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
             final String value = entry.getValue();
             if (!Objects.equals(existingCode.getPrefLabel(language), value)) {
                 existingCode.setPrefLabel(language, value);
             }
         }
         for (final Map.Entry<String, String> entry : fromCode.getDescription().entrySet()) {
-            final String language = entry.getKey();
-            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
+            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
             final String value = entry.getValue();
             if (!Objects.equals(existingCode.getDescription(language), value)) {
                 existingCode.setDescription(language, value);
             }
         }
         for (final Map.Entry<String, String> entry : fromCode.getDefinition().entrySet()) {
-            final String language = entry.getKey();
-            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
+            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
             final String value = entry.getValue();
             if (!Objects.equals(existingCode.getDefinition(language), value)) {
                 existingCode.setDefinition(language, value);
@@ -451,18 +448,15 @@ public class CodeDaoImpl implements CodeDao {
             nextOrder.setValue(order + 1);
         }
         for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
-            final String language = entry.getKey();
-            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
+            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
             code.setPrefLabel(language, entry.getValue());
         }
         for (Map.Entry<String, String> entry : fromCode.getDescription().entrySet()) {
-            final String language = entry.getKey();
-            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
+            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
             code.setDescription(language, entry.getValue());
         }
         for (Map.Entry<String, String> entry : fromCode.getDefinition().entrySet()) {
-            final String language = entry.getKey();
-            languageService.validateInputLanguageForCodeScheme(codeScheme, language);
+            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
             code.setDefinition(language, entry.getValue());
         }
         if (fromCode.getSubCodeScheme() != null) {
