@@ -75,6 +75,7 @@ public class IndexingImpl implements Indexing {
     private static final String NAME_MEMBERS = "Members";
     private static final String BULK = "ElasticSearch bulk: ";
     private static final int MAX_PAGE_COUNT = 1000;
+    private static final int MAX_MEMBER_PAGE_COUNT = 500;
 
     private final IndexStatusRepository indexStatusRepository;
     private final CodeSchemeService codeSchemeService;
@@ -131,15 +132,16 @@ public class IndexingImpl implements Indexing {
         return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
     }
 
-    private int getContentPageCount(final int codeCount) {
-        return codeCount / MAX_PAGE_COUNT + 1;
+    private int getContentPageCount(final int codeCount,
+                                    final int maxCount) {
+        return codeCount / maxCount + 1;
     }
 
     @Transactional
     public boolean indexCodes(final String indexName) {
         final Stopwatch watch = Stopwatch.createStarted();
         final int codeCount = codeService.getCodeCount();
-        final int pageCount = getContentPageCount(codeCount);
+        final int pageCount = getContentPageCount(codeCount, MAX_PAGE_COUNT);
         LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of codes %d codes.", pageCount, codeCount));
         int page = 0;
         boolean success = true;
@@ -182,7 +184,7 @@ public class IndexingImpl implements Indexing {
 
         final Stopwatch watch = Stopwatch.createStarted();
         final int memberCount = memberService.getMemberCount();
-        final int pageCount = getContentPageCount(memberCount);
+        final int pageCount = getContentPageCount(memberCount, MAX_MEMBER_PAGE_COUNT);
         LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of members %d members.", pageCount, memberCount));
         int page = 0;
         boolean success = true;
