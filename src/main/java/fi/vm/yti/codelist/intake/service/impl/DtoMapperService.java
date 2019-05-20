@@ -148,10 +148,10 @@ public class DtoMapperService {
         codeSchemeDto.setGovernancePolicy(codeScheme.getGovernancePolicy());
         codeSchemeDto.setLegalBase(codeScheme.getLegalBase());
         codeSchemeDto.setConceptUriInVocabularies(codeScheme.getConceptUriInVocabularies());
-        if (codeScheme.getLanguageCodes() != null) {
-            codeSchemeDto.setLanguageCodes(mapCodeDtos(codeScheme.getLanguageCodes(), false, false));
-        }
         if (deep) {
+            if (codeScheme.getLanguageCodes() != null) {
+                codeSchemeDto.setLanguageCodes(mapCodeDtos(codeScheme.getLanguageCodes(), false, false));
+            }
             if (codeScheme.getDefaultCode() != null) {
                 codeSchemeDto.setDefaultCode(mapCodeDto(codeScheme.getDefaultCode(), false, true, false));
             }
@@ -164,12 +164,12 @@ public class DtoMapperService {
             if (codeScheme.getExtensions() != null) {
                 codeSchemeDto.setExtensions(mapExtensionDtos(codeScheme.getExtensions(), false));
             }
-        }
-        if (!codeScheme.getVariants().isEmpty()) {
-            codeSchemeDto.setVariantsOfThisCodeScheme(getVariantsOfCodeSchemeAsListItems(codeScheme));
-        }
-        if (!codeScheme.getVariantMothers().isEmpty()) {
-            codeSchemeDto.setVariantMothersOfThisCodeScheme(getVariantMothersOfCodeSchemeAsListItems(codeScheme));
+            if (!codeScheme.getVariants().isEmpty()) {
+                codeSchemeDto.setVariantsOfThisCodeScheme(getVariantsOfCodeSchemeAsListItems(codeScheme));
+            }
+            if (!codeScheme.getVariantMothers().isEmpty()) {
+                codeSchemeDto.setVariantMothersOfThisCodeScheme(getVariantMothersOfCodeSchemeAsListItems(codeScheme));
+            }
         }
         codeSchemeDto.setUrl(apiUtils.createCodeSchemeUrl(codeSchemeDto));
         codeSchemeDto.setCreated(codeScheme.getCreated());
