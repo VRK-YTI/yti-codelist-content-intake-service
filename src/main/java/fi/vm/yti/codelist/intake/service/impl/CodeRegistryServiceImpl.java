@@ -48,7 +48,7 @@ public class CodeRegistryServiceImpl implements CodeRegistryService {
 
     @Transactional
     public Set<CodeRegistryDTO> findAll() {
-        return dtoMapperService.mapCodeRegistryDtos(codeRegistryDao.findAll());
+        return dtoMapperService.mapDeepCodeRegistryDtos(codeRegistryDao.findAll());
     }
 
     @Transactional
@@ -58,7 +58,7 @@ public class CodeRegistryServiceImpl implements CodeRegistryService {
         if (registry == null) {
             return null;
         }
-        return dtoMapperService.mapCodeRegistryDto(registry);
+        return dtoMapperService.mapDeepCodeRegistryDto(registry);
     }
 
     @Transactional
@@ -94,7 +94,7 @@ public class CodeRegistryServiceImpl implements CodeRegistryService {
             default:
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
         }
-        return dtoMapperService.mapCodeRegistryDtos(codeRegistries);
+        return dtoMapperService.mapDeepCodeRegistryDtos(codeRegistries);
     }
 
     @Transactional
@@ -125,14 +125,14 @@ public class CodeRegistryServiceImpl implements CodeRegistryService {
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "CodeRegistry with CodeValue: " + codeRegistryCodeValue + " does not exist yet, please create registry first."));
         }
-        return dtoMapperService.mapCodeRegistryDto(codeRegistry);
+        return dtoMapperService.mapDeepCodeRegistryDto(codeRegistry);
     }
 
     @Transactional
     public CodeRegistryDTO deleteCodeRegistry(final String codeRegistryCodeValue) {
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (authorizationManager.canCodeRegistryBeDeleted(codeRegistry)) {
-            final CodeRegistryDTO codeRegistryDto = dtoMapperService.mapCodeRegistryDto(codeRegistry);
+            final CodeRegistryDTO codeRegistryDto = dtoMapperService.mapDeepCodeRegistryDto(codeRegistry);
             codeRegistryDao.delete(codeRegistry);
             return codeRegistryDto;
         } else {

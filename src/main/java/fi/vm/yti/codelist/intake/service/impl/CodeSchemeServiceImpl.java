@@ -557,7 +557,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
         }
-        CodeSchemeDTO codeSchemeDTO = dtoMapperService.mapCodeSchemeDto(codeScheme, true);
+        CodeSchemeDTO codeSchemeDTO = dtoMapperService.mapDeepCodeSchemeDto(codeScheme);
         if (codeSchemeDTO.getId() != null && codeSchemeDTO.getLastCodeschemeId() != null) {
             this.populateAllVersionsToCodeSchemeDTO(codeSchemeDTO);
         }
@@ -576,7 +576,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
             checkForExternalExtensionReferences(codeScheme);
             checkForExternalExtensionMemberReferences(codeScheme);
             checkForCodeSubCodeSchemeReferences(codeScheme);
-            final CodeSchemeDTO codeSchemeDto = dtoMapperService.mapCodeSchemeDto(codeScheme, false);
+            final CodeSchemeDTO codeSchemeDto = dtoMapperService.mapCodeSchemeDto(codeScheme, false, false);
             dealWithPossibleVersionHierarchyBeforeDeleting(codeSchemeDto, codeSchemeDTOsToIndex);
             final Set<ExternalReference> externalReferences = externalReferenceDao.findByParentCodeSchemeId(codeScheme.getId());
             if (externalReferences != null && !externalReferences.isEmpty()) {
@@ -698,7 +698,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                                  final CodeSchemeDTO codeSchemeDto) {
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         final CodeScheme codeScheme = codeSchemeDao.updateCodeSchemeFromDto(isAuthorized, codeRegistry, codeSchemeDto);
-        CodeSchemeDTO result = dtoMapperService.mapCodeSchemeDto(codeScheme, true);
+        CodeSchemeDTO result = dtoMapperService.mapDeepCodeSchemeDto(codeScheme);
         result.setVariantsOfThisCodeScheme(result.getVariantsOfThisCodeScheme());
         result.setVariantMothersOfThisCodeScheme(result.getVariantMothersOfThisCodeScheme());
         return result;
