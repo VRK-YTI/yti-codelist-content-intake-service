@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.terminology;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -14,15 +15,17 @@ public final class Vocabulary {
     private final UUID id;
     private final Map prefLabel;
     private final String status;
+    private List<String> languages;
 
     // Jackson constructor
     private Vocabulary() {
-        this(randomUUID(), Collections.emptyMap(), null);
+        this(randomUUID(), Collections.emptyMap(), null, Collections.emptyList());
     }
 
     public Vocabulary(final UUID id,
                       final Map prefLabel,
-                      final String status) {
+                      final String status,
+                      final List<String> languages) {
         this.id = id;
         this.prefLabel = prefLabel;
         this.status = status;
@@ -37,4 +40,6 @@ public final class Vocabulary {
     }
 
     public String getStatus() { return status; }
+
+    public List getLanguages() { return languages; }
 }
