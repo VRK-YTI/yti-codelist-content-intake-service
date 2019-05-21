@@ -354,7 +354,7 @@ public class IndexingImpl implements Indexing {
         int page = 0;
         final int pageCount = getContentPageCount(codes.size(), MAX_PAGE_COUNT);
         while (page < pageCount) {
-            final Set<CodeDTO> codeSet = codes.stream().skip(page * pageCount).limit(pageCount).collect(Collectors.toSet());
+            final Set<CodeDTO> codeSet = codes.stream().skip(page * pageCount).limit(MAX_PAGE_COUNT).collect(Collectors.toSet());
             final boolean partialSuccess = indexData(codeSet, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
             if (!partialSuccess) {
                 success = false;
@@ -439,7 +439,7 @@ public class IndexingImpl implements Indexing {
         int page = 0;
         final int pageCount = getContentPageCount(members.size(), MAX_MEMBER_PAGE_COUNT);
         while (page < pageCount) {
-            final Set<MemberDTO> memberSet = members.stream().skip(page * pageCount).limit(pageCount).collect(Collectors.toSet());
+            final Set<MemberDTO> memberSet = members.stream().skip(page * pageCount).limit(MAX_MEMBER_PAGE_COUNT).collect(Collectors.toSet());
             final boolean partialSuccess = indexData(memberSet, ELASTIC_INDEX_MEMBER, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
             if (!partialSuccess) {
                 success = false;
