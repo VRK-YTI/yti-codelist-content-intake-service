@@ -88,7 +88,7 @@ public class DtoMapperService {
                 codeDto.setExternalReferences(mapExternalReferenceDtos(code.getExternalReferences(), false));
             }
             if (code.getMembers() != null) {
-                codeDto.setMembers(mapMemberDtos(code.getMembers().stream().filter(member -> CODE_EXTENSION.equalsIgnoreCase(member.getExtension().getPropertyType().getContext())).collect(Collectors.toSet()), false, true));
+                codeDto.setMembers(mapMemberDtos(code.getMembers().stream().filter(member -> CODE_EXTENSION.equalsIgnoreCase(member.getExtension().getPropertyType().getContext())).collect(Collectors.toSet()), false));
             }
             if (code.getCodeScheme().getExtensions() != null && !code.getCodeScheme().getExtensions().isEmpty()) {
                 final Set<Extension> codeExtensions = code.getCodeScheme().getExtensions().stream().filter(extension -> CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())).collect(Collectors.toSet());
@@ -402,31 +402,29 @@ public class DtoMapperService {
 
     @Transactional
     public MemberDTO mapDeepMemberDto(final Member member) {
-        return mapMemberDto(member, true, true);
+        return mapMemberDto(member, true);
     }
 
     @Transactional
     public MemberDTO mapMemberDto(final Member member) {
-        return mapMemberDto(member, false, true);
+        return mapMemberDto(member, false);
     }
 
     @Transactional
     public MemberDTO mapMemberDto(final Member member,
-                                  final boolean deep,
-                                  final boolean mapMemberValues) {
+                                  final boolean deep) {
         final MemberDTO memberDto = new MemberDTO();
         memberDto.setId(member.getId());
         memberDto.setOrder(member.getOrder());
         memberDto.setSequenceId(member.getSequenceId());
         memberDto.setCode(mapCodeDto(member.getCode(), false, true, false));
         memberDto.setPrefLabel(member.getPrefLabel());
-        if (deep || mapMemberValues)
         if (member.getMemberValues() != null && !member.getMemberValues().isEmpty()) {
             memberDto.setMemberValues(mapMemberValueDtos(member.getMemberValues()));
         }
         if (deep) {
             if (member.getRelatedMember() != null) {
-                memberDto.setRelatedMember(mapMemberDto(member.getRelatedMember(), false, false));
+                memberDto.setRelatedMember(mapMemberDto(member.getRelatedMember(), false));
             }
             if (member.getExtension() != null) {
                 memberDto.setExtension(mapExtensionDto(member.getExtension(), false, true, true));
@@ -443,16 +441,15 @@ public class DtoMapperService {
 
     @Transactional
     public Set<MemberDTO> mapDeepMemberDtos(final Set<Member> members) {
-        return mapMemberDtos(members, true, false);
+        return mapMemberDtos(members, true);
     }
 
     @Transactional
     public Set<MemberDTO> mapMemberDtos(final Set<Member> members,
-                                        final boolean deep,
-                                        final boolean mapMemberValues) {
+                                        final boolean deep) {
         final Set<MemberDTO> memberDtos = new HashSet<>();
         if (members != null && !members.isEmpty()) {
-            members.forEach(member -> memberDtos.add(mapMemberDto(member, deep, mapMemberValues)));
+            members.forEach(member -> memberDtos.add(mapMemberDto(member, deep)));
         }
         return memberDtos;
     }
@@ -497,7 +494,7 @@ public class DtoMapperService {
         }
 
         if (deep && extension.getMembers() != null) {
-            extensionDto.setMembers(mapMemberDtos(extension.getMembers(), false, true));
+            extensionDto.setMembers(mapMemberDtos(extension.getMembers(), false));
         }
         extensionDto.setUrl(apiUtils.createExtensionUrl(extension.getParentCodeScheme().getCodeRegistry().getCodeValue(), extension.getParentCodeScheme().getCodeValue(), codeValue));
         extensionDto.setCreated(extension.getCreated());
@@ -546,7 +543,7 @@ public class DtoMapperService {
         extensionDto.setEndDate(extension.getEndDate());
         if (extension.getMembers() != null && code != null) {
             final Set<Member> membersForCode = extension.getMembers().stream().filter(member -> member.getCode().getId().equals(code.getId())).collect(Collectors.toSet());
-            extensionDto.setMembers(mapMemberDtos(membersForCode, false, true));
+            extensionDto.setMembers(mapMemberDtos(membersForCode, false));
         }
         extensionDto.setUrl(apiUtils.createExtensionUrl(extension.getParentCodeScheme().getCodeRegistry().getCodeValue(), extension.getParentCodeScheme().getCodeValue(), codeValue));
         extensionDto.setCreated(extension.getCreated());
