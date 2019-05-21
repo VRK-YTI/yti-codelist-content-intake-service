@@ -352,7 +352,7 @@ public class IndexingImpl implements Indexing {
         }
         boolean success = true;
         int page = 0;
-        final int pageCount = getContentPageCount(codes.size(), MAX_MEMBER_PAGE_COUNT);
+        final int pageCount = getContentPageCount(codes.size(), MAX_PAGE_COUNT);
         while (page < pageCount) {
             final Set<CodeDTO> codeSet = codes.stream().skip(page * pageCount).limit(pageCount).collect(Collectors.toSet());
             final boolean partialSuccess = indexData(codeSet, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
