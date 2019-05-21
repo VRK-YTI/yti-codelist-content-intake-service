@@ -21,7 +21,7 @@ public interface ExtensionService {
     Set<ExtensionDTO> findByParentCodeSchemeId(final UUID codeSchemeId);
 
     ExtensionDTO findByCodeSchemeIdAndCodeValue(final UUID codeSchemeId,
-                                                      final String codeValue);
+                                                final String codeValue);
 
     Set<ExtensionDTO> parseAndPersistExtensionsFromSourceData(final String codeRegistryCodeValue,
                                                               final String codeSchemeCodeValue,

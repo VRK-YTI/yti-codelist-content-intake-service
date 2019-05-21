@@ -1134,6 +1134,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 members.forEach(member -> codes.add(codeService.findById(member.getCode().getId())));
                 indexing.updateCodes(codes);
             }
+            indexing.updateCodeScheme(codeSchemeService.findById(codeScheme.getId()));
             final Meta meta = new Meta();
             ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_MEMBER, "extension,codeScheme,code,codeRegistry,propertyType,valueType,memberValue"), pretty));
             final ResponseWrapper<MemberDTO> responseWrapper = new ResponseWrapper<>(meta);
