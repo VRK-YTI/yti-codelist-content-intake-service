@@ -73,17 +73,17 @@ public class DtoMapperService {
         codeDto.setShortName(code.getShortName());
         codeDto.setPrefLabel(code.getPrefLabel());
         codeDto.setDefinition(code.getDefinition());
-        if (code.getSubCodeScheme() != null) {
-            codeDto.setSubCodeScheme(mapCodeSchemeDto(code.getSubCodeScheme()));
-        }
         if (includeCodeScheme) {
-            codeDto.setCodeScheme(mapCodeSchemeDto(code.getCodeScheme(), false));
+            codeDto.setCodeScheme(mapCodeSchemeDto(code.getCodeScheme(), false, false));
             codeDto.setUrl(apiUtils.createCodeUrl(codeDto));
         } else {
             codeDto.setUrl(apiUtils.createCodeUrl(code.getCodeScheme().getCodeRegistry().getCodeValue(), code.getCodeScheme().getCodeValue(), codeDto.getCodeValue()));
         }
         codeDto.setConceptUriInVocabularies(code.getConceptUriInVocabularies());
         if (deep) {
+            if (code.getSubCodeScheme() != null) {
+                codeDto.setSubCodeScheme(mapCodeSchemeDto(code.getSubCodeScheme()));
+            }
             if (code.getExternalReferences() != null) {
                 codeDto.setExternalReferences(mapExternalReferenceDtos(code.getExternalReferences(), false));
             }
@@ -120,17 +120,18 @@ public class DtoMapperService {
 
     @Transactional
     public CodeSchemeDTO mapDeepCodeSchemeDto(final CodeScheme codeScheme) {
-        return mapCodeSchemeDto(codeScheme, true);
+        return mapCodeSchemeDto(codeScheme, true, false);
     }
 
     @Transactional
     public CodeSchemeDTO mapCodeSchemeDto(final CodeScheme codeScheme) {
-        return mapCodeSchemeDto(codeScheme, false);
+        return mapCodeSchemeDto(codeScheme, false, false);
     }
 
     @Transactional
     public CodeSchemeDTO mapCodeSchemeDto(final CodeScheme codeScheme,
-                                          final boolean deep) {
+                                          final boolean deep,
+                                          final boolean mapOrganizations) {
         final CodeSchemeDTO codeSchemeDto = new CodeSchemeDTO();
         codeSchemeDto.setId(codeScheme.getId());
         codeSchemeDto.setCodeValue(codeScheme.getCodeValue());
@@ -143,15 +144,20 @@ public class DtoMapperService {
         codeSchemeDto.setDefinition(codeScheme.getDefinition());
         codeSchemeDto.setPrefLabel(codeScheme.getPrefLabel());
         codeSchemeDto.setDescription(codeScheme.getDescription());
-        codeSchemeDto.setCodeRegistry(mapCodeRegistryDto(codeScheme.getCodeRegistry()));
+        codeSchemeDto.setCodeRegistry(mapCodeRegistryDto(codeScheme.getCodeRegistry(), false));
         codeSchemeDto.setVersion(codeScheme.getVersion());
         codeSchemeDto.setGovernancePolicy(codeScheme.getGovernancePolicy());
         codeSchemeDto.setLegalBase(codeScheme.getLegalBase());
         codeSchemeDto.setConceptUriInVocabularies(codeScheme.getConceptUriInVocabularies());
-        if (codeScheme.getLanguageCodes() != null) {
-            codeSchemeDto.setLanguageCodes(mapCodeDtos(codeScheme.getLanguageCodes(), false, false));
+        if (deep || mapOrganizations) {
+            if (codeScheme.getOrganizations() != null && !codeScheme.getOrganizations().isEmpty()) {
+                codeSchemeDto.setOrganizations(mapOrganizationDtos(codeScheme.getOrganizations(), false));
+            }
         }
         if (deep) {
+            if (codeScheme.getLanguageCodes() != null) {
+                codeSchemeDto.setLanguageCodes(mapCodeDtos(codeScheme.getLanguageCodes(), false, false));
+            }
             if (codeScheme.getDefaultCode() != null) {
                 codeSchemeDto.setDefaultCode(mapCodeDto(codeScheme.getDefaultCode(), false, true, false));
             }
@@ -164,12 +170,12 @@ public class DtoMapperService {
             if (codeScheme.getExtensions() != null) {
                 codeSchemeDto.setExtensions(mapExtensionDtos(codeScheme.getExtensions(), false));
             }
-        }
-        if (!codeScheme.getVariants().isEmpty()) {
-            codeSchemeDto.setVariantsOfThisCodeScheme(getVariantsOfCodeSchemeAsListItems(codeScheme));
-        }
-        if (!codeScheme.getVariantMothers().isEmpty()) {
-            codeSchemeDto.setVariantMothersOfThisCodeScheme(getVariantMothersOfCodeSchemeAsListItems(codeScheme));
+            if (!codeScheme.getVariants().isEmpty()) {
+                codeSchemeDto.setVariantsOfThisCodeScheme(getVariantsOfCodeSchemeAsListItems(codeScheme));
+            }
+            if (!codeScheme.getVariantMothers().isEmpty()) {
+                codeSchemeDto.setVariantMothersOfThisCodeScheme(getVariantMothersOfCodeSchemeAsListItems(codeScheme));
+            }
         }
         codeSchemeDto.setUrl(apiUtils.createCodeSchemeUrl(codeSchemeDto));
         codeSchemeDto.setCreated(codeScheme.getCreated());
@@ -177,7 +183,6 @@ public class DtoMapperService {
         codeSchemeDto.setPrevCodeschemeId(codeScheme.getPrevCodeschemeId());
         codeSchemeDto.setNextCodeschemeId(codeScheme.getNextCodeschemeId());
         codeSchemeDto.setLastCodeschemeId(codeScheme.getLastCodeschemeId());
-        codeSchemeDto.setOrganizations(mapOrganizationDtos(codeScheme.getOrganizations(), false));
         codeSchemeDto.setCumulative(codeScheme.isCumulative());
         return codeSchemeDto;
     }
@@ -212,7 +217,7 @@ public class DtoMapperService {
     public Set<CodeSchemeDTO> mapVariantDtos(final Set<CodeScheme> variants) {
         final Set<CodeSchemeDTO> codeSchemeDtos = new HashSet<>();
         if (variants != null && !variants.isEmpty()) {
-            variants.forEach(variant -> codeSchemeDtos.add(mapCodeSchemeDto(variant, false)));
+            variants.forEach(variant -> codeSchemeDtos.add(mapCodeSchemeDto(variant, false, false)));
         }
         return codeSchemeDtos;
     }
@@ -221,7 +226,7 @@ public class DtoMapperService {
     public Set<CodeSchemeDTO> mapVariantMotherDtos(final Set<CodeScheme> variantMothers) {
         final Set<CodeSchemeDTO> codeSchemeDtos = new HashSet<>();
         if (variantMothers != null && !variantMothers.isEmpty()) {
-            variantMothers.forEach(variantMother -> codeSchemeDtos.add(mapCodeSchemeDto(variantMother, false)));
+            variantMothers.forEach(variantMother -> codeSchemeDtos.add(mapCodeSchemeDto(variantMother, false, false)));
         }
         return codeSchemeDtos;
     }
@@ -237,13 +242,19 @@ public class DtoMapperService {
         final Set<CodeSchemeDTO> codeSchemeDtos = new HashSet<>();
 
         if (codeSchemes != null && !codeSchemes.isEmpty()) {
-            codeSchemes.forEach(codeScheme -> codeSchemeDtos.add(mapCodeSchemeDto(codeScheme, deep)));
+            codeSchemes.forEach(codeScheme -> codeSchemeDtos.add(mapCodeSchemeDto(codeScheme, deep, false)));
         }
         return codeSchemeDtos;
     }
 
     @Transactional
-    public CodeRegistryDTO mapCodeRegistryDto(final CodeRegistry codeRegistry) {
+    public CodeRegistryDTO mapDeepCodeRegistryDto(final CodeRegistry codeRegistry) {
+        return mapCodeRegistryDto(codeRegistry, true);
+    }
+
+    @Transactional
+    public CodeRegistryDTO mapCodeRegistryDto(final CodeRegistry codeRegistry,
+                                              final boolean deep) {
         final CodeRegistryDTO codeRegistryDto = new CodeRegistryDTO();
         codeRegistryDto.setId(codeRegistry.getId());
         codeRegistryDto.setCodeValue(codeRegistry.getCodeValue());
@@ -251,17 +262,25 @@ public class DtoMapperService {
         codeRegistryDto.setPrefLabel(codeRegistry.getPrefLabel());
         codeRegistryDto.setDescription(codeRegistry.getDescription());
         codeRegistryDto.setUrl(apiUtils.createCodeRegistryUrl(codeRegistryDto));
-        codeRegistryDto.setOrganizations(mapOrganizationDtos(codeRegistry.getOrganizations(), false));
+        if (deep) {
+            codeRegistryDto.setOrganizations(mapOrganizationDtos(codeRegistry.getOrganizations(), false));
+        }
         codeRegistryDto.setCreated(codeRegistry.getCreated());
         codeRegistryDto.setModified(codeRegistry.getModified());
         return codeRegistryDto;
     }
 
     @Transactional
-    public Set<CodeRegistryDTO> mapCodeRegistryDtos(final Set<CodeRegistry> codeRegistries) {
+    public Set<CodeRegistryDTO> mapDeepCodeRegistryDtos(final Set<CodeRegistry> codeRegistries) {
+        return mapCodeRegistryDtos(codeRegistries, true);
+    }
+
+    @Transactional
+    public Set<CodeRegistryDTO> mapCodeRegistryDtos(final Set<CodeRegistry> codeRegistries,
+                                                    final boolean deep) {
         final Set<CodeRegistryDTO> codeRegistryDtos = new HashSet<>();
         if (codeRegistries != null && !codeRegistries.isEmpty()) {
-            codeRegistries.forEach(codeRegistry -> codeRegistryDtos.add(mapCodeRegistryDto(codeRegistry)));
+            codeRegistries.forEach(codeRegistry -> codeRegistryDtos.add(mapCodeRegistryDto(codeRegistry, deep)));
         }
         return codeRegistryDtos;
     }
@@ -290,7 +309,7 @@ public class DtoMapperService {
         externalReferenceDto.setHref(externalReference.getHref());
         externalReferenceDto.setPropertyType(mapPropertyTypeDto(externalReference.getPropertyType()));
         if (externalReference.getParentCodeScheme() != null) {
-            externalReferenceDto.setParentCodeScheme(mapCodeSchemeDto(externalReference.getParentCodeScheme(), false));
+            externalReferenceDto.setParentCodeScheme(mapCodeSchemeDto(externalReference.getParentCodeScheme(), false, false));
         }
         if (deep) {
             if (externalReference.getCodeSchemes() != null) {
@@ -417,11 +436,11 @@ public class DtoMapperService {
         memberDto.setId(member.getId());
         memberDto.setOrder(member.getOrder());
         memberDto.setSequenceId(member.getSequenceId());
+        memberDto.setCode(mapCodeDto(member.getCode(), false, true, false));
+        memberDto.setPrefLabel(member.getPrefLabel());
         if (member.getMemberValues() != null && !member.getMemberValues().isEmpty()) {
             memberDto.setMemberValues(mapMemberValueDtos(member.getMemberValues()));
         }
-        memberDto.setCode(mapCodeDto(member.getCode(), false, true, false));
-        memberDto.setPrefLabel(member.getPrefLabel());
         if (deep) {
             if (member.getRelatedMember() != null) {
                 memberDto.setRelatedMember(mapMemberDto(member.getRelatedMember(), false));
@@ -487,7 +506,7 @@ public class DtoMapperService {
         extensionDto.setStartDate(extension.getStartDate());
         extensionDto.setEndDate(extension.getEndDate());
         if ((deep || includeParentCodeScheme) && extension.getParentCodeScheme() != null) {
-            extensionDto.setParentCodeScheme(mapCodeSchemeDto(extension.getParentCodeScheme(), false));
+            extensionDto.setParentCodeScheme(mapCodeSchemeDto(extension.getParentCodeScheme(), false, true));
         }
         if ((deep || includeCodeSchemes) && extension.getCodeSchemes() != null) {
             extensionDto.setCodeSchemes(mapCodeSchemeDtos(extension.getCodeSchemes(), false));
@@ -561,7 +580,7 @@ public class DtoMapperService {
         organizationDto.setDescription(organization.getDescription());
         organizationDto.setPrefLabel(organization.getPrefLabel());
         if (deep && organization.getCodeRegistries() != null) {
-            organizationDto.setCodeRegistries(mapCodeRegistryDtos(organization.getCodeRegistries()));
+            organizationDto.setCodeRegistries(mapCodeRegistryDtos(organization.getCodeRegistries(), false));
         }
         return organizationDto;
     }

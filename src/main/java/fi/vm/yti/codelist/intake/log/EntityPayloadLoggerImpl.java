@@ -70,7 +70,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     public void logCodeRegistry(final CodeRegistry codeRegistry) {
         beginPayloadLogging(CODEREGISTRY, codeRegistry.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapCodeRegistryDto(codeRegistry)));
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapDeepCodeRegistryDto(codeRegistry)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for codeRegistry: %s", codeRegistry.getId()), e);
         }

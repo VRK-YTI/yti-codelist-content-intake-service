@@ -200,9 +200,11 @@ public abstract class AbstractBaseParser {
             final Integer index = cell.getColumnIndex();
             if (headerMap.get(value) != null) {
                 LOG.error("Duplicate header " + value);
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_DUPLICATE_HEADER_VALUE));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_DUPLICATE_HEADER_VALUE_WITH_IDENTIFIER, value));
             }
-            headerMap.put(value, index);
+            if (value != null && !value.trim().isEmpty()) {
+                headerMap.put(value, index);
+            }
         }
         return headerMap;
     }

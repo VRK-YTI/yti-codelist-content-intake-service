@@ -47,6 +47,8 @@ public class IndexingToolsImpl implements IndexingTools {
     private static final Logger LOG = LoggerFactory.getLogger(IndexingToolsImpl.class);
     private static final String MAX_RESULT_WINDOW = "max_result_window";
     private static final int MAX_RESULT_WINDOW_SIZE = 50000;
+    private static final String MAX_INDEX_FIELDS = "mapping.total_fields.limit";
+    private static final int MAX_INDEX_FIELDS_SIZE = 5000;
 
     private static final String NESTED_PREFLABEL_MAPPING_JSON = "{" +
         "\"properties\": {\n" +
@@ -281,12 +283,6 @@ public class IndexingToolsImpl implements IndexingTools {
         }
     }
 
-    /**
-     * Alias index to alias name. Removes possible earlier indexes from this same alias.
-     *
-     * @param indexName The name of the index to be deleted.
-     * @param aliasName The name of the alias.
-     */
     public void aliasIndex(final String indexName,
                            final String aliasName) {
         if (checkIfIndexExists(indexName)) {
@@ -321,11 +317,6 @@ public class IndexingToolsImpl implements IndexingTools {
         }
     }
 
-    /**
-     * Delete index with name.
-     *
-     * @param indexName The name of the index to be deleted.
-     */
     public void deleteIndex(final String indexName) {
         final DeleteIndexRequest request = new DeleteIndexRequest(indexName);
         if (checkIfIndexExists(indexName)) {
@@ -354,6 +345,7 @@ public class IndexingToolsImpl implements IndexingTools {
                     .startObject()
                     .startObject("index")
                     .field(MAX_RESULT_WINDOW, MAX_RESULT_WINDOW_SIZE)
+                    .field(MAX_INDEX_FIELDS, MAX_INDEX_FIELDS_SIZE)
                     .endObject()
                     .startObject("analysis")
                     .startObject("analyzer")

@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -74,7 +75,8 @@ public class IndexingImpl implements Indexing {
     private static final String NAME_EXTENSIONS = "Extensions";
     private static final String NAME_MEMBERS = "Members";
     private static final String BULK = "ElasticSearch bulk: ";
-    private static final int MAX_PAGE_COUNT = 2000;
+    private static final int MAX_PAGE_COUNT = 1000;
+    private static final int MAX_MEMBER_PAGE_COUNT = 100;
 
     private final IndexStatusRepository indexStatusRepository;
     private final CodeSchemeService codeSchemeService;
@@ -131,15 +133,16 @@ public class IndexingImpl implements Indexing {
         return indexData(codeSchemes, indexName, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
     }
 
-    private int getContentPageCount(final int codeCount) {
-        return codeCount / MAX_PAGE_COUNT + 1;
+    private int getContentPageCount(final int contentCount,
+                                    final int maxCount) {
+        return contentCount / maxCount + 1;
     }
 
     @Transactional
     public boolean indexCodes(final String indexName) {
         final Stopwatch watch = Stopwatch.createStarted();
         final int codeCount = codeService.getCodeCount();
-        final int pageCount = getContentPageCount(codeCount);
+        final int pageCount = getContentPageCount(codeCount, MAX_PAGE_COUNT);
         LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of codes %d codes.", pageCount, codeCount));
         int page = 0;
         boolean success = true;
@@ -182,12 +185,12 @@ public class IndexingImpl implements Indexing {
 
         final Stopwatch watch = Stopwatch.createStarted();
         final int memberCount = memberService.getMemberCount();
-        final int pageCount = getContentPageCount(memberCount);
+        final int pageCount = getContentPageCount(memberCount, MAX_MEMBER_PAGE_COUNT);
         LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of members %d members.", pageCount, memberCount));
         int page = 0;
         boolean success = true;
         while (page + 1 <= pageCount) {
-            final PageRequest pageRequest = new PageRequest(page, MAX_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "uri")));
+            final PageRequest pageRequest = new PageRequest(page, MAX_MEMBER_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "uri")));
             final Set<MemberDTO> members = memberService.findAll(pageRequest);
             final boolean partIndexSuccess = indexData(members, indexName, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
             if (!partIndexSuccess) {
@@ -344,7 +347,22 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateCodes(final Set<CodeDTO> codes) {
-        return codes.isEmpty() || indexData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
+        if (codes.isEmpty()) {
+            return true;
+        }
+        boolean success = true;
+        int page = 0;
+        final int pageCount = getContentPageCount(codes.size(), MAX_PAGE_COUNT);
+        while (page < pageCount) {
+            final Set<CodeDTO> codeSet = codes.stream().skip(page * pageCount).limit(pageCount).collect(Collectors.toSet());
+            final boolean partialSuccess = indexData(codeSet, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
+            if (!partialSuccess) {
+                success = false;
+                break;
+            }
+            page++;
+        }
+        return success;
     }
 
     public boolean updateCodeScheme(final CodeSchemeDTO codeScheme) {
@@ -414,7 +432,22 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateMembers(final Set<MemberDTO> members) {
-        return members.isEmpty() || indexData(members, ELASTIC_INDEX_MEMBER, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
+        if (members.isEmpty()) {
+            return true;
+        }
+        boolean success = true;
+        int page = 0;
+        final int pageCount = getContentPageCount(members.size(), MAX_MEMBER_PAGE_COUNT);
+        while (page < pageCount) {
+            final Set<MemberDTO> memberSet = members.stream().skip(page * pageCount).limit(pageCount).collect(Collectors.toSet());
+            final boolean partialSuccess = indexData(memberSet, ELASTIC_INDEX_MEMBER, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
+            if (!partialSuccess) {
+                success = false;
+                break;
+            }
+            page++;
+        }
+        return success;
     }
 
     public void reIndexEverythingIfNecessary() {
