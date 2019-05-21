@@ -75,7 +75,7 @@ public class IndexingImpl implements Indexing {
     private static final String NAME_MEMBERS = "Members";
     private static final String BULK = "ElasticSearch bulk: ";
     private static final int MAX_PAGE_COUNT = 1000;
-    private static final int MAX_MEMBER_PAGE_COUNT = 50;
+    private static final int MAX_MEMBER_PAGE_COUNT = 100;
 
     private final IndexStatusRepository indexStatusRepository;
     private final CodeSchemeService codeSchemeService;
@@ -189,7 +189,7 @@ public class IndexingImpl implements Indexing {
         int page = 0;
         boolean success = true;
         while (page + 1 <= pageCount) {
-            final PageRequest pageRequest = new PageRequest(page, MAX_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "uri")));
+            final PageRequest pageRequest = new PageRequest(page, MAX_MEMBER_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "uri")));
             final Set<MemberDTO> members = memberService.findAll(pageRequest);
             final boolean partIndexSuccess = indexData(members, indexName, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
             if (!partIndexSuccess) {
