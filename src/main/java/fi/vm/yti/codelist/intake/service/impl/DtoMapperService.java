@@ -159,7 +159,7 @@ public class DtoMapperService {
                 codeSchemeDto.setLanguageCodes(mapCodeDtos(codeScheme.getLanguageCodes(), false, false));
             }
             if (codeScheme.getDefaultCode() != null) {
-                codeSchemeDto.setDefaultCode(mapCodeDto(codeScheme.getDefaultCode(), false, true, false));
+                codeSchemeDto.setDefaultCode(mapCodeDto(codeScheme.getDefaultCode(), false, false, false));
             }
             if (codeScheme.getInfoDomains() != null) {
                 codeSchemeDto.setInfoDomains(mapCodeDtos(codeScheme.getInfoDomains(), false, true));
