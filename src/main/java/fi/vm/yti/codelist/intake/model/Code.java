@@ -228,7 +228,7 @@ public class Code extends AbstractHistoricalCode implements Serializable {
         this.broaderCode = broaderCode;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinColumn(name = "subcodescheme_id")
     public CodeScheme getSubCodeScheme() {
         return subCodeScheme;
