@@ -1,16 +1,18 @@
 package fi.vm.yti.codelist.intake.indexing.impl;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
+import org.apache.commons.collections4.ListUtils;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -143,7 +145,7 @@ public class IndexingImpl implements Indexing {
         final Stopwatch watch = Stopwatch.createStarted();
         final int codeCount = codeService.getCodeCount();
         final int pageCount = getContentPageCount(codeCount, MAX_PAGE_COUNT);
-        LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of codes %d codes.", pageCount, codeCount));
+        LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of codes with %d items.", pageCount, codeCount));
         int page = 0;
         boolean success = true;
         while (page + 1 <= pageCount) {
@@ -186,7 +188,7 @@ public class IndexingImpl implements Indexing {
         final Stopwatch watch = Stopwatch.createStarted();
         final int memberCount = memberService.getMemberCount();
         final int pageCount = getContentPageCount(memberCount, MAX_MEMBER_PAGE_COUNT);
-        LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of members %d members.", pageCount, memberCount));
+        LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of members with %d items.", pageCount, memberCount));
         int page = 0;
         boolean success = true;
         while (page + 1 <= pageCount) {
@@ -236,6 +238,7 @@ public class IndexingImpl implements Indexing {
                                   final String elasticType,
                                   final String name,
                                   final Class<?> jsonViewClass) {
+        LOG.debug(String.format("%s%s indexing started with %d items.", BULK, name, set.size()));
         boolean success;
         if (!set.isEmpty()) {
             final ObjectMapper mapper = indexingTools.createObjectMapper();
@@ -351,16 +354,16 @@ public class IndexingImpl implements Indexing {
             return true;
         }
         boolean success = true;
-        int page = 0;
-        final int pageCount = getContentPageCount(codes.size(), MAX_PAGE_COUNT);
-        while (page < pageCount) {
-            final Set<CodeDTO> codeSet = codes.stream().skip(page * pageCount).limit(MAX_PAGE_COUNT).collect(Collectors.toSet());
-            final boolean partialSuccess = indexData(codeSet, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
+        final List<CodeDTO> codesList = new ArrayList<>(codes);
+        final List<List<CodeDTO>> subLists = ListUtils.partition(codesList, MAX_PAGE_COUNT);
+        LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of codes with %d items.", subLists.size(), codes.size()));
+        for (final List<CodeDTO> subList : subLists) {
+            final boolean partialSuccess = indexData(new HashSet<>(subList), ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
             if (!partialSuccess) {
+                LOG.error("Indexing codes failed!");
                 success = false;
                 break;
             }
-            page++;
         }
         return success;
     }
@@ -436,16 +439,16 @@ public class IndexingImpl implements Indexing {
             return true;
         }
         boolean success = true;
-        int page = 0;
-        final int pageCount = getContentPageCount(members.size(), MAX_MEMBER_PAGE_COUNT);
-        while (page < pageCount) {
-            final Set<MemberDTO> memberSet = members.stream().skip(page * pageCount).limit(MAX_MEMBER_PAGE_COUNT).collect(Collectors.toSet());
-            final boolean partialSuccess = indexData(memberSet, ELASTIC_INDEX_MEMBER, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
+        final List<MemberDTO> membersList = new ArrayList<>(members);
+        List<List<MemberDTO>> subLists = ListUtils.partition(membersList, MAX_MEMBER_PAGE_COUNT);
+        LOG.info(String.format("ElasticSearch indexing: Starting to index %d pages of codes with %d items.", subLists.size(), members.size()));
+        for (final List<MemberDTO> subList : subLists) {
+            final boolean partialSuccess = indexData(new HashSet<>(subList), ELASTIC_INDEX_MEMBER, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
             if (!partialSuccess) {
+                LOG.error("Indexing members failed!");
                 success = false;
                 break;
             }
-            page++;
         }
         return success;
     }
