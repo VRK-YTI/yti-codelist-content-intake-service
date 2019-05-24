@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.configuration;
 
 import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.core.MediaType;
 
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -12,6 +13,7 @@ import fi.vm.yti.codelist.intake.exception.exceptionmapping.UncaughtExceptionMap
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.YtiCodeListExceptionMapper;
 import fi.vm.yti.codelist.intake.filter.CacheFilter;
 import fi.vm.yti.codelist.intake.filter.CharsetResponseFilter;
+import fi.vm.yti.codelist.intake.filter.DataInitializationFilter;
 import fi.vm.yti.codelist.intake.filter.RequestLoggingFilter;
 import fi.vm.yti.codelist.intake.resource.AdminResource;
 import fi.vm.yti.codelist.intake.resource.AuthenticatedUserResource;
@@ -68,15 +70,15 @@ public class JerseyConfig extends ResourceConfig {
     public JerseyConfig() {
 
         // Charset filter
-        register(CharsetResponseFilter.class);
+        register(CharsetResponseFilter.class, Priorities.AUTHENTICATION);
 
         // Cache control headers to no cache.
-        register(CacheFilter.class);
+        register(CacheFilter.class, Priorities.AUTHENTICATION);
 
         // ExceptionMappers
-        register(YtiCodeListExceptionMapper.class);
-        register(UncaughtExceptionMapper.class);
-        register(EOFExceptionMapper.class);
+        register(YtiCodeListExceptionMapper.class, Priorities.AUTHENTICATION);
+        register(UncaughtExceptionMapper.class, Priorities.AUTHENTICATION);
+        register(EOFExceptionMapper.class, Priorities.AUTHENTICATION);
 
         // Logging
         register(RequestLoggingFilter.class);
@@ -116,5 +118,8 @@ public class JerseyConfig extends ResourceConfig {
         register(ExtensionResource.class);
         register(MemberResource.class);
         register(ValueTypeResource.class);
+
+        // Data initialization filter
+        register(DataInitializationFilter.class, Priorities.AUTHORIZATION);
     }
 }

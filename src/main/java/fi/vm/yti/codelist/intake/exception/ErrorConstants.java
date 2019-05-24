@@ -132,6 +132,7 @@ public class ErrorConstants {
     public static final String ERR_MSG_USER_CODE_EXTENSION_MULTIPLE_MEMBERS = "ERR_MSG_USER_CODE_EXTENSION_MULTIPLE_MEMBERS";
     public static final String ERR_MSG_USER_DUPLICATE_MEMBER_IDS_IN_FILE = "ERR_MSG_USER_DUPLICATE_MEMBER_IDS_IN_FILE";
     public static final String ERR_MSG_USER_MEMBER_ID_INVALID_VALUE = "ERR_MSG_USER_MEMBER_ID_INVALID_VALUE";
+    public static final String ERR_MSG_USER_INITIALIZING = "ERR_MSG_USER_INITIALIZING";
 
     private ErrorConstants() {
     }

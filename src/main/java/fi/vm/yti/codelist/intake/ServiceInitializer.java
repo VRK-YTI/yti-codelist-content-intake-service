@@ -49,6 +49,8 @@ public class ServiceInitializer implements ApplicationRunner {
     private final PublicApiServiceProperties publicApiServiceProperties;
     private final VersionInformation versionInformation;
 
+    private boolean initializing;
+
     @Inject
     public ServiceInitializer(final VersionInformation versionInformation,
                               final Indexing indexing,
@@ -70,6 +72,7 @@ public class ServiceInitializer implements ApplicationRunner {
     }
 
     void initialize() {
+        initializing = true;
         printLogo();
         updateSwaggerHost();
         LOG.info("*** Initializing data. ***");
@@ -83,6 +86,11 @@ public class ServiceInitializer implements ApplicationRunner {
         indexing.reIndexEverything();
         LOG.info(String.format("*** Elastic indexing took: %s. ***", indexWatch));
         LOG.info(String.format("*** Data initialization complete, took %s. ***", watch));
+        initializing = false;
+    }
+
+    public boolean isInitializing() {
+        return initializing;
     }
 
     /**
