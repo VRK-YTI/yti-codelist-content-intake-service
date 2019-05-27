@@ -333,18 +333,6 @@ public class MemberDaoImpl implements MemberDao {
             if (uuid != null) {
                 linkMemberWithId(extension, member, uuid);
                 linkedMembers.add(member);
-            } else if (memberCodeCodeValueIdentifier != null && isStringInt(memberCodeCodeValueIdentifier)) {
-                boolean found = false;
-                for (final Member extensionMember : existingMembers) {
-                    if (extensionMember.getSequenceId().equals(Integer.parseInt(memberCodeCodeValueIdentifier))) {
-                        linkMembers(member, extensionMember, memberCodeCodeValueIdentifier);
-                        linkedMembers.add(member);
-                        found = true;
-                    }
-                }
-                if (!found) {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_MEMBER_ID, memberCodeCodeValueIdentifier));
-                }
             } else if (memberRelationUriIdentifier != null && memberRelationUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress())) {
                 boolean found = false;
                 if (memberRelationUriIdentifier.startsWith(extension.getUri())) {
@@ -390,15 +378,6 @@ public class MemberDaoImpl implements MemberDao {
         }
         linkedMembers.forEach(mem -> validateMemberHierarchyLevels(mem, extension));
         return linkedMembers;
-    }
-
-    private boolean isStringInt(final String string) {
-        try {
-            Integer.parseInt(string);
-            return true;
-        } catch (final NumberFormatException e) {
-            return false;
-        }
     }
 
     private void validateMemberHierarchyLevels(final Member member,
