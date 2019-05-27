@@ -404,7 +404,7 @@ public class MemberDaoImpl implements MemberDao {
         final Member relatedMember = member.getRelatedMember();
         if (relatedMember != null) {
             if (chainedMembers.contains(relatedMember)) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CYCLIC_DEPENDENCY_ISSUE));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CYCLIC_DEPENDENCY_ISSUE, extension.getCodeValue() + " / " + relatedMember.getUri()));
             }
             chainedMembers.add(relatedMember);
             validateMemberHierarchyLevels(chainedMembers, relatedMember, level + 1, extension);
