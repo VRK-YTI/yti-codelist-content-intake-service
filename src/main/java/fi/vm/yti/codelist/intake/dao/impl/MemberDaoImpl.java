@@ -333,30 +333,31 @@ public class MemberDaoImpl implements MemberDao {
             if (uuid != null) {
                 linkMemberWithId(extension, member, uuid);
                 linkedMembers.add(member);
-            } else if (memberRelationUriIdentifier != null && memberRelationUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress())) {
+            } else if (memberRelationUriIdentifier != null && memberRelationUriIdentifier.startsWith(extension.getUri())) {
                 boolean found = false;
-                if (memberRelationUriIdentifier.startsWith(extension.getUri())) {
-                    for (final Member existingMember : existingMembers) {
-                        if (existingMember.getUri().equalsIgnoreCase(memberRelationUriIdentifier)) {
-                            checkDuplicateCode(existingMembers, memberRelationUriIdentifier);
-                            linkMembers(member, existingMember, memberRelationUriIdentifier);
-                            linkedMembers.add(member);
-                            found = true;
-                        }
-                    }
-                } else {
-                    for (final Member existingMember : existingMembers) {
-                        final Code existingMemberCode = existingMember.getCode();
-                        if (memberRelationUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && existingMemberCode != null && existingMemberCode.getUri().equalsIgnoreCase(memberRelationUriIdentifier)) {
-                            checkDuplicateCode(existingMembers, memberRelationUriIdentifier);
-                            linkMembers(member, existingMember, memberRelationUriIdentifier);
-                            linkedMembers.add(member);
-                            found = true;
-                        }
+                for (final Member existingMember : existingMembers) {
+                    if (existingMember.getUri().equalsIgnoreCase(memberRelationUriIdentifier)) {
+                        linkMembers(member, existingMember, memberRelationUriIdentifier);
+                        linkedMembers.add(member);
+                        found = true;
                     }
                 }
                 if (!found) {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND_WITH_IDENTIFIER, memberCodeCodeValueIdentifier));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_NOT_FOUND_WITH_URI, memberRelationUriIdentifier));
+                }
+            } else if (memberRelationUriIdentifier != null && memberRelationUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress())) {
+                boolean found = false;
+                for (final Member existingMember : existingMembers) {
+                    final Code existingMemberCode = existingMember.getCode();
+                    if (memberRelationUriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && existingMemberCode != null && existingMemberCode.getUri().equalsIgnoreCase(memberRelationUriIdentifier)) {
+                        checkDuplicateCode(existingMembers, memberRelationUriIdentifier);
+                        linkMembers(member, existingMember, memberRelationUriIdentifier);
+                        linkedMembers.add(member);
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND_WITH_IDENTIFIER, memberRelationUriIdentifier));
                 }
             } else if (memberCodeCodeValueIdentifier != null) {
                 boolean found = false;
@@ -404,7 +405,7 @@ public class MemberDaoImpl implements MemberDao {
         final Member relatedMember = member.getRelatedMember();
         if (relatedMember != null) {
             if (chainedMembers.contains(relatedMember)) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CYCLIC_DEPENDENCY_ISSUE, extension.getCodeValue() + " / " + relatedMember.getUri()));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CYCLIC_DEPENDENCY_ISSUE, relatedMember.getUri()));
             }
             chainedMembers.add(relatedMember);
             validateMemberHierarchyLevels(chainedMembers, relatedMember, level + 1, extension);
