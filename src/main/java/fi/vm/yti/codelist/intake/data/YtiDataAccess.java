@@ -58,11 +58,8 @@ public class YtiDataAccess {
     private static final String MIGRATION_URIS = "urimigration";
     private static final String MIGRATION_LANGUAGECODES = "languagecodemigration";
 
-    private static final String DEFAULT_YTIREGISTRY_FILENAME = "ytiregistries.csv";
     private static final String DEFAULT_CLASSIFICATIONREGISTRY_FILENAME = "classificationregistries.csv"; // classification = information domain
     private static final String DEFAULT_INTEROPERABILITYREGISTRY_FILENAME = "interoperabilityplatformregistries.csv";
-    private static final String DEFAULT_CODEREGISTRY_FILENAME = "coderegistries.csv";
-    private static final String DEFAULT_TESTREGISTRY_FILENAME = "testcoderegistries.csv";
 
     private static final String SERVICE_CLASSIFICATION_P9 = "P9"; // classification = information domain
 
@@ -134,11 +131,6 @@ public class YtiDataAccess {
         if (contentIntakeServiceProperties.getInitializeContent()) {
             initializeDefaultData();
             isInitializing = false;
-        }
-        if (contentIntakeServiceProperties.getInitializeTestContent()) {
-            loadRegistryContent(DEFAULT_YTIREGISTRY_FILENAME, "V2_YTI");
-            loadRegistryContent(DEFAULT_CODEREGISTRY_FILENAME, "V1_DEFAULT");
-            loadRegistryContent(DEFAULT_TESTREGISTRY_FILENAME, "V1_TEST");
         }
     }
 

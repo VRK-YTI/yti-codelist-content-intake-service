@@ -27,8 +27,6 @@ public class ContentIntakeServiceProperties {
 
     private boolean initializeContent;
 
-    private boolean initializeTestContent;
-
     public String getEnv() {
         return env;
     }
@@ -75,13 +73,5 @@ public class ContentIntakeServiceProperties {
 
     public void setInitializeContent(final boolean initializeContent) {
         this.initializeContent = initializeContent;
-    }
-
-    public boolean getInitializeTestContent() {
-        return initializeTestContent;
-    }
-
-    public void setInitializeTestContent(final boolean initializeTestContent) {
-        this.initializeTestContent = initializeTestContent;
     }
 }
