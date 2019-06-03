@@ -11,9 +11,6 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.intake.jpa.UpdateStatusRepository;
 import fi.vm.yti.codelist.intake.model.UpdateStatus;
 
-/**
- * Class that is responsible for update status handling and bookkeeping.
- */
 @Component
 public class UpdateManager {
 

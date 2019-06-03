@@ -16,11 +16,6 @@ public class VersionInformation {
     @Value(value = "${git.commit.id.abbrev:dev}")
     private String commitId;
 
-    /**
-     * Application version and build information construction.
-     *
-     * @return Returns the application version and build information.
-     */
     public String getVersion() {
         String version = APP_VERSION;
         if (version == null) {

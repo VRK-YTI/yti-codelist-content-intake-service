@@ -34,9 +34,6 @@ import fi.vm.yti.codelist.intake.groupmanagement.OrganizationUpdater;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 
-/**
- * Class that initializes and possibly refreshes domain data at application startup.
- */
 @Component
 public class ServiceInitializer implements ApplicationRunner {
 
@@ -93,9 +90,6 @@ public class ServiceInitializer implements ApplicationRunner {
         return initializing;
     }
 
-    /**
-     * Application logo printout to log.
-     */
     void printLogo() {
         LOG.info("");
         LOG.info("          __  .__          .__        __          __           ");
@@ -115,11 +109,6 @@ public class ServiceInitializer implements ApplicationRunner {
         LOG.info("");
     }
 
-    /**
-     * Updates the compile time generated swagger.json with the hostname of the current environment.
-     * <p>
-     * The file is stored in the {@value #LOCAL_SWAGGER_DATA_DIR} folder, where it will be served from the SwaggerResource.
-     */
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private void updateSwaggerHost() {
         final ObjectMapper mapper = new ObjectMapper();
