@@ -8,6 +8,8 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.EOFExceptionMapper;
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.UncaughtExceptionMapper;
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.YtiCodeListExceptionMapper;
@@ -68,6 +70,9 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.API_CONTEXT_PATH_
 public class JerseyConfig extends ResourceConfig {
 
     public JerseyConfig() {
+        final JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
+        CustomObjectMapper cm = new CustomObjectMapper();
+        provider.setMapper(cm);
 
         // Charset filter
         register(CharsetResponseFilter.class, Priorities.AUTHENTICATION);
