@@ -155,6 +155,10 @@ public class IndexingToolsImpl implements IndexingTools {
         "  },\n" +
         "  \"codeScheme\": {\n" +
         "    \"properties\": {\n" +
+        "      \"uri\": {\n" +
+        "        \"type\": \"text\",\n" +
+        "        \"analyzer\": \"text_analyzer\"\n" +
+        "      },\n" +
         "      \"codeValue\": {\n" +
         "        \"type\": \"text\",\n" +
         "        \"analyzer\": \"text_analyzer\"\n" +
