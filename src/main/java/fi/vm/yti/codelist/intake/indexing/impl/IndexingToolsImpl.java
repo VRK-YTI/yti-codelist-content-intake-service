@@ -159,6 +159,9 @@ public class IndexingToolsImpl implements IndexingTools {
         "        \"type\": \"text\",\n" +
         "        \"analyzer\": \"text_analyzer\"\n" +
         "      },\n" +
+        "      \"id\": {\n" +
+        "        \"type\": \"keyword\"\n" +
+        "      },\n" +
         "      \"codeValue\": {\n" +
         "        \"type\": \"text\",\n" +
         "        \"analyzer\": \"text_analyzer\"\n" +
