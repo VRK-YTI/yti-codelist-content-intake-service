@@ -499,7 +499,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
     private void mapChangeNote(final CodeSchemeDTO fromCodeScheme,
                                final CodeScheme codeScheme) {
-        final Map<String, String> changeNote = fromCodeScheme.getDescription();
+        final Map<String, String> changeNote = fromCodeScheme.getChangeNote();
         if (changeNote != null && !changeNote.isEmpty()) {
             for (final Map.Entry<String, String> entry : changeNote.entrySet()) {
                 final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
