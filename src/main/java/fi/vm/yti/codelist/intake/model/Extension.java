@@ -59,9 +59,12 @@ public class Extension extends AbstractHistoricalIdentifyableCodeWithStatus impl
     }
 
     public String getPrefLabel(final String language) {
-        String prefLabelValue = this.prefLabel.get(language);
-        if (prefLabelValue == null) {
-            prefLabelValue = this.prefLabel.get(LANGUAGE_CODE_EN);
+        String prefLabelValue = null;
+        if (this.prefLabel != null && !this.prefLabel.isEmpty()) {
+            prefLabelValue = this.prefLabel.get(language);
+            if (prefLabelValue == null) {
+                prefLabelValue = this.prefLabel.get(LANGUAGE_CODE_EN);
+            }
         }
         return prefLabelValue;
     }

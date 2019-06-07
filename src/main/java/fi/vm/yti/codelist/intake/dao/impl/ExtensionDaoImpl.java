@@ -247,13 +247,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             }
         }
         existingExtension.setCodeSchemes(codeSchemes);
-        for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
-            final String language = languageService.validateInputLanguageForCodeScheme(existingExtension.getParentCodeScheme(), entry.getKey());
-            final String value = entry.getValue();
-            if (!Objects.equals(existingExtension.getPrefLabel(language), value)) {
-                existingExtension.setPrefLabel(language, value);
-            }
-        }
+        mapPrefLabel(fromExtension, existingExtension);
         if (!Objects.equals(existingExtension.getStartDate(), fromExtension.getStartDate())) {
             existingExtension.setStartDate(fromExtension.getStartDate());
         }
@@ -283,10 +277,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_PROPERTYTYPE_NOT_FOUND));
         }
         extension.setPropertyType(propertyType);
-        for (final Map.Entry<String, String> entry : fromExtension.getPrefLabel().entrySet()) {
-            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
-            extension.setPrefLabel(language, entry.getValue());
-        }
+        mapPrefLabel(fromExtension, extension);
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         LinkedHashSet<CodeScheme> codeSchemesAlphabeticallyOrdered = new LinkedHashSet<>();
         if (fromExtension.getCodeSchemes() != null && !fromExtension.getCodeSchemes().isEmpty()) {
@@ -326,7 +317,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                     Member m = new Member();
                     m.setId(UUID.randomUUID());
                     m.setOrder(memberDao.getNextOrderInSequence(extension));
-                    m.setSequenceId(memberRepository.getMemberSequenceId("seq_for_ext_" + extension.getId().toString().replaceAll("-", "_" )));
+                    m.setSequenceId(memberRepository.getMemberSequenceId("seq_for_ext_" + extension.getId().toString().replaceAll("-", "_")));
                     m.setCode(code);
                     m.setRelatedMember(null);
                     m.setEndDate(code.getEndDate());
@@ -382,5 +373,21 @@ public class ExtensionDaoImpl implements ExtensionDao {
             codeScheme.setExtensions(extensions);
         }
         codeSchemeDao.save(codeScheme);
+    }
+
+    private void mapPrefLabel(final ExtensionDTO fromExtension,
+                              final Extension extension) {
+        final Map<String, String> prefLabel = fromExtension.getPrefLabel();
+        if (prefLabel != null && !prefLabel.isEmpty()) {
+            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
+                final String language = languageService.validateInputLanguageForCodeScheme(extension.getParentCodeScheme(), entry.getKey());
+                final String value = entry.getValue();
+                if (!Objects.equals(extension.getPrefLabel(language), value)) {
+                    extension.setPrefLabel(language, value);
+                }
+            }
+        } else {
+            extension.setPrefLabel(null);
+        }
     }
 }

@@ -139,9 +139,12 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     public String getPrefLabel(final String language) {
-        String prefLabelValue = this.prefLabel.get(language);
-        if (prefLabelValue == null) {
-            prefLabelValue = this.prefLabel.get(LANGUAGE_CODE_EN);
+        String prefLabelValue = null;
+        if (this.prefLabel != null && !this.prefLabel.isEmpty()) {
+            prefLabelValue = this.prefLabel.get(language);
+            if (prefLabelValue == null) {
+                prefLabelValue = this.prefLabel.get(LANGUAGE_CODE_EN);
+            }
         }
         return prefLabelValue;
     }
@@ -176,9 +179,12 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     public String getDefinition(final String language) {
-        String definitionValue = this.definition.get(language);
-        if (definitionValue == null) {
-            definitionValue = this.definition.get(LANGUAGE_CODE_EN);
+        String definitionValue = null;
+        if (this.definition != null && !this.definition.isEmpty()) {
+            definitionValue = this.definition.get(language);
+            if (definitionValue == null) {
+                definitionValue = this.definition.get(LANGUAGE_CODE_EN);
+            }
         }
         return definitionValue;
     }
@@ -213,9 +219,12 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     public String getDescription(final String language) {
-        String descriptionValue = this.description.get(language);
-        if (descriptionValue == null) {
-            descriptionValue = this.description.get(LANGUAGE_CODE_EN);
+        String descriptionValue = null;
+        if (this.description != null && !this.description.isEmpty()) {
+            descriptionValue = this.description.get(language);
+            if (descriptionValue == null) {
+                descriptionValue = this.description.get(LANGUAGE_CODE_EN);
+            }
         }
         return descriptionValue;
     }
@@ -250,9 +259,12 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     public String getChangeNote(final String language) {
-        String changeNoteValue = this.changeNote.get(language);
-        if (changeNoteValue == null) {
-            changeNoteValue = this.changeNote.get(LANGUAGE_CODE_EN);
+        String changeNoteValue = null;
+        if (this.changeNote != null && !this.changeNote.isEmpty()) {
+            changeNoteValue = this.changeNote.get(language);
+            if (changeNoteValue == null) {
+                changeNoteValue = this.changeNote.get(LANGUAGE_CODE_EN);
+            }
         }
         return changeNoteValue;
     }

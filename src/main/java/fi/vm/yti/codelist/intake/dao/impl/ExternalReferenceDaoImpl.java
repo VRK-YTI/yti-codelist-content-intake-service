@@ -23,7 +23,8 @@ import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_EXTERNALREFERENCE_PROPERTYTYPE_NOT_FOUND;
 
 @Component
 public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
@@ -193,6 +194,8 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
         if (!Objects.equals(existingExternalReference.getHref(), fromExternalReference.getHref())) {
             existingExternalReference.setHref(fromExternalReference.getHref());
         }
+        mapTitle(fromExternalReference, existingExternalReference);
+        mapDescription(fromExternalReference, existingExternalReference);
         for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
             final String language = languageService.validateInputLanguageForCodeScheme(parentCodeScheme, entry.getKey());
             final String value = entry.getValue();
@@ -234,17 +237,43 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
             propertyType = propertyTypeRepository.findByContextAndLocalName(CONTEXT_EXTERNALREFERENCE, EXTERNALREFERENCE_LINK_TYPE);
         }
         externalReference.setPropertyType(propertyType);
-        for (final Map.Entry<String, String> entry : fromExternalReference.getTitle().entrySet()) {
-            final String language = languageService.validateInputLanguageForCodeScheme(parentCodeScheme, entry.getKey());
-            externalReference.setTitle(language, entry.getValue());
-        }
-        for (final Map.Entry<String, String> entry : fromExternalReference.getDescription().entrySet()) {
-            final String language = languageService.validateInputLanguageForCodeScheme(parentCodeScheme, entry.getKey());
-            externalReference.setDescription(language, entry.getValue());
-        }
+        mapTitle(fromExternalReference, externalReference);
+        mapDescription(fromExternalReference, externalReference);
         final Date timeStamp = new Date(System.currentTimeMillis());
         externalReference.setCreated(timeStamp);
         externalReference.setModified(timeStamp);
         return externalReference;
+    }
+
+    private void mapTitle(final ExternalReferenceDTO fromExternalReference,
+                          final ExternalReference externalReference) {
+        final Map<String, String> title = fromExternalReference.getTitle();
+        if (title != null && !title.isEmpty()) {
+            for (final Map.Entry<String, String> entry : title.entrySet()) {
+                final String language = languageService.validateInputLanguageForCodeScheme(externalReference.getParentCodeScheme(), entry.getKey());
+                final String value = entry.getValue();
+                if (!Objects.equals(externalReference.getTitle(language), value)) {
+                    externalReference.setTitle(language, value);
+                }
+            }
+        } else {
+            externalReference.setTitle(null);
+        }
+    }
+
+    private void mapDescription(final ExternalReferenceDTO fromExternalReference,
+                                final ExternalReference externalReference) {
+        final Map<String, String> description = fromExternalReference.getDescription();
+        if (description != null && !description.isEmpty()) {
+            for (final Map.Entry<String, String> entry : description.entrySet()) {
+                final String language = languageService.validateInputLanguageForCodeScheme(externalReference.getParentCodeScheme(), entry.getKey());
+                final String value = entry.getValue();
+                if (!Objects.equals(externalReference.getDescription(language), value)) {
+                    externalReference.setDescription(language, value);
+                }
+            }
+        } else {
+            externalReference.setDescription(null);
+        }
     }
 }

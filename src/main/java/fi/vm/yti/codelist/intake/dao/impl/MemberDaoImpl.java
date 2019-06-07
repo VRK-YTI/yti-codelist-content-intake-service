@@ -533,14 +533,7 @@ public class MemberDaoImpl implements MemberDao {
                                 final Member existingMember,
                                 final MemberDTO fromMember,
                                 final Set<Member> affectedMembers) {
-
-        for (final Map.Entry<String, String> entry : fromMember.getPrefLabel().entrySet()) {
-            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
-            final String value = entry.getValue();
-            if (!Objects.equals(existingMember.getPrefLabel(language), value)) {
-                existingMember.setPrefLabel(language, value);
-            }
-        }
+        mapPrefLabel(fromMember, existingMember, codeScheme);
         if (fromMember.getOrder() != null && !Objects.equals(existingMember.getOrder(), fromMember.getOrder())) {
             checkOrderAndShiftExistingMemberOrderIfInUse(existingMembers, fromMember.getOrder(), affectedMembers);
             existingMember.setOrder(fromMember.getOrder());
@@ -582,10 +575,7 @@ public class MemberDaoImpl implements MemberDao {
             final UUID uuid = UUID.randomUUID();
             member.setId(uuid);
         }
-        for (final Map.Entry<String, String> entry : fromMember.getPrefLabel().entrySet()) {
-            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
-            member.setPrefLabel(language, entry.getValue());
-        }
+        mapPrefLabel(fromMember, member, codeScheme);
         if (fromMember.getOrder() != null) {
             checkOrderAndShiftExistingMemberOrderIfInUse(existingMembers, fromMember.getOrder(), affectedMembers);
             member.setOrder(fromMember.getOrder());
@@ -794,5 +784,22 @@ public class MemberDaoImpl implements MemberDao {
     @Transactional
     public int getMemberCount() {
         return memberRepository.getMemberCount();
+    }
+
+    private void mapPrefLabel(final MemberDTO fromMember,
+                              final Member member,
+                              final CodeScheme codeScheme) {
+        final Map<String, String> prefLabel = fromMember.getPrefLabel();
+        if (prefLabel != null && !prefLabel.isEmpty()) {
+            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
+                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
+                final String value = entry.getValue();
+                if (!Objects.equals(member.getPrefLabel(language), value)) {
+                    member.setPrefLabel(language, value);
+                }
+            }
+        } else {
+            member.setPrefLabel(null);
+        }
     }
 }

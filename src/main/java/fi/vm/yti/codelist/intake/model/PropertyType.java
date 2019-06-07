@@ -76,9 +76,12 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
     }
 
     public String getPrefLabel(final String language) {
-        String prefLabelValue = this.prefLabel.get(language);
-        if (prefLabelValue == null) {
-            prefLabelValue = this.prefLabel.get(LANGUAGE_CODE_EN);
+        String prefLabelValue = null;
+        if (this.prefLabel != null && !this.prefLabel.isEmpty()) {
+            prefLabelValue = this.prefLabel.get(language);
+            if (prefLabelValue == null) {
+                prefLabelValue = this.prefLabel.get(LANGUAGE_CODE_EN);
+            }
         }
         return prefLabelValue;
     }
@@ -113,9 +116,12 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
     }
 
     public String getDefinition(final String language) {
-        String definitionValue = this.definition.get(language);
-        if (definitionValue == null) {
-            definitionValue = this.definition.get(LANGUAGE_CODE_EN);
+        String definitionValue = null;
+        if (this.definition != null && !this.definition.isEmpty()) {
+            definitionValue = this.definition.get(language);
+            if (definitionValue == null) {
+                definitionValue = this.definition.get(LANGUAGE_CODE_EN);
+            }
         }
         return definitionValue;
     }

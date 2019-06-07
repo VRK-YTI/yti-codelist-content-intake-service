@@ -61,11 +61,14 @@ public class ExternalReference extends AbstractIdentifyableTimestampedCode imple
     }
 
     public String getTitle(final String language) {
-        String value = this.title.get(language);
-        if (value == null) {
-            value = this.title.get(LANGUAGE_CODE_EN);
+        String titleValue = null;
+        if (this.title != null && !this.title.isEmpty()) {
+            titleValue = this.title.get(language);
+            if (titleValue == null) {
+                titleValue = this.title.get(LANGUAGE_CODE_EN);
+            }
         }
-        return value;
+        return titleValue;
     }
 
     public void setTitle(final String language,
@@ -98,11 +101,14 @@ public class ExternalReference extends AbstractIdentifyableTimestampedCode imple
     }
 
     public String getDescription(final String language) {
-        String value = this.description.get(language);
-        if (value == null) {
-            value = this.description.get(LANGUAGE_CODE_EN);
+        String descriptionValue = null;
+        if (this.description != null && !this.description.isEmpty()) {
+            descriptionValue = this.description.get(language);
+            if (descriptionValue == null) {
+                descriptionValue = this.description.get(LANGUAGE_CODE_EN);
+            }
         }
-        return value;
+        return descriptionValue;
     }
 
     public void setDescription(final String language,

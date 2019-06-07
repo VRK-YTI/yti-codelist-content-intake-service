@@ -93,13 +93,7 @@ public class ValueTypeDaoImpl implements ValueTypeDao {
             existingValueType.setRegexp(fromValueType.getRegexp());
         }
         existingValueType.setRequired(fromValueType.getRequired());
-        for (final Map.Entry<String, String> entry : fromValueType.getPrefLabel().entrySet()) {
-            final String language = entry.getKey();
-            final String value = entry.getValue();
-            if (!Objects.equals(existingValueType.getPrefLabel(language), value)) {
-                existingValueType.setPrefLabel(language, value);
-            }
-        }
+        mapPrefLabel(fromValueType, existingValueType);
         return existingValueType;
     }
 
@@ -116,9 +110,23 @@ public class ValueTypeDaoImpl implements ValueTypeDao {
         valueType.setLocalName(fromValueType.getLocalName());
         valueType.setRegexp(fromValueType.getRegexp());
         valueType.setRequired(fromValueType.getRequired());
-        for (final Map.Entry<String, String> entry : fromValueType.getPrefLabel().entrySet()) {
-            valueType.setPrefLabel(entry.getKey(), entry.getValue());
-        }
+        mapPrefLabel(fromValueType, valueType);
         return valueType;
+    }
+
+    private void mapPrefLabel(final ValueTypeDTO fromValueType,
+                              final ValueType valueType) {
+        final Map<String, String> prefLabel = fromValueType.getPrefLabel();
+        if (prefLabel != null && !prefLabel.isEmpty()) {
+            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
+                final String language = entry.getKey();
+                final String value = entry.getValue();
+                if (!Objects.equals(valueType.getPrefLabel(language), value)) {
+                    valueType.setPrefLabel(language, value);
+                }
+            }
+        } else {
+            valueType.setPrefLabel(null);
+        }
     }
 }

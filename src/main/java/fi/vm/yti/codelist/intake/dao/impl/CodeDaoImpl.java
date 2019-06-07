@@ -50,6 +50,7 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateC
 public class CodeDaoImpl implements CodeDao {
 
     private static final int MAX_LEVEL = 10;
+    private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParserImpl.class);
 
     private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
@@ -61,8 +62,6 @@ public class CodeDaoImpl implements CodeDao {
     private final ExtensionDao extensionDao;
     private final MemberDao memberDao;
     private final CodeSchemeDao codeSchemeDao;
-
-    private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParserImpl.class);
 
     public CodeDaoImpl(final EntityChangeLogger entityChangeLogger,
                        final ApiUtils apiUtils,
@@ -366,27 +365,9 @@ public class CodeDaoImpl implements CodeDao {
             }
         }
         existingCode.setBroaderCode(resolveBroaderCode(fromCode, codeScheme));
-        for (final Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
-            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
-            final String value = entry.getValue();
-            if (!Objects.equals(existingCode.getPrefLabel(language), value)) {
-                existingCode.setPrefLabel(language, value);
-            }
-        }
-        for (final Map.Entry<String, String> entry : fromCode.getDescription().entrySet()) {
-            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
-            final String value = entry.getValue();
-            if (!Objects.equals(existingCode.getDescription(language), value)) {
-                existingCode.setDescription(language, value);
-            }
-        }
-        for (final Map.Entry<String, String> entry : fromCode.getDefinition().entrySet()) {
-            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
-            final String value = entry.getValue();
-            if (!Objects.equals(existingCode.getDefinition(language), value)) {
-                existingCode.setDefinition(language, value);
-            }
-        }
+        mapPrefLabel(fromCode, existingCode, codeScheme);
+        mapDescription(fromCode, existingCode, codeScheme);
+        mapDefinition(fromCode, existingCode, codeScheme);
         if (fromCode.getSubCodeScheme() != null) {
             final CodeScheme subCodeScheme = resolveSubCodeScheme(codeScheme, fromCode);
             if (subCodeScheme != null) {
@@ -447,18 +428,9 @@ public class CodeDaoImpl implements CodeDao {
             code.setOrder(order);
             nextOrder.setValue(order + 1);
         }
-        for (Map.Entry<String, String> entry : fromCode.getPrefLabel().entrySet()) {
-            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
-            code.setPrefLabel(language, entry.getValue());
-        }
-        for (Map.Entry<String, String> entry : fromCode.getDescription().entrySet()) {
-            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
-            code.setDescription(language, entry.getValue());
-        }
-        for (Map.Entry<String, String> entry : fromCode.getDefinition().entrySet()) {
-            final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
-            code.setDefinition(language, entry.getValue());
-        }
+        mapPrefLabel(fromCode, code, codeScheme);
+        mapDescription(fromCode, code, codeScheme);
+        mapDefinition(fromCode, code, codeScheme);
         if (fromCode.getSubCodeScheme() != null) {
             final CodeScheme subCodeScheme = resolveSubCodeScheme(codeScheme, fromCode);
             if (subCodeScheme != null) {
@@ -493,7 +465,7 @@ public class CodeDaoImpl implements CodeDao {
         CodeScheme subCodeScheme = null;
         if (fromCode.getSubCodeScheme().getId() != null) {
             subCodeScheme = codeSchemeDao.findById(fromCode.getSubCodeScheme().getId());
-        } else if (fromCode.getSubCodeScheme().getUri() != null){
+        } else if (fromCode.getSubCodeScheme().getUri() != null) {
             subCodeScheme = codeSchemeDao.findByUri(fromCode.getSubCodeScheme().getUri());
         }
         if (subCodeScheme != null && codeScheme.getId().equals(subCodeScheme.getId())) {
@@ -641,6 +613,57 @@ public class CodeDaoImpl implements CodeDao {
             }
             chainedCodes.add(broaderCode);
             checkCodeHierarchyLevels(chainedCodes, broaderCode, level + 1);
+        }
+    }
+
+    private void mapPrefLabel(final CodeDTO fromCode,
+                              final Code code,
+                              final CodeScheme codeScheme) {
+        final Map<String, String> prefLabel = fromCode.getPrefLabel();
+        if (prefLabel != null && !prefLabel.isEmpty()) {
+            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
+                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
+                final String value = entry.getValue();
+                if (!Objects.equals(code.getPrefLabel(language), value)) {
+                    code.setPrefLabel(language, value);
+                }
+            }
+        } else {
+            code.setPrefLabel(null);
+        }
+    }
+
+    private void mapDescription(final CodeDTO fromCode,
+                                final Code code,
+                                final CodeScheme codeScheme) {
+        final Map<String, String> description = fromCode.getDescription();
+        if (description != null && !description.isEmpty()) {
+            for (final Map.Entry<String, String> entry : description.entrySet()) {
+                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
+                final String value = entry.getValue();
+                if (!Objects.equals(code.getDescription(language), value)) {
+                    code.setDescription(language, value);
+                }
+            }
+        } else {
+            code.setPrefLabel(null);
+        }
+    }
+
+    private void mapDefinition(final CodeDTO fromCode,
+                               final Code code,
+                               final CodeScheme codeScheme) {
+        final Map<String, String> definition = fromCode.getDefinition();
+        if (definition != null && !definition.isEmpty()) {
+            for (final Map.Entry<String, String> entry : definition.entrySet()) {
+                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
+                final String value = entry.getValue();
+                if (!Objects.equals(code.getDefinition(language), value)) {
+                    code.setDefinition(language, value);
+                }
+            }
+        } else {
+            code.setPrefLabel(null);
         }
     }
 }
