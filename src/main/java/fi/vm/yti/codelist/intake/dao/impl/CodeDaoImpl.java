@@ -646,7 +646,7 @@ public class CodeDaoImpl implements CodeDao {
                 }
             }
         } else {
-            code.setPrefLabel(null);
+            code.setDescription(null);
         }
     }
 
@@ -663,7 +663,7 @@ public class CodeDaoImpl implements CodeDao {
                 }
             }
         } else {
-            code.setPrefLabel(null);
+            code.setDefinition(null);
         }
     }
 }
