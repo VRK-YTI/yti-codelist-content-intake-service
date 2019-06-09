@@ -277,7 +277,6 @@ public class ExtensionDaoImpl implements ExtensionDao {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_PROPERTYTYPE_NOT_FOUND));
         }
         extension.setPropertyType(propertyType);
-        mapPrefLabel(fromExtension, extension);
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         LinkedHashSet<CodeScheme> codeSchemesAlphabeticallyOrdered = new LinkedHashSet<>();
         if (fromExtension.getCodeSchemes() != null && !fromExtension.getCodeSchemes().isEmpty()) {
@@ -297,6 +296,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         extension.setParentCodeScheme(codeScheme);
         extension.setUri(apiUtils.createExtensionUri(extension));
         addExtensionToParentCodeScheme(codeScheme, extension);
+        mapPrefLabel(fromExtension, extension);
         final Date timeStamp = new Date(System.currentTimeMillis());
         extension.setCreated(timeStamp);
         extension.setModified(timeStamp);
