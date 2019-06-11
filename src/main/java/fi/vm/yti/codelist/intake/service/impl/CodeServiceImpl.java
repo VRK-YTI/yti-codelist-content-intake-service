@@ -201,6 +201,34 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         return dtoMapperService.mapDeepCodeDtos(codes);
     }
 
+    @Transactional
+    public Set<CodeDTO> massChangeCodeStatuses(final String codeRegistryCodeValue,
+                                               final String codeSchemeCodeValue,
+                                               final String initialCodeStatus,
+                                               final String endCodeStatus) {
+        // TODO: Implement business logic that checks that initial status and end status combination is allowed before going forward.
+        final Set<Code> codes;
+        final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
+        if (codeRegistry != null) {
+            final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryAndCodeValue(codeRegistry, codeSchemeCodeValue);
+            if (codeScheme != null) {
+                if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
+                    throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+                }
+                codes = codeDao.findByCodeSchemeAndStatus(codeScheme, initialCodeStatus);
+                codes.forEach(code -> {
+                   code.setStatus(endCodeStatus);
+                });
+                codeDao.save(codes);
+            } else {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
+            }
+        } else {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
+        }
+        return dtoMapperService.mapDeepCodeDtos(codes);
+    }
+
     private LinkedHashSet<CodeDTO> checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(final CodeScheme previousCodeScheme,
                                                                        final Set<CodeDTO> codeDtos) {
         return codeSchemeService.getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(findByCodeSchemeId(previousCodeScheme.getId()), codeDtos);

@@ -269,6 +269,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
     })
     public Response updateCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
+                                     @ApiParam(value = "Control query parameter that changes code status according to codeScheme status change.") @QueryParam("changeCodeStatuses") final String changeCodeStatuses,
                                      @ApiParam(value = "JSON playload for CodeScheme data.") final String jsonPayload) {
         final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
 
@@ -377,6 +378,13 @@ public class CodeRegistryResource implements AbstractBaseResource {
                     codeSchemeService.updateCodeSchemeFromDto(variantCodeScheme.getCodeRegistry().getCodeValue(), variantCodeScheme);
                     indexing.updateCodeScheme(variantCodeScheme);
                 }
+            }
+
+            if (changeCodeStatuses != null) {
+                final CodeSchemeDTO originalCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+                final String initialCodeStatus = originalCodeScheme.getStatus();
+                final String endCodeStatus = codeScheme.getStatus();
+                codeService.massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, initialCodeStatus, endCodeStatus);
             }
 
             indexing.updateCodeScheme(codeScheme);
@@ -756,8 +764,12 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                              @ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                              @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                              @ApiParam(value = "JSON playload for Code data.", required = true) final String jsonPayload,
+                                             @ApiParam(value = "Code status before change.") @QueryParam("initialCodeStatus") final String initialCodeStatus,
+                                             @ApiParam(value = "Code status after change.") @QueryParam("endCodeStatus") final String endCodeStatus,
                                              @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
-
+        if (initialCodeStatus != null && !initialCodeStatus.isEmpty() && endCodeStatus != null && !endCodeStatus.isEmpty()) {
+            return massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, parseStatusFromString(initialCodeStatus), parseStatusFromString(endCodeStatus), pretty);
+        }
         return parseAndPersistCodesFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, null, jsonPayload, pretty);
     }
 
@@ -1147,6 +1159,15 @@ public class CodeRegistryResource implements AbstractBaseResource {
         }
     }
 
+    private Response massChangeCodeStatuses(final String codeRegistryCodeValue,
+                                            final String codeSchemeCodeValue,
+                                            final String initialCodeStatus,
+                                            final String endCodeStatus,
+                                            final String pretty) {
+        final Set<CodeDTO> codes = codeService.massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, initialCodeStatus, endCodeStatus);
+        return constructCodeResponse(codeRegistryCodeValue, codeSchemeCodeValue, codes, pretty);
+    }
+
     private Response parseAndPersistCodesFromSource(final String codeRegistryCodeValue,
                                                     final String codeSchemeCodeValue,
                                                     final String format,
@@ -1154,9 +1175,16 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                     final String jsonPayload,
                                                     final String pretty) {
         final Set<CodeDTO> codes = codeService.parseAndPersistCodesFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload);
+        return constructCodeResponse(codeRegistryCodeValue, codeSchemeCodeValue, codes, pretty);
+    }
+
+    private Response constructCodeResponse(final String codeRegistryCodeValue,
+                                           final String codeSchemeCodeValue,
+                                           final Set<CodeDTO> codes,
+                                           final String pretty) {
+        final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         indexing.updateCodes(codes);
         codes.forEach(code -> indexing.updateMembers(memberService.findByCodeId(code.getId())));
-        final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
         indexing.updateCodeScheme(codeScheme);
         indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
@@ -1168,5 +1196,14 @@ public class CodeRegistryResource implements AbstractBaseResource {
         meta.setCode(200);
         responseWrapper.setResults(codes);
         return Response.ok(responseWrapper).build();
+
+    }
+
+    private String parseStatusFromString(final String status) {
+        try {
+            return Status.valueOf(status).toString();
+        } catch (final Exception e) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID));
+        }
     }
 }

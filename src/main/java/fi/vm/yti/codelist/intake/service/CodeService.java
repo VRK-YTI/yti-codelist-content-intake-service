@@ -39,6 +39,11 @@ public interface CodeService {
                                                     final InputStream inputStream,
                                                     final String jsonPayload);
 
+    Set<CodeDTO> massChangeCodeStatuses(final String codeRegistryCodeValue,
+                                        final String codeSchemeCodeValue,
+                                        final String initialCodeStatus,
+                                        final String endCodeStatus);
+
     Set<CodeDTO> parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
                                              final String codeSchemeCodeValue,
                                              final String codeCodeValue,

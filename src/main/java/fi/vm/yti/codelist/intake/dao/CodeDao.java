@@ -39,6 +39,9 @@ public interface CodeDao {
 
     Code findById(final UUID id);
 
+    Set<Code> findByCodeSchemeAndStatus(final CodeScheme codeScheme,
+                                        final String status);
+
     Set<Code> findByCodeSchemeId(final UUID codeSchemeId);
 
     Set<Code> findByCodeSchemeIdAndBroaderCodeIdIsNull(final UUID codeSchemeId);

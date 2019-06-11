@@ -24,6 +24,9 @@ public interface CodeRepository extends PagingAndSortingRepository<Code, String>
     Code findByCodeSchemeAndOrder(final CodeScheme codeScheme,
                                   final Integer order);
 
+    Set<Code> findByCodeSchemeAndStatus(final CodeScheme subCodeScheme,
+                                        final String status);
+
     Code findByCodeSchemeAndCodeValueIgnoreCase(final CodeScheme codeScheme,
                                                 final String codeValue);
 

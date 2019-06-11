@@ -168,6 +168,13 @@ public class CodeDaoImpl implements CodeDao {
         return codeRepository.findById(id);
     }
 
+
+    @Transactional
+    public Set<Code> findByCodeSchemeAndStatus(final CodeScheme codeScheme,
+                                               final String status) {
+        return codeRepository.findByCodeSchemeAndStatus(codeScheme, status);
+    }
+
     @Transactional
     public Set<Code> findByCodeSchemeId(final UUID codeSchemeId) {
         return codeRepository.findByCodeSchemeId(codeSchemeId);
