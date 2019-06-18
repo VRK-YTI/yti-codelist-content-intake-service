@@ -17,6 +17,7 @@ import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
+import fi.vm.yti.codelist.intake.configuration.CommentsProperties;
 import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.DataModelProperties;
 import fi.vm.yti.codelist.intake.configuration.FrontendProperties;
@@ -44,6 +45,7 @@ public class ApiUtils {
     private final GroupManagementProperties groupManagementProperties;
     private final TerminologyProperties terminologyProperties;
     private final DataModelProperties dataModelProperties;
+    private final CommentsProperties commentsProperties;
     private final FrontendProperties frontendProperties;
 
     @Inject
@@ -53,6 +55,7 @@ public class ApiUtils {
                     final TerminologyProperties terminologyProperties,
                     final DataModelProperties dataModelProperties,
                     final UriSuomiProperties uriSuomiProperties,
+                    final CommentsProperties commentsProperties,
                     final FrontendProperties frontendProperties) {
         this.publicApiServiceProperties = publicApiServiceProperties;
         this.uriSuomiProperties = uriSuomiProperties;
@@ -60,6 +63,7 @@ public class ApiUtils {
         this.groupManagementProperties = groupManagementProperties;
         this.terminologyProperties = terminologyProperties;
         this.dataModelProperties = dataModelProperties;
+        this.commentsProperties = commentsProperties;
         this.frontendProperties = frontendProperties;
     }
 
@@ -208,6 +212,10 @@ public class ApiUtils {
 
     public String getTerminologyPublicUrl() {
         return terminologyProperties.getPublicUrl();
+    }
+
+    public String getCommentsPublicUrl() {
+        return commentsProperties.getPublicUrl();
     }
 
     public String getDataModelPublicUrl() {

@@ -53,6 +53,11 @@ public class ConfigurationResource implements AbstractBaseResource {
         terminologyConfig.put("url", terminologyPublicUrl);
         configJson.set("terminologyConfig", terminologyConfig);
 
+        final String commentsPublicUrl = apiUtils.getCommentsPublicUrl();
+        final ObjectNode commentsConfig = mapper.createObjectNode();
+        commentsConfig.put("url", commentsPublicUrl);
+        configJson.set("commentsConfig", commentsConfig);
+
         configJson.put("env", apiUtils.getEnv());
         configJson.put("defaultStatus", apiUtils.getDefaultStatus());
         configJson.put("codeSchemeSortMode", apiUtils.getCodeSchemeSortMode());
