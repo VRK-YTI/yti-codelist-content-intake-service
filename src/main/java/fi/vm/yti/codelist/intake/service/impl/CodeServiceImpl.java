@@ -209,6 +209,10 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         return dtoMapperService.mapDeepCodeDtos(codes);
     }
 
+    /**
+     * In some cases the validation has to be done already at the resource/controller level of the API, and in this case, skipValidation is true
+     * which means we do not redundantly validate again here.
+     */
     @Transactional
     public Set<CodeDTO> massChangeCodeStatuses(final String codeRegistryCodeValue,
                                                final String codeSchemeCodeValue,
