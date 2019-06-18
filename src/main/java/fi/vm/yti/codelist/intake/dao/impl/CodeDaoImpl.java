@@ -43,6 +43,7 @@ import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
+import fi.vm.yti.codelist.intake.util.ValidationUtils;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateCodeCodeValue;
 
@@ -306,11 +307,22 @@ public class CodeDaoImpl implements CodeDao {
         }
         final Code code;
         if (existingCode != null) {
+            if (codeStatusHasChanged(existingCode, codeDto)) {
+                validateCodeStatusChange(existingCode, codeDto);
+            }
             code = updateCode(codeScheme, existingCode, codeDto, codes, nextOrder);
         } else {
             code = createCode(codeScheme, codeDto, codes, nextOrder);
         }
         return code;
+    }
+
+    private void validateCodeStatusChange(Code existingCode, CodeDTO codeWithChanges) {
+        ValidationUtils.validateCodeStatusTransitions(existingCode.getStatus(), codeWithChanges.getStatus());
+    }
+
+    private boolean codeStatusHasChanged(Code existingCode, CodeDTO codeWithChanges) {
+        return !existingCode.getStatus().equals(codeWithChanges.getStatus());
     }
 
     private void validateCodeScheme(final Code code,

@@ -58,7 +58,4 @@ public interface CodeService {
     CodeDTO findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                                           final String codeSchemeCodeValue,
                                                                           final String codeCodeValue);
-
-    void validateCodeStatusTransitions(final String initialCodeStatus,
-                                              final String endCodeStatus);
 }

@@ -47,6 +47,7 @@ import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CloningService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
+import fi.vm.yti.codelist.intake.util.ValidationUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
@@ -215,7 +216,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                                                final String endCodeStatus,
                                                final boolean skipValidation) {
         if (!skipValidation) {
-            validateCodeStatusTransitions(initialCodeStatus, endCodeStatus);
+            ValidationUtils.validateCodeStatusTransitions(initialCodeStatus, endCodeStatus);
         }
 
         final Set<Code> codes;
@@ -238,26 +239,6 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
         }
         return dtoMapperService.mapDeepCodeDtos(codes);
-    }
-
-    public void validateCodeStatusTransitions(final String initialCodeStatus,
-                                              final String endCodeStatus) {
-        final Map<String, List<String>> allowedTransitions = new HashMap<>();
-        allowedTransitions.put(Status.INCOMPLETE.toString(), new ArrayList<>(Arrays.asList(Status.DRAFT.toString())));
-        allowedTransitions.put(Status.DRAFT.toString(), new ArrayList<>(Arrays.asList(Status.INCOMPLETE.toString(), Status.VALID.toString())));
-        allowedTransitions.put(Status.VALID.toString(), new ArrayList<>(Arrays.asList(Status.RETIRED.toString(), Status.INVALID.toString())));
-        allowedTransitions.put(Status.RETIRED.toString(), new ArrayList<>(Arrays.asList(Status.VALID.toString(), Status.INVALID.toString())));
-        allowedTransitions.put(Status.INVALID.toString(), new ArrayList<>(Arrays.asList(Status.VALID.toString(), Status.RETIRED.toString())));
-
-        if (!allowedTransitions.keySet().contains(initialCodeStatus)) {
-            throw new CodeStatusTransitionWrongInitialStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_CODE_STATUS_TRANSITION_WRONG_INITIAL_STATUS, initialCodeStatus));
-        }
-
-        if (!allowedTransitions.get(initialCodeStatus).contains(endCodeStatus)) {
-            throw new CodeStatusTransitionWrongEndStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                ERR_MSG_USER_CODE_STATUS_TRANSITION_WRONG_END_STATUS, endCodeStatus));
-        }
     }
 
     private LinkedHashSet<CodeDTO> checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(final CodeScheme previousCodeScheme,

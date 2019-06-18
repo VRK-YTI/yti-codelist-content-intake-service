@@ -54,6 +54,7 @@ import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExtensionService;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import fi.vm.yti.codelist.intake.service.MemberService;
+import fi.vm.yti.codelist.intake.util.ValidationUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -280,7 +281,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             final CodeSchemeDTO newCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
             initialCodeStatus = originalCodeScheme.getStatus();
             endCodeStatus = newCodeScheme.getStatus();
-            codeService.validateCodeStatusTransitions(initialCodeStatus, endCodeStatus);
+            ValidationUtils.validateCodeStatusTransitions(initialCodeStatus, endCodeStatus);
         }
 
         final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
