@@ -42,7 +42,8 @@ public interface CodeService {
     Set<CodeDTO> massChangeCodeStatuses(final String codeRegistryCodeValue,
                                         final String codeSchemeCodeValue,
                                         final String initialCodeStatus,
-                                        final String endCodeStatus);
+                                        final String endCodeStatus,
+                                        final boolean skipValidation);
 
     Set<CodeDTO> parseAndPersistCodeFromJson(final String codeRegistryCodeValue,
                                              final String codeSchemeCodeValue,
@@ -57,4 +58,7 @@ public interface CodeService {
     CodeDTO findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                                           final String codeSchemeCodeValue,
                                                                           final String codeCodeValue);
+
+    void validateCodeStatusTransitions(final String initialCodeStatus,
+                                              final String endCodeStatus);
 }

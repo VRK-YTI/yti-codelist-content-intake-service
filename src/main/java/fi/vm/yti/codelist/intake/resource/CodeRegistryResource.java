@@ -271,6 +271,18 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                      @ApiParam(value = "Control query parameter that changes code status according to codeScheme status change.") @QueryParam("changeCodeStatuses") final String changeCodeStatuses,
                                      @ApiParam(value = "JSON playload for CodeScheme data.") final String jsonPayload) {
+
+        String initialCodeStatus = null;
+        String endCodeStatus = null;
+
+        if (changeCodeStatuses != null && changeCodeStatuses.equals("true")) {
+            final CodeSchemeDTO originalCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+            final CodeSchemeDTO newCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
+            initialCodeStatus = originalCodeScheme.getStatus();
+            endCodeStatus = newCodeScheme.getStatus();
+            codeService.validateCodeStatusTransitions(initialCodeStatus, endCodeStatus);
+        }
+
         final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
 
         final Set<CodeSchemeDTO> versionsToReIndex = new LinkedHashSet<>();
@@ -380,11 +392,8 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 }
             }
 
-            if (changeCodeStatuses != null) {
-                final CodeSchemeDTO originalCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-                final String initialCodeStatus = originalCodeScheme.getStatus();
-                final String endCodeStatus = codeScheme.getStatus();
-                codeService.massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, initialCodeStatus, endCodeStatus);
+            if (changeCodeStatuses != null && changeCodeStatuses.equals("true")) {
+                codeService.massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, initialCodeStatus, endCodeStatus, true);
             }
 
             indexing.updateCodeScheme(codeScheme);
@@ -1164,7 +1173,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                             final String initialCodeStatus,
                                             final String endCodeStatus,
                                             final String pretty) {
-        final Set<CodeDTO> codes = codeService.massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, initialCodeStatus, endCodeStatus);
+        final Set<CodeDTO> codes = codeService.massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, initialCodeStatus, endCodeStatus, false);
         return constructCodeResponse(codeRegistryCodeValue, codeSchemeCodeValue, codes, pretty);
     }
 

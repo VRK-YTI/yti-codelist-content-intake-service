@@ -1,9 +1,13 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -24,10 +28,13 @@ import org.springframework.stereotype.Service;
 import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
+import fi.vm.yti.codelist.intake.exception.CodeStatusTransitionWrongEndStatusException;
+import fi.vm.yti.codelist.intake.exception.CodeStatusTransitionWrongInitialStatusException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.UndeletableCodeDueToCumulativeCodeSchemeException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -205,8 +212,12 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
     public Set<CodeDTO> massChangeCodeStatuses(final String codeRegistryCodeValue,
                                                final String codeSchemeCodeValue,
                                                final String initialCodeStatus,
-                                               final String endCodeStatus) {
-        // TODO: Implement business logic that checks that initial status and end status combination is allowed before going forward.
+                                               final String endCodeStatus,
+                                               final boolean skipValidation) {
+        if (!skipValidation) {
+            validateCodeStatusTransitions(initialCodeStatus, endCodeStatus);
+        }
+
         final Set<Code> codes;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
@@ -217,7 +228,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                 }
                 codes = codeDao.findByCodeSchemeAndStatus(codeScheme, initialCodeStatus);
                 codes.forEach(code -> {
-                   code.setStatus(endCodeStatus);
+                    code.setStatus(endCodeStatus);
                 });
                 codeDao.save(codes);
             } else {
@@ -229,8 +240,28 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         return dtoMapperService.mapDeepCodeDtos(codes);
     }
 
+    public void validateCodeStatusTransitions(final String initialCodeStatus,
+                                              final String endCodeStatus) {
+        final Map<String, List<String>> allowedTransitions = new HashMap<>();
+        allowedTransitions.put(Status.INCOMPLETE.toString(), new ArrayList<>(Arrays.asList(Status.DRAFT.toString())));
+        allowedTransitions.put(Status.DRAFT.toString(), new ArrayList<>(Arrays.asList(Status.INCOMPLETE.toString(), Status.VALID.toString())));
+        allowedTransitions.put(Status.VALID.toString(), new ArrayList<>(Arrays.asList(Status.RETIRED.toString(), Status.INVALID.toString())));
+        allowedTransitions.put(Status.RETIRED.toString(), new ArrayList<>(Arrays.asList(Status.VALID.toString(), Status.INVALID.toString())));
+        allowedTransitions.put(Status.INVALID.toString(), new ArrayList<>(Arrays.asList(Status.VALID.toString(), Status.RETIRED.toString())));
+
+        if (!allowedTransitions.keySet().contains(initialCodeStatus)) {
+            throw new CodeStatusTransitionWrongInitialStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_CODE_STATUS_TRANSITION_WRONG_INITIAL_STATUS, initialCodeStatus));
+        }
+
+        if (!allowedTransitions.get(initialCodeStatus).contains(endCodeStatus)) {
+            throw new CodeStatusTransitionWrongEndStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                ERR_MSG_USER_CODE_STATUS_TRANSITION_WRONG_END_STATUS, endCodeStatus));
+        }
+    }
+
     private LinkedHashSet<CodeDTO> checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(final CodeScheme previousCodeScheme,
-                                                                       final Set<CodeDTO> codeDtos) {
+                                                                                         final Set<CodeDTO> codeDtos) {
         return codeSchemeService.getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(findByCodeSchemeId(previousCodeScheme.getId()), codeDtos);
     }
 
