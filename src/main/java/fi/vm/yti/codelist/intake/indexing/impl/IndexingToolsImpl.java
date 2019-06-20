@@ -218,7 +218,7 @@ public class IndexingToolsImpl implements IndexingTools {
             final Object obj = objectMapper.readTree(inputStream);
             return objectMapper.writeValueAsString(obj);
         } catch (final IOException e) {
-            LOG.error("Index creation failed!");
+            LOG.error("Index mapping loading error for file: " + fileName);
             throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ElasticSearch index mapping loading error for file: " + fileName));
         }
     }
