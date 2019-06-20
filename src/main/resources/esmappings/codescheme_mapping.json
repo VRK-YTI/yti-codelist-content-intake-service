@@ -1,0 +1,61 @@
+{
+  "dynamic_templates": [
+    {
+      "prefLabel": {
+        "path_match": "prefLabel.*",
+        "mapping": {
+          "type": "text",
+          "analyzer": "preflabel_analyzer",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "normalizer": "keyword_normalizer"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "codeValue": {
+      "type": "text",
+      "analyzer": "text_analyzer",
+      "fields": {
+        "raw": {
+          "type": "keyword",
+          "normalizer": "keyword_normalizer"
+        }
+      }
+    },
+    "id": {
+      "type": "keyword"
+    },
+    "prefLabel": {
+      "type": "nested",
+      "dynamic": true
+    },
+    "infoDomains": {
+      "type": "nested"
+    },
+    "organizations": {
+      "type": "nested"
+    },
+    "codeRegistry": {
+      "properties": {
+        "codeValue": {
+          "type": "text",
+          "analyzer": "text_analyzer"
+        },
+        "organizations": {
+          "type": "nested"
+        }
+      }
+    },
+    "extensions": {
+      "type": "nested"
+    },
+    "externalReferences": {
+      "type": "nested"
+    }
+  }
+}

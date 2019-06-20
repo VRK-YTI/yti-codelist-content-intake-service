@@ -1,0 +1,27 @@
+{
+  "properties": {
+    "id": {
+      "type": "keyword"
+    },
+    "prefLabel": {
+      "type": "nested"
+    },
+    "order": {
+      "type": "integer"
+    },
+    "sequenceId": {
+      "type": "integer"
+    },
+    "extension": {
+      "properties": {
+        "id": {
+          "type": "keyword"
+        },
+        "codeValue": {
+          "type": "text",
+          "analyzer": "text_analyzer"
+        }
+      }
+    }
+  }
+}

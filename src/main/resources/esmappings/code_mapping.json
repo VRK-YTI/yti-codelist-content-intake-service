@@ -1,0 +1,59 @@
+{
+  "properties": {
+    "codeValue": {
+      "type": "text",
+      "fielddata": "true",
+      "analyzer": "text_analyzer",
+      "fields": {
+        "raw": {
+          "type": "keyword",
+          "normalizer": "keyword_normalizer"
+        }
+      }
+    },
+    "id": {
+      "type": "keyword"
+    },
+    "order": {
+      "type": "integer"
+    },
+    "prefLabel": {
+      "type": "nested"
+    },
+    "codeScheme": {
+      "properties": {
+        "uri": {
+          "type": "text",
+          "analyzer": "text_analyzer"
+        },
+        "id": {
+          "type": "keyword"
+        },
+        "codeValue": {
+          "type": "text",
+          "analyzer": "text_analyzer"
+        },
+        "organizations": {
+          "type": "nested"
+        },
+        "codeRegistry": {
+          "properties": {
+            "codeValue": {
+              "type": "text",
+              "analyzer": "text_analyzer"
+            },
+            "organizations": {
+              "type": "nested"
+            }
+          }
+        }
+      }
+    },
+    "members": {
+      "type": "nested"
+    },
+    "externalReferences": {
+      "type": "nested"
+    }
+  }
+}

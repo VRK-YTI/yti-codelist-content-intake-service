@@ -1,0 +1,55 @@
+{
+  "properties": {
+    "codeValue": {
+      "type": "text",
+      "fielddata": "true",
+      "analyzer": "text_analyzer",
+      "fields": {
+        "raw": {
+          "type": "keyword",
+          "normalizer": "keyword_normalizer"
+        }
+      }
+    },
+    "id": {
+      "type": "keyword"
+    },
+    "prefLabel": {
+      "type": "nested"
+    },
+    "localName": {
+      "type": "text",
+      "analyzer": "text_analyzer"
+    },
+    "parentCodeScheme": {
+      "properties": {
+        "id": {
+          "type": "keyword"
+        },
+        "codeValue": {
+          "type": "text",
+          "analyzer": "text_analyzer"
+        },
+        "codeRegistry": {
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "codeValue": {
+              "type": "text",
+              "analyzer": "text_analyzer"
+            }
+          }
+        }
+      }
+    },
+    "members": {
+      "type": "nested",
+      "properties": {
+        "order": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

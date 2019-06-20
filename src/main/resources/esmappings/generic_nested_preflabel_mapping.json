@@ -1,0 +1,20 @@
+{
+  "properties": {
+    "codeValue": {
+      "type": "text",
+      "analyzer": "text_analyzer",
+      "fields": {
+        "raw": {
+          "type": "keyword",
+          "normalizer": "keyword_normalizer"
+        }
+      }
+    },
+    "id": {
+      "type": "keyword"
+    },
+    "prefLabel": {
+      "type": "nested"
+    }
+  }
+}

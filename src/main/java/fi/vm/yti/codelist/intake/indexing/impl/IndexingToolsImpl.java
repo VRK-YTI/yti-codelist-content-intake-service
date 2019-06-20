@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.indexing.impl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.IndexingTools;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
+import static fi.vm.yti.codelist.intake.util.FileUtils.loadFileFromClassPath;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 @Singleton
@@ -49,228 +51,6 @@ public class IndexingToolsImpl implements IndexingTools {
     private static final int MAX_RESULT_WINDOW_SIZE = 50000;
     private static final String MAX_INDEX_FIELDS = "mapping.total_fields.limit";
     private static final int MAX_INDEX_FIELDS_SIZE = 5000;
-
-    private static final String NESTED_PREFLABEL_MAPPING_JSON = "{" +
-        "\"properties\": {\n" +
-        "  \"codeValue\": {\n" +
-        "    \"type\": \"text\"," +
-        "    \"analyzer\": \"text_analyzer\",\n" +
-        "    \"fields\": {\n" +
-        "      \"raw\": { \n" +
-        "        \"type\": \"keyword\",\n" +
-        "        \"normalizer\": \"keyword_normalizer\"\n" +
-        "      }\n" +
-        "    }\n" +
-        "  },\n" +
-        "  \"id\": {\n" +
-        "    \"type\": \"keyword\"" +
-        "  },\n" +
-        "  \"prefLabel\": {\n" +
-        "    \"type\": \"nested\"\n" +
-        "  }\n" +
-        "}\n}";
-
-    private static final String CODESCHEME_MAPPING = "{" +
-        "\"dynamic_templates\": [\n" +
-        "  {\n" +
-        "    \"prefLabel\": {\n" +
-        "      \"path_match\": \"prefLabel.*\",\n" +
-        "      \"mapping\": {\n" +
-        "        \"type\": \"text\",\n" +
-        "        \"analyzer\": \"preflabel_analyzer\",\n" +
-        "        \"fields\": {\n" +
-        "          \"keyword\": { \n" +
-        "            \"type\": \"keyword\",\n" +
-        "            \"normalizer\": \"keyword_normalizer\"\n" +
-        "          }\n" +
-        "        }\n" +
-        "      }\n" +
-        "    }\n" +
-        "  }\n" +
-        "],\n" +
-        "\"properties\": {\n" +
-        "  \"codeValue\": {\n" +
-        "    \"type\": \"text\"," +
-        "    \"analyzer\": \"text_analyzer\",\n" +
-        "    \"fields\": {\n" +
-        "      \"raw\": { \n" +
-        "        \"type\": \"keyword\",\n" +
-        "        \"normalizer\": \"keyword_normalizer\"\n" +
-        "      }\n" +
-        "    }\n" +
-        "  },\n" +
-        "  \"id\": {\n" +
-        "    \"type\": \"keyword\"" +
-        "  },\n" +
-        "  \"prefLabel\": {\n" +
-        "    \"type\": \"nested\",\n" +
-        "    \"dynamic\": true\n" +
-        "  },\n" +
-        "  \"infoDomains\": {\n" +
-        "    \"type\": \"nested\"\n" +
-        "  },\n" +
-        "  \"organizations\": {\n" +
-        "    \"type\": \"nested\"\n" +
-        "  },\n" +
-        "  \"codeRegistry\": {\n" +
-        "    \"properties\": {\n" +
-        "      \"codeValue\": {\n" +
-        "        \"type\": \"text\",\n" +
-        "        \"analyzer\": \"text_analyzer\"\n" +
-        "      },\n" +
-        "      \"organizations\": {\n" +
-        "        \"type\": \"nested\"\n" +
-        "      }\n" +
-        "    }\n" +
-        "  },\n" +
-        "  \"extensions\": {\n" +
-        "    \"type\": \"nested\"\n" +
-        "  },\n" +
-        "  \"externalReferences\": {\n" +
-        "    \"type\": \"nested\"\n" +
-        "  }\n" +
-        "}\n}";
-
-    private static final String CODE_MAPPING = "{" +
-        "\"properties\": {\n" +
-        "  \"codeValue\": {\n" +
-        "    \"type\": \"text\"," +
-        "    \"fielddata\": \"true\"," +
-        "    \"analyzer\": \"text_analyzer\",\n" +
-        "    \"fields\": {\n" +
-        "      \"raw\": { \n" +
-        "        \"type\": \"keyword\",\n" +
-        "        \"normalizer\": \"keyword_normalizer\"\n" +
-        "      }\n" +
-        "    }\n" +
-        "  },\n" +
-        "  \"id\": {\n" +
-        "    \"type\": \"keyword\"\n" +
-        "  },\n" +
-        "  \"order\": {\n" +
-        "    \"type\": \"integer\"\n" +
-        "  },\n" +
-        "  \"prefLabel\": {\n" +
-        "    \"type\": \"nested\"\n" +
-        "  },\n" +
-        "  \"codeScheme\": {\n" +
-        "    \"properties\": {\n" +
-        "      \"uri\": {\n" +
-        "        \"type\": \"text\",\n" +
-        "        \"analyzer\": \"text_analyzer\"\n" +
-        "      },\n" +
-        "      \"id\": {\n" +
-        "        \"type\": \"keyword\"\n" +
-        "      },\n" +
-        "      \"codeValue\": {\n" +
-        "        \"type\": \"text\",\n" +
-        "        \"analyzer\": \"text_analyzer\"\n" +
-        "      },\n" +
-        "      \"organizations\": {\n" +
-        "        \"type\": \"nested\"\n" +
-        "      },\n" +
-        "      \"codeRegistry\": {\n" +
-        "        \"properties\": {\n" +
-        "          \"codeValue\": {\n" +
-        "            \"type\": \"text\",\n" +
-        "            \"analyzer\": \"text_analyzer\"\n" +
-        "          },\n" +
-        "          \"organizations\": {\n" +
-        "            \"type\": \"nested\"\n" +
-        "          }\n" +
-        "        }\n" +
-        "      }\n" +
-        "    }\n" +
-        "  },\n" +
-        "  \"members\": {\n" +
-        "    \"type\": \"nested\"\n" +
-        "  },\n" +
-        "  \"externalReferences\": {\n" +
-        "    \"type\": \"nested\"\n" +
-        "  }\n" +
-        "}\n}";
-
-    private static final String EXTENSION_MAPPING = "{" +
-        "\"properties\": {\n" +
-        "  \"codeValue\": {\n" +
-        "    \"type\": \"text\"," +
-        "    \"fielddata\": \"true\"," +
-        "    \"analyzer\": \"text_analyzer\",\n" +
-        "    \"fields\": {\n" +
-        "      \"raw\": { \n" +
-        "        \"type\": \"keyword\",\n" +
-        "        \"normalizer\": \"keyword_normalizer\"\n" +
-        "      }\n" +
-        "    }\n" +
-        "  },\n" +
-        "  \"id\": {\n" +
-        "    \"type\": \"keyword\"\n" +
-        "  },\n" +
-        "  \"prefLabel\": {\n" +
-        "    \"type\": \"nested\"\n" +
-        "  },\n" +
-        "  \"localName\": {\n" +
-        "    \"type\": \"text\",\n" +
-        "    \"analyzer\": \"text_analyzer\"\n" +
-        "  },\n" +
-        "  \"parentCodeScheme\": {\n" +
-        "    \"properties\": {\n" +
-        "      \"id\": {\n" +
-        "        \"type\": \"keyword\"\n" +
-        "      },\n" +
-        "      \"codeValue\": {\n" +
-        "        \"type\": \"text\",\n" +
-        "        \"analyzer\": \"text_analyzer\"\n" +
-        "      },\n" +
-        "      \"codeRegistry\": {\n" +
-        "        \"properties\": {\n" +
-        "          \"id\": {\n" +
-        "            \"type\": \"keyword\"\n" +
-        "          },\n" +
-        "          \"codeValue\": {\n" +
-        "            \"type\": \"text\",\n" +
-        "            \"analyzer\": \"text_analyzer\"\n" +
-        "          }\n" +
-        "        }\n" +
-        "      }\n" +
-        "    }\n" +
-        "  },\n" +
-        "  \"members\": {\n" +
-        "    \"type\": \"nested\",\n" +
-        "    \"properties\": {\n" +
-        "      \"order\": {\n" +
-        "        \"type\": \"integer\"\n" +
-        "      }\n" +
-        "    }\n" +
-        "  }\n" +
-        "}\n}";
-
-    private static final String MEMBER_MAPPING = "{" +
-        "\"properties\": {\n" +
-        "  \"id\": {\n" +
-        "    \"type\": \"keyword\"\n" +
-        "  },\n" +
-        "  \"prefLabel\": {\n" +
-        "    \"type\": \"nested\"\n" +
-        "  },\n" +
-        "  \"order\": {\n" +
-        "    \"type\": \"integer\"\n" +
-        "  },\n" +
-        "  \"sequenceId\": {\n" +
-        "    \"type\": \"integer\"\n" +
-        "  },\n" +
-        "  \"extension\": {\n" +
-        "    \"properties\": {\n" +
-        "      \"id\": {\n" +
-        "        \"type\": \"keyword\"\n" +
-        "      },\n" +
-        "      \"codeValue\": {\n" +
-        "        \"type\": \"text\",\n" +
-        "        \"analyzer\": \"text_analyzer\"\n" +
-        "      }\n" +
-        "    }\n" +
-        "  }\n" +
-        "}\n}";
 
     private final RestHighLevelClient client;
 
@@ -381,19 +161,19 @@ public class IndexingToolsImpl implements IndexingTools {
             }
             switch (type) {
                 case ELASTIC_TYPE_CODESCHEME:
-                    request.mapping(type, CODESCHEME_MAPPING, XContentType.JSON);
+                    request.mapping(type, getCodeSchemeMapping(), XContentType.JSON);
                     break;
                 case ELASTIC_TYPE_CODE:
-                    request.mapping(type, CODE_MAPPING, XContentType.JSON);
+                    request.mapping(type, getCodeMapping(), XContentType.JSON);
                     break;
                 case ELASTIC_TYPE_EXTENSION:
-                    request.mapping(type, EXTENSION_MAPPING, XContentType.JSON);
+                    request.mapping(type, getExtensionMapping(), XContentType.JSON);
                     break;
                 case ELASTIC_TYPE_MEMBER:
-                    request.mapping(type, MEMBER_MAPPING, XContentType.JSON);
+                    request.mapping(type, getMemberMapping(), XContentType.JSON);
                     break;
                 default:
-                    request.mapping(type, NESTED_PREFLABEL_MAPPING_JSON, XContentType.JSON);
+                    request.mapping(type, getGenericPrefLabelMapping(), XContentType.JSON);
                     break;
             }
             try {
@@ -408,6 +188,38 @@ public class IndexingToolsImpl implements IndexingTools {
             }
         } else {
             logIndexExist(indexName);
+        }
+    }
+
+    private String getCodeSchemeMapping() {
+        return loadMapping("/esmappings/codescheme_mapping.json");
+    }
+
+    private String getCodeMapping() {
+        return loadMapping("/esmappings/code_mapping.json");
+    }
+
+    private String getExtensionMapping() {
+        return loadMapping("/esmappings/extension_mapping.json");
+    }
+
+    private String getMemberMapping() {
+        return loadMapping("/esmappings/member_mapping.json");
+    }
+
+    private String getGenericPrefLabelMapping() {
+        return loadMapping("/esmappings/generic_nested_preflabel_mapping.json");
+    }
+
+    private String loadMapping(final String fileName) {
+        try {
+            final InputStream inputStream = loadFileFromClassPath(fileName);
+            final ObjectMapper objectMapper = createObjectMapper();
+            final Object obj = objectMapper.readTree(inputStream);
+            return objectMapper.writeValueAsString(obj);
+        } catch (final IOException e) {
+            LOG.error("Index creation failed!");
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ElasticSearch index mapping loading error for file: " + fileName));
         }
     }
 
