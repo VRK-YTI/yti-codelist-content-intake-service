@@ -21,7 +21,6 @@ import org.elasticsearch.client.GetAliasesResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
-import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,17 +39,12 @@ import fi.vm.yti.codelist.intake.indexing.IndexingTools;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 import static fi.vm.yti.codelist.intake.util.FileUtils.loadFileFromClassPath;
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 @Singleton
 @Component
 public class IndexingToolsImpl implements IndexingTools {
 
     private static final Logger LOG = LoggerFactory.getLogger(IndexingToolsImpl.class);
-    private static final String MAX_RESULT_WINDOW = "max_result_window";
-    private static final int MAX_RESULT_WINDOW_SIZE = 50000;
-    private static final String MAX_INDEX_FIELDS = "mapping.total_fields.limit";
-    private static final int MAX_INDEX_FIELDS_SIZE = 5000;
 
     private final RestHighLevelClient client;
 
@@ -127,38 +121,7 @@ public class IndexingToolsImpl implements IndexingTools {
         if (!checkIfIndexExists(indexName)) {
             final CreateIndexRequest request = new CreateIndexRequest();
             request.index(indexName);
-            try {
-                final XContentBuilder contentBuilder = jsonBuilder()
-                    .startObject()
-                    .startObject("index")
-                    .field(MAX_RESULT_WINDOW, MAX_RESULT_WINDOW_SIZE)
-                    .field(MAX_INDEX_FIELDS, MAX_INDEX_FIELDS_SIZE)
-                    .endObject()
-                    .startObject("analysis")
-                    .startObject("analyzer")
-                    .startObject("text_analyzer")
-                    .field("type", "custom")
-                    .field("tokenizer", "keyword")
-                    .field("filter", new String[]{ "standard", "lowercase", "trim" })
-                    .endObject()
-                    .startObject("preflabel_analyzer")
-                    .field("type", "custom")
-                    .field("tokenizer", "ngram")
-                    .field("filter", new String[]{ "lowercase", "standard" })
-                    .endObject()
-                    .endObject()
-                    .startObject("normalizer")
-                    .startObject("keyword_normalizer")
-                    .field("type", "custom")
-                    .field("filter", new String[]{ "lowercase" })
-                    .endObject()
-                    .endObject()
-                    .endObject()
-                    .endObject();
-                request.source(contentBuilder);
-            } catch (final IOException e) {
-                LOG.error("Error parsing index request settings JSON!", e);
-            }
+            request.source(getGenericIndexSettings(), XContentType.JSON);
             switch (type) {
                 case ELASTIC_TYPE_CODESCHEME:
                     request.mapping(type, getCodeSchemeMapping(), XContentType.JSON);
@@ -191,6 +154,10 @@ public class IndexingToolsImpl implements IndexingTools {
         }
     }
 
+    private String getGenericIndexSettings() {
+        return loadMapping("/esmappings/generic_index_settings.json");
+    }
+
     private String getCodeSchemeMapping() {
         return loadMapping("/esmappings/codescheme_mapping.json");
     }
@@ -218,8 +185,8 @@ public class IndexingToolsImpl implements IndexingTools {
             final Object obj = objectMapper.readTree(inputStream);
             return objectMapper.writeValueAsString(obj);
         } catch (final IOException e) {
-            LOG.error("Index mapping loading error for file: " + fileName);
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ElasticSearch index mapping loading error for file: " + fileName));
+            LOG.error("Index configuration loading error for file: " + fileName);
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ElasticSearch index configuration loading error for file: " + fileName));
         }
     }
 

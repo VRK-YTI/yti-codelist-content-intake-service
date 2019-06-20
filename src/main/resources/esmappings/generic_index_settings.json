@@ -1,0 +1,35 @@
+{
+  "index": {
+    "max_result_window": 50000,
+    "mapping.total_fields.limit": 5000
+  },
+  "analysis": {
+    "analyzer": {
+      "text_analyzer": {
+        "type": "custom",
+        "tokenizer": "keyword",
+        "filter": [
+          "standard",
+          "lowercase",
+          "trim"
+        ]
+      },
+      "preflabel_analyzer": {
+        "type": "custom",
+        "tokenizer": "ngram",
+        "filter": [
+          "lowercase",
+          "standard"
+        ]
+      }
+    },
+    "normalizer": {
+      "keyword_normalizer": {
+        "type": "custom",
+        "filter": [
+          "lowercase"
+        ]
+      }
+    }
+  }
+}
