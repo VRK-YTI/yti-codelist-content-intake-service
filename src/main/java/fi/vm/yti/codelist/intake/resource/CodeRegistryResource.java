@@ -47,6 +47,7 @@ import fi.vm.yti.codelist.intake.exception.TooManyCodeSchemesException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.parser.CodeSchemeParser;
+import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.service.CloningService;
 import fi.vm.yti.codelist.intake.service.CodeRegistryService;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
@@ -80,6 +81,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
     private final Indexing indexing;
     private final CloningService cloningService;
     private final CodeSchemeParser codeSchemeParser;
+    private final AuthorizationManager authorizationManager;
 
     @Inject
     public CodeRegistryResource(final CodeService codeService,
@@ -90,7 +92,8 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                 final MemberService memberService,
                                 final Indexing indexing,
                                 final CloningService cloningService,
-                                final CodeSchemeParser codeSchemeParser) {
+                                final CodeSchemeParser codeSchemeParser,
+                                final AuthorizationManager authorizationManager) {
         this.codeService = codeService;
         this.codeSchemeService = codeSchemeService;
         this.codeRegistryService = codeRegistryService;
@@ -100,6 +103,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         this.indexing = indexing;
         this.cloningService = cloningService;
         this.codeSchemeParser = codeSchemeParser;
+        this.authorizationManager = authorizationManager;
     }
 
     @POST
@@ -276,7 +280,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         String initialCodeStatus = null;
         String endCodeStatus = null;
 
-        if (changeCodeStatuses != null && changeCodeStatuses.equals("true")) {
+        if (changeCodeStatuses != null && changeCodeStatuses.equals("true") && !authorizationManager.isSuperUser()) {
             final CodeSchemeDTO originalCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
             final CodeSchemeDTO newCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
             initialCodeStatus = originalCodeScheme.getStatus();

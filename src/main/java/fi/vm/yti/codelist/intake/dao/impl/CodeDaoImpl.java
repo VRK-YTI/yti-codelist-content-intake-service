@@ -307,7 +307,7 @@ public class CodeDaoImpl implements CodeDao {
         }
         final Code code;
         if (existingCode != null) {
-            if (codeStatusHasChanged(existingCode, codeDto)) {
+            if (codeStatusHasChanged(existingCode, codeDto) && !authorizationManager.isSuperUser()) {
                 validateCodeStatusChange(existingCode, codeDto);
             }
             code = updateCode(codeScheme, existingCode, codeDto, codes, nextOrder);
