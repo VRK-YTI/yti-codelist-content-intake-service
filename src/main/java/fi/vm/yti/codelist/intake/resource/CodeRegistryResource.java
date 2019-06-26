@@ -277,14 +277,12 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                      @ApiParam(value = "Control query parameter that changes code status according to codeScheme status change.") @QueryParam("changeCodeStatuses") final String changeCodeStatuses,
                                      @ApiParam(value = "JSON playload for CodeScheme data.") final String jsonPayload) {
 
-        String initialCodeStatus = null;
-        String endCodeStatus = null;
+        final CodeSchemeDTO originalCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        final CodeSchemeDTO newCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
+        String initialCodeStatus = originalCodeScheme.getStatus();
+        String endCodeStatus = newCodeScheme.getStatus();
 
         if (changeCodeStatuses != null && changeCodeStatuses.equals("true") && !authorizationManager.isSuperUser()) {
-            final CodeSchemeDTO originalCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-            final CodeSchemeDTO newCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
-            initialCodeStatus = originalCodeScheme.getStatus();
-            endCodeStatus = newCodeScheme.getStatus();
             ValidationUtils.validateCodeStatusTransitions(initialCodeStatus, endCodeStatus);
         }
 
