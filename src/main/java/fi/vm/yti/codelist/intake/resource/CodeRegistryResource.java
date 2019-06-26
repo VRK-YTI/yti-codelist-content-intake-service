@@ -281,6 +281,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         final CodeSchemeDTO newCodeScheme = codeSchemeParser.parseCodeSchemeFromJsonData(jsonPayload);
         String initialCodeStatus = originalCodeScheme.getStatus();
         String endCodeStatus = newCodeScheme.getStatus();
+        Set<CodeDTO> codesWhereStatusChanged = null;
 
         if (changeCodeStatuses != null && changeCodeStatuses.equals("true") && !authorizationManager.isSuperUser()) {
             ValidationUtils.validateCodeStatusTransitions(initialCodeStatus, endCodeStatus);
@@ -395,8 +396,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 }
             }
 
+
             if (changeCodeStatuses != null && changeCodeStatuses.equals("true")) {
-                codeService.massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, initialCodeStatus, endCodeStatus, true);
+                codesWhereStatusChanged = codeService.massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, initialCodeStatus, endCodeStatus, true);
             }
 
             indexing.updateCodeScheme(codeScheme);
@@ -416,6 +418,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
             }
         }
         final Meta meta = new Meta();
+        if (codesWhereStatusChanged != null) {
+            meta.setNonTranslatableMessage(new Integer(codesWhereStatusChanged.size()).toString());
+        }
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
     }
