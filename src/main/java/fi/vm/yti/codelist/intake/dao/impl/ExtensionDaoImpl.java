@@ -41,12 +41,11 @@ import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CODE_EXTENSION;
+import static fi.vm.yti.codelist.common.constants.ApiConstants.EXTENSION;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
 public class ExtensionDaoImpl implements ExtensionDao {
-
-    private static final String CONTEXT_EXTENSION = "Extension";
 
     private final AuthorizationManager authorizationManager;
     private final EntityChangeLogger entityChangeLogger;
@@ -216,6 +215,18 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
     }
 
+    private PropertyType resolvePropertyType(final ExtensionDTO extension) {
+        final PropertyType propertyType = propertyTypeDao.findByLocalName(extension.getPropertyType().getLocalName());
+        if (propertyType == null) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_PROPERTYTYPE_NOT_FOUND));
+        }
+        final String context = propertyType.getContext();
+        if (!CODE_EXTENSION.equalsIgnoreCase(context) && !EXTENSION.equalsIgnoreCase(context)) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_PROPERTYTYPE_NOT_ALLOWED_FOR_EXTENSION, context));
+        }
+        return propertyType;
+    }
+
     private Extension updateExtension(final Extension existingExtension,
                                       final ExtensionDTO fromExtension) {
         if (!Objects.equals(existingExtension.getStatus(), fromExtension.getStatus())) {
@@ -226,10 +237,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             }
             existingExtension.setStatus(fromExtension.getStatus());
         }
-        final PropertyType propertyType = propertyTypeDao.findByContextAndLocalName(CONTEXT_EXTENSION, fromExtension.getPropertyType().getLocalName());
-        if (propertyType == null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_PROPERTYTYPE_NOT_FOUND));
-        }
+        final PropertyType propertyType = resolvePropertyType(fromExtension);
         if (!Objects.equals(existingExtension.getPropertyType(), propertyType)) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_PROPERTYTYPE_CHANGE_NOT_ALLOWED));
         }
@@ -247,7 +255,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
             }
         }
         existingExtension.setCodeSchemes(codeSchemes);
-        mapPrefLabel(fromExtension, existingExtension);
+        if (!CODE_EXTENSION.equalsIgnoreCase(propertyType.getContext())) {
+            mapPrefLabel(fromExtension, existingExtension);
+        }
         if (!Objects.equals(existingExtension.getStartDate(), fromExtension.getStartDate())) {
             existingExtension.setStartDate(fromExtension.getStartDate());
         }
@@ -272,10 +282,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         extension.setStartDate(fromExtension.getStartDate());
         extension.setEndDate(fromExtension.getEndDate());
         extension.setStatus(fromExtension.getStatus());
-        final PropertyType propertyType = propertyTypeDao.findByContextAndLocalName(CONTEXT_EXTENSION, fromExtension.getPropertyType().getLocalName());
-        if (propertyType == null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_PROPERTYTYPE_NOT_FOUND));
-        }
+        final PropertyType propertyType = resolvePropertyType(fromExtension);
         extension.setPropertyType(propertyType);
         final Set<CodeScheme> codeSchemes = new HashSet<>();
         LinkedHashSet<CodeScheme> codeSchemesAlphabeticallyOrdered = new LinkedHashSet<>();
@@ -296,7 +303,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
         extension.setParentCodeScheme(codeScheme);
         extension.setUri(apiUtils.createExtensionUri(extension));
         addExtensionToParentCodeScheme(codeScheme, extension);
-        mapPrefLabel(fromExtension, extension);
+        if (!CODE_EXTENSION.equalsIgnoreCase(propertyType.getContext())) {
+            mapPrefLabel(fromExtension, extension);
+        }
         final Date timeStamp = new Date(System.currentTimeMillis());
         extension.setCreated(timeStamp);
         extension.setModified(timeStamp);
