@@ -33,7 +33,6 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
-import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
@@ -293,7 +292,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         }
                         codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, false);
                         parseExternalReferences(codeSchemes, externalReferencesSheetNames, workbook);
-                        parseExternalReferencesFromDtos(codeSchemes, codeSchemeDtos);
+                        parseExternalReferencesFromCodeSchemeDtos(codeSchemes, codeSchemeDtos);
                         Map<CodeScheme, Set<CodeDTO>> codeParsingResult = parseCodes(codeSchemes, codeSchemeDtos, codesSheetNames, workbook);
                         parseExtensions(codeSchemes, extensionsSheetNames, workbook);
                         if (userIsCreatingANewVersionOfACodeScheme) {
@@ -428,13 +427,13 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         }
     }
 
-    private void parseExternalReferencesFromDtos(final Set<CodeScheme> codeSchemes,
-                                                 final Set<CodeSchemeDTO> codeSchemeDtos) {
+    private void parseExternalReferencesFromCodeSchemeDtos(final Set<CodeScheme> codeSchemes,
+                                                           final Set<CodeSchemeDTO> codeSchemeDtos) {
         if (!codeSchemeDtos.isEmpty()) {
             codeSchemeDtos.forEach(codeSchemeDto -> {
                 for (final CodeScheme codeScheme : codeSchemes) {
                     if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
-                        final Set<ExternalReference> externalReferences = findOrCreateExternalReferences(codeScheme, codeSchemeDto.getExternalReferences());
+                        final Set<ExternalReference> externalReferences = findOrCreateExternalReferences(externalReferenceDao, codeScheme, codeSchemeDto.getExternalReferences());
                         if (externalReferences != null && !externalReferences.isEmpty()) {
                             externalReferenceDao.save(externalReferences);
                         }
@@ -484,21 +483,6 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                 }
             });
         }
-    }
-
-    private Set<ExternalReference> findOrCreateExternalReferences(final CodeScheme codeScheme,
-                                                                  final Set<ExternalReferenceDTO> externalReferenceDtos) {
-        if (externalReferenceDtos != null && !externalReferenceDtos.isEmpty()) {
-            final Set<ExternalReference> externalReferences = new HashSet<>();
-            externalReferenceDtos.forEach(externalReferenceDto -> {
-                final ExternalReference externalReference = externalReferenceDao.createOrUpdateExternalReference(false, externalReferenceDto, codeScheme);
-                if (externalReference != null) {
-                    externalReferences.add(externalReference);
-                }
-            });
-            return externalReferences;
-        }
-        return null;
     }
 
     @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")

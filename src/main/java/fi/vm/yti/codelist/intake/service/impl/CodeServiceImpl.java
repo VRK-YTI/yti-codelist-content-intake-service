@@ -1,13 +1,9 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -28,19 +24,18 @@ import org.springframework.stereotype.Service;
 import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
-import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
+import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
-import fi.vm.yti.codelist.intake.exception.CodeStatusTransitionWrongEndStatusException;
-import fi.vm.yti.codelist.intake.exception.CodeStatusTransitionWrongInitialStatusException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.UndeletableCodeDueToCumulativeCodeSchemeException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
+import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.parser.impl.CodeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
@@ -65,6 +60,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
     private final MemberDao memberDao;
     private final CloningService cloningService;
     private final CodeSchemeService codeSchemeService;
+    private final ExternalReferenceDao externalReferenceDao;
 
     @Inject
     public CodeServiceImpl(final AuthorizationManager authorizationManager,
@@ -75,7 +71,8 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                            final DtoMapperService dtoMapperService,
                            final MemberDao memberDao,
                            @Lazy final CloningService cloningService,
-                           @Lazy final CodeSchemeService codeSchemeService) {
+                           @Lazy final CodeSchemeService codeSchemeService,
+                           final ExternalReferenceDao externalReferenceDao) {
         this.authorizationManager = authorizationManager;
         this.codeRegistryDao = codeRegistryDao;
         this.codeSchemeDao = codeSchemeDao;
@@ -85,6 +82,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
         this.memberDao = memberDao;
         this.cloningService = cloningService;
         this.codeSchemeService = codeSchemeService;
+        this.externalReferenceDao = externalReferenceDao;
     }
 
     @Transactional
@@ -183,9 +181,9 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                                 LinkedHashSet<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
                                 handleMissingCodesInCaseOfCumulativeCodeScheme(missingCodes);
                             }
-
                         }
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, false);
+                        parseExternalReferencesFromCodeDtos(codeScheme, codes, codeDtos);
                         break;
                     case FORMAT_CSV:
                         final Set<CodeDTO> codeDtosFromCsv = codeParser.parseCodesFromCsvInputStream(inputStream, broaderCodeMapping);
@@ -207,6 +205,25 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NOT_FOUND));
         }
         return dtoMapperService.mapDeepCodeDtos(codes);
+    }
+
+    private void parseExternalReferencesFromCodeDtos(final CodeScheme codeScheme,
+                                                     final Set<Code> codes,
+                                                     final Set<CodeDTO> codeDtos) {
+        if (!codeDtos.isEmpty()) {
+            codeDtos.forEach(codeDto -> {
+                for (final Code code : codes) {
+                    if (code.getCodeValue().equalsIgnoreCase(codeDto.getCodeValue())) {
+                        final Set<ExternalReference> externalReferences = findOrCreateExternalReferences(externalReferenceDao, codeScheme, codeDto.getExternalReferences());
+                        if (externalReferences != null && !externalReferences.isEmpty()) {
+                            externalReferenceDao.save(externalReferences);
+                        }
+                        code.setExternalReferences(externalReferences);
+                        codeDao.save(code);
+                    }
+                }
+            });
+        }
     }
 
     /**
