@@ -38,7 +38,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
-import fi.vm.yti.codelist.intake.exception.CodeParsingException;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
@@ -96,7 +95,6 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                         broaderCodeMapping.put(codeValue.toLowerCase(), null);
                     }
                 }
-                code.setHierarchyLevel(resolveHierarchyLevelFromCsvRecord(record));
                 code.setStatus(parseStatusValueFromString(record.get(CONTENT_HEADER_STATUS)));
                 if (record.isMapped(CONTENT_HEADER_STARTDATE)) {
                     code.setStartDate(parseStartDateFromString(parseStartDateStringFromCsvRecord(record), recordIdentifier));
@@ -184,7 +182,6 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 code.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
                 code.setShortName(parseShortNameFromExcelRow(headerMap, row, formatter));
                 code.setConceptUriInVocabularies(parseConceptUriFromExcelRow(headerMap, row, formatter));
-                code.setHierarchyLevel(resolveHierarchyLevelFromExcelRow(headerMap, row, formatter));
                 code.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
                 if (headerMap.containsKey(CONTENT_HEADER_HREF)) {
                     code.setExternalReferences(resolveHrefs(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HREF)))));
@@ -250,44 +247,6 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         return codes;
     }
 
-    private Integer resolveHierarchyLevelFromCsvRecord(final CSVRecord record) {
-        final Integer hierarchyLevel;
-        if (record.isMapped(CONTENT_HEADER_HIERARCHYLEVEL) && !record.isMapped(CONTENT_HEADER_BROADER)) {
-            hierarchyLevel = resolveHierarchyLevelFromString(record.get(CONTENT_HEADER_HIERARCHYLEVEL));
-        } else {
-            hierarchyLevel = 1;
-        }
-        return hierarchyLevel;
-    }
-
-    private Integer resolveHierarchyLevelFromExcelRow(final Map<String, Integer> headerMap,
-                                                      final Row row,
-                                                      final DataFormatter formatter) {
-        final Integer hierarchyLevel;
-        if (headerMap.containsKey(CONTENT_HEADER_HIERARCHYLEVEL) && !headerMap.containsKey(CONTENT_HEADER_BROADER)) {
-            hierarchyLevel = resolveHierarchyLevelFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HIERARCHYLEVEL))));
-        } else {
-            hierarchyLevel = 1;
-        }
-        return hierarchyLevel;
-    }
-
-    private Integer resolveHierarchyLevelFromString(final String hierarchyLevelString) {
-        final Integer hierarchyLevel;
-        if (!hierarchyLevelString.isEmpty()) {
-            try {
-                hierarchyLevel = Integer.parseInt(hierarchyLevelString);
-            } catch (final NumberFormatException e) {
-                LOG.error("Error parsing hierarchyLevel value from: " + hierarchyLevelString, e);
-                throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    ERR_MSG_USER_HIERARCHY_LEVEL_INVALID_VALUE));
-            }
-        } else {
-            hierarchyLevel = 1;
-        }
-        return hierarchyLevel;
-    }
-
     private void validateRequiredHeaders(final Map<String, Integer> headerMap) {
         if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
@@ -300,8 +259,8 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
     }
 
     protected void validateRequiredDataOnRow(final Row row,
-                                           final Map<String, Integer> headerMap,
-                                           final DataFormatter formatter) {
+                                             final Map<String, Integer> headerMap,
+                                             final DataFormatter formatter) {
         if (formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))) == null ||
             formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).isEmpty()) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
