@@ -25,7 +25,7 @@ public interface ValidationUtils {
     }
 
     static void validateCodeStatusTransitions(final String initialCodeStatus,
-                                                     final String endCodeStatus) {
+                                              final String endCodeStatus) {
         final Map<String, List<String>> allowedTransitions = new HashMap<>();
         allowedTransitions.put(Status.INCOMPLETE.toString(), new ArrayList<>(Arrays.asList(Status.DRAFT.toString())));
         allowedTransitions.put(Status.DRAFT.toString(), new ArrayList<>(Arrays.asList(Status.INCOMPLETE.toString(), Status.VALID.toString())));

@@ -210,7 +210,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         }
         if (!(thePotentialNewVersion.getStatus().equals(Status.DRAFT.toString()) ||
             thePotentialNewVersion.getStatus().equals(Status.INCOMPLETE.toString()))) {
-            throw new TooManyCodeSchemesException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID));
+            throw new TooManyCodeSchemesException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID, thePotentialNewVersion.getStatus()));
         }
     }
 

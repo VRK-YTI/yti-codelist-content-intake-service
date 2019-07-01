@@ -137,16 +137,17 @@ public abstract class AbstractBaseParser {
     }
 
     String parseStatusValueFromString(final String statusString) {
+        final String status;
         try {
-            final String status = Status.valueOf(statusString).toString();
-            if (SUGGESTED_STATUS.equalsIgnoreCase(status)) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID));
-            }
-            return status;
+            status = Status.valueOf(statusString.trim().toUpperCase()).toString();
         } catch (final Exception e) {
             LOG.error("Caught exception in parseStatusValueFromString.", e);
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID, statusString));
         }
+        if (SUGGESTED_STATUS.equalsIgnoreCase(status)) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_SUGGESTED_STATUS_NOT_ALLOWED));
+        }
+        return status;
     }
 
     Map<String, String> parseLocalizedValueFromCsvRecord(final Map<String, Integer> valueHeaders,
