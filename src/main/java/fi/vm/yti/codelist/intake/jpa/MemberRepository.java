@@ -26,9 +26,6 @@ public interface MemberRepository extends CrudRepository<Member, String> {
 
     Set<Member> findByCodeId(final UUID id);
 
-    Set<Member> findByExtensionAndOrder(final Extension extension,
-                                        final Integer order);
-
     @Query(value = "SELECT m.memberorder FROM member as m WHERE m.extension_id = :extensionId ORDER BY m.memberorder DESC LIMIT 1", nativeQuery = true)
     Integer getMemberMaxOrder(@Param("extensionId") final UUID extensionId);
 
@@ -39,15 +36,6 @@ public interface MemberRepository extends CrudRepository<Member, String> {
     Set<Member> findByExtensionId(final UUID id);
 
     Member findById(final UUID id);
-
-    Member findByExtensionAndId(final Extension extension,
-                                final UUID id);
-
-    Member findByExtensionAndCodeCodeValueIgnoreCase(final Extension extension,
-                                                     final String codeCodeValue);
-
-    Member findByExtensionAndCodeUriIgnoreCase(final Extension extension,
-                                               final String codeCodeValue);
 
     @Query(value = "SELECT nextval(:sequenceName)", nativeQuery = true)
     Integer getMemberSequenceId(@Param("sequenceName") final String sequenceName);

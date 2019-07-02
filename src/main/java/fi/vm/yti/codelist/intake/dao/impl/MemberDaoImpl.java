@@ -153,11 +153,8 @@ public class MemberDaoImpl implements MemberDao {
     @Transactional
     public Member findByExtensionAndSequenceId(final Extension extension,
                                                final Integer sequenceId) {
-        Member member = memberRepository.findByExtensionAndSequenceId(extension, sequenceId);
-        return member;
+        return memberRepository.findByExtensionAndSequenceId(extension, sequenceId);
     }
-
-    ;
 
     @Transactional
     public Set<Member> updateMemberEntityFromDto(final Extension extension,
@@ -595,12 +592,19 @@ public class MemberDaoImpl implements MemberDao {
         final Date timeStamp = new Date(System.currentTimeMillis());
         member.setCreated(timeStamp);
         member.setModified(timeStamp);
-        String postFixPartOfTheSequenceName = extension.getId().toString().replaceAll("-", "_");
-        String theNameOfTheSequence = PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
-        Integer sequenceId = memberRepository.getMemberSequenceId(theNameOfTheSequence);
-        member.setSequenceId(sequenceId);
+        if (fromMember.getSequenceId() != null) {
+            member.setSequenceId(fromMember.getSequenceId());
+        } else {
+            member.setSequenceId(getNextMemberSequence(extension));
+        }
         member.setUri(apiUtils.createMemberUri(member));
         return member;
+    }
+
+    private Integer getNextMemberSequence(final Extension extension) {
+        final String postFixPartOfTheSequenceName = extension.getId().toString().replaceAll("-", "_");
+        final String theNameOfTheSequence = PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
+        return memberRepository.getMemberSequenceId(theNameOfTheSequence);
     }
 
     private void validateExtension(final Member member,
@@ -748,10 +752,7 @@ public class MemberDaoImpl implements MemberDao {
                     m.setExtension(extension);
                     m.setMemberValues(null);
                     m.setPrefLabel(null);
-                    String postFixPartOfTheSequenceName = extension.getId().toString().replaceAll("-", "_");
-                    String theNameOfTheSequence = PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
-                    Integer sequenceId = memberRepository.getMemberSequenceId(theNameOfTheSequence);
-                    m.setSequenceId(sequenceId);
+                    m.setSequenceId(getNextMemberSequence(extension));
                     m.setUri(apiUtils.createMemberUri(m));
                     this.save(m);
                     createdMembers.add(m);

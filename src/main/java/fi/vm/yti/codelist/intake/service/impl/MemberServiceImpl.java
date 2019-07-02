@@ -156,7 +156,7 @@ public class MemberServiceImpl implements MemberService {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
-            Set<Member> members;
+            final Set<Member> members;
             final Extension extension = extensionDao.findByParentCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionCodeValue);
             if (extension != null) {
                 switch (format.toLowerCase()) {
@@ -168,20 +168,20 @@ public class MemberServiceImpl implements MemberService {
                         }
                         break;
                     case FORMAT_EXCEL:
-                        Set<MemberDTO> memberDTOs = memberParser.parseMembersFromExcelInputStream(extension, inputStream, sheetName);
-                        memberDTOs.forEach(memberDTO -> {
-                            Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDTO.getSequenceId());
-                            memberDTO.setId(correspondingMemberFromDb == null ? UUID.randomUUID() : correspondingMemberFromDb.getId());
+                        final Set<MemberDTO> memberDtos = memberParser.parseMembersFromExcelInputStream(extension, inputStream, sheetName);
+                        memberDtos.forEach(memberDto -> {
+                            Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDto.getSequenceId());
+                            memberDto.setId(correspondingMemberFromDb == null ? UUID.randomUUID() : correspondingMemberFromDb.getId());
                         });
-                        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDTOs);
+                        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDtos);
                         break;
                     case FORMAT_CSV:
-                        Set<MemberDTO> memberDTOsFromCsv = memberParser.parseMembersFromCsvInputStream(extension, inputStream);
-                        memberDTOsFromCsv.forEach(memberDTO -> {
-                            Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDTO.getSequenceId());
-                            memberDTO.setId(correspondingMemberFromDb == null ? UUID.randomUUID() : correspondingMemberFromDb.getId());
+                        final Set<MemberDTO> memberDtossFromCsv = memberParser.parseMembersFromCsvInputStream(extension, inputStream);
+                        memberDtossFromCsv.forEach(memberDto -> {
+                            Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDto.getSequenceId());
+                            memberDto.setId(correspondingMemberFromDb == null ? UUID.randomUUID() : correspondingMemberFromDb.getId());
                         });
-                        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDTOsFromCsv);
+                        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDtossFromCsv);
                         break;
                     default:
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
@@ -201,19 +201,14 @@ public class MemberServiceImpl implements MemberService {
         if (!authorizationManager.canBeModifiedByUserInOrganization(extension.getParentCodeScheme().getCodeRegistry().getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
-        Set<Member> members;
-        final Set<MemberDTO> memberDTOs = memberParser.parseMembersFromExcelWorkbook(extension, workbook, sheetName);
-        memberDTOs.forEach(memberDTO -> {
-            Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDTO.getSequenceId());
-            memberDTO.setId(correspondingMemberFromDb == null ? UUID.randomUUID() : correspondingMemberFromDb.getId());
-        });
-        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDTOs);
+        final Set<MemberDTO> memberDtos = memberParser.parseMembersFromExcelWorkbook(extension, workbook, sheetName);
+        final Set<Member> members = memberDao.updateMemberEntitiesFromDtos(extension, memberDtos);
         return dtoMapperService.mapDeepMemberDtos(members);
     }
 
     @Transactional
     public Set<MemberDTO> createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(final ExtensionDTO extension) {
-        Set<Member> createdMembers = memberDao.createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(extension);
+        final Set<Member> createdMembers = memberDao.createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(extension);
         return dtoMapperService.mapDeepMemberDtos(createdMembers);
     }
 }
