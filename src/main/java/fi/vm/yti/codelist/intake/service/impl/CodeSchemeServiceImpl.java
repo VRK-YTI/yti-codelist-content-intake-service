@@ -279,11 +279,9 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         final Map<CodeSchemeDTO, String> extensionsSheetNames = new HashMap<>();
                         final Map<CodeSchemeDTO, String> codesSheetNames = new HashMap<>();
                         final Set<CodeSchemeDTO> codeSchemeDtos = codeSchemeParser.parseCodeSchemesFromExcelWorkbook(codeRegistry, workbook, codesSheetNames, externalReferencesSheetNames, extensionsSheetNames);
-
                         if (updatingExistingCodeScheme) {
                             handleUpdatingOneParticularCodeSchemeThroughFileUpload(originalCodeSchemeId, codeSchemeDtos);
                         }
-
                         if (userIsCreatingANewVersionOfACodeScheme) {
                             previousCodeScheme = codeSchemeDao.findById(UUID.fromString(originalCodeSchemeId));
                             if (previousCodeScheme.isCumulative()) {

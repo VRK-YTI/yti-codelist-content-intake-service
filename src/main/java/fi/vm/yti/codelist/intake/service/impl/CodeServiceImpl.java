@@ -194,6 +194,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                             }
                         }
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeDtosFromCsv, broaderCodeMapping, false);
+                        parseExternalReferencesFromCodeDtos(codeScheme, codes, codeDtosFromCsv);
                         break;
                     default:
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
