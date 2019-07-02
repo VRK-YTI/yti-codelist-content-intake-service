@@ -139,7 +139,7 @@ public abstract class AbstractBaseParser {
     String parseStatusValueFromString(final String statusString) {
         final String status;
         try {
-            status = Status.valueOf(statusString.trim().toUpperCase()).toString();
+            status = Status.valueOf(statusString.replaceAll(" ", "").trim().toUpperCase()).toString();
         } catch (final Exception e) {
             LOG.error("Caught exception in parseStatusValueFromString.", e);
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID, statusString));

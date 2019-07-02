@@ -1218,7 +1218,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
     private String parseStatusFromString(final String status) {
         try {
-            return Status.valueOf(status.trim().toUpperCase()).toString();
+            return Status.valueOf(status.replaceAll(" ", "").trim().toUpperCase()).toString();
         } catch (final Exception e) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_NOT_VALID, status));
         }
