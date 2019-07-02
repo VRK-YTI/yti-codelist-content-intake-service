@@ -390,14 +390,14 @@ public abstract class AbstractBaseParser {
                 final ExternalReferenceDTO externalReference = new ExternalReferenceDTO();
                 UUID uuid = null;
                 try {
-                    uuid = UUID.fromString(externalReferenceIdentifier);
+                    uuid = UUID.fromString(externalReferenceIdentifier.trim());
                 } catch (final Exception e) {
                     // Nothing on purpose
                 }
                 if (uuid != null) {
                     externalReference.setId(uuid);
                 } else {
-                    externalReference.setHref(externalReferenceIdentifier);
+                    externalReference.setHref(externalReferenceIdentifier.trim());
                 }
                 externalReferences.add(externalReference);
             }
