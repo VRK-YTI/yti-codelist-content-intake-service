@@ -87,6 +87,9 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 code.setShortName(parseShortNameFromCsvRecord(record));
                 code.setConceptUriInVocabularies(parseConceptUriFromCsvRecord(record));
                 code.setOrder(resolveOrderFromCsvRecord(record));
+                if (record.isMapped(CONTENT_HEADER_HREF)) {
+                    code.setExternalReferences(resolveHrefs(record.get(CONTENT_HEADER_HREF)));
+                }
                 if (record.isMapped(CONTENT_HEADER_BROADER)) {
                     final String broaderCodeCodeValue = record.get(CONTENT_HEADER_BROADER);
                     if (broaderCodeCodeValue != null && !broaderCodeCodeValue.isEmpty()) {
