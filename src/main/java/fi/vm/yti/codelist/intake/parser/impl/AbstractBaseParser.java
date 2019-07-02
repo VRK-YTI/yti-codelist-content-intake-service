@@ -322,7 +322,7 @@ public abstract class AbstractBaseParser {
     Integer resolveOrderFromCsvRecord(final CSVRecord record) {
         final Integer order;
         if (record.isMapped(CONTENT_HEADER_ORDER)) {
-            order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER), new Integer((int)record.getRecordNumber()).intValue());
+            order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER), (int) record.getRecordNumber());
         } else {
             order = null;
         }
@@ -332,14 +332,15 @@ public abstract class AbstractBaseParser {
     Integer resolveSequenceIdFromCsvRecord(final CSVRecord record) {
         final Integer order;
         if (record.isMapped(CONTENT_HEADER_MEMBER_ID)) {
-            order = resolveSequenceIdFromString(record.get(CONTENT_HEADER_MEMBER_ID), new Integer((int)record.getRecordNumber()).intValue());
+            order = resolveSequenceIdFromString(record.get(CONTENT_HEADER_MEMBER_ID), (int) record.getRecordNumber());
         } else {
             order = null;
         }
         return order;
     }
 
-    private Integer resolveOrderFromString(final String orderString, final int rowNum) {
+    private Integer resolveOrderFromString(final String orderString,
+                                           final int rowNum) {
         final Integer order;
         if (!orderString.isEmpty()) {
             try {
@@ -355,7 +356,8 @@ public abstract class AbstractBaseParser {
         return order;
     }
 
-    private Integer resolveSequenceIdFromString(final String sequenceIdString, final int rowNum) {
+    private Integer resolveSequenceIdFromString(final String sequenceIdString,
+                                                final int rowNum) {
         final Integer sequenceId;
         if (!sequenceIdString.isEmpty()) {
             try {
@@ -383,6 +385,10 @@ public abstract class AbstractBaseParser {
         return organizations;
     }
 
+    private String trimWhiteSpaceFromString(final String string) {
+        return string.replaceAll(" ", "").trim();
+    }
+
     Set<ExternalReferenceDTO> resolveHrefs(final String externalReferencesString) {
         final Set<ExternalReferenceDTO> externalReferences = new HashSet<>();
         if (externalReferencesString != null && !externalReferencesString.isEmpty()) {
@@ -390,14 +396,14 @@ public abstract class AbstractBaseParser {
                 final ExternalReferenceDTO externalReference = new ExternalReferenceDTO();
                 UUID uuid = null;
                 try {
-                    uuid = UUID.fromString(externalReferenceIdentifier.trim());
+                    uuid = UUID.fromString(trimWhiteSpaceFromString(externalReferenceIdentifier));
                 } catch (final Exception e) {
                     // Nothing on purpose
                 }
                 if (uuid != null) {
                     externalReference.setId(uuid);
                 } else {
-                    externalReference.setHref(externalReferenceIdentifier.trim());
+                    externalReference.setHref(trimWhiteSpaceFromString(externalReferenceIdentifier));
                 }
                 externalReferences.add(externalReference);
             }
@@ -422,7 +428,7 @@ public abstract class AbstractBaseParser {
         }
         for (int cellNum = row.getFirstCellNum(); cellNum < row.getLastCellNum(); cellNum++) {
             final Cell cell = row.getCell(cellNum);
-            if (cell != null && cell.getCellTypeEnum() != CellType.BLANK && StringUtils.isNotBlank(cell.toString().replaceAll(" ", "").trim())) {
+            if (cell != null && cell.getCellTypeEnum() != CellType.BLANK && StringUtils.isNotBlank(trimWhiteSpaceFromString(cell.toString()))) {
                 return false;
             }
         }
