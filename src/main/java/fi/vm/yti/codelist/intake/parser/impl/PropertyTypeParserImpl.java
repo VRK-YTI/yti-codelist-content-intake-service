@@ -114,7 +114,7 @@ public class PropertyTypeParserImpl extends AbstractBaseParser implements Proper
         if (valueTypeLocalNames != null && !valueTypeLocalNames.isEmpty()) {
             valueTypeLocalNames.forEach(valueTypeLocalName -> {
                 final ValueTypeDTO valueType = new ValueTypeDTO();
-                valueType.setLocalName(valueTypeLocalName);
+                valueType.setLocalName(trimWhiteSpaceFromString(valueTypeLocalName));
                 valueTypes.add(valueType);
             });
         }

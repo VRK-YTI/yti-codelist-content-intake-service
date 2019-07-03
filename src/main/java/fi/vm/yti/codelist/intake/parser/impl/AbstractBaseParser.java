@@ -378,14 +378,14 @@ public abstract class AbstractBaseParser {
         if (organizationsString != null && !organizationsString.isEmpty()) {
             for (final String organizationId : organizationsString.split(";")) {
                 final OrganizationDTO organization = new OrganizationDTO();
-                organization.setId(UUID.fromString(organizationId));
+                organization.setId(UUID.fromString(trimWhiteSpaceFromString(organizationId)));
                 organizations.add(organization);
             }
         }
         return organizations;
     }
 
-    private String trimWhiteSpaceFromString(final String string) {
+    public String trimWhiteSpaceFromString(final String string) {
         return string.replaceAll(" ", "").trim();
     }
 

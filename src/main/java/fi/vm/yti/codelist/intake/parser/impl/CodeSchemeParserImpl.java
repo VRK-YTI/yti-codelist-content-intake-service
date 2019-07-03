@@ -323,7 +323,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         codes.forEach(code -> {
             if (!code.isEmpty()) {
                 final CodeDTO infoDomain = new CodeDTO();
-                infoDomain.setCodeValue(code);
+                infoDomain.setCodeValue(trimWhiteSpaceFromString(code));
                 infoDomains.add(infoDomain);
             }
         });
@@ -339,7 +339,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         codes.forEach(code -> {
             if (!code.isEmpty()) {
                 final CodeDTO languageCode = new CodeDTO();
-                languageCode.setCodeValue(code);
+                languageCode.setCodeValue(trimWhiteSpaceFromString(code));
                 languages.add(languageCode);
             }
         });

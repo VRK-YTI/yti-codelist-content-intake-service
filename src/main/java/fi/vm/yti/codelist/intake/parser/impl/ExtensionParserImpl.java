@@ -113,7 +113,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                     final List<String> uris = parseCodeSchemesFromRecord(record);
                     uris.forEach(uri -> {
                         final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
-                        codeScheme.setUri(uri);
+                        codeScheme.setUri(trimWhiteSpaceFromString(uri));
                         codeSchemes.add(codeScheme);
                     });
                     extension.setCodeSchemes(codeSchemes);
@@ -199,7 +199,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                     uris.forEach(uri -> {
                         if (!uri.isEmpty()) {
                             final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
-                            codeScheme.setUri(uri);
+                            codeScheme.setUri(trimWhiteSpaceFromString(uri));
                             codeSchemes.add(codeScheme);
                         }
                     });
