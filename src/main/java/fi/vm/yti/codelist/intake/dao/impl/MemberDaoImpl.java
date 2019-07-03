@@ -234,7 +234,8 @@ public class MemberDaoImpl implements MemberDao {
             }
         }
         ensureThatRequiredMemberValuesArePresent(extension.getPropertyType().getValueTypes(), memberValues);
-        member.setMemberValues(memberValues);
+        member.getMemberValues().clear();
+        member.getMemberValues().addAll(memberValues);
     }
 
     private void ensureThatRequiredMemberValuesArePresent(final Set<ValueType> valueTypes,
@@ -476,7 +477,7 @@ public class MemberDaoImpl implements MemberDao {
                                        final Set<Member> members) {
         Member existingMember = null;
         if (extension != null) {
-            if (fromMember.getId() != null) {
+            if (fromMember.getId() != null || fromMember.getSequenceId() != null) {
                 for (final Member member : existingMembers) {
                     if (member.getId().equals(fromMember.getId()) || member.getSequenceId().equals(fromMember.getSequenceId())) {
                         existingMember = member;
@@ -486,8 +487,6 @@ public class MemberDaoImpl implements MemberDao {
                 if (existingMember != null) {
                     validateExtension(existingMember, extension);
                 }
-            } else {
-                existingMember = null;
             }
             validateMultipleLinkedCodesForCodeExtensionMembers(extension, existingMembers, existingMember, fromMember);
             final Member member;

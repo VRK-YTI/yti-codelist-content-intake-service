@@ -165,7 +165,7 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
         }
     }
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "member", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     public Set<MemberValue> getMemberValues() {
         return memberValues;
     }
