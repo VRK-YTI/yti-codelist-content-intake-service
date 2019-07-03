@@ -234,8 +234,12 @@ public class MemberDaoImpl implements MemberDao {
             }
         }
         ensureThatRequiredMemberValuesArePresent(extension.getPropertyType().getValueTypes(), memberValues);
-        member.getMemberValues().clear();
-        member.getMemberValues().addAll(memberValues);
+        if (member.getMemberValues() != null) {
+            member.getMemberValues().clear();
+            member.getMemberValues().addAll(memberValues);
+        } else {
+            member.setMemberValues(memberValues);
+        }
     }
 
     private void ensureThatRequiredMemberValuesArePresent(final Set<ValueType> valueTypes,
