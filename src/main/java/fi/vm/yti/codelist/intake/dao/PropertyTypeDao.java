@@ -8,7 +8,8 @@ import fi.vm.yti.codelist.intake.model.PropertyType;
 
 public interface PropertyTypeDao {
 
-    PropertyType findByContextAndLocalName(final String context, final String localName);
+    PropertyType findByContextAndLocalName(final String context,
+                                           final String localName);
 
     PropertyType findByLocalName(final String localName);
 

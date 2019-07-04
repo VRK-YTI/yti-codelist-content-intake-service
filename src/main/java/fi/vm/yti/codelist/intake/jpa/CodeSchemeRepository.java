@@ -18,7 +18,8 @@ public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String>
 
     Set<CodeScheme> findByCodeRegistryCodeValueIgnoreCase(final String codeRegistryCodeValue);
 
-    CodeScheme findByCodeRegistryAndCodeValueIgnoreCase(final CodeRegistry codeRegistry, final String codeValue);
+    CodeScheme findByCodeRegistryAndCodeValueIgnoreCase(final CodeRegistry codeRegistry,
+                                                        final String codeValue);
 
     CodeScheme findByUriIgnoreCase(final String uri);
 
@@ -29,13 +30,13 @@ public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String>
     Set<CodeScheme> findAll();
 
     @Query("select cs from CodeScheme cs " +
-            "left join fetch cs.codes cod left join fetch cod.externalReferences er left join fetch cod.members ext " +
-            "left join fetch cs.infoDomains ids left join fetch ids.externalReferences idsExtRef left join fetch ids.members idsExt " +
-            "left join fetch cs.codeRegistry cr left join fetch cr.organizations org " +
-            "where cs.id = ?1")
+        "left join fetch cs.codes cod left join fetch cod.externalReferences er left join fetch cod.members ext " +
+        "left join fetch cs.infoDomains ids left join fetch ids.externalReferences idsExtRef left join fetch ids.members idsExt " +
+        "left join fetch cs.codeRegistry cr left join fetch cr.organizations org " +
+        "where cs.id = ?1")
     CodeScheme findCodeSchemeAndEagerFetchTheChildren(final UUID id);
 
     @Query("select cs from CodeScheme cs " +
-            "where cs.prevCodeschemeId = ?1")
+        "where cs.prevCodeschemeId = ?1")
     CodeScheme findByPrevCodeschemeId(final UUID codeschemeId);
 }

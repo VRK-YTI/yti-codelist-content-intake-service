@@ -5,9 +5,9 @@ import java.util.Set;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
-import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 
@@ -73,5 +73,6 @@ public interface Indexing {
 
     void reIndexEverythingIfNecessary();
 
-    boolean reIndex(final String indexName, final String type);
+    boolean reIndex(final String indexName,
+                    final String type);
 }

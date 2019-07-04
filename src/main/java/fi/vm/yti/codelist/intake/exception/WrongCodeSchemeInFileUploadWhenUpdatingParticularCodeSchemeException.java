@@ -7,6 +7,7 @@ import fi.vm.yti.codelist.common.dto.ErrorModel;
 
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
 public class WrongCodeSchemeInFileUploadWhenUpdatingParticularCodeSchemeException extends YtiCodeListException {
+
     public WrongCodeSchemeInFileUploadWhenUpdatingParticularCodeSchemeException(final ErrorModel errorModel) {
         super(errorModel);
     }

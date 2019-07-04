@@ -1,23 +1,27 @@
 package fi.vm.yti.codelist.intake.security;
 
-import fi.vm.yti.security.config.FakeUserLogin;
-import fi.vm.yti.security.config.FakeUserLoginProvider;
-import fi.vm.yti.security.config.SecurityBaseConfig;
+import javax.annotation.Nullable;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import javax.annotation.Nullable;
+import fi.vm.yti.security.config.FakeUserLogin;
+import fi.vm.yti.security.config.FakeUserLoginProvider;
+import fi.vm.yti.security.config.SecurityBaseConfig;
 
 @Configuration
 @Import(SecurityBaseConfig.class)
 public class SecurityConfig {
 
-    private final @Nullable String fakeLoginMail;
-    private final @Nullable String fakeLoginFirstName;
-    private final @Nullable String fakeLoginLastName;
+    @Nullable
+    private final String fakeLoginMail;
+    @Nullable
+    private final String fakeLoginFirstName;
+    @Nullable
+    private final String fakeLoginLastName;
 
     SecurityConfig(@Value("${fake.login.mail:}") @Nullable String fakeLoginMail,
                    @Value("${fake.login.firstName:}") @Nullable String fakeLoginFirstName,

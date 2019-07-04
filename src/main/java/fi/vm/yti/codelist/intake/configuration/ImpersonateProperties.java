@@ -1,4 +1,3 @@
-
 package fi.vm.yti.codelist.intake.configuration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -16,5 +15,5 @@ public class ImpersonateProperties {
 
     public void setAllowed(boolean allowed) {
         this.allowed = allowed;
-    } 
+    }
 }

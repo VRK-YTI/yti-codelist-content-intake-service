@@ -169,7 +169,6 @@ public class CodeDaoImpl implements CodeDao {
         return codeRepository.findById(id);
     }
 
-
     @Transactional
     public Set<Code> findByCodeSchemeAndStatus(final CodeScheme codeScheme,
                                                final String status) {
@@ -317,11 +316,13 @@ public class CodeDaoImpl implements CodeDao {
         return code;
     }
 
-    private void validateCodeStatusChange(Code existingCode, CodeDTO codeWithChanges) {
+    private void validateCodeStatusChange(final Code existingCode,
+                                          final CodeDTO codeWithChanges) {
         ValidationUtils.validateCodeStatusTransitions(existingCode.getStatus(), codeWithChanges.getStatus());
     }
 
-    private boolean codeStatusHasChanged(Code existingCode, CodeDTO codeWithChanges) {
+    private boolean codeStatusHasChanged(final Code existingCode,
+                                         final CodeDTO codeWithChanges) {
         return !existingCode.getStatus().equals(codeWithChanges.getStatus());
     }
 

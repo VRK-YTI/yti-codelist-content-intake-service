@@ -1,14 +1,14 @@
 package fi.vm.yti.codelist.intake.security;
 
+import java.util.Collection;
+import java.util.UUID;
+
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.model.Organization;
-
-import java.util.Collection;
-import java.util.UUID;
 
 public interface AuthorizationManager {
 

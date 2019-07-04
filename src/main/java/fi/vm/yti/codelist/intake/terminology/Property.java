@@ -10,7 +10,8 @@ public final class Property {
         this("", "");
     }
 
-    public Property(String lang, String value) {
+    public Property(String lang,
+                    String value) {
         this.lang = lang;
         this.value = value;
     }

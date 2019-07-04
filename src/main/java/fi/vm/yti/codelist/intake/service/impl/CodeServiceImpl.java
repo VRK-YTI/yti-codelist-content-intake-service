@@ -341,53 +341,47 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
             if (previousVersions.iterator().hasNext()) {
                 CodeScheme previousVersion = previousVersions.iterator().next();
                 if (previousVersion.isCumulative()) {
-                    previousVersions.stream().forEach(cs -> {
-                        cs.getCodes().stream().forEach(code -> {
-                            if (code.getCodeValue().equals(codeCodeValue)) {
-                                throw new UndeletableCodeDueToCumulativeCodeSchemeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                                    ERR_MSG_USER_CODE_CANNOT_BE_DELETED_BECAUSE_CUMULATIVE_CODELIST));
-                            }
-                        });
-                    });
+                    previousVersions.forEach(cs -> cs.getCodes().forEach(code -> {
+                        if (code.getCodeValue().equals(codeCodeValue)) {
+                            throw new UndeletableCodeDueToCumulativeCodeSchemeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                ERR_MSG_USER_CODE_CANNOT_BE_DELETED_BECAUSE_CUMULATIVE_CODELIST));
+                        }
+                    }));
                 }
             }
         }
-        if (codeScheme != null) {
-            final Code codeToBeDeleted = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
-            if (codeToBeDeleted != null) {
-                if (authorizationManager.canCodeBeDeleted(codeToBeDeleted)) {
-                    if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(codeToBeDeleted.getCodeValue())) {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_CANT_DELETE_DEFAULT_CODE));
-                    }
-                    final Set<Member> filteredMembers = filterRelatedExtensionMembers(codeToBeDeleted);
-                    if (!filteredMembers.isEmpty()) {
-                        final StringBuilder identifier = new StringBuilder();
-                        for (final Member relatedMember : codeToBeDeleted.getMembers()) {
-                            if (identifier.length() == 0) {
-                                identifier.append(relatedMember.getUri());
-                            } else {
-                                identifier.append("\n").append(relatedMember.getUri());
-                            }
-                        }
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_IN_USE, identifier.toString()));
-                    }
-                    final Set<Member> membersToBeDeleted = filterToBeDeletedMembers(codeScheme, codeToBeDeleted);
-                    if (!membersToBeDeleted.isEmpty()) {
-                        memberDao.delete(membersToBeDeleted);
-                    }
-                    removeBroaderCodeId(codeToBeDeleted.getId(), affectedCodes);
-                    final CodeDTO codeToBeDeletedDTO = dtoMapperService.mapCodeDto(codeToBeDeleted, true, true, true);
-                    codeToBeDeleted.setMembers(null);
-                    codeDao.delete(codeToBeDeleted);
-                    return codeToBeDeletedDTO;
-                } else {
-                    throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+        final Code codeToBeDeleted = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
+        if (codeToBeDeleted != null) {
+            if (authorizationManager.canCodeBeDeleted(codeToBeDeleted)) {
+                if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(codeToBeDeleted.getCodeValue())) {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_CANT_DELETE_DEFAULT_CODE));
                 }
+                final Set<Member> filteredMembers = filterRelatedExtensionMembers(codeToBeDeleted);
+                if (!filteredMembers.isEmpty()) {
+                    final StringBuilder identifier = new StringBuilder();
+                    for (final Member relatedMember : codeToBeDeleted.getMembers()) {
+                        if (identifier.length() == 0) {
+                            identifier.append(relatedMember.getUri());
+                        } else {
+                            identifier.append("\n").append(relatedMember.getUri());
+                        }
+                    }
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_IN_USE, identifier.toString()));
+                }
+                final Set<Member> membersToBeDeleted = filterToBeDeletedMembers(codeScheme, codeToBeDeleted);
+                if (!membersToBeDeleted.isEmpty()) {
+                    memberDao.delete(membersToBeDeleted);
+                }
+                removeBroaderCodeId(codeToBeDeleted.getId(), affectedCodes);
+                final CodeDTO codeToBeDeletedDTO = dtoMapperService.mapCodeDto(codeToBeDeleted, true, true, true);
+                codeToBeDeleted.setMembers(null);
+                codeDao.delete(codeToBeDeleted);
+                return codeToBeDeletedDTO;
             } else {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_NOT_FOUND));
+                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
         } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_NOT_FOUND));
         }
     }
 

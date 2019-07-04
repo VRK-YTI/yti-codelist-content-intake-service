@@ -250,6 +250,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
     }
 
     @Transactional
+    @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
     public Set<CodeSchemeDTO> parseAndPersistCodeSchemesFromSourceData(final boolean isAuthorized,
                                                                        final String codeRegistryCodeValue,
                                                                        final String format,
@@ -291,12 +292,12 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, false);
                         parseExternalReferences(codeSchemes, externalReferencesSheetNames, workbook);
                         parseExternalReferencesFromCodeSchemeDtos(codeSchemes, codeSchemeDtos);
-                        Map<CodeScheme, Set<CodeDTO>> codeParsingResult = parseCodes(codeSchemes, codeSchemeDtos, codesSheetNames, workbook);
+                        final Map<CodeScheme, Set<CodeDTO>> codeParsingResult = parseCodes(codeSchemes, codeSchemeDtos, codesSheetNames, workbook);
                         parseExtensions(codeSchemes, extensionsSheetNames, workbook);
                         if (userIsCreatingANewVersionOfACodeScheme) {
                             if (previousCodeScheme.isCumulative()) {
                                 if (preventPossibleImplicitCodeDeletionDuringFileImport) {
-                                    LinkedHashSet<CodeDTO> missingCodes = getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(codeService.findByCodeSchemeId(previousCodeScheme.getId()), codeParsingResult.get(codeSchemes.iterator().next()));
+                                    final LinkedHashSet<CodeDTO> missingCodes = getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(codeService.findByCodeSchemeId(previousCodeScheme.getId()), codeParsingResult.get(codeSchemes.iterator().next()));
                                     if (!missingCodes.isEmpty()) {
                                         return handleMissingCodesOfACumulativeCodeScheme(missingCodes);
                                     }

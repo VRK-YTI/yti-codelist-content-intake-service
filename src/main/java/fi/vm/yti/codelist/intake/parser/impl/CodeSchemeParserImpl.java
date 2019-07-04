@@ -353,8 +353,8 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
     }
 
     protected void validateRequiredDataOnRow(final Row row,
-                                           final Map<String, Integer> headerMap,
-                                           final DataFormatter formatter) {
+                                             final Map<String, Integer> headerMap,
+                                             final DataFormatter formatter) {
         super.validateRequiredDataOnRow(row, headerMap, formatter);
     }
 
@@ -402,7 +402,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
     }
 
     private void validateRequiredDataOnRecord(final CSVRecord record,
-                                                final Map<String, Integer> headerMap) {
+                                              final Map<String, Integer> headerMap) {
         if (record.get(CONTENT_HEADER_CODEVALUE) == null || record.get(CONTENT_HEADER_CODEVALUE).isEmpty()) {
             throw new MissingRowValueCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_ROW_MISSING_CODEVALUE, getRecordIdentifier(record)));

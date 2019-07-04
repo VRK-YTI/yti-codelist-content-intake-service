@@ -6,7 +6,8 @@ public class MetaResponseWrapper {
 
     private Meta meta;
 
-    public MetaResponseWrapper() {}
+    public MetaResponseWrapper() {
+    }
 
     public MetaResponseWrapper(final Meta meta) {
         this.meta = meta;

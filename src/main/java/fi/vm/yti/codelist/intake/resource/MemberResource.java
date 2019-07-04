@@ -15,16 +15,19 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
+import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExtensionService;
@@ -36,6 +39,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CODE_EXTENSION;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_MEMBER;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_EXTENSION_NOT_FOUND;
 
 @Component
 @Path("/v1/members")
@@ -103,7 +107,9 @@ public class MemberResource implements AbstractBaseResource {
         indexing.updateMembers(members);
         if (!members.isEmpty()) {
             final ExtensionDTO extension = extensionService.findById(members.iterator().next().getExtension().getId());
-            if (extension != null) {
+            if (extension == null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
+            } else {
                 indexing.updateExtension(extension);
                 indexing.updateMembers(memberService.findByExtensionId(extension.getId()));
             }

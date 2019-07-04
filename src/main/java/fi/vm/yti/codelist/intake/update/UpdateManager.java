@@ -25,7 +25,9 @@ public class UpdateManager {
         this.updateStatusRepository = updateStatusRepository;
     }
 
-    public boolean shouldUpdateData(final String dataType, final String identifier, final String version) {
+    public boolean shouldUpdateData(final String dataType,
+                                    final String identifier,
+                                    final String version) {
         final List<UpdateStatus> list = updateStatusRepository.getLatestSuccessfulUpdatesForType(dataType, identifier);
         if (!list.isEmpty()) {
             final UpdateStatus status = list.get(0);

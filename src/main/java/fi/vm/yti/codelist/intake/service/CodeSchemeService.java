@@ -57,11 +57,11 @@ public interface CodeSchemeService {
                                                      final LinkedHashSet<CodeSchemeDTO> result);
 
     boolean canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(final String codeRegistryCodeValue,
-                                                                                   final String format,
-                                                                                   final InputStream inputStream);
+                                                                            final String format,
+                                                                            final InputStream inputStream);
 
     LinkedHashSet<CodeDTO> getPossiblyMissingSetOfCodesOfANewVersionOfCumulativeCodeScheme(final Set<CodeDTO> previousVersionsCodes,
-                                                                                 final Set<CodeDTO> codeDtos);
+                                                                                           final Set<CodeDTO> codeDtos);
 
     LinkedHashSet<CodeSchemeDTO> handleMissingCodesOfACumulativeCodeScheme(final LinkedHashSet<CodeDTO> missingCodes);
 }

@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
@@ -396,7 +397,6 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 }
             }
 
-
             if (changeCodeStatuses != null && changeCodeStatuses.equals("true")) {
                 codesWhereStatusChanged = codeService.massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, initialCodeStatus, endCodeStatus, true);
             }
@@ -419,7 +419,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         }
         final Meta meta = new Meta();
         if (codesWhereStatusChanged != null) {
-            meta.setNonTranslatableMessage(new Integer(codesWhereStatusChanged.size()).toString());
+            meta.setNonTranslatableMessage(Integer.toString(codesWhereStatusChanged.size()));
         }
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
@@ -639,6 +639,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         @ApiResponse(code = 404, message = "CodeScheme not found."),
         @ApiResponse(code = 406, message = "CodeScheme delete failed.")
     })
+    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
     public Response deleteCodeScheme(@ApiParam(value = "CodeRegistry codeValue", required = true) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @ApiParam(value = "CodeScheme codeValue", required = true) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue) {
 
@@ -650,9 +651,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findByParentCodeSchemeId(codeSchemeId);
             final Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(codeSchemeId);
             final Set<MemberDTO> members = new HashSet<>();
-            extensions.forEach(extensionDTO -> {
-                members.addAll(memberService.findByExtensionId(extensionDTO.getId()));
-            });
+            extensions.forEach(extensionDTO -> members.addAll(memberService.findByExtensionId(extensionDTO.getId())));
             final LinkedHashSet<CodeSchemeDTO> codeSchemeDTOsToIndex = new LinkedHashSet<>();
             final CodeSchemeDTO codeScheme = codeSchemeService.deleteCodeScheme(existingCodeScheme.getCodeRegistry().getCodeValue(), existingCodeScheme.getCodeValue(), codeSchemeDTOsToIndex);
 
@@ -680,12 +679,8 @@ public class CodeRegistryResource implements AbstractBaseResource {
             if (externalReferences != null) {
                 indexing.deleteExternalReferences(externalReferences);
             }
-            if (extensions != null) {
-                indexing.deleteExtensions(extensions);
-            }
-            if (members != null) {
-                indexing.deleteMembers(members);
-            }
+            indexing.deleteExtensions(extensions);
+            indexing.deleteMembers(members);
         } else {
             return Response.status(404).build();
         }
@@ -1155,7 +1150,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
             final Set<MemberDTO> members = memberService.parseAndPersistMembersFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, extensionCodeValue, format, inputStream, jsonPayload, sheetName);
             indexing.updateMembers(members);
             final ExtensionDTO extension = extensionService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionCodeValue);
-            if (extension != null) {
+            if (extension == null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
+            } else {
                 indexing.updateExtension(extension);
             }
             if (CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())) {

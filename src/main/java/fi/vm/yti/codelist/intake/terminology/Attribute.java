@@ -13,11 +13,14 @@ public final class Attribute {
         this("", "", "");
     }
 
-    public Attribute(String lang, String value) {
+    public Attribute(String lang,
+                     String value) {
         this(lang, value, DEFAULT_ATTRIBUTE_REGEX);
     }
 
-    public Attribute(String lang, String value, String regex) {
+    public Attribute(String lang,
+                     String value,
+                     String regex) {
         this.lang = lang;
         this.value = value;
         this.regex = regex;

@@ -29,6 +29,7 @@ public final class Vocabulary {
         this.id = id;
         this.prefLabel = prefLabel;
         this.status = status;
+        this.languages = languages;
     }
 
     public UUID getId() {
@@ -39,7 +40,11 @@ public final class Vocabulary {
         return prefLabel;
     }
 
-    public String getStatus() { return status; }
+    public String getStatus() {
+        return status;
+    }
 
-    public List getLanguages() { return languages; }
+    public List getLanguages() {
+        return languages;
+    }
 }

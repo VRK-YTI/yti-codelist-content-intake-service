@@ -300,7 +300,7 @@ public abstract class AbstractBaseParser {
                                      final DataFormatter formatter) {
         final Integer order;
         if (headerMap.containsKey(CONTENT_HEADER_ORDER)) {
-            order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER))), row.getRowNum());
+            order = resolveOrderFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ORDER))), String.valueOf(row.getRowNum()));
         } else {
             order = null;
         }
@@ -312,7 +312,7 @@ public abstract class AbstractBaseParser {
                                           final DataFormatter formatter) {
         final Integer sequenceId;
         if (headerMap.containsKey(CONTENT_HEADER_MEMBER_ID)) {
-            sequenceId = resolveSequenceIdFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBER_ID))), row.getRowNum());
+            sequenceId = resolveSequenceIdFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_MEMBER_ID))), String.valueOf(row.getRowNum()));
         } else {
             sequenceId = null;
         }
@@ -322,7 +322,7 @@ public abstract class AbstractBaseParser {
     Integer resolveOrderFromCsvRecord(final CSVRecord record) {
         final Integer order;
         if (record.isMapped(CONTENT_HEADER_ORDER)) {
-            order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER), (int) record.getRecordNumber());
+            order = resolveOrderFromString(record.get(CONTENT_HEADER_ORDER), String.valueOf(record.getRecordNumber()));
         } else {
             order = null;
         }
@@ -332,7 +332,7 @@ public abstract class AbstractBaseParser {
     Integer resolveSequenceIdFromCsvRecord(final CSVRecord record) {
         final Integer order;
         if (record.isMapped(CONTENT_HEADER_MEMBER_ID)) {
-            order = resolveSequenceIdFromString(record.get(CONTENT_HEADER_MEMBER_ID), (int) record.getRecordNumber());
+            order = resolveSequenceIdFromString(record.get(CONTENT_HEADER_MEMBER_ID), String.valueOf(record.getRecordNumber()));
         } else {
             order = null;
         }
@@ -340,7 +340,7 @@ public abstract class AbstractBaseParser {
     }
 
     private Integer resolveOrderFromString(final String orderString,
-                                           final int rowNum) {
+                                           final String rowIdentifier) {
         final Integer order;
         if (!orderString.isEmpty()) {
             try {
@@ -348,7 +348,7 @@ public abstract class AbstractBaseParser {
             } catch (final NumberFormatException e) {
                 LOG.error("Error parsing order from: " + orderString, e);
                 throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    ERR_MSG_USER_ORDER_INVALID_VALUE, new Integer(rowNum).toString()));
+                    ERR_MSG_USER_ORDER_INVALID_VALUE, rowIdentifier));
             }
         } else {
             order = null;
@@ -357,7 +357,7 @@ public abstract class AbstractBaseParser {
     }
 
     private Integer resolveSequenceIdFromString(final String sequenceIdString,
-                                                final int rowNum) {
+                                                final String rowIdentifier) {
         final Integer sequenceId;
         if (!sequenceIdString.isEmpty()) {
             try {
@@ -365,7 +365,7 @@ public abstract class AbstractBaseParser {
             } catch (final NumberFormatException e) {
                 LOG.error("Error parsing sequenceId from: " + sequenceIdString, e);
                 throw new CodeParsingException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    ERR_MSG_USER_MEMBER_ID_INVALID_VALUE, new Integer(rowNum).toString()));
+                    ERR_MSG_USER_MEMBER_ID_INVALID_VALUE, rowIdentifier));
             }
         } else {
             sequenceId = null;

@@ -15,7 +15,7 @@ public final class ConceptSuggestion {
 
     // Jackson constructor
     private ConceptSuggestion() {
-        this(null, null,null, null, "");
+        this(null, null, null, null, "");
     }
 
     public ConceptSuggestion(final Attribute prefLabel,
