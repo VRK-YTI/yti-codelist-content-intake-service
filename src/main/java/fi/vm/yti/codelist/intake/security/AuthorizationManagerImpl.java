@@ -33,7 +33,7 @@ import static fi.vm.yti.security.Role.CODE_LIST_EDITOR;
  * this class is marked with @Profile="!test" - otherwise this class is trying to get
  * loaded during the tests as well and an error ensues.
  *
- * @see fi.vm.yti.codelist.intake.integration.AuthorizationManagerForTestsImpl which is the
+ * See fi.vm.yti.codelist.intake.integration.AuthorizationManagerForTestsImpl which is the
  * integrationtest-code counterpart for this class.
  */
 

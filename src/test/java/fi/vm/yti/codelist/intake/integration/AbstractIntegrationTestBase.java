@@ -26,9 +26,8 @@ abstract public class AbstractIntegrationTestBase {
     @LocalServerPort
     private int randomServerPort;
 
-    private String createApiUrl(final int serverPort,
-                                final String apiPath) {
-        return TEST_BASE_URL + ":" + serverPort + API_CONTEXT_PATH_INTAKE + API_BASE_PATH + API_PATH_VERSION_V1 + apiPath + "/";
+    private String createApiUrl(final int serverPort) {
+        return TEST_BASE_URL + ":" + serverPort + API_CONTEXT_PATH_INTAKE + API_BASE_PATH + API_PATH_VERSION_V1 + API_PATH_CODEREGISTRIES + "/";
     }
 
     ResponseEntity<String> uploadCodesToCodeSchemeFromCsv(final String codeRegistryCodeValue,
@@ -47,7 +46,7 @@ abstract public class AbstractIntegrationTestBase {
                                                            final String codeSchemeCodeValue,
                                                            final String codesFilename,
                                                            final String format) {
-        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + "?format=" + format;
+        final String apiUrl = createApiUrl(randomServerPort) + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES + "/" + "?format=" + format;
         final String filePath = "/" + CODES_FOLDER_NAME + "/" + codesFilename;
         return uploadFile(apiUrl, filePath);
     }
@@ -65,7 +64,7 @@ abstract public class AbstractIntegrationTestBase {
     private ResponseEntity<String> uploadCodeSchemesToCodeRegistry(final String codeRegistryCodeValue,
                                                                    final String codeSchemesFilename,
                                                                    final String format) {
-        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + codeRegistryCodeValue + API_PATH_CODESCHEMES + "?format=" + format;
+        final String apiUrl = createApiUrl(randomServerPort) + codeRegistryCodeValue + API_PATH_CODESCHEMES + "?format=" + format;
         final String filePath = "/" + CODESCHEMES_FOLDER_NAME + "/" + codeSchemesFilename;
         return uploadFile(apiUrl, filePath);
     }
@@ -80,7 +79,7 @@ abstract public class AbstractIntegrationTestBase {
 
     private ResponseEntity<String> uploadCodeRegistries(final String codeRegistriesFilename,
                                                         final String format) {
-        final String apiUrl = createApiUrl(randomServerPort, API_PATH_CODEREGISTRIES) + "/" + "?format=" + format;
+        final String apiUrl = createApiUrl(randomServerPort) + "/" + "?format=" + format;
         final String filePath = "/" + CODEREGISTRIES_FOLDER_NAME + "/" + codeRegistriesFilename;
         return uploadFile(apiUrl, filePath);
     }

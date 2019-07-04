@@ -47,7 +47,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Transactional
     public Set<OrganizationDTO> findByRemovedIsFalse(boolean onlyOrganizationsWithCodeSchemes) {
-        Set<Organization> organizations = null;
+        Set<Organization> organizations;
         if (onlyOrganizationsWithCodeSchemes) {
             organizations = organizationRepository.findByRemovedIsFalseAndCodeSchemesIsNotNull();
         } else {

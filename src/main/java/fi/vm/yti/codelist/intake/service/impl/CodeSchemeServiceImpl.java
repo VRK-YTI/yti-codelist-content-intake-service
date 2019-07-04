@@ -162,9 +162,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
     public boolean canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(final String codeRegistryCodeValue,
                                                                                    final String format,
                                                                                    final InputStream inputStream) {
-
         boolean result = true;
-
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
             switch (format.toLowerCase()) {
@@ -390,9 +388,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         LinkedHashSet<CodeDTO> missingCodes = new LinkedHashSet<>();
 
         previousVersionsCodes.forEach(oldCode -> {
-            boolean missing = codeDtos.stream().noneMatch(newCode -> {
-                return newCode.getCodeValue().equals(oldCode.getCodeValue());
-            });
+            boolean missing = codeDtos.stream().noneMatch(newCode -> newCode.getCodeValue().equals(oldCode.getCodeValue()));
             if (missing) {
                 missingCodes.add(oldCode);
             }
@@ -400,7 +396,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
         final List<CodeDTO> sorted = new ArrayList<>(missingCodes);
         sorted.sort(Comparator.comparing(code -> code.getCodeValue()));
-        return new LinkedHashSet<CodeDTO>(sorted);
+        return new LinkedHashSet<>(sorted);
     }
 
     private void parseExternalReferences(final Set<CodeScheme> codeSchemes,

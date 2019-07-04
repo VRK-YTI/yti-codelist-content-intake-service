@@ -247,11 +247,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                                                     @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         boolean okToCreateANewVersion = codeSchemeService.canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(codeRegistryCodeValue, format, inputStream);
         final ObjectMapper mapper = new ObjectMapper();
-
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_UTF8);
-
-        Response response = null;
+        Response response;
         try {
             if (okToCreateANewVersion) {
                 response = Response.status(Response.Status.OK).entity(mapper.writeValueAsString(okToCreateANewVersion)).build();
@@ -292,14 +290,12 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
         final Set<CodeSchemeDTO> versionsToReIndex = new LinkedHashSet<>();
         UUID codeSchemeWhoseStatusMustBeSetToSuperseded = null;
-        CodeSchemeDTO previousCodeScheme = null;
 
         if (codeScheme != null) {
-
             if (codeScheme.getLastCodeschemeId() != null) {
                 if (currentCodeSchemeIsTheLatestVersion(codeScheme)) {
                     if (codeScheme.getStatus().equals(Status.VALID.toString())) { //When the latest version goes VALID, the prev version goes SUPERSEDED. Update all listings too.
-                        previousCodeScheme = codeSchemeService.findById(codeScheme.getPrevCodeschemeId());
+                        final CodeSchemeDTO previousCodeScheme = codeSchemeService.findById(codeScheme.getPrevCodeschemeId());
                         if (previousCodeScheme != null && previousCodeScheme.getStatus().equals(Status.VALID.toString())) {
                             previousCodeScheme.setStatus(Status.SUPERSEDED.toString());
                             codeSchemeService.updateCodeSchemeFromDto(previousCodeScheme.getCodeRegistry().getCodeValue(), previousCodeScheme);
@@ -309,12 +305,11 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
                         if (previousCodeScheme != null && !previousCodeScheme.getVariantMothersOfThisCodeScheme().isEmpty()) {
                             for (final CodeSchemeListItem mother : previousCodeScheme.getVariantMothersOfThisCodeScheme()) {
-                                CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(mother.getId());
+                                final CodeSchemeDTO motherCodeScheme = codeSchemeService.findById(mother.getId());
                                 final LinkedHashSet<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
                                 for (CodeSchemeListItem item : variantsOfTheMother) {
                                     if (item.getId().equals(previousCodeScheme.getId())) {
-                                        populateCodeSchemeListItem(previousCodeScheme,
-                                            item);
+                                        populateCodeSchemeListItem(previousCodeScheme, item);
                                     }
                                     if (codeSchemeWhoseStatusMustBeSetToSuperseded != null && item.getId().equals(codeSchemeWhoseStatusMustBeSetToSuperseded)) {
                                         item.setStatus(Status.SUPERSEDED.toString());
@@ -327,12 +322,11 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
                         if (previousCodeScheme != null && !previousCodeScheme.getVariantsOfThisCodeScheme().isEmpty()) {
                             for (final CodeSchemeListItem variant : previousCodeScheme.getVariantsOfThisCodeScheme()) {
-                                CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(variant.getId());
+                                final CodeSchemeDTO variantCodeScheme = codeSchemeService.findById(variant.getId());
                                 final LinkedHashSet<CodeSchemeListItem> mothersOfTheVariant = variantCodeScheme.getVariantMothersOfThisCodeScheme();
                                 for (CodeSchemeListItem item : mothersOfTheVariant) {
                                     if (item.getId().equals(previousCodeScheme.getId())) {
-                                        populateCodeSchemeListItem(previousCodeScheme,
-                                            item);
+                                        populateCodeSchemeListItem(previousCodeScheme, item);
                                     }
                                     if (codeSchemeWhoseStatusMustBeSetToSuperseded != null && item.getId().equals(codeSchemeWhoseStatusMustBeSetToSuperseded)) {
                                         item.setStatus(Status.SUPERSEDED.toString());
@@ -349,8 +343,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
 
                 for (final CodeSchemeListItem listItem : allVersions) {
                     if (listItem.getId().equals(codeScheme.getId())) {
-                        populateCodeSchemeListItem(codeScheme,
-                            listItem);
+                        populateCodeSchemeListItem(codeScheme, listItem);
                     }
                     if (codeSchemeWhoseStatusMustBeSetToSuperseded != null && listItem.getId().equals(codeSchemeWhoseStatusMustBeSetToSuperseded)) {
                         listItem.setStatus(Status.SUPERSEDED.toString());
@@ -373,8 +366,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                     final LinkedHashSet<CodeSchemeListItem> variantsOfTheMother = motherCodeScheme.getVariantsOfThisCodeScheme();
                     for (CodeSchemeListItem item : variantsOfTheMother) {
                         if (item.getId().equals(codeScheme.getId())) {
-                            populateCodeSchemeListItem(codeScheme,
-                                item);
+                            populateCodeSchemeListItem(codeScheme, item);
                         }
                     }
                     codeSchemeService.updateCodeSchemeFromDto(motherCodeScheme.getCodeRegistry().getCodeValue(), motherCodeScheme);
@@ -388,8 +380,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                     final LinkedHashSet<CodeSchemeListItem> mothersOfTheVariant = variantCodeScheme.getVariantMothersOfThisCodeScheme();
                     for (CodeSchemeListItem item : mothersOfTheVariant) {
                         if (item.getId().equals(codeScheme.getId())) {
-                            populateCodeSchemeListItem(codeScheme,
-                                item);
+                            populateCodeSchemeListItem(codeScheme, item);
                         }
                     }
                     codeSchemeService.updateCodeSchemeFromDto(variantCodeScheme.getCodeRegistry().getCodeValue(), variantCodeScheme);

@@ -380,7 +380,7 @@ public class MemberDaoImpl implements MemberDao {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND_WITH_IDENTIFIER, memberCodeCodeValueIdentifier));
                     }
                 } else {
-                    String memberSequenceId = null;
+                    String memberSequenceId;
                     if (memberCodeCodeValueIdentifier.startsWith(MEMBER_PREFIX) && memberCodeCodeValueIdentifier.length() > MEMBER_PREFIX.length()) {
                         memberSequenceId = memberCodeCodeValueIdentifier.substring(MEMBER_PREFIX.length());
                     } else {

@@ -52,13 +52,13 @@ public final class Concept {
     }
 
     private Map getPrefLabelFromSuggestion(final Attribute attribute) {
-        Map prefLabel = new HashMap<>();
+        final Map<String, String> prefLabel = new HashMap<>();
         prefLabel.put(attribute.getLang(), attribute.getValue());
         return prefLabel;
     }
 
     private Map getDefinitionFromSuggestion(final Attribute attribute) {
-        Map definition = new HashMap<>();
+        final Map<String, String> definition = new HashMap<>();
         definition.put(attribute.getLang(), attribute.getValue());
         return definition;
     }

@@ -138,7 +138,7 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     }
 
     public void logMembers(final Set<Member> members) {
-        members.forEach(member -> logMember(member));
+        members.forEach(this::logMember);
     }
 
     public void logValueType(final ValueType valueType) {

@@ -299,13 +299,7 @@ public class CloningServiceImpl implements CloningService {
             HashMap<UUID, Member> newMembersMap = new HashMap<>();
 
             for (final Member originalMember : originalMembers) {
-                Member newMember = new Member();
-                newMember = populateMember(newCodes,
-                    clonedExtension,
-                    new Date(System.currentTimeMillis()),
-                    originalMember,
-                    newMember,
-                    originalCodeScheme);
+                final Member newMember = populateMember(newCodes, clonedExtension, new Date(System.currentTimeMillis()), originalMember, originalCodeScheme);
                 newMembers.add(newMember);
                 newMembersMap.put(newMember.getId(), newMember);
                 oldIdToNewIdPointerMap.put(originalMember.getId(), UUID.randomUUID());
@@ -321,7 +315,6 @@ public class CloningServiceImpl implements CloningService {
                 newMember.setUri(apiUtils.createMemberUri(newMember));
             }
 
-            LinkedHashSet<Member> membersInOrderOfTheirLevelTopLevelFirst = new LinkedHashSet<>();
             Long nrOfItems = (long) newMembers.size();
             Long nrOfItemsProcessed = 0L;
             LinkedHashSet<Member> topLevel = new LinkedHashSet<>();
@@ -333,7 +326,7 @@ public class CloningServiceImpl implements CloningService {
                 }
             }
 
-            membersInOrderOfTheirLevelTopLevelFirst.addAll(topLevel);
+            final LinkedHashSet<Member> membersInOrderOfTheirLevelTopLevelFirst = new LinkedHashSet<>(topLevel);
             if (nrOfItemsProcessed < nrOfItems) {
                 getNextLevelItemsOfMembers(newMembers, nrOfItemsProcessed, nrOfItems, topLevel, membersInOrderOfTheirLevelTopLevelFirst);
             }
@@ -404,8 +397,8 @@ public class CloningServiceImpl implements CloningService {
      * decision keeps this method usable in any circumstances in the future. Continuing our example, in the case of
      * Extensions, the caller will simply replace the Extensions Set in the cloned CodeSchemes with the new one.
      *
-     * @param originalCodeSchemes
-     * @return
+     * @param originalCodeSchemes Set of original codeschemes
+     * @return Cloned codeschemes
      */
     private Set<CodeScheme> cloneInternalCodeSchemes(final Set<CodeScheme> originalCodeSchemes) {
         Set<CodeScheme> result = new LinkedHashSet<>();
@@ -452,8 +445,8 @@ public class CloningServiceImpl implements CloningService {
                                   final Extension extension,
                                   final Date timeStamp,
                                   final Member originalMember,
-                                  final Member newMember,
                                   final CodeScheme originalCodeScheme) {
+        final Member newMember = new Member();
         getCodeForMember(newCodes, originalMember, newMember, originalCodeScheme);
         newMember.setId(originalMember.getId());
         newMember.setExtension(extension);
@@ -465,7 +458,7 @@ public class CloningServiceImpl implements CloningService {
         newMember.setStartDate(originalMember.getStartDate());
         newMember.setEndDate(originalMember.getEndDate());
 
-        Set<MemberValue> newMemberValues = new HashSet<>();
+        final Set<MemberValue> newMemberValues = new HashSet<>();
 
         originalMember.getMemberValues().forEach(originalMemberValue -> {
             MemberValue newMemberValue = new MemberValue();
@@ -496,7 +489,7 @@ public class CloningServiceImpl implements CloningService {
                                   final Member orig,
                                   final Member newMember,
                                   final CodeScheme codeSchemeWeAreCloningFrom) {
-        Optional<Code> desiredCodeToPopulateIntoTheNewExtension = null;
+        Optional<Code> desiredCodeToPopulateIntoTheNewExtension;
         if (orig.getCode().getCodeScheme().getId().compareTo(codeSchemeWeAreCloningFrom.getId()) == 0) {
             String codeValueOfTheOriginalCodeInTheExtension = orig.getCode().getCodeValue();
             desiredCodeToPopulateIntoTheNewExtension =
@@ -504,9 +497,7 @@ public class CloningServiceImpl implements CloningService {
                     .filter(code -> code.getCodeValue() != null &&
                         code.getCodeValue().equals(codeValueOfTheOriginalCodeInTheExtension))
                     .findFirst();
-            if (desiredCodeToPopulateIntoTheNewExtension.isPresent()) {
-                newMember.setCode(desiredCodeToPopulateIntoTheNewExtension.get());
-            }
+            desiredCodeToPopulateIntoTheNewExtension.ifPresent(newMember::setCode);
         } else {
             newMember.setCode(orig.getCode());
         }
@@ -555,8 +546,7 @@ public class CloningServiceImpl implements CloningService {
                                     final Map<UUID, ExternalReference> externalReferenceMap) {
         final Set<Code> clonedCodes = new HashSet<>();
 
-        final Map<UUID, Code> originalCodesMap = originalCodes.stream().collect(Collectors.toMap(Code::getId,
-            code -> code));
+        final Map<UUID, Code> originalCodesMap = originalCodes.stream().collect(Collectors.toMap(Code::getId, code -> code));
 
         final Map<String, Code> clonedCodesByCodeValueMap = new HashMap<>();
 
@@ -582,19 +572,17 @@ public class CloningServiceImpl implements CloningService {
             }
         }
 
-        LinkedHashSet<Code> codesInOrderOfTheirLevelTopLevelFirst = new LinkedHashSet<>();
-        Long nrOfItems = (long) clonedCodes.size();
+        final Long nrOfItems = (long) clonedCodes.size();
         Long nrOfItemsProcessed = 0L;
-        LinkedHashSet<Code> topLevel = new LinkedHashSet<>();
-
-        for (Code code : clonedCodes) {
+        final LinkedHashSet<Code> topLevel = new LinkedHashSet<>();
+        for (final Code code : clonedCodes) {
             if (code.getBroaderCode() == null) {
                 topLevel.add(code);
                 nrOfItemsProcessed++;
             }
         }
-        codesInOrderOfTheirLevelTopLevelFirst.addAll(topLevel);
-        LinkedHashSet<Code> currentLevelParents = topLevel;
+        final LinkedHashSet<Code> codesInOrderOfTheirLevelTopLevelFirst = new LinkedHashSet<>(topLevel);
+        final LinkedHashSet<Code> currentLevelParents = topLevel;
         if (nrOfItemsProcessed < nrOfItems) {
             getNextLevelItemsOfCodes(clonedCodes, nrOfItemsProcessed, nrOfItems, currentLevelParents, codesInOrderOfTheirLevelTopLevelFirst);
         }
@@ -614,7 +602,7 @@ public class CloningServiceImpl implements CloningService {
                                           Long nrOfItems,
                                           LinkedHashSet<Code> currentLevelParents,
                                           LinkedHashSet<Code> ordered) {
-        LinkedHashSet<Code> newParents = new LinkedHashSet<>();
+        final LinkedHashSet<Code> newParents = new LinkedHashSet<>();
 
         for (Code code : codes) {
             if (currentLevelParents.contains(code.getBroaderCode())) {

@@ -8,11 +8,13 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
@@ -22,6 +24,7 @@ import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -33,6 +36,7 @@ import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.model.ValueType;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CODE_EXTENSION;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
 
 @Component
 public class DtoMapperService {
@@ -514,6 +518,9 @@ public class DtoMapperService {
 
         if (deep && extension.getMembers() != null) {
             extensionDto.setMembers(mapMemberDtos(extension.getMembers(), false));
+        }
+        if (extension.getParentCodeScheme() == null || extension.getParentCodeScheme().getCodeRegistry() == null){
+            throw new UnauthorizedException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
         extensionDto.setUrl(apiUtils.createExtensionUrl(extension.getParentCodeScheme().getCodeRegistry().getCodeValue(), extension.getParentCodeScheme().getCodeValue(), codeValue));
         extensionDto.setCreated(extension.getCreated());

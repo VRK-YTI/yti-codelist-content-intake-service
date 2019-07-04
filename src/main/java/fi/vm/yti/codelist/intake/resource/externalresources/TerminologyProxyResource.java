@@ -235,15 +235,14 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         try {
             meta.setCode(200);
             meta.setResultCount(1);
-            Set results = new HashSet<ConceptSuggestion>();
-            Set resultAsConcept = new HashSet<Concept>(); //always just one result in this Set.
-
+            final Set<ConceptSuggestion> results = new HashSet<>();
+            final Set<Concept> resultAsConcept = new HashSet<>(); //always just one result in this Set.
             results.add(mapper.readValue(response, new TypeReference<ConceptSuggestion>() {
             }));
 
-            resultAsConcept.add(new Concept((ConceptSuggestion) results.iterator().next()));
+            resultAsConcept.add(new Concept(results.iterator().next()));
 
-            wrapper.setResults(new HashSet<Concept>(resultAsConcept));
+            wrapper.setResults(new HashSet<>(resultAsConcept));
             return Response.ok(wrapper).build();
         } catch (final Exception e) {
             LOG.error("Error parsing conceptSuggestion from terminology response!", e);

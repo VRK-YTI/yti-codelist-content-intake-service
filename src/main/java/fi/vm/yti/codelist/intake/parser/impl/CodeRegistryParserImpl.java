@@ -133,7 +133,7 @@ public class CodeRegistryParserImpl extends AbstractBaseParser implements CodeRe
             }
             boolean firstRow = true;
             final Iterator<Row> rowIterator = sheet.rowIterator();
-            Map<String, Integer> headerMap = null;
+            Map<String, Integer> headerMap;
             Map<String, Integer> prefLabelHeaders = null;
             Map<String, Integer> descriptionHeaders = null;
             checkIfExcelEmpty(rowIterator);

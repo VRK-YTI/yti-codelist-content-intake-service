@@ -250,9 +250,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                     throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                 }
                 codes = codeDao.findByCodeSchemeAndStatus(codeScheme, initialCodeStatus);
-                codes.forEach(code -> {
-                    code.setStatus(endCodeStatus);
-                });
+                codes.forEach(code -> code.setStatus(endCodeStatus));
                 codeDao.save(codes);
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));

@@ -254,10 +254,8 @@ public class CodeDaoImpl implements CodeDao {
             if (updateExternalReferences) {
                 updateExternalReferences(codeScheme, code, codeDto);
             }
-            if (code != null) {
-                codesAffected.add(code);
-                save(code, false);
-            }
+            codesAffected.add(code);
+            save(code, false);
         }
         if (!codesAffected.isEmpty()) {
             codesAffected.forEach(this::checkCodeHierarchyLevels);

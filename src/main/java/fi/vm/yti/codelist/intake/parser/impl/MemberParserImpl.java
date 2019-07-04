@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -153,11 +154,11 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
 
     private void handlePossibleDuplicateSequenceIds(final List<Integer> sequenceIds) {
         LinkedHashSet<Integer> possibleMembersWithDuplicatedSequenceId = findDuplicateSequenceIds(sequenceIds);
-        possibleMembersWithDuplicatedSequenceId.removeIf(integer -> integer == null);
+        possibleMembersWithDuplicatedSequenceId.removeIf(Objects::isNull);
         if (possibleMembersWithDuplicatedSequenceId.size() > 0) {
             String theSequenceIdsSeparatedByCommas = possibleMembersWithDuplicatedSequenceId
                 .stream()
-                .map(integer -> integer.toString())
+                .map(Object::toString)
                 .collect(Collectors.joining(", "));
             throw new DuplicateSequenceIdInFileUploadException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
                 ERR_MSG_USER_DUPLICATE_MEMBER_IDS_IN_FILE, theSequenceIdsSeparatedByCommas));
@@ -213,7 +214,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 member.setOrder(resolveOrderFromExcelRow(headerMap, row, formatter));
                 member.setSequenceId(resolveSequenceIdFromExcelRow(headerMap, row, formatter));
                 sequenceIds.add(member.getSequenceId());
-                if (valueTypes != null && !valueTypes.isEmpty()) {
+                if (!valueTypes.isEmpty()) {
                     final HashSet<MemberValueDTO> memberValues = new HashSet<>();
                     for (final ValueType valueType : valueTypes) {
                         if (headerMap.containsKey(valueType.getLocalName().toUpperCase())) {
