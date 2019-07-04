@@ -149,7 +149,7 @@ public class YtiDataAccess {
 
     @Transactional
     public void setLanguageCodesToEarlierCodeSchemes() {
-        LOG.info("Setting language codes to earlier codeschemes...");
+        LOG.debug("Setting language codes to earlier codeschemes...");
         if (updateManager.shouldUpdateData(MIGRATION_LANGUAGECODES, MIGRATION_LANGUAGECODES_VERSION, MIGRATION_LANGUAGECODES_VERSION)) {
             final UpdateStatus updateStatus = updateManager.createStatus(MIGRATION_LANGUAGECODES, MIGRATION_LANGUAGECODES_VERSION, SOURCE_INTERNAL, MIGRATION_LANGUAGECODES_VERSION, UpdateManager.UPDATE_RUNNING);
             final Set<Code> defaultLanguageCodes = new HashSet<>();
@@ -169,7 +169,7 @@ public class YtiDataAccess {
                 updateManager.updateSuccessStatus(updateStatus);
             }
         } else {
-            LOG.info("CodeScheme languageCodes already up to date, skipping...");
+            LOG.debug("CodeScheme languageCodes already up to date, skipping...");
         }
     }
 

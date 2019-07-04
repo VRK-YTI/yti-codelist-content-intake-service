@@ -39,7 +39,7 @@ public class ImpersonateUserService {
     public List<GroupManagementUser> getUsers() {
         if (fakeLoginProperties.isAllowed()) {
             String url = groupManagementProperties.getUrl() + GROUPMANAGEMENT_API_CONTEXT_PATH + GROUPMANAGEMENT_API_USERS;
-            LOG.info("URL " + url);
+            LOG.debug("URL " + url);
             return restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<GroupManagementUser>>() {
             }).getBody();
         } else {
