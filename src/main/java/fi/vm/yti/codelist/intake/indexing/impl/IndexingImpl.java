@@ -452,7 +452,7 @@ public class IndexingImpl implements Indexing {
         for (final List<ExtensionDTO> subList : subLists) {
             final boolean partialSuccess = indexData(new HashSet<>(subList), ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
             if (!partialSuccess) {
-                LOG.error("Indexing members failed!");
+                LOG.error("Indexing extensions failed!");
                 success = false;
                 break;
             }
