@@ -182,7 +182,7 @@ public class IndexingImpl implements Indexing {
     private boolean indexExtensions(final String indexName) {
         final Stopwatch watch = Stopwatch.createStarted();
         final int extensionCount = extensionService.getExtensionCount();
-        final int pageCount = getContentPageCount(extensionCount, MAX_MEMBER_PAGE_COUNT);
+        final int pageCount = getContentPageCount(extensionCount, MAX_EXTENSION_PAGE_COUNT);
         LOG.debug(String.format("ElasticSearch indexing: Starting to index %d pages of extensions with %d items.", pageCount, extensionCount));
         int page = 0;
         boolean success = true;
