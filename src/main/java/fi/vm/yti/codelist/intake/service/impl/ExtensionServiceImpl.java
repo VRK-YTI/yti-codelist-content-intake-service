@@ -17,11 +17,13 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
@@ -30,6 +32,7 @@ import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
+import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.parser.ExtensionParser;
 import fi.vm.yti.codelist.intake.parser.MemberParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
@@ -68,8 +71,19 @@ public class ExtensionServiceImpl implements ExtensionService {
     }
 
     @Transactional
+    public int getExtensionCount() {
+        return extensionDao.getExtensionCount();
+    }
+
+    @Transactional
     public Set<ExtensionDTO> findAll() {
         return dtoMapperService.mapDeepExtensionDtos(extensionDao.findAll());
+    }
+
+    @Transactional
+    public Set<ExtensionDTO> findAll(final PageRequest pageRequest) {
+        final Set<Extension> extensions = extensionDao.findAll(pageRequest);
+        return dtoMapperService.mapDeepExtensionDtos(extensions);
     }
 
     @Transactional

@@ -6,13 +6,18 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.data.domain.PageRequest;
 
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 
 public interface ExtensionService {
 
+    int getExtensionCount();
+
     Set<ExtensionDTO> findAll();
+
+    Set<ExtensionDTO> findAll(final PageRequest pageRequest);
 
     ExtensionDTO findById(final UUID id);
 

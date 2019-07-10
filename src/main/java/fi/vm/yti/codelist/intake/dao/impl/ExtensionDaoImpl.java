@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -108,6 +109,12 @@ public class ExtensionDaoImpl implements ExtensionDao {
     public Set<Extension> findAll() {
         return extensionRepository.findAll();
     }
+
+    @Transactional
+    public Set<Extension> findAll(final PageRequest pageRequest) {
+        return new HashSet<>(extensionRepository.findAll(pageRequest).getContent());
+    }
+
 
     public Extension findById(final UUID id) {
         return extensionRepository.findById(id);
@@ -398,5 +405,10 @@ public class ExtensionDaoImpl implements ExtensionDao {
         } else {
             extension.setPrefLabel(null);
         }
+    }
+
+    @Transactional
+    public int getExtensionCount() {
+        return extensionRepository.getExtensionCount();
     }
 }

@@ -79,6 +79,7 @@ public class IndexingImpl implements Indexing {
     private static final String BULK = "ElasticSearch bulk: ";
     private static final int MAX_PAGE_COUNT = 1000;
     private static final int MAX_MEMBER_PAGE_COUNT = 100;
+    private static final int MAX_EXTENSION_PAGE_COUNT = 50;
 
     private final IndexStatusRepository indexStatusRepository;
     private final CodeSchemeService codeSchemeService;
@@ -179,12 +180,28 @@ public class IndexingImpl implements Indexing {
     }
 
     private boolean indexExtensions(final String indexName) {
-        final Set<ExtensionDTO> extensions = extensionService.findAll();
-        return indexData(extensions, indexName, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
+        final Stopwatch watch = Stopwatch.createStarted();
+        final int extensionCount = extensionService.getExtensionCount();
+        final int pageCount = getContentPageCount(extensionCount, MAX_MEMBER_PAGE_COUNT);
+        LOG.debug(String.format("ElasticSearch indexing: Starting to index %d pages of extensions with %d items.", pageCount, extensionCount));
+        int page = 0;
+        boolean success = true;
+        while (page + 1 <= pageCount) {
+            final PageRequest pageRequest = new PageRequest(page, MAX_EXTENSION_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "uri")));
+            final Set<ExtensionDTO> extensions = extensionService.findAll(pageRequest);
+            final boolean partIndexSuccess = indexData(extensions, indexName, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
+            if (!partIndexSuccess) {
+                success = false;
+            }
+            page++;
+        }
+        if (success) {
+            LOG.debug(String.format("ElasticSearch indexing: Successfully indexed %d extensions in %s", extensionCount, watch));
+        }
+        return success;
     }
 
     private boolean indexMembers(final String indexName) {
-
         final Stopwatch watch = Stopwatch.createStarted();
         final int memberCount = memberService.getMemberCount();
         final int pageCount = getContentPageCount(memberCount, MAX_MEMBER_PAGE_COUNT);
@@ -425,7 +442,22 @@ public class IndexingImpl implements Indexing {
     }
 
     public boolean updateExtensions(final Set<ExtensionDTO> extensions) {
-        return extensions.isEmpty() || indexData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
+        if (extensions.isEmpty()) {
+            return true;
+        }
+        boolean success = true;
+        final List<ExtensionDTO> extensionList = new ArrayList<>(extensions);
+        List<List<ExtensionDTO>> subLists = ListUtils.partition(extensionList, MAX_EXTENSION_PAGE_COUNT);
+        LOG.debug(String.format("ElasticSearch indexing: Starting to index %d pages of extensions with %d items.", subLists.size(), extensions.size()));
+        for (final List<ExtensionDTO> subList : subLists) {
+            final boolean partialSuccess = indexData(new HashSet<>(subList), ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
+            if (!partialSuccess) {
+                LOG.error("Indexing members failed!");
+                success = false;
+                break;
+            }
+        }
+        return success;
     }
 
     public boolean updateMember(final MemberDTO member) {
@@ -441,7 +473,7 @@ public class IndexingImpl implements Indexing {
         boolean success = true;
         final List<MemberDTO> membersList = new ArrayList<>(members);
         List<List<MemberDTO>> subLists = ListUtils.partition(membersList, MAX_MEMBER_PAGE_COUNT);
-        LOG.debug(String.format("ElasticSearch indexing: Starting to index %d pages of codes with %d items.", subLists.size(), members.size()));
+        LOG.debug(String.format("ElasticSearch indexing: Starting to index %d pages of members with %d items.", subLists.size(), members.size()));
         for (final List<MemberDTO> subList : subLists) {
             final boolean partialSuccess = indexData(new HashSet<>(subList), ELASTIC_INDEX_MEMBER, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
             if (!partialSuccess) {

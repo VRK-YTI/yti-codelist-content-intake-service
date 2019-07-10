@@ -3,6 +3,8 @@ package fi.vm.yti.codelist.intake.dao;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.data.domain.PageRequest;
+
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
@@ -21,6 +23,8 @@ public interface ExtensionDao {
               final boolean logChange);
 
     Set<Extension> findAll();
+
+    Set<Extension> findAll(final PageRequest pageRequest);
 
     Extension findById(final UUID id);
 
@@ -43,4 +47,6 @@ public interface ExtensionDao {
     Set<Extension> updateExtensionEntitiesFromDtos(final CodeScheme codeScheme,
                                                    final Set<ExtensionDTO> extensionDtos,
                                                    final boolean autoCreateMembers);
+
+    int getExtensionCount();
 }
