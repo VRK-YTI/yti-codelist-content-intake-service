@@ -1,4 +1,20 @@
 {
+  "dynamic_templates": [
+    {
+      "prefLabel": {
+        "path_match": "prefLabel.*",
+        "mapping": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "normalizer": "keyword_normalizer"
+            }
+          }
+        }
+      }
+    }
+  ],
   "properties": {
     "codeValue": {
       "type": "text",
@@ -16,9 +32,6 @@
     },
     "order": {
       "type": "integer"
-    },
-    "prefLabel": {
-      "type": "nested"
     },
     "codeScheme": {
       "properties": {

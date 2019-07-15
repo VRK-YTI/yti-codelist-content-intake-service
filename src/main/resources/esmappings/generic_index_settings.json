@@ -9,17 +9,8 @@
         "type": "custom",
         "tokenizer": "keyword",
         "filter": [
-          "standard",
           "lowercase",
           "trim"
-        ]
-      },
-      "preflabel_analyzer": {
-        "type": "custom",
-        "tokenizer": "ngram",
-        "filter": [
-          "lowercase",
-          "standard"
         ]
       }
     },

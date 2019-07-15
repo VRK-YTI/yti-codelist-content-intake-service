@@ -1,8 +1,23 @@
 {
+  "dynamic_templates": [
+    {
+      "prefLabel": {
+        "path_match": "prefLabel.*",
+        "mapping": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "normalizer": "keyword_normalizer"
+            }
+          }
+        }
+      }
+    }
+  ],
   "properties": {
     "codeValue": {
       "type": "text",
-      "fielddata": "true",
       "analyzer": "text_analyzer",
       "fields": {
         "raw": {
@@ -13,9 +28,6 @@
     },
     "id": {
       "type": "keyword"
-    },
-    "prefLabel": {
-      "type": "nested"
     },
     "localName": {
       "type": "text",

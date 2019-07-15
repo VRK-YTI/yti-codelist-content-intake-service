@@ -1,10 +1,23 @@
 {
+  "dynamic_templates": [
+    {
+      "prefLabel": {
+        "path_match": "prefLabel.*",
+        "mapping": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "normalizer": "keyword_normalizer"
+            }
+          }
+        }
+      }
+    }
+  ],
   "properties": {
     "id": {
       "type": "keyword"
-    },
-    "prefLabel": {
-      "type": "nested"
     },
     "order": {
       "type": "integer"

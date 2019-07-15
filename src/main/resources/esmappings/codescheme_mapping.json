@@ -5,7 +5,6 @@
         "path_match": "prefLabel.*",
         "mapping": {
           "type": "text",
-          "analyzer": "preflabel_analyzer",
           "fields": {
             "keyword": {
               "type": "keyword",
@@ -29,10 +28,6 @@
     },
     "id": {
       "type": "keyword"
-    },
-    "prefLabel": {
-      "type": "nested",
-      "dynamic": true
     },
     "infoDomains": {
       "type": "nested"
