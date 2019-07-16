@@ -35,8 +35,4 @@ public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String>
         "left join fetch cs.codeRegistry cr left join fetch cr.organizations org " +
         "where cs.id = ?1")
     CodeScheme findCodeSchemeAndEagerFetchTheChildren(final UUID id);
-
-    @Query("select cs from CodeScheme cs " +
-        "where cs.prevCodeschemeId = ?1")
-    CodeScheme findByPrevCodeschemeId(final UUID codeschemeId);
 }

@@ -32,6 +32,7 @@ import fi.vm.yti.codelist.intake.configuration.VersionInformation;
 import fi.vm.yti.codelist.intake.data.YtiDataAccess;
 import fi.vm.yti.codelist.intake.groupmanagement.OrganizationUpdater;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
+import fi.vm.yti.codelist.intake.service.UserService;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 
 @Component
@@ -43,6 +44,7 @@ public class ServiceInitializer implements ApplicationRunner {
     private final Indexing indexing;
     private final ApiUtils apiUtils;
     private final OrganizationUpdater organizationUpdater;
+    private final UserService userService;
     private final PublicApiServiceProperties publicApiServiceProperties;
     private final VersionInformation versionInformation;
 
@@ -54,12 +56,14 @@ public class ServiceInitializer implements ApplicationRunner {
                               final ApiUtils apiUtils,
                               final YtiDataAccess ytiDataAccess,
                               final OrganizationUpdater organizationUpdater,
+                              final UserService userService,
                               final PublicApiServiceProperties publicApiServiceProperties) {
         this.versionInformation = versionInformation;
         this.indexing = indexing;
         this.apiUtils = apiUtils;
         this.ytiDataAccess = ytiDataAccess;
         this.organizationUpdater = organizationUpdater;
+        this.userService = userService;
         this.publicApiServiceProperties = publicApiServiceProperties;
     }
 
@@ -76,6 +80,8 @@ public class ServiceInitializer implements ApplicationRunner {
         indexing.cleanRunningIndexingBookkeeping();
         LOG.info("*** Updating organizations. ***");
         organizationUpdater.updateOrganizations();
+        LOG.info("*** Updating users. ***");
+        userService.updateUsers();
         final Stopwatch watch = Stopwatch.createStarted();
         ytiDataAccess.initializeOrRefresh();
         LOG.info(String.format("*** Database population took: %s. ***", watch));

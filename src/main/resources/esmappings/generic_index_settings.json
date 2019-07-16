@@ -1,7 +1,8 @@
 {
   "index": {
     "max_result_window": 50000,
-    "mapping.total_fields.limit": 5000
+    "mapping.total_fields.limit": 5000,
+    "number_of_shards": 1
   },
   "analysis": {
     "analyzer": {

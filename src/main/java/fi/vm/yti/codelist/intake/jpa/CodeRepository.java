@@ -41,8 +41,6 @@ public interface CodeRepository extends PagingAndSortingRepository<Code, String>
 
     Set<Code> findBySubCodeScheme(final CodeScheme subCodeScheme);
 
-    Set<Code> findByCodeScheme(final CodeScheme codeScheme);
-
     Set<Code> findByCodeSchemeId(final UUID codeSchemeId);
 
     Set<Code> findByCodeSchemeIdAndBroaderCodeIdIsNull(final UUID codeSchemeId);

@@ -30,6 +30,7 @@ import fi.vm.yti.codelist.intake.resource.OrganizationResource;
 import fi.vm.yti.codelist.intake.resource.PingResource;
 import fi.vm.yti.codelist.intake.resource.PropertyTypeResource;
 import fi.vm.yti.codelist.intake.resource.SwaggerResource;
+import fi.vm.yti.codelist.intake.resource.UserResource;
 import fi.vm.yti.codelist.intake.resource.ValueTypeResource;
 import fi.vm.yti.codelist.intake.resource.VersionResource;
 import fi.vm.yti.codelist.intake.resource.externalresources.GroupManagementProxyResource;
@@ -116,6 +117,7 @@ public class JerseyConfig extends ResourceConfig {
 
         // Admin APIs for YTI
         register(OrganizationResource.class);
+        register(UserResource.class);
         register(CodeRegistryResource.class);
         register(ExternalReferenceResource.class);
         register(PropertyTypeResource.class);
