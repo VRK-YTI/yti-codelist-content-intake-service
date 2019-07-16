@@ -33,7 +33,7 @@
         <logger name="org.hibernate" level="WARN" />
         <logger name="fi.vm.yti.codelist.intake.filter" level="INFO"/>
         <logger name="fi.vm.yti.codelist.intake.log" level="INFO"/>
-        <root level="debug">
+        <root level="WARN">
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
