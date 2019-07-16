@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
-import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
@@ -32,7 +31,6 @@ import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
-import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.parser.ExtensionParser;
 import fi.vm.yti.codelist.intake.parser.MemberParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
