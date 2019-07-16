@@ -68,20 +68,18 @@ public class ExternalReferenceServiceImpl implements ExternalReferenceService {
     }
 
     @Transactional
-    public Set<ExternalReferenceDTO> parseAndPersistExternalReferencesFromExcelWorkbook(final Workbook workbook,
+    public void parseAndPersistExternalReferencesFromExcelWorkbook(final Workbook workbook,
                                                                                         final String sheetName,
                                                                                         final CodeScheme codeScheme) {
-        final Set<ExternalReference> externalReferences;
         if (codeScheme != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
             final Set<ExternalReferenceDTO> externalReferenceDtos = externalReferenceParser.parseExternalReferencesFromExcelWorkbook(workbook, sheetName, codeScheme);
-            externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(externalReferenceDtos, codeScheme);
+            final Set<ExternalReference> externalReferences = externalReferenceDao.updateExternalReferenceEntitiesFromDtos(externalReferenceDtos, codeScheme);
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
         }
-        return dtoMapperService.mapDeepExternalReferenceDtos(externalReferences);
     }
 
     @Transactional

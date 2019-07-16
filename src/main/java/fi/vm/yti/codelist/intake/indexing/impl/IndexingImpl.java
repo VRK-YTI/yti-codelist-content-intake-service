@@ -141,8 +141,7 @@ public class IndexingImpl implements Indexing {
         return contentCount / maxCount + 1;
     }
 
-    @Transactional
-    public boolean indexCodes(final String indexName) {
+    private boolean indexCodes(final String indexName) {
         final Stopwatch watch = Stopwatch.createStarted();
         final int codeCount = codeService.getCodeCount();
         final int pageCount = getContentPageCount(codeCount, MAX_PAGE_COUNT);
@@ -224,11 +223,10 @@ public class IndexingImpl implements Indexing {
 
     }
 
-    private <T> boolean deleteData(final Set<T> set,
-                                   final String elasticIndex,
-                                   final String elasticType,
-                                   final String name) {
-        boolean success;
+    private <T> void deleteData(final Set<T> set,
+                                final String elasticIndex,
+                                final String elasticType,
+                                final String name) {
         if (!set.isEmpty()) {
             final BulkRequest bulkRequest = new BulkRequest();
             for (final T item : set) {
@@ -238,16 +236,14 @@ public class IndexingImpl implements Indexing {
             }
             try {
                 final BulkResponse response = client.bulk(bulkRequest, RequestOptions.DEFAULT);
-                success = handleBulkResponse(name, response);
+                final boolean success = handleBulkResponse(name, response);
             } catch (final IOException e) {
                 LOG.error("Bulk delete request failed!", e);
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ElasticSearch index query error!"));
             }
         } else {
             noContent(name);
-            success = true;
         }
-        return success;
     }
 
     private <T> boolean indexData(final Set<T> set,
@@ -306,71 +302,70 @@ public class IndexingImpl implements Indexing {
         LOG.debug(String.format("%s%s operation ran, but there was no content to be indexed!", BULK, type));
     }
 
-    public boolean deleteCode(final CodeDTO code) {
+    public void deleteCode(final CodeDTO code) {
         final Set<CodeDTO> codes = new HashSet<>();
         codes.add(code);
-        return deleteCodes(codes);
+        deleteCodes(codes);
     }
 
-    public boolean deleteCodes(final Set<CodeDTO> codes) {
-        return codes.isEmpty() || deleteData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES);
+    public void deleteCodes(final Set<CodeDTO> codes) {
+        deleteData(codes, ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES);
     }
 
-    public boolean deleteCodeRegistry(final CodeRegistryDTO codeRegistry) {
+    public void deleteCodeRegistry(final CodeRegistryDTO codeRegistry) {
         final Set<CodeRegistryDTO> codeRegistries = new HashSet<>();
         codeRegistries.add(codeRegistry);
-        return deleteCodeRegistries(codeRegistries);
+        deleteCodeRegistries(codeRegistries);
     }
 
-    public boolean deleteCodeRegistries(final Set<CodeRegistryDTO> codeRegistries) {
-        return codeRegistries.isEmpty() || deleteData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES);
+    public void deleteCodeRegistries(final Set<CodeRegistryDTO> codeRegistries) {
+        deleteData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES);
     }
 
-    public boolean deleteCodeScheme(final CodeSchemeDTO codeScheme) {
+    public void deleteCodeScheme(final CodeSchemeDTO codeScheme) {
         final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
         codeSchemes.add(codeScheme);
-        return deleteCodeSchemes(codeSchemes);
+        deleteCodeSchemes(codeSchemes);
     }
 
-    public boolean deleteCodeSchemes(final Set<CodeSchemeDTO> codeSchemes) {
-        return codeSchemes.isEmpty() || deleteData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
+    public void deleteCodeSchemes(final Set<CodeSchemeDTO> codeSchemes) {
+        deleteData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES);
     }
 
-    public boolean deleteExternalReferences(final Set<ExternalReferenceDTO> externalReferences) {
-        return externalReferences.isEmpty() || deleteData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES);
+    public void deleteExternalReferences(final Set<ExternalReferenceDTO> externalReferences) {
+        deleteData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES);
     }
 
-    public boolean deleteExtension(final ExtensionDTO extension) {
+    public void deleteExtension(final ExtensionDTO extension) {
         final Set<ExtensionDTO> extensions = new HashSet<>();
         extensions.add(extension);
-        return deleteExtensions(extensions);
+        deleteExtensions(extensions);
     }
 
-    public boolean deleteExtensions(final Set<ExtensionDTO> extensions) {
-        return extensions.isEmpty() || deleteData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS);
+    public void deleteExtensions(final Set<ExtensionDTO> extensions) {
+        deleteData(extensions, ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS);
     }
 
-    public boolean deleteMember(final MemberDTO extension) {
+    public void deleteMember(final MemberDTO extension) {
         final Set<MemberDTO> members = new HashSet<>();
         members.add(extension);
-        return deleteMembers(members);
+        deleteMembers(members);
     }
 
-    public boolean deleteMembers(final Set<MemberDTO> members) {
-        return members.isEmpty() || deleteData(members, ELASTIC_INDEX_MEMBER, ELASTIC_TYPE_MEMBER, NAME_MEMBERS);
+    public void deleteMembers(final Set<MemberDTO> members) {
+        deleteData(members, ELASTIC_INDEX_MEMBER, ELASTIC_TYPE_MEMBER, NAME_MEMBERS);
     }
 
-    public boolean updateCode(final CodeDTO code) {
+    public void updateCode(final CodeDTO code) {
         final Set<CodeDTO> codes = new HashSet<>();
         codes.add(code);
-        return updateCodes(codes);
+        updateCodes(codes);
     }
 
-    public boolean updateCodes(final Set<CodeDTO> codes) {
+    public void updateCodes(final Set<CodeDTO> codes) {
         if (codes.isEmpty()) {
-            return true;
+            return;
         }
-        boolean success = true;
         final List<CodeDTO> codesList = new ArrayList<>(codes);
         final List<List<CodeDTO>> subLists = ListUtils.partition(codesList, MAX_PAGE_COUNT);
         LOG.debug(String.format("ElasticSearch indexing: Starting to index %d pages of codes with %d items.", subLists.size(), codes.size()));
@@ -378,74 +373,71 @@ public class IndexingImpl implements Indexing {
             final boolean partialSuccess = indexData(new HashSet<>(subList), ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
             if (!partialSuccess) {
                 LOG.error("Indexing codes failed!");
-                success = false;
                 break;
             }
         }
-        return success;
     }
 
-    public boolean updateCodeScheme(final CodeSchemeDTO codeScheme) {
+    public void updateCodeScheme(final CodeSchemeDTO codeScheme) {
         final Set<CodeSchemeDTO> codeSchemes = new HashSet<>();
         codeSchemes.add(codeScheme);
-        return updateCodeSchemes(codeSchemes);
+        updateCodeSchemes(codeSchemes);
     }
 
-    public boolean updateCodeSchemes(final Set<CodeSchemeDTO> codeSchemes) {
-        return codeSchemes.isEmpty() || indexData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
+    public void updateCodeSchemes(final Set<CodeSchemeDTO> codeSchemes) {
+        indexData(codeSchemes, ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME, NAME_CODESCHEMES, Views.ExtendedCodeScheme.class);
     }
 
-    public boolean updateCodeRegistry(final CodeRegistryDTO codeRegistry) {
+    public void updateCodeRegistry(final CodeRegistryDTO codeRegistry) {
         final Set<CodeRegistryDTO> codeRegistries = new HashSet<>();
         codeRegistries.add(codeRegistry);
-        return updateCodeRegistries(codeRegistries);
+        updateCodeRegistries(codeRegistries);
     }
 
-    public boolean updateCodeRegistries(final Set<CodeRegistryDTO> codeRegistries) {
-        return codeRegistries.isEmpty() || indexData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
+    public void updateCodeRegistries(final Set<CodeRegistryDTO> codeRegistries) {
+        indexData(codeRegistries, ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY, NAME_CODEREGISTRIES, Views.Normal.class);
     }
 
-    public boolean updatePropertyType(final PropertyTypeDTO propertyType) {
+    public void updatePropertyType(final PropertyTypeDTO propertyType) {
         final Set<PropertyTypeDTO> propertyTypes = new HashSet<>();
         propertyTypes.add(propertyType);
-        return updatePropertyTypes(propertyTypes);
+        updatePropertyTypes(propertyTypes);
     }
 
-    public boolean updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes) {
-        return propertyTypes.isEmpty() || indexData(propertyTypes, ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
+    public void updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes) {
+        indexData(propertyTypes, ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE, NAME_PROPERTYTYPES, Views.Normal.class);
     }
 
-    public boolean updateValueType(final ValueTypeDTO valueType) {
+    public void updateValueType(final ValueTypeDTO valueType) {
         final Set<ValueTypeDTO> valueTypes = new HashSet<>();
         valueTypes.add(valueType);
-        return updateValueTypes(valueTypes);
+        updateValueTypes(valueTypes);
     }
 
-    public boolean updateValueTypes(final Set<ValueTypeDTO> valueTypes) {
-        return valueTypes.isEmpty() || indexData(valueTypes, ELASTIC_INDEX_VALUETYPE, ELASTIC_TYPE_VALUETYPE, NAME_VALUETYPES, Views.Normal.class);
+    public void updateValueTypes(final Set<ValueTypeDTO> valueTypes) {
+        indexData(valueTypes, ELASTIC_INDEX_VALUETYPE, ELASTIC_TYPE_VALUETYPE, NAME_VALUETYPES, Views.Normal.class);
     }
 
-    public boolean updateExternalReference(final ExternalReferenceDTO externalReference) {
+    public void updateExternalReference(final ExternalReferenceDTO externalReference) {
         final Set<ExternalReferenceDTO> externalReferences = new HashSet<>();
         externalReferences.add(externalReference);
-        return updateExternalReferences(externalReferences);
+        updateExternalReferences(externalReferences);
     }
 
-    public boolean updateExternalReferences(final Set<ExternalReferenceDTO> externalReferences) {
-        return externalReferences.isEmpty() || indexData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
+    public void updateExternalReferences(final Set<ExternalReferenceDTO> externalReferences) {
+        indexData(externalReferences, ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
     }
 
-    public boolean updateExtension(final ExtensionDTO extension) {
+    public void updateExtension(final ExtensionDTO extension) {
         final Set<ExtensionDTO> extensions = new HashSet<>();
         extensions.add(extension);
-        return updateExtensions(extensions);
+        updateExtensions(extensions);
     }
 
-    public boolean updateExtensions(final Set<ExtensionDTO> extensions) {
+    public void updateExtensions(final Set<ExtensionDTO> extensions) {
         if (extensions.isEmpty()) {
-            return true;
+            return;
         }
-        boolean success = true;
         final List<ExtensionDTO> extensionList = new ArrayList<>(extensions);
         List<List<ExtensionDTO>> subLists = ListUtils.partition(extensionList, MAX_EXTENSION_PAGE_COUNT);
         LOG.debug(String.format("ElasticSearch indexing: Starting to index %d pages of extensions with %d items.", subLists.size(), extensions.size()));
@@ -453,24 +445,15 @@ public class IndexingImpl implements Indexing {
             final boolean partialSuccess = indexData(new HashSet<>(subList), ELASTIC_INDEX_EXTENSION, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
             if (!partialSuccess) {
                 LOG.error("Indexing extensions failed!");
-                success = false;
                 break;
             }
         }
-        return success;
     }
 
-    public boolean updateMember(final MemberDTO member) {
-        final Set<MemberDTO> members = new HashSet<>();
-        members.add(member);
-        return updateMembers(members);
-    }
-
-    public boolean updateMembers(final Set<MemberDTO> members) {
+    public void updateMembers(final Set<MemberDTO> members) {
         if (members.isEmpty()) {
-            return true;
+            return;
         }
-        boolean success = true;
         final List<MemberDTO> membersList = new ArrayList<>(members);
         List<List<MemberDTO>> subLists = ListUtils.partition(membersList, MAX_MEMBER_PAGE_COUNT);
         LOG.debug(String.format("ElasticSearch indexing: Starting to index %d pages of members with %d items.", subLists.size(), members.size()));
@@ -478,46 +461,46 @@ public class IndexingImpl implements Indexing {
             final boolean partialSuccess = indexData(new HashSet<>(subList), ELASTIC_INDEX_MEMBER, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
             if (!partialSuccess) {
                 LOG.error("Indexing members failed!");
-                success = false;
                 break;
             }
         }
-        return success;
     }
 
+    @Transactional
     public void reIndexEverythingIfNecessary() {
         if (hasError && !fullIndexInProgress) {
-            LOG.debug("Doing full ElasticSearch reindexing due to errors!");
+            LOG.debug("Doing a full ElasticSearch reindexing due to errors!");
             fullIndexInProgress = true;
             hasError = !reIndexEverything();
             fullIndexInProgress = false;
         }
     }
 
+    @Transactional
     public boolean reIndexEverything() {
         boolean success = true;
         if (!reIndex(ELASTIC_INDEX_CODEREGISTRY, ELASTIC_TYPE_CODEREGISTRY)) {
             success = false;
         }
-        if (reIndex(ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME)) {
+        if (!reIndex(ELASTIC_INDEX_CODESCHEME, ELASTIC_TYPE_CODESCHEME)) {
             success = false;
         }
         if (!reIndex(ELASTIC_INDEX_CODE, ELASTIC_TYPE_CODE)) {
             success = false;
         }
-        if (reIndex(ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE)) {
+        if (!reIndex(ELASTIC_INDEX_PROPERTYTYPE, ELASTIC_TYPE_PROPERTYTYPE)) {
             success = false;
         }
-        if (reIndex(ELASTIC_INDEX_VALUETYPE, ELASTIC_TYPE_VALUETYPE)) {
+        if (!reIndex(ELASTIC_INDEX_VALUETYPE, ELASTIC_TYPE_VALUETYPE)) {
             success = false;
         }
-        if (reIndex(ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_INDEX_EXTERNALREFERENCE)) {
+        if (!reIndex(ELASTIC_INDEX_EXTERNALREFERENCE, ELASTIC_INDEX_EXTERNALREFERENCE)) {
             success = false;
         }
-        if (reIndex(ELASTIC_INDEX_EXTENSION, ELASTIC_INDEX_EXTENSION)) {
+        if (!reIndex(ELASTIC_INDEX_EXTENSION, ELASTIC_INDEX_EXTENSION)) {
             success = false;
         }
-        if (reIndex(ELASTIC_INDEX_MEMBER, ELASTIC_INDEX_MEMBER)) {
+        if (!reIndex(ELASTIC_INDEX_MEMBER, ELASTIC_INDEX_MEMBER)) {
             success = false;
         }
         return success;
@@ -530,8 +513,8 @@ public class IndexingImpl implements Indexing {
         indexStatusRepository.save(indexStatuses);
     }
 
-    public boolean reIndex(final String indexName,
-                           final String type) {
+    private boolean reIndex(final String indexName,
+                            final String type) {
         final Set<IndexStatus> list = indexStatusRepository.getLatestRunningIndexStatusForIndexAlias(indexName);
         if (list.isEmpty()) {
             reIndexData(indexName, type);

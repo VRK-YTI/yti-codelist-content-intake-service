@@ -14,9 +14,9 @@ import fi.vm.yti.codelist.intake.model.UpdateStatus;
 @Component
 public class UpdateManager {
 
+    @SuppressWarnings("WeakerAccess")
     public static final String UPDATE_SUCCESSFUL = "successful";
     public static final String UPDATE_FAILED = "failed";
-    public static final String UPDATE_CANCELED = "canceled";
     public static final String UPDATE_RUNNING = "running";
     private final UpdateStatusRepository updateStatusRepository;
 

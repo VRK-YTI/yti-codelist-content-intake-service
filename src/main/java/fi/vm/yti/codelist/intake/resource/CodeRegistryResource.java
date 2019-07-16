@@ -20,7 +20,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -247,8 +246,6 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                                                     @ApiParam(value = "Input-file for CSV or Excel import.", hidden = true, type = "file") @FormDataParam("file") final InputStream inputStream) {
         boolean okToCreateANewVersion = codeSchemeService.canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(codeRegistryCodeValue, format, inputStream);
         final ObjectMapper mapper = new ObjectMapper();
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_UTF8);
         Response response;
         try {
             if (okToCreateANewVersion) {

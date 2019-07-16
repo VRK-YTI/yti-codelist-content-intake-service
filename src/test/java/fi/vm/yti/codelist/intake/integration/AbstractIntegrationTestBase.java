@@ -36,6 +36,7 @@ abstract public class AbstractIntegrationTestBase {
         return uploadCodesToCodeScheme(codeRegistryCodeValue, codeSchemeCodeValue, codesFilename, FORMAT_CSV);
     }
 
+    @SuppressWarnings("SameParameterValue")
     ResponseEntity<String> uploadCodesToCodeSchemeFromExcel(final String codeRegistryCodeValue,
                                                             final String codeSchemeCodeValue,
                                                             final String codesFilename) {
@@ -69,14 +70,12 @@ abstract public class AbstractIntegrationTestBase {
         return uploadFile(apiUrl, filePath);
     }
 
+    @SuppressWarnings("SameParameterValue")
     ResponseEntity<String> uploadCodeRegistriesFromCsv(final String codeRegistriesFilename) {
         return uploadCodeRegistries(codeRegistriesFilename, FORMAT_CSV);
     }
 
-    public ResponseEntity<String> uploadCodeRegistriesFromExcel(final String codeRegistriesFilename) {
-        return uploadCodeRegistries(codeRegistriesFilename, FORMAT_EXCEL);
-    }
-
+    @SuppressWarnings("SameParameterValue")
     private ResponseEntity<String> uploadCodeRegistries(final String codeRegistriesFilename,
                                                         final String format) {
         final String apiUrl = createApiUrl(randomServerPort) + "/" + "?format=" + format;

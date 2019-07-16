@@ -72,7 +72,7 @@ public class ServiceInitializer implements ApplicationRunner {
         initialize();
     }
 
-    void initialize() {
+    private void initialize() {
         initializing = true;
         printLogo();
         updateSwaggerHost();
@@ -96,7 +96,7 @@ public class ServiceInitializer implements ApplicationRunner {
         return initializing;
     }
 
-    void printLogo() {
+    private void printLogo() {
         LOG.info("");
         LOG.info("          __  .__          .__        __          __           ");
         LOG.info(" ___.__._/  |_|__|         |__| _____/  |______  |  | __ ____  ");

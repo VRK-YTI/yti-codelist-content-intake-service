@@ -29,9 +29,9 @@ public class CodeDaoTest {
     public void evaluateAndSetHierarchyLevelsTest() {
         final Set<Code> codes = createCodes();
         codeDao.evaluateAndSetHierarchyLevels(codes, codes);
-        Integer i = 0;
+        int i = 0;
         for (final Code code : codes) {
-            assertEquals(++i, code.getHierarchyLevel());
+            assertEquals(++i, (int) code.getHierarchyLevel());
         }
         assertEquals(8, codes.size());
     }

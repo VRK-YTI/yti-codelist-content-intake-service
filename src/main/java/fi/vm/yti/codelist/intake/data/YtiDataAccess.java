@@ -147,8 +147,7 @@ public class YtiDataAccess {
         rewriteAllUris();
     }
 
-    @Transactional
-    public void setLanguageCodesToEarlierCodeSchemes() {
+    private void setLanguageCodesToEarlierCodeSchemes() {
         LOG.debug("Setting language codes to earlier codeschemes...");
         if (updateManager.shouldUpdateData(MIGRATION_LANGUAGECODES, MIGRATION_LANGUAGECODES_VERSION, MIGRATION_LANGUAGECODES_VERSION)) {
             final UpdateStatus updateStatus = updateManager.createStatus(MIGRATION_LANGUAGECODES, MIGRATION_LANGUAGECODES_VERSION, SOURCE_INTERNAL, MIGRATION_LANGUAGECODES_VERSION, UpdateManager.UPDATE_RUNNING);
@@ -378,18 +377,13 @@ public class YtiDataAccess {
         memberDao.save(members, false);
     }
 
-    /**
-     * classification = information domain
-     */
     private void classifyServiceClassification() {
         LOG.info("Ensuring Service Classification CodeScheme belongs to P9 classification.");
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(JUPO_REGISTRY);
         classifyCodeSchemeWithCodeValue(codeRegistry, YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME, SERVICE_CLASSIFICATION_P9);
     }
 
-    /**
-     * classification = information domain
-     */
+    @SuppressWarnings("SameParameterValue")
     private void classifyCodeSchemeWithCodeValue(final CodeRegistry codeRegistry,
                                                  final String codeSchemeCodeValue,
                                                  final String dataClassificationCodeValue) {

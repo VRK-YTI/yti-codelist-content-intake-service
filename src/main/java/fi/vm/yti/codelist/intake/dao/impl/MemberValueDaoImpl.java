@@ -27,8 +27,8 @@ import static fi.vm.yti.codelist.intake.util.ValidationUtils.validateStringAgain
 @Component
 public class MemberValueDaoImpl implements MemberValueDao {
 
-    private MemberValueRepository memberValueRepository;
-    private ValueTypeDao valueTypeDao;
+    private final MemberValueRepository memberValueRepository;
+    private final ValueTypeDao valueTypeDao;
 
     @Inject
     public MemberValueDaoImpl(final MemberValueRepository memberValueRepository,

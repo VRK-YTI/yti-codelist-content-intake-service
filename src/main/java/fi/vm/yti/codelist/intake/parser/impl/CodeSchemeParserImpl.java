@@ -59,7 +59,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParserImpl.class);
 
-    private CodeSchemeService codeSchemeService;
+    private final CodeSchemeService codeSchemeService;
 
     @Inject
     public CodeSchemeParserImpl(@Lazy final CodeSchemeService codeSchemeService) {

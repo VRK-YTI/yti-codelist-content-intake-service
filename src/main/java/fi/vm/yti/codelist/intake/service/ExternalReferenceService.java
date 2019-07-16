@@ -33,7 +33,7 @@ public interface ExternalReferenceService {
                                                                   final String jsonPayload,
                                                                   final CodeScheme codeScheme);
 
-    Set<ExternalReferenceDTO> parseAndPersistExternalReferencesFromExcelWorkbook(final Workbook workbook,
-                                                                                 final String sheetName,
-                                                                                 final CodeScheme codeScheme);
+    void parseAndPersistExternalReferencesFromExcelWorkbook(final Workbook workbook,
+                                                            final String sheetName,
+                                                            final CodeScheme codeScheme);
 }

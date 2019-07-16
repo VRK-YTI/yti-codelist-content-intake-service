@@ -519,7 +519,7 @@ public class MemberDaoImpl implements MemberDao {
                 final String codeValueIdentifier = fromMember.getCode().getCodeValue();
                 if ((fromMember.getCode().getId() != null && fromMember.getCode().getId().equals(code.getId())) ||
                     (uriIdentifier != null && uriIdentifier.startsWith(uriSuomiProperties.getUriSuomiAddress()) && code.getUri().equalsIgnoreCase(uriIdentifier)) ||
-                    (codeValueIdentifier != null && code.getCodeScheme().getId().equals(extension.getParentCodeScheme().getId()) && code.getCodeValue().equalsIgnoreCase(codeValueIdentifier))) {
+                    (code.getCodeScheme().getId().equals(extension.getParentCodeScheme().getId()) && code.getCodeValue().equalsIgnoreCase(codeValueIdentifier))) {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_EXTENSION_MULTIPLE_MEMBERS));
                 }
             }

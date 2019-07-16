@@ -28,7 +28,7 @@ public class LanguageService {
     private final CodeSchemeDao codeSchemeDao;
     private final CodeDao codeDao;
     private final YtiDataAccess ytiDataAccess;
-    private Map<String, Code> languageCodes;
+    private final Map<String, Code> languageCodes;
 
     public LanguageService(@Lazy final CodeSchemeDao codeSchemeDao,
                            @Lazy final CodeDao codeDao,

@@ -13,66 +13,61 @@ import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 
 public interface Indexing {
 
-    boolean updateCode(final CodeDTO code);
+    void updateCode(final CodeDTO code);
 
-    boolean updateCodes(final Set<CodeDTO> code);
+    void updateCodes(final Set<CodeDTO> code);
 
-    boolean deleteCode(final CodeDTO code);
+    void deleteCode(final CodeDTO code);
 
-    boolean deleteCodes(final Set<CodeDTO> codes);
+    void deleteCodes(final Set<CodeDTO> codes);
 
-    boolean updateCodeScheme(final CodeSchemeDTO codeScheme);
+    void updateCodeScheme(final CodeSchemeDTO codeScheme);
 
-    boolean updateCodeSchemes(final Set<CodeSchemeDTO> codeSchemes);
+    void updateCodeSchemes(final Set<CodeSchemeDTO> codeSchemes);
 
-    boolean deleteCodeScheme(final CodeSchemeDTO codeScheme);
+    void deleteCodeScheme(final CodeSchemeDTO codeScheme);
 
-    boolean deleteCodeSchemes(final Set<CodeSchemeDTO> codeSchemes);
+    void deleteCodeSchemes(final Set<CodeSchemeDTO> codeSchemes);
 
-    boolean updateCodeRegistry(final CodeRegistryDTO codeRegistry);
+    void updateCodeRegistry(final CodeRegistryDTO codeRegistry);
 
-    boolean updateCodeRegistries(final Set<CodeRegistryDTO> codeRegistries);
+    void updateCodeRegistries(final Set<CodeRegistryDTO> codeRegistries);
 
-    boolean deleteCodeRegistry(final CodeRegistryDTO codeRegistry);
+    void deleteCodeRegistry(final CodeRegistryDTO codeRegistry);
 
-    boolean deleteCodeRegistries(final Set<CodeRegistryDTO> codeRegistries);
+    void deleteCodeRegistries(final Set<CodeRegistryDTO> codeRegistries);
 
-    boolean updateExternalReference(final ExternalReferenceDTO externalReference);
+    void updateExternalReference(final ExternalReferenceDTO externalReference);
 
-    boolean updateExternalReferences(final Set<ExternalReferenceDTO> externalReferences);
+    void updateExternalReferences(final Set<ExternalReferenceDTO> externalReferences);
 
-    boolean deleteExternalReferences(final Set<ExternalReferenceDTO> externalReferences);
+    void deleteExternalReferences(final Set<ExternalReferenceDTO> externalReferences);
 
-    boolean updatePropertyType(final PropertyTypeDTO propertyType);
+    void updatePropertyType(final PropertyTypeDTO propertyType);
 
-    boolean updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes);
+    void updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes);
 
-    boolean updateValueType(final ValueTypeDTO ValueTypeDTO);
+    void updateValueType(final ValueTypeDTO ValueTypeDTO);
 
-    boolean updateValueTypes(final Set<ValueTypeDTO> valueTypes);
+    void updateValueTypes(final Set<ValueTypeDTO> valueTypes);
 
-    boolean updateExtension(final ExtensionDTO extension);
+    void updateExtension(final ExtensionDTO extension);
 
-    boolean updateExtensions(final Set<ExtensionDTO> extensions);
+    void updateExtensions(final Set<ExtensionDTO> extensions);
 
-    boolean deleteExtension(final ExtensionDTO extension);
+    void deleteExtension(final ExtensionDTO extension);
 
-    boolean deleteExtensions(final Set<ExtensionDTO> extensions);
+    void deleteExtensions(final Set<ExtensionDTO> extensions);
 
-    boolean updateMember(final MemberDTO member);
+    void updateMembers(final Set<MemberDTO> members);
 
-    boolean updateMembers(final Set<MemberDTO> members);
+    void deleteMember(final MemberDTO member);
 
-    boolean deleteMember(final MemberDTO member);
-
-    boolean deleteMembers(final Set<MemberDTO> members);
+    void deleteMembers(final Set<MemberDTO> members);
 
     boolean reIndexEverything();
 
     void cleanRunningIndexingBookkeeping();
 
     void reIndexEverythingIfNecessary();
-
-    boolean reIndex(final String indexName,
-                    final String type);
 }

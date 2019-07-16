@@ -15,7 +15,7 @@ public final class Vocabulary {
     private final UUID id;
     private final Map prefLabel;
     private final String status;
-    private List<String> languages;
+    private final List<String> languages;
 
     // Jackson constructor
     private Vocabulary() {

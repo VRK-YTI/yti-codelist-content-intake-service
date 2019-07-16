@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -121,21 +122,19 @@ public class CloningServiceImpl implements CloningService {
         }
         codeSchemeDao.save(previousVersions);
 
-        CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getId(), codeSchemeWithUserChangesFromUi.getPrefLabel(), codeSchemeWithUserChangesFromUi.getCodeValue(),
+        final CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getId(), codeSchemeWithUserChangesFromUi.getPrefLabel(), codeSchemeWithUserChangesFromUi.getCodeValue(),
             codeSchemeWithUserChangesFromUi.getUri(), codeSchemeWithUserChangesFromUi.getStartDate(),
             codeSchemeWithUserChangesFromUi.getEndDate(), codeSchemeWithUserChangesFromUi.getStatus());
         codeSchemeWithUserChangesFromUi.setLastCodeschemeId(newCodeScheme.getId());
 
-        LinkedHashSet<CodeSchemeListItem> allVersions = new LinkedHashSet<>();
+        final LinkedHashSet<CodeSchemeListItem> allVersions = new LinkedHashSet<>();
         allVersions.add(newVersionListItem);
         allVersions.addAll(versionHistory);
         codeSchemeWithUserChangesFromUi.setAllVersions(allVersions);
 
         final Map<UUID, ExternalReference> externalReferenceMap = handleParentExternalReferences(originalCodeScheme, newCodeScheme);
 
-        handleCodeSchemeExternalReferences(codeSchemeWithUserChangesFromUi,
-            originalCodeScheme,
-            externalReferenceMap);
+        handleCodeSchemeExternalReferences(codeSchemeWithUserChangesFromUi, originalCodeScheme, externalReferenceMap);
 
         return codeSchemeService.updateCodeSchemeFromDto(true, codeRegistryCodeValue, codeSchemeWithUserChangesFromUi);
     }
@@ -176,32 +175,24 @@ public class CloningServiceImpl implements CloningService {
         }
         codeSchemeDao.save(previousVersions);
 
-        CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getId(), codeSchemeWithUserChangesFromUi.getPrefLabel(), codeSchemeWithUserChangesFromUi.getCodeValue(),
+        final CodeSchemeListItem newVersionListItem = new CodeSchemeListItem(codeSchemeWithUserChangesFromUi.getId(), codeSchemeWithUserChangesFromUi.getPrefLabel(), codeSchemeWithUserChangesFromUi.getCodeValue(),
             codeSchemeWithUserChangesFromUi.getUri(), codeSchemeWithUserChangesFromUi.getStartDate(),
             codeSchemeWithUserChangesFromUi.getEndDate(), codeSchemeWithUserChangesFromUi.getStatus());
         codeSchemeWithUserChangesFromUi.setLastCodeschemeId(newCodeScheme.getId());
 
-        LinkedHashSet<CodeSchemeListItem> allVersions = new LinkedHashSet<>();
+        final LinkedHashSet<CodeSchemeListItem> allVersions = new LinkedHashSet<>();
         allVersions.add(newVersionListItem);
         allVersions.addAll(versionHistory);
         codeSchemeWithUserChangesFromUi.setAllVersions(allVersions);
         final Map<UUID, ExternalReference> externalReferenceMap = handleParentExternalReferences(originalCodeScheme, newCodeScheme);
 
-        handleCodeSchemeExternalReferences(codeSchemeWithUserChangesFromUi,
-            originalCodeScheme,
-            externalReferenceMap);
+        handleCodeSchemeExternalReferences(codeSchemeWithUserChangesFromUi, originalCodeScheme, externalReferenceMap);
 
-        Set<Code> newCodes = handleCodes(codeSchemeWithUserChangesFromUi,
-            originalCodeScheme.getCodes(),
-            newCodeScheme,
-            externalReferenceMap);
+        final Set<Code> newCodes = handleCodes(codeSchemeWithUserChangesFromUi, originalCodeScheme.getCodes(), newCodeScheme, externalReferenceMap);
 
         final Set<Extension> originalExtensions = originalCodeScheme.getExtensions();
 
-        Set<Extension> clonedExtensions = handleExtensions(newCodeScheme,
-            originalCodeScheme,
-            newCodes,
-            originalExtensions);
+        final Set<Extension> clonedExtensions = handleExtensions(newCodeScheme, originalExtensions);
 
         if (!clonedExtensions.isEmpty()) {
             handleMembers(originalExtensions, newCodes, originalCodeScheme, clonedExtensions);
@@ -261,22 +252,19 @@ public class CloningServiceImpl implements CloningService {
 
     @Transactional
     protected Set<Extension> handleExtensions(final CodeScheme newCodeScheme,
-                                              final CodeScheme originalCodeScheme,
-                                              final Set<Code> newCodes,
                                               final Set<Extension> originalExtensions) {
         final Set<Extension> clonedExtensions = new HashSet<>();
         for (final Extension originalExtension : originalExtensions) {
-            clonedExtensions.add(cloneExtension(originalExtension, newCodeScheme, newCodes, originalCodeScheme));
+            clonedExtensions.add(cloneExtension(originalExtension, newCodeScheme));
         }
         extensionDao.save(clonedExtensions);
         return clonedExtensions;
     }
 
-    private HashSet<Member> handleMembers(final Set<Extension> originalExtensions,
-                                          final Set<Code> newCodes,
-                                          final CodeScheme originalCodeScheme,
-                                          final Set<Extension> clonedExtensions) {
-        HashSet<Member> newMembers = null;
+    private void handleMembers(final Set<Extension> originalExtensions,
+                               final Set<Code> newCodes,
+                               final CodeScheme originalCodeScheme,
+                               final Set<Extension> clonedExtensions) {
         HashMap<String, Extension> originalToNewExtensionPointerMap = new HashMap<>();
 
         for (Extension originalExtension : originalExtensions) {
@@ -291,7 +279,7 @@ public class CloningServiceImpl implements CloningService {
         }
 
         for (Extension extension : originalExtensions) {
-            newMembers = new HashSet<>();
+            final HashSet<Member> newMembers = new HashSet<>();
             Set<Member> originalMembers = memberDao.findByExtensionId(extension.getId());
             Extension clonedExtension = originalToNewExtensionPointerMap.get(extension.getCodeValue());
             HashMap<UUID, UUID> oldIdToNewIdPointerMap = new HashMap<>();
@@ -308,7 +296,7 @@ public class CloningServiceImpl implements CloningService {
                         originalMember.getRelatedMember().getId() : null);
             }
 
-            for (Member newMember : newMembers) {
+            for (final Member newMember : newMembers) {
                 Member relatedMember = newMembersMap.get(oldIdToOldRelatedMemberIdMap.get(newMember.getId()));
                 newMember.setRelatedMember(relatedMember);
                 newMember.setId(oldIdToNewIdPointerMap.get(newMember.getId())); //Only at this point new UUIDs to everyone!!
@@ -319,7 +307,7 @@ public class CloningServiceImpl implements CloningService {
             Long nrOfItemsProcessed = 0L;
             LinkedHashSet<Member> topLevel = new LinkedHashSet<>();
 
-            for (Member member : newMembers) {
+            for (final Member member : newMembers) {
                 if (member.getRelatedMember() == null) {
                     topLevel.add(member);
                     nrOfItemsProcessed++;
@@ -335,7 +323,6 @@ public class CloningServiceImpl implements CloningService {
             clonedExtension.setMembers(membersInOrderOfTheirLevelTopLevelFirst);//order just to avoid referential integrity problems
             extensionDao.save(clonedExtension);
         }
-        return newMembers;
     }
 
     private void getNextLevelItemsOfMembers(Set<Member> newMembers,
@@ -343,9 +330,9 @@ public class CloningServiceImpl implements CloningService {
                                             Long nrOfItems,
                                             LinkedHashSet<Member> currentLevelParents,
                                             LinkedHashSet<Member> ordered) {
-        LinkedHashSet<Member> newParents = new LinkedHashSet<>();
+        final LinkedHashSet<Member> newParents = new LinkedHashSet<>();
 
-        for (Member member : newMembers) {
+        for (final Member member : newMembers) {
             if (currentLevelParents.contains(member.getRelatedMember())) {
                 ordered.add(member);
                 newParents.add(member);
@@ -360,9 +347,7 @@ public class CloningServiceImpl implements CloningService {
 
     @Transactional
     protected Extension cloneExtension(final Extension original,
-                                       final CodeScheme newCodeScheme,
-                                       final Set<Code> newCodes,
-                                       final CodeScheme originalCodeScheme) {
+                                       final CodeScheme newCodeScheme) {
         final Extension copy = new Extension();
         copy.setId(UUID.randomUUID());
         copy.setEndDate(original.getEndDate());
@@ -586,7 +571,7 @@ public class CloningServiceImpl implements CloningService {
         if (nrOfItemsProcessed < nrOfItems) {
             getNextLevelItemsOfCodes(clonedCodes, nrOfItemsProcessed, nrOfItems, currentLevelParents, codesInOrderOfTheirLevelTopLevelFirst);
         }
-        ArrayList<Code> orderedCodes = new ArrayList(codesInOrderOfTheirLevelTopLevelFirst); //ArrayList retains order in forEach
+        final List<Code> orderedCodes = new ArrayList<>(codesInOrderOfTheirLevelTopLevelFirst);
         orderedCodes.forEach(code -> {
             codeDao.save(code);
             final CodeDTO clonedCodeDTO = dtoMapperService.mapDeepCodeDto(code);
