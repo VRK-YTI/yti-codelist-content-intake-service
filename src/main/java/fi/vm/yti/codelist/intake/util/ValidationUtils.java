@@ -24,6 +24,7 @@ public interface ValidationUtils {
         return pattern.matcher(input).matches();
     }
 
+    @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
     static void validateCodeStatusTransitions(final String initialCodeStatus,
                                               final String endCodeStatus) {
         final Map<String, List<String>> allowedTransitions = new HashMap<>();
