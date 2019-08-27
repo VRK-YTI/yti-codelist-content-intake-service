@@ -141,7 +141,7 @@ public class YtiDataAccess {
         loadDefaultExternalReferences();
         loadRegistryContent(DEFAULT_CLASSIFICATIONREGISTRY_FILENAME, "V2_CLASSIFICATION"); //classification = information domain
         classifyServiceClassification();
-        loadRegistryContent(DEFAULT_INTEROPERABILITYREGISTRY_FILENAME, "V2_INTEROPERABILITY");
+        loadRegistryContent(DEFAULT_INTEROPERABILITYREGISTRY_FILENAME, "V3_INTEROPERABILITY");
         languageService.loadLanguageCodes();
         setLanguageCodesToEarlierCodeSchemes();
         rewriteAllUris();
