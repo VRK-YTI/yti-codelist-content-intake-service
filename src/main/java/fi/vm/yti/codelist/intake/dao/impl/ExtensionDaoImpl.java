@@ -342,6 +342,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
                     m.setMemberValues(null);
                     m.setPrefLabel(null);
                     m.setUri(apiUtils.createMemberUri(m));
+                    m.setCreated(timeStamp);
+                    m.setModified(timeStamp);
                     memberDao.save(m);
                 });
             });

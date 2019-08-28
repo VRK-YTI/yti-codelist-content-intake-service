@@ -734,6 +734,8 @@ public class MemberDaoImpl implements MemberDao {
             })
         );
 
+        final Date timeStamp = new Date(System.currentTimeMillis());
+
         codeSchemesWithCodesOrdered.keySet().forEach(cs -> {
             LinkedHashSet<Code> codesInCorrectOrder = codeSchemesWithCodesOrdered.get(cs);
             codesInCorrectOrder.forEach(code -> {
@@ -750,6 +752,8 @@ public class MemberDaoImpl implements MemberDao {
                     m.setPrefLabel(null);
                     m.setSequenceId(getNextMemberSequence(extension));
                     m.setUri(apiUtils.createMemberUri(m));
+                    m.setCreated(timeStamp);
+                    m.setModified(timeStamp);
                     this.save(m);
                     createdMembers.add(m);
                 }
