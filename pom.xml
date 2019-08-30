@@ -602,8 +602,8 @@
                     <file>${project.build.directory}/classes/static/swagger/index.html</file>
                     <replacements>
                         <replacement>
-                            <token>http://petstore.swagger.io/v2/swagger.json"</token>
-                            <value>/codelist-intake/api/swagger.json",
+                            <token>url: "http://petstore.swagger.io/v2/swagger.json"</token>
+                            <value>urls: [{url: "/codelist-intake/api/swagger.json", name: "Codelist Intake API"},{url: "/codelist-api/api/swagger.json", name: "Codelist Public API"}],
                                 validatorUrl: null</value>
                         </replacement>
                     </replacements>
