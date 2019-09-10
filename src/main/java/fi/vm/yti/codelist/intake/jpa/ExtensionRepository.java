@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.jpa;
 
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import fi.vm.yti.codelist.intake.model.CodeScheme;
@@ -40,4 +42,10 @@ public interface ExtensionRepository extends CrudRepository<Extension, String> {
                                                              final String codeValue);
     @Query("SELECT COUNT(e) FROM Extension as e")
     int getExtensionCount();
+
+    @Query(value = "SELECT COUNT(e) FROM extension AS e WHERE e.modified >= :modifiedAfter", nativeQuery = true)
+    long modifiedAfterCount(@Param("modifiedAfter") final Date modifiedAfter);
+
+    @Query(value = "SELECT COUNT(e) FROM extension AS e WHERE e.created >= :createdAfter", nativeQuery = true)
+    long createdAfterCount(@Param("createdAfter") final Date createdAfter);
 }

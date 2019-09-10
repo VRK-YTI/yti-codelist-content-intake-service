@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.jpa;
 
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -45,4 +46,10 @@ public interface MemberRepository extends CrudRepository<Member, String> {
 
     @Query("SELECT COUNT(m) FROM Member as m")
     int getMemberCount();
+
+    @Query(value = "SELECT COUNT(m) FROM member AS m WHERE m.modified >= :modifiedAfter", nativeQuery = true)
+    long modifiedAfterCount(@Param("modifiedAfter") final Date modifiedAfter);
+
+    @Query(value = "SELECT COUNT(m) FROM member AS m WHERE m.created >= :createdAfter", nativeQuery = true)
+    long createdAfterCount(@Param("createdAfter") final Date createdAfter);
 }

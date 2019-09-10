@@ -26,6 +26,7 @@ import fi.vm.yti.codelist.intake.resource.ExternalReferenceResource;
 import fi.vm.yti.codelist.intake.resource.ImpersonateUserResource;
 import fi.vm.yti.codelist.intake.resource.InfoDomainResource;
 import fi.vm.yti.codelist.intake.resource.MemberResource;
+import fi.vm.yti.codelist.intake.resource.SystemResource;
 import fi.vm.yti.codelist.intake.resource.OrganizationResource;
 import fi.vm.yti.codelist.intake.resource.PingResource;
 import fi.vm.yti.codelist.intake.resource.PropertyTypeResource;
@@ -91,6 +92,9 @@ public class JerseyConfig extends ResourceConfig {
 
         // Health
         register(PingResource.class);
+
+        // Meta
+        register(SystemResource.class);
 
         // Configuration
         register(ConfigurationResource.class);

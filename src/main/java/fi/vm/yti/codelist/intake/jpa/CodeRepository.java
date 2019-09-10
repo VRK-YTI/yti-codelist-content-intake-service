@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.jpa;
 
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -53,4 +54,10 @@ public interface CodeRepository extends PagingAndSortingRepository<Code, String>
 
     @Query("SELECT COUNT(c) FROM Code as c")
     int getCodeCount();
+
+    @Query(value = "SELECT COUNT(c) FROM code AS c WHERE c.modified >= :modifiedAfter", nativeQuery = true)
+    long modifiedAfterCount(@Param("modifiedAfter") final Date modifiedAfter);
+
+    @Query(value = "SELECT COUNT(c) FROM code AS c WHERE c.created >= :createdAfter", nativeQuery = true)
+    long createdAfterCount(@Param("createdAfter") final Date createdAfter);
 }
