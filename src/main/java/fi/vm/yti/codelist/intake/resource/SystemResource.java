@@ -92,9 +92,9 @@ public class SystemResource implements AbstractBaseResource {
 
     private Response createCountMetaResponse(final SystemMetaCountDTO countMeta,
                                              final String format) {
-        if (format.equalsIgnoreCase("json") || format.equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
+        if (format.startsWith("json") || format.startsWith(MediaType.APPLICATION_JSON)) {
             return Response.ok(countMeta).build();
-        } else if (format != null && format.startsWith("text")) {
+        } else if (format.startsWith("text")) {
             return Response.ok(createResponseStringMessage(countMeta)).build();
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "Format not supported for the system meta counts API: " + format));

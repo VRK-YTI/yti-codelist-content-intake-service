@@ -93,7 +93,7 @@ public class JerseyConfig extends ResourceConfig {
         // Health
         register(PingResource.class);
 
-        // Meta
+        // System
         register(SystemResource.class);
 
         // Configuration
