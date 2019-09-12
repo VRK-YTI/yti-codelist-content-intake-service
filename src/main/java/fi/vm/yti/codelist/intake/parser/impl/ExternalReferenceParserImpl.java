@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -52,12 +53,19 @@ public class ExternalReferenceParserImpl extends AbstractBaseParser implements E
 
     private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceParserImpl.class);
 
+    private static final Pattern URL_PATTERN =
+        Pattern.compile("^https?://(?:[^\\s/@]+@)?(:?localhost|\\[[a-fA-F0-9:.]+\\]|[^\\s/@:.?#\\[\\]]+(?:\\.[^\\s/@:.?#\\[\\]]+)+)(?::\\d+)?(?:/\\S*)?$");
+
     @Override
     public ExternalReferenceDTO parseExternalReferenceFromJson(final String jsonPayload) {
         final ObjectMapper mapper = createObjectMapper();
         final ExternalReferenceDTO externalReference;
         try {
             externalReference = mapper.readValue(jsonPayload, ExternalReferenceDTO.class);
+            String href = externalReference.getHref();
+            if (href == null || href.isEmpty() || !URL_PATTERN.matcher(externalReference.getHref()).matches()) {
+                throw new IOException();
+            }
         } catch (final IOException e) {
             LOG.error("ExternalReference parsing failed from JSON!", e);
             throw new JsonParsingException(ERR_MSG_USER_EXTERNALREFERENCE_PARSING_FAILED);
@@ -103,6 +111,9 @@ public class ExternalReferenceParserImpl extends AbstractBaseParser implements E
                 propertyType.setLocalName(propertyTypeLocalName);
                 externalReference.setPropertyType(propertyType);
                 final String href = record.get(CONTENT_HEADER_HREF);
+                if (href == null || href.isEmpty() || !URL_PATTERN.matcher(href).matches()) {
+                    throw new IOException();
+                }
                 externalReference.setHref(href);
                 externalReference.setTitle(parseLocalizedValueFromCsvRecord(titleHeaders, record));
                 externalReference.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
@@ -176,6 +187,10 @@ public class ExternalReferenceParserImpl extends AbstractBaseParser implements E
                 final String href = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HREF)));
                 if (href == null || href.isEmpty()) {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_HREF));
+                }
+                if (!URL_PATTERN.matcher(href).matches()) {
+                    LOG.error("Error parsing Excel file!");
+                    throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
                 }
                 externalReference.setHref(href);
                 final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE)));

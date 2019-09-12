@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
+import fi.vm.yti.codelist.intake.exception.JsonParsingException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.ExternalReferenceRepository;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
@@ -23,14 +25,15 @@ import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.PropertyType;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_EXTERNALREFERENCE_PROPERTYTYPE_NOT_FOUND;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
 public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
     private static final String CONTEXT_EXTERNALREFERENCE = "ExternalReference";
     private static final String EXTERNALREFERENCE_LINK_TYPE = "link";
+    private static final Pattern URL_PATTERN =
+        Pattern.compile("^https?://(?:[^\\s/@]+@)?(:?localhost|\\[[a-fA-F0-9:.]+\\]|[^\\s/@:.?#\\[\\]]+(?:\\.[^\\s/@:.?#\\[\\]]+)+)(?::\\d+)?(?:/\\S*)?$");
 
     private final EntityChangeLogger entityChangeLogger;
     private final ExternalReferenceRepository externalReferenceRepository;
@@ -128,8 +131,8 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
                                                              final CodeScheme codeScheme) {
         final boolean isGlobal = fromExternalReference.getGlobal() != null ? fromExternalReference.getGlobal() : false;
         ExternalReference existingExternalReference;
-        if (!internal && codeScheme != null && fromExternalReference.getHref() != null) {
-            final String href = fromExternalReference.getHref();
+        final String href = fromExternalReference.getHref();
+        if (!internal && codeScheme != null && href != null) {
             existingExternalReference = externalReferenceRepository.findByGlobalTrueAndHref(href);
             if (existingExternalReference != null) {
                 return existingExternalReference;
@@ -147,6 +150,11 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
                 return existingExternalReference;
             }
         }
+
+        if (href == null || href.isEmpty() || !URL_PATTERN.matcher(href).matches()) {
+            throw new JsonParsingException(ERR_MSG_USER_EXTERNALREFERENCE_PARSING_FAILED);
+        }
+
         if (fromExternalReference.getId() != null && codeScheme != null && !isGlobal) {
             existingExternalReference = externalReferenceRepository.findByIdAndParentCodeScheme(fromExternalReference.getId(), codeScheme);
         } else if (fromExternalReference.getId() != null && isGlobal) {
