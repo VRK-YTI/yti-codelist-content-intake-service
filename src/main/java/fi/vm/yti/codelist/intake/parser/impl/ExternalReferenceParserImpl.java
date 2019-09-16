@@ -189,8 +189,8 @@ public class ExternalReferenceParserImpl extends AbstractBaseParser implements E
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ROW_MISSING_HREF));
                 }
                 if (!URL_PATTERN.matcher(href).matches()) {
-                    LOG.error("Error parsing Excel file!");
-                    throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
+                    LOG.error("Error parsing Links from Excel file!");
+                    throw new ExcelParsingException(ERR_MSG_USER_IMPORTED_DATA_CONTAINS_INVALID_URLS_IN_LINKS);
                 }
                 externalReference.setHref(href);
                 final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE)));
