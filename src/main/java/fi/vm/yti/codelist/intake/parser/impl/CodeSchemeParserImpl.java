@@ -142,6 +142,9 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 if (headerMap.containsKey(CONTENT_HEADER_ORGANIZATION)) {
                     codeScheme.setOrganizations(resolveOrganizations(record.get(CONTENT_HEADER_ORGANIZATION)));
                 }
+                if (headerMap.containsKey(CONTENT_HEADER_HREF)) {
+                    codeScheme.setExternalReferences(resolveHrefs(record.get(CONTENT_HEADER_HREF)));
+                }
                 if (!codeValue.equals(YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                     codeScheme.setInfoDomains(resolveInfoDomainsFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_INFODOMAIN)));
                 }

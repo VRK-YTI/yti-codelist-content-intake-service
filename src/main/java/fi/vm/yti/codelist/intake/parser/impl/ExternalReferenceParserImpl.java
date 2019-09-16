@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -52,9 +51,6 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 public class ExternalReferenceParserImpl extends AbstractBaseParser implements ExternalReferenceParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExternalReferenceParserImpl.class);
-
-    private static final Pattern URL_PATTERN =
-        Pattern.compile("^https?://(?:[^\\s/@]+@)?(:?localhost|\\[[a-fA-F0-9:.]+\\]|[^\\s/@:.?#\\[\\]]+(?:\\.[^\\s/@:.?#\\[\\]]+)+)(?::\\d+)?(?:/\\S*)?$");
 
     @Override
     public ExternalReferenceDTO parseExternalReferenceFromJson(final String jsonPayload) {
@@ -111,8 +107,11 @@ public class ExternalReferenceParserImpl extends AbstractBaseParser implements E
                 propertyType.setLocalName(propertyTypeLocalName);
                 externalReference.setPropertyType(propertyType);
                 final String href = record.get(CONTENT_HEADER_HREF);
-                if (href == null || href.isEmpty() || !URL_PATTERN.matcher(href).matches()) {
+                if (href == null || href.isEmpty()) {
                     throw new IOException();
+                }
+                if (!URL_PATTERN.matcher(href).matches()) {
+                    throw new CsvParsingException(ERR_MSG_USER_IMPORTED_DATA_CONTAINS_INVALID_URLS_IN_LINKS);
                 }
                 externalReference.setHref(href);
                 externalReference.setTitle(parseLocalizedValueFromCsvRecord(titleHeaders, record));

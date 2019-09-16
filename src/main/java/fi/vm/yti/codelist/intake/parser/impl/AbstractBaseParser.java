@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +51,7 @@ public abstract class AbstractBaseParser {
     private static final String CODE_CODEVALUE_VALIDATOR = "^[a-zA-Z0-9_\\-\\.\\+\\&\\#\\*]*$";
     private static final String CODESCHEME_CODEVALUE_VALIDATOR = "^[a-zA-Z0-9_\\-]*$";
     private static final String SUGGESTED_STATUS = "SUGGESTED";
+    public static final Pattern URL_PATTERN = Pattern.compile("^https?://(?:[^\\s/@]+@)?(:?localhost|\\[[a-fA-F0-9:.]+\\]|[^\\s/@:.?#\\[\\]]+(?:\\.[^\\s/@:.?#\\[\\]]+)+)(?::\\d+)?(?:/\\S*)?$");
 
     public static void validateCodeCodeValue(final String codeValue) {
         validateCodeCodeValue(codeValue, null);
@@ -403,12 +405,20 @@ public abstract class AbstractBaseParser {
                 if (uuid != null) {
                     externalReference.setId(uuid);
                 } else {
-                    externalReference.setHref(trimWhiteSpaceFromString(externalReferenceIdentifier));
+                    externalReference.setHref(parseAndValidateExternalReferenceHrefFromString(externalReferenceIdentifier));
                 }
                 externalReferences.add(externalReference);
             }
         }
         return externalReferences;
+    }
+
+    String parseAndValidateExternalReferenceHrefFromString(final String externalReferenceHref) {
+        final String trimmedHref = trimWhiteSpaceFromString(externalReferenceHref);
+        if (!URL_PATTERN.matcher(trimmedHref).matches()) {
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_IMPORTED_DATA_CONTAINS_INVALID_URLS_IN_LINKS));
+        }
+        return trimmedHref;
     }
 
     String getRowIdentifier(final Row row) {
