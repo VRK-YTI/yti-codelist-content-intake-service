@@ -147,6 +147,7 @@ public class DtoMapperService {
         codeSchemeDto.setSource(codeScheme.getSource());
         codeSchemeDto.setDefinition(codeScheme.getDefinition());
         codeSchemeDto.setPrefLabel(codeScheme.getPrefLabel());
+        codeSchemeDto.setFeedbackChannel(codeScheme.getFeedbackChannel());
         codeSchemeDto.setDescription(codeScheme.getDescription());
         codeSchemeDto.setCodeRegistry(mapCodeRegistryDto(codeScheme.getCodeRegistry(), false));
         codeSchemeDto.setVersion(codeScheme.getVersion());

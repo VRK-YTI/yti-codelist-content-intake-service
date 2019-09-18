@@ -53,9 +53,11 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private UUID lastCodeschemeId;
     private Set<Organization> organizations;
     private boolean cumulative;
+    private Map<String, String> feedbackChannel;
 
     public CodeScheme() {
         prefLabel = new HashMap<>();
+        feedbackChannel = new HashMap<>();
     }
 
     public CodeScheme(final String codeValue,
@@ -441,5 +443,42 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
 
     public void setCumulative(final boolean cumulative) {
         this.cumulative = cumulative;
+    }
+
+    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "codescheme_feedback_channel", joinColumns = @JoinColumn(name = "codescheme_id", referencedColumnName = "id"))
+    @MapKeyColumn(name = "language")
+    @Column(name = "feedback_channel")
+    @OrderColumn
+    public Map<String, String> getFeedbackChannel() {
+        return feedbackChannel;
+    }
+
+    public void setFeedbackChannel(final Map<String, String> feedbackChannel) {
+        this.feedbackChannel = feedbackChannel;
+    }
+
+    public String getFeedbackChannel(final String language) {
+        String feedbackChannelValue = null;
+        if (this.feedbackChannel != null && !this.feedbackChannel.isEmpty()) {
+            feedbackChannelValue = this.feedbackChannel.get(language);
+            if (feedbackChannelValue == null) {
+                feedbackChannelValue = this.feedbackChannel.get(LANGUAGE_CODE_EN);
+            }
+        }
+        return feedbackChannelValue;
+    }
+
+    public void setFeedbackChannel(final String language,
+                             final String value) {
+        if (this.feedbackChannel == null) {
+            this.feedbackChannel = new HashMap<>();
+        }
+        if (language != null && value != null && !value.isEmpty()) {
+            this.feedbackChannel.put(language, value);
+        } else if (language != null) {
+            this.feedbackChannel.remove(language);
+        }
+        setFeedbackChannel(this.feedbackChannel);
     }
 }

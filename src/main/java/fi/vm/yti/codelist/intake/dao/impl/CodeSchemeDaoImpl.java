@@ -276,6 +276,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         mapDescription(fromCodeScheme, existingCodeScheme);
         mapDefinition(fromCodeScheme, existingCodeScheme);
         mapChangeNote(fromCodeScheme, existingCodeScheme);
+        mapFeedbackChannel(fromCodeScheme, existingCodeScheme);
         final Map<String, String> changeNote = fromCodeScheme.getChangeNote();
         if (changeNote != null) {
             for (final Map.Entry<String, String> entry : fromCodeScheme.getChangeNote().entrySet()) {
@@ -354,6 +355,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         mapDescription(fromCodeScheme, codeScheme);
         mapDefinition(fromCodeScheme, codeScheme);
         mapChangeNote(fromCodeScheme, codeScheme);
+        mapFeedbackChannel(fromCodeScheme, codeScheme);
         codeScheme.setVersion(fromCodeScheme.getVersion());
         codeScheme.setStatus(fromCodeScheme.getStatus());
         codeScheme.setStartDate(fromCodeScheme.getStartDate());
@@ -510,6 +512,20 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
             }
         } else {
             codeScheme.setChangeNote(null);
+        }
+    }
+
+    private void mapFeedbackChannel(final CodeSchemeDTO fromCodeScheme,
+                              final CodeScheme codeScheme) {
+        final Map<String, String> feedbackChannel = fromCodeScheme.getFeedbackChannel();
+        if (feedbackChannel != null && !feedbackChannel.isEmpty()) {
+            for (final Map.Entry<String, String> entry : feedbackChannel.entrySet()) {
+                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
+                final String value = entry.getValue();
+                if (!Objects.equals(codeScheme.getFeedbackChannel(language), value)) {
+                    codeScheme.setFeedbackChannel(language, value);
+                }
+            }
         }
     }
 }
