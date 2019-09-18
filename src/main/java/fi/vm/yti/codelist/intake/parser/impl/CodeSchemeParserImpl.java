@@ -117,6 +117,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
              final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
             final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
+            final Map<String, Integer> feedbackChannelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_FEEDBACK_CHANNEL_PREFIX);
             final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
             final Map<String, Integer> descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
             final Map<String, Integer> changeNoteHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_CHANGENOTE_PREFIX);
@@ -136,6 +137,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     codeScheme.setId(dtoFromDb.getId());
                 }
                 codeScheme.setPrefLabel(parseLocalizedValueFromCsvRecord(prefLabelHeaders, record));
+                codeScheme.setFeedbackChannel(parseLocalizedValueFromCsvRecord(feedbackChannelHeaders, record));
                 codeScheme.setDefinition(parseLocalizedValueFromCsvRecord(definitionHeaders, record));
                 codeScheme.setDescription(parseLocalizedValueFromCsvRecord(descriptionHeaders, record));
                 codeScheme.setChangeNote(parseLocalizedValueFromCsvRecord(changeNoteHeaders, record));
@@ -210,6 +212,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         final Iterator<Row> rowIterator = sheet.rowIterator();
         Map<String, Integer> headerMap = null;
         Map<String, Integer> prefLabelHeaders = null;
+        Map<String, Integer> feedbackChannelHeaders = null;
         Map<String, Integer> definitionHeaders = null;
         Map<String, Integer> descriptionHeaders = null;
         Map<String, Integer> changeNoteHeaders = null;
@@ -222,6 +225,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 firstRow = false;
                 headerMap = resolveHeaderMap(row);
                 prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
+                feedbackChannelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_FEEDBACK_CHANNEL_PREFIX);
                 definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
                 descriptionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DESCRIPTION_PREFIX);
                 changeNoteHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_CHANGENOTE_PREFIX);
@@ -257,6 +261,7 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     codeScheme.setExternalReferences(resolveHrefs(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_HREF)))));
                 }
                 codeScheme.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
+                codeScheme.setFeedbackChannel(parseLocalizedValueFromExcelRow(feedbackChannelHeaders, row, formatter));
                 codeScheme.setDefinition(parseLocalizedValueFromExcelRow(definitionHeaders, row, formatter));
                 codeScheme.setDescription(parseLocalizedValueFromExcelRow(descriptionHeaders, row, formatter));
                 codeScheme.setChangeNote(parseLocalizedValueFromExcelRow(changeNoteHeaders, row, formatter));
