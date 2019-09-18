@@ -23,7 +23,9 @@ import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
+import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.ExistingCodeException;
+import fi.vm.yti.codelist.intake.exception.InvalidStatusAtCreationTimeException;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
@@ -357,7 +359,13 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         mapChangeNote(fromCodeScheme, codeScheme);
         mapFeedbackChannel(fromCodeScheme, codeScheme);
         codeScheme.setVersion(fromCodeScheme.getVersion());
-        codeScheme.setStatus(fromCodeScheme.getStatus());
+        String status = fromCodeScheme.getStatus();
+        if (status.equals(Status.DRAFT) || status.equals(Status.INCOMPLETE)) {
+            codeScheme.setStatus(fromCodeScheme.getStatus());
+        } else {
+            throw new InvalidStatusAtCreationTimeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ErrorConstants.ERR_MSG_STATUS_NOT_VALID, status));
+        }
+
         codeScheme.setStartDate(fromCodeScheme.getStartDate());
         codeScheme.setEndDate(fromCodeScheme.getEndDate());
         codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
@@ -516,7 +524,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     }
 
     private void mapFeedbackChannel(final CodeSchemeDTO fromCodeScheme,
-                              final CodeScheme codeScheme) {
+                                    final CodeScheme codeScheme) {
         final Map<String, String> feedbackChannel = fromCodeScheme.getFeedbackChannel();
         if (feedbackChannel != null && !feedbackChannel.isEmpty()) {
             for (final Map.Entry<String, String> entry : feedbackChannel.entrySet()) {
