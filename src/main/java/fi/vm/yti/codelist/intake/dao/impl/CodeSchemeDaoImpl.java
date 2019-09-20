@@ -364,12 +364,17 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
         // Below, at creation time STATUS value has restrictions - except when setting up the system or running integrations tests (dcat needs to be allowed as VALID for example).
         boolean anyStatusIsFineAtCreationTime = false;
-        for (String initCodeScheme : ApplicationConstants.INITIALIZATION_CODE_SCHEMES) {
-            if (initCodeScheme.equals(fromCodeScheme.getCodeValue())) {
-                anyStatusIsFineAtCreationTime = true;
-                break;
+        if (authorizationManager.isSuperUser()) { // super user can always create a new code list with any STATUS he/she wishes.
+            anyStatusIsFineAtCreationTime = true;
+        } else {
+            for (String initCodeScheme : ApplicationConstants.INITIALIZATION_CODE_SCHEMES) {
+                if (initCodeScheme.equals(fromCodeScheme.getCodeValue())) {
+                    anyStatusIsFineAtCreationTime = true;
+                    break;
+                }
             }
         }
+
         if (anyStatusIsFineAtCreationTime) {
             codeScheme.setStatus(fromCodeScheme.getStatus());
         } else {
