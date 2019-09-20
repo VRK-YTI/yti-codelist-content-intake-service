@@ -37,6 +37,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.intake.configuration.ApplicationConstants;
 import fi.vm.yti.codelist.intake.exception.BadInformationDomainException;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
@@ -147,11 +148,11 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 if (headerMap.containsKey(CONTENT_HEADER_HREF)) {
                     codeScheme.setExternalReferences(resolveHrefs(record.get(CONTENT_HEADER_HREF)));
                 }
-                if (!codeValue.equals(YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
+                if (!codeValue.equals(ApplicationConstants.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                     codeScheme.setInfoDomains(resolveInfoDomainsFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_INFODOMAIN)));
                 }
-                if ((!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) &&
-                    (!codeValue.equals(YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) &&
+                if ((!codeValue.equals(ApplicationConstants.YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) &&
+                    (!codeValue.equals(ApplicationConstants.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) &&
                     headerMap.get(CONTENT_HEADER_LANGUAGECODE) != null) {
                     final Set<CodeDTO> languageCodes = resolveLanguageCodesFromString(parseStringFromCsvRecord(record, CONTENT_HEADER_LANGUAGECODE));
                     if (!languageCodes.isEmpty()) {
@@ -243,11 +244,11 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 if (headerMap.containsKey(CONTENT_HEADER_ID)) {
                     codeScheme.setId(parseUUIDFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ID)))));
                 }
-                if (!codeValue.equals(YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
+                if (!codeValue.equals(ApplicationConstants.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) {
                     codeScheme.setInfoDomains(resolveInfoDomainsFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_INFODOMAIN)))));
                 }
-                if ((!codeValue.equals(YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) &&
-                    (!codeValue.equals(YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) &&
+                if ((!codeValue.equals(ApplicationConstants.YTI_LANGUAGECODE_CODESCHEME) && !codeRegistry.getCodeValue().equals(YTI_REGISTRY)) &&
+                    (!codeValue.equals(ApplicationConstants.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME) && !codeRegistry.getCodeValue().equals(JUPO_REGISTRY)) &&
                     headerMap.get(CONTENT_HEADER_LANGUAGECODE) != null) {
                     final Set<CodeDTO> languageCodes = resolveLanguageCodesFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_LANGUAGECODE))));
                     if (!languageCodes.isEmpty()) {

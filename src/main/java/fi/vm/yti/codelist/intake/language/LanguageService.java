@@ -19,7 +19,7 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_BAD_LANGUAGECODE;
-import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_LANGUAGECODE_CODESCHEME;
+import static fi.vm.yti.codelist.intake.configuration.ApplicationConstants.YTI_LANGUAGECODE_CODESCHEME;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_REGISTRY;
 
 @Component

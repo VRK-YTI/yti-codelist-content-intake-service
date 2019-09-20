@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.intake.configuration.ApplicationConstants;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
@@ -14,11 +15,11 @@ public interface AbstractBaseService {
     boolean preventPossibleImplicitCodeDeletionDuringFileImport = false;
 
     default boolean isServiceClassificationCodeScheme(final CodeScheme codeScheme) {
-        return isCodeSchemeWithRegistryAndCodeValue(codeScheme, JUPO_REGISTRY, YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME);
+        return isCodeSchemeWithRegistryAndCodeValue(codeScheme, JUPO_REGISTRY, ApplicationConstants.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME);
     }
 
     default boolean isLanguageCodeCodeScheme(final CodeScheme codeScheme) {
-        return isCodeSchemeWithRegistryAndCodeValue(codeScheme, YTI_REGISTRY, YTI_LANGUAGECODE_CODESCHEME);
+        return isCodeSchemeWithRegistryAndCodeValue(codeScheme, YTI_REGISTRY, ApplicationConstants.YTI_LANGUAGECODE_CODESCHEME);
     }
 
     default boolean isCodeSchemeWithRegistryAndCodeValue(final CodeScheme codeScheme,

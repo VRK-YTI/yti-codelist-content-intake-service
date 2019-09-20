@@ -47,7 +47,7 @@ import io.swagger.annotations.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_INFODOMAIN;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.JUPO_REGISTRY;
-import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME;
+import static fi.vm.yti.codelist.intake.configuration.ApplicationConstants.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME;
 
 @Component
 @Path("/v1/infodomains")

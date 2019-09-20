@@ -43,8 +43,8 @@ import fi.vm.yti.codelist.intake.service.ValueTypeService;
 import fi.vm.yti.codelist.intake.update.UpdateManager;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
+import static fi.vm.yti.codelist.intake.configuration.ApplicationConstants.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.JUPO_REGISTRY;
-import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME;
 
 @Service
 public class YtiDataAccess {
@@ -68,9 +68,6 @@ public class YtiDataAccess {
     private static final String MIGRATION_LANGUAGECODES_VERSION = "v1";
     private static final String PROPERTYTYPE_IDENTIFIER = "v16";
     private static final String VALUETYPE_IDENTIFIER = "v8";
-
-    private boolean isInitializing;
-
     private final ContentIntakeServiceProperties contentIntakeServiceProperties;
     private final UpdateManager updateManager;
     private final CodeRegistryDao codeRegistryDao;
@@ -86,6 +83,7 @@ public class YtiDataAccess {
     private final ValueTypeService valueTypeService;
     private final ApiUtils apiUtils;
     private final LanguageService languageService;
+    private boolean isInitializing;
 
     @Inject
     public YtiDataAccess(final ContentIntakeServiceProperties contentIntakeServiceProperties,

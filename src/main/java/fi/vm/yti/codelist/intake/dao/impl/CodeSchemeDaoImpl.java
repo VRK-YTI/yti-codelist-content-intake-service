@@ -21,6 +21,7 @@ import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.configuration.ApplicationConstants;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExternalReferenceDao;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
@@ -360,10 +361,23 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         mapFeedbackChannel(fromCodeScheme, codeScheme);
         codeScheme.setVersion(fromCodeScheme.getVersion());
         String status = fromCodeScheme.getStatus();
-        if (status.equals(Status.DRAFT) || status.equals(Status.INCOMPLETE)) {
+
+        // Below, at creation time STATUS value has restrictions - except when setting up the system or running integrations tests (dcat needs to be allowed as VALID for example).
+        boolean anyStatusIsFineAtCreationTime = false;
+        for (String initCodeScheme : ApplicationConstants.INITIALIZATION_CODE_SCHEMES) {
+            if (initCodeScheme.equals(fromCodeScheme.getCodeValue())) {
+                anyStatusIsFineAtCreationTime = true;
+                break;
+            }
+        }
+        if (anyStatusIsFineAtCreationTime) {
             codeScheme.setStatus(fromCodeScheme.getStatus());
         } else {
-            throw new InvalidStatusAtCreationTimeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ErrorConstants.ERR_MSG_STATUS_NOT_VALID, status));
+            if (status.equals(Status.DRAFT.toString()) || status.equals(Status.INCOMPLETE.toString())) {
+                codeScheme.setStatus(fromCodeScheme.getStatus());
+            } else {
+                throw new InvalidStatusAtCreationTimeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ErrorConstants.ERR_MSG_STATUS_NOT_VALID, status));
+            }
         }
 
         codeScheme.setStartDate(fromCodeScheme.getStartDate());
@@ -399,7 +413,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         if (codeDtos != null && !codeDtos.isEmpty()) {
             codes = new HashSet<>();
             final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(JUPO_REGISTRY);
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME);
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, ApplicationConstants.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME);
             codeDtos.forEach(codeDto -> {
                 final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
                 if (code != null && code.getHierarchyLevel() == 1) {
@@ -419,7 +433,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         if (codeDtos != null && !codeDtos.isEmpty()) {
             codes = new HashSet<>();
             final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(YTI_REGISTRY);
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, YTI_LANGUAGECODE_CODESCHEME);
+            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, ApplicationConstants.YTI_LANGUAGECODE_CODESCHEME);
             codeDtos.forEach(codeDto -> {
                 final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
                 if (code != null) {
