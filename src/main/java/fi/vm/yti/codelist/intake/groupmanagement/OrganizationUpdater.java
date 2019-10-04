@@ -36,6 +36,7 @@ public class OrganizationUpdater {
         this.restTemplate = restTemplate;
     }
 
+    @Transactional
     @Scheduled(cron = "0 */5 * * * *")
     public void fetchOrganizations() {
         updateOrganizations();
