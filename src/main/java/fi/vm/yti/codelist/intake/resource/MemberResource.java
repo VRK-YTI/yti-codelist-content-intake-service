@@ -15,10 +15,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.cfg.ObjectWriterInjector;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
@@ -32,18 +31,18 @@ import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExtensionService;
 import fi.vm.yti.codelist.intake.service.MemberService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CODE_EXTENSION;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_MEMBER;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_EXTENSION_NOT_FOUND;
 
 @Component
 @Path("/v1/members")
-@Api(value = "members")
 @Produces(MediaType.APPLICATION_JSON)
 public class MemberResource implements AbstractBaseResource {
 
@@ -67,13 +66,13 @@ public class MemberResource implements AbstractBaseResource {
     @Path("{memberId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses and creates or updates single Member from JSON input.")
+    @Operation(summary = "Parses and creates or updates single Member from JSON input.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(responseCode = "200", description = "Returns success.")
     })
-    public Response addOrUpdateMemberFromJson(@ApiParam(value = "Member UUID", required = true) @PathParam("memberId") final UUID memberId,
-                                              @ApiParam(value = "JSON playload for Member data.", required = true) final String jsonPayload,
-                                              @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
+    public Response addOrUpdateMemberFromJson(@Parameter(description = "Member UUID", required = true, in = ParameterIn.PATH) @PathParam("memberId") final UUID memberId,
+                                              @Parameter(description = "Pretty format JSON output.") @QueryParam("pretty") final String pretty,
+                                              @RequestBody(description = "JSON payload for Member data.", required = true) final String jsonPayload) {
         return parseAndPersistMemberFromSource(jsonPayload, pretty);
     }
 
@@ -81,12 +80,12 @@ public class MemberResource implements AbstractBaseResource {
     @Path("{memberId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Deletes a single existing Member.")
+    @Operation(summary = "Deletes a single existing Member.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Member deleted."),
-        @ApiResponse(code = 404, message = "Member not found.")
+        @ApiResponse(responseCode = "200", description = "Member deleted."),
+        @ApiResponse(responseCode = "404", description = "Member not found.")
     })
-    public Response deleteMember(@ApiParam(value = "Member UUID", required = true) @PathParam("memberId") final UUID memberId) {
+    public Response deleteMember(@Parameter(description = "Member UUID", required = true, in = ParameterIn.PATH) @PathParam("memberId") final UUID memberId) {
         final MemberDTO existingMember = memberService.findById(memberId);
         if (existingMember != null) {
             final Set<MemberDTO> affectedMembers = new HashSet<>();
@@ -120,7 +119,7 @@ public class MemberResource implements AbstractBaseResource {
             }
         }
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_MEMBER, "member"), pretty));
+        ObjectWriterInjector.set(new FilterModifier(createSimpleFilterProvider(FILTER_NAME_MEMBER, "member"), pretty));
         final ResponseWrapper<MemberDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("Member added or modified.");
         meta.setCode(200);

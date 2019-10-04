@@ -25,7 +25,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -48,15 +47,16 @@ import fi.vm.yti.codelist.intake.terminology.ConceptSuggestion;
 import fi.vm.yti.codelist.intake.terminology.Vocabulary;
 import fi.vm.yti.security.AuthenticatedUserProvider;
 import fi.vm.yti.security.YtiUser;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_401;
 
 @Component
 @Path("/v1/terminology")
-@Api(value = "terminology")
 public class TerminologyProxyResource implements AbstractBaseResource {
 
     public static final String ERROR_CREATING_A_CONCEPT_IN_TERMINOLOGY_API = "Error creating a concept in terminology-api!";
@@ -77,8 +77,8 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     @GET
     @Path("/vocabularies")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Returns the complete list of existing vocabularies.")
-    @ApiResponse(code = 200, message = "Returns success.")
+    @Operation(summary = "Returns the complete list of existing vocabularies.")
+    @ApiResponse(responseCode = "200", description = "Returns success.")
     @SuppressWarnings("Duplicates")
     public Response getVocabularies() {
         final YtiUser user = authenticatedUserProvider.getUser();
@@ -121,13 +121,13 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     @GET
     @Path("/concepts")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Returns a filtered list of concepts")
-    @ApiResponse(code = 200, message = "Returns success.")
+    @Operation(summary = "Returns a filtered list of concepts")
+    @ApiResponse(responseCode = "200", description = "Returns success.")
     @SuppressWarnings("Duplicates")
-    public Response getConcepts(@QueryParam("searchTerm") String searchTerm,
-                                @QueryParam("vocabularyId") String vocabularyId,
-                                @QueryParam("status") String status,
-                                @QueryParam("language") String language) {
+    public Response getConcepts(@Parameter(description = "Search term for filtering response data.", in = ParameterIn.QUERY) @QueryParam("searchTerm") String searchTerm,
+                                @Parameter(description = "Vocabulary ID for fetching concepts in specific vocabulary.", in = ParameterIn.QUERY) @QueryParam("vocabularyId") String vocabularyId,
+                                @Parameter(description = "Status for filtering response data based on resource status.", in = ParameterIn.QUERY) @QueryParam("status") String status,
+                                @Parameter(description = "Language parameter that is used in sorting data.", in = ParameterIn.QUERY) @QueryParam("language") String language) {
 
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
@@ -185,13 +185,13 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     @POST
     @Path("/suggestion/vocabulary/{vocabularyId}/language/{contentLanguage}/suggestion/{suggestion}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Creates a concept in Controlled Vocabularies and returns it.")
-    @ApiResponse(code = 200, message = "Returns success.")
+    @Operation(summary = "Creates a concept in Controlled Vocabularies and returns it.")
+    @ApiResponse(responseCode = "200", description = "Returns success.")
     @SuppressWarnings("Duplicates")
-    public Response suggestAConcept(@PathParam("vocabularyId") final String vocabularyId,
-                                    @PathParam("contentLanguage") final String contentLanguage,
-                                    @PathParam("suggestion") final String suggestion,
-                                    @RequestBody String suggestedDefinition,
+    public Response suggestAConcept(@Parameter(description = "Vocabulary ID to make the suggestion in.", in = ParameterIn.PATH) @PathParam("vocabularyId") final String vocabularyId,
+                                    @Parameter(description = "Content language for the defined suggestion.", in = ParameterIn.PATH) @PathParam("contentLanguage") final String contentLanguage,
+                                    @Parameter(description = "Concept suggestion text.", in = ParameterIn.PATH) @PathParam("suggestion") final String suggestion,
+                                    @RequestBody(description = "Definition for the concept suggestion.") String suggestedDefinition,
                                     @Context HttpServletRequest httpServletrequest) {
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {

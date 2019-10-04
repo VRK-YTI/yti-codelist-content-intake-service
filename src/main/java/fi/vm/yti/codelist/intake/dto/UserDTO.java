@@ -9,12 +9,12 @@ import javax.xml.bind.annotation.XmlType;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @JsonFilter("user")
 @XmlRootElement
 @XmlType(propOrder = { "id", "firstName", "lastName" })
-@ApiModel(value = "User", description = "User DTO that represents data individual user.")
+@Schema(name = "User", description = "User DTO that represents data individual user.")
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class UserDTO implements Serializable {
 

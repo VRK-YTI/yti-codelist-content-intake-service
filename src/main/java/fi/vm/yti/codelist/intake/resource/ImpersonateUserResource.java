@@ -12,13 +12,11 @@ import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.intake.groupmanagement.GroupManagementUser;
 import fi.vm.yti.codelist.intake.groupmanagement.ImpersonateUserService;
-import io.swagger.annotations.Api;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.API_PATH_IMPERSONABLE_USERS;
 
 @Component
 @Path(API_PATH_IMPERSONABLE_USERS)
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "fakeableUsers")
 public class ImpersonateUserResource implements AbstractBaseResource {
 
     private final ImpersonateUserService impersonateUserService;

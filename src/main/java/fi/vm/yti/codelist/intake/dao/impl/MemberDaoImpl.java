@@ -92,7 +92,7 @@ public class MemberDaoImpl implements MemberDao {
     @Transactional
     public void delete(final Set<Member> members) {
         entityChangeLogger.logMemberChanges(members);
-        memberRepository.delete(members);
+        memberRepository.deleteAll(members);
     }
 
     @Transactional
@@ -104,7 +104,7 @@ public class MemberDaoImpl implements MemberDao {
     @Transactional
     public void save(final Set<Member> members,
                      final boolean logChange) {
-        memberRepository.save(members);
+        memberRepository.saveAll(members);
         if (logChange) {
             entityChangeLogger.logMemberChanges(members);
         }

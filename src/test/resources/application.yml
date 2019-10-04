@@ -3,10 +3,13 @@ spring:
   profiles: automatedtest
   jpa:
     generate-ddl: false
-    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    database-platform: "org.hibernate.dialect.PostgreSQL9Dialect"
     properties:
       hibernate:
         ddl-auto: none
+        jdbc:
+          lob:
+            non_contextual_creation: false
 
 thread:
   pool:
@@ -60,13 +63,13 @@ application:
   contextPath: /codelist-intake
   access-log: true
 
-public_api:
+publicapi:
   scheme: http
   host: localhost
   port: 9601
   contextPath: /codelist-api
 
-uri_suomi:
+urisuomi:
   scheme: http
   host: uri.suomi.fi
   contextPath: /codelist

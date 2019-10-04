@@ -19,8 +19,6 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.poi.EmptyFileException;
-import org.apache.poi.POIXMLException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -148,7 +146,7 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                                                                  final Map<ExtensionDTO, String> membersSheetNames) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             return parseExtensionsFromExcelWorkbook(workbook, sheetName, membersSheetNames);
-        } catch (final InvalidFormatException | EmptyFileException | IOException | POIXMLException e) {
+        } catch (final EmptyFileException | IOException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }

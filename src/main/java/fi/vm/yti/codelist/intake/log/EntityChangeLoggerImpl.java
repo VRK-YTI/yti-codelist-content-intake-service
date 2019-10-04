@@ -4,14 +4,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
-import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Service;
 
+import brave.Span;
+import brave.Tracer;
 import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.jpa.EditedEntityRepository;
 import fi.vm.yti.codelist.intake.model.Code;
@@ -30,21 +29,18 @@ import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 public class EntityChangeLoggerImpl implements EntityChangeLogger {
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityChangeLoggerImpl.class);
-    final DataSource dataSource;
-    final AuthorizationManager authorizationManager;
-    final Tracer tracer;
-    final CommitRepository commitRepository;
-    final EditedEntityRepository editedEntityRepository;
-    final EntityPayloadLogger entityPayloadLogger;
+    private final AuthorizationManager authorizationManager;
+    private final Tracer tracer;
+    private final CommitRepository commitRepository;
+    private final EditedEntityRepository editedEntityRepository;
+    private final EntityPayloadLogger entityPayloadLogger;
 
     @Inject
-    public EntityChangeLoggerImpl(final DataSource dataSource,
-                                  final AuthorizationManager authorizationManager,
+    public EntityChangeLoggerImpl(final AuthorizationManager authorizationManager,
                                   final Tracer tracer,
                                   final CommitRepository commitRepository,
                                   final EditedEntityRepository editedEntityRepository,
                                   final EntityPayloadLogger entityPayloadLogger) {
-        this.dataSource = dataSource;
         this.authorizationManager = authorizationManager;
         this.tracer = tracer;
         this.commitRepository = commitRepository;
@@ -120,7 +116,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
             editedEntity.setMember(member);
             editedEntities.add(editedEntity);
         });
-        editedEntityRepository.save(editedEntities);
+        editedEntityRepository.saveAll(editedEntities);
     }
 
     public void logValueTypeChange(final ValueType valueType) {
@@ -130,7 +126,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         editedEntityRepository.save(editedEntity);
     }
 
-    public Commit createCommit() {
+    private Commit createCommit() {
         final String traceId = getTraceId();
         Commit commit = null;
         if (traceId != null && !traceId.isEmpty()) {
@@ -148,9 +144,9 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
     }
 
     private String getTraceId() {
-        final Span span = tracer.getCurrentSpan();
+        final Span span = tracer.currentSpan();
         if (span != null) {
-            return span.traceIdString();
+            return span.context().traceIdString();
         }
         return null;
     }

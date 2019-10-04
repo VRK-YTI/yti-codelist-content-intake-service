@@ -2,6 +2,6 @@ spring:
   cloud:
     config:
       failFast: false
-      uri: ${config_server_uri:file:../yti-config/yti-codelist-content-intake-service.yml}
+      uri: ${config_server_uri:file:../yti-compose/config/yti-codelist-content-intake-service.yml}
   application:
     name: yti-codelist-content-intake-service

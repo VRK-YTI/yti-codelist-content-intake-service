@@ -7,19 +7,17 @@ import javax.ws.rs.core.Response;
 
 import org.springframework.stereotype.Component;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @Component
 @Path("/ping")
-@Api(value = "ping")
 @Produces("text/plain")
 public class PingResource implements AbstractBaseResource {
 
     @GET
-    @ApiOperation(value = "Ping pong health check API.", response = String.class)
-    @ApiResponse(code = 200, message = "Returns pong if service is this API is reachable.")
+    @Operation(summary = "Ping pong health check API.")
+    @ApiResponse(responseCode = "200", description = "Returns pong if service is this API is reachable.")
     @Produces("text/plain")
     public Response ping() {
         return Response.ok("pong").build();

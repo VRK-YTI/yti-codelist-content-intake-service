@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.21.RELEASE</version>
+        <version>2.1.8.RELEASE</version>
         <relativePath/>
     </parent>
 
@@ -31,7 +31,7 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <version>Dalston.RELEASE</version>
+                <version>Greenwich.RELEASE</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -47,19 +47,20 @@
             <version>0.1-SNAPSHOT</version>
         </dependency>
 
+        <!-- YTI Spring Security -->
         <dependency>
             <groupId>fi.vm.yti</groupId>
             <artifactId>yti-spring-security</artifactId>
             <version>0.1.9</version>
         </dependency>
 
-        <!-- Spring security -->
+        <!-- Spring Security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- Spring boot -->
+        <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jersey</artifactId>
@@ -73,6 +74,25 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Spring boot database -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- PostgreSQL -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Apache POI -->
@@ -99,7 +119,7 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.5</version>
+            <version>2.6</version>
         </dependency>
 
         <dependency>
@@ -112,30 +132,6 @@
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
             <version>5.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jms</artifactId>
-        </dependency>
-
-        <!-- Spring boot database -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-
-        <!-- PostgreSQL -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>${postgresql.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- Logging -->
@@ -169,27 +165,18 @@
             <version>${elastic.version}</version>
         </dependency>
 
-        <!-- Hikari -->
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>2.7.4</version>
-        </dependency>
-
         <!-- Flyway database -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>${flyway.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-maven-plugin</artifactId>
-            <version>${flyway.version}</version>
         </dependency>
 
         <!-- Spring Cloud -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
@@ -201,18 +188,11 @@
             <artifactId>spring-cloud-starter-sleuth</artifactId>
         </dependency>
 
-        <!-- Swagger -->
+        <!-- Google Guava -->
         <dependency>
-            <groupId>io.swagger</groupId>
-            <artifactId>swagger-core</artifactId>
-            <scope>compile</scope>
-            <version>${swagger.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.ws.rs</groupId>
-                    <artifactId>jsr311-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>28.1-jre</version>
         </dependency>
 
         <!-- Apache HTTP Client -->
@@ -257,6 +237,25 @@
             <version>1.11.2</version>
         </dependency>
 
+        <!-- Jackson mapping needs this with LocalDate -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
+        <!-- Swagger -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-jaxrs2</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+
         <!-- FindBugs Annotations -->
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -268,12 +267,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-        </dependency>
-
-        <!-- Jackson mapping needs this with LocalDate -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
     </dependencies>
@@ -369,31 +362,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Swagger generation plugin -->
-            <plugin>
-                <groupId>com.github.kongchen</groupId>
-                <artifactId>swagger-maven-plugin</artifactId>
-                <version>${swagger-maven-plugin.version}</version>
-                <configuration>
-                    <apiSources>
-                        <apiSource>
-                            <springmvc>false</springmvc>
-                            <locations>fi.vm.yti.codelist.intake</locations>
-                            <swaggerDirectory>${project.build.outputDirectory}/swagger/</swaggerDirectory>
-                            <attachSwaggerArtifact>true</attachSwaggerArtifact>
-                        </apiSource>
-                    </apiSources>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
+            <!-- Integration testing -->
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -517,17 +486,6 @@
             </plugin-->
 
             <plugin>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-                <version>${flyway.version}</version>
-                <configuration>
-                    <user>postgres</user>
-                    <password></password>
-                    <url>jdbc:postgresql://${psql.host}:${psql.port}/${project.db.name}</url>
-                </configuration>
-            </plugin>
-
-            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>findbugs-maven-plugin</artifactId>
                 <version>3.0.5</version>
@@ -545,6 +503,7 @@
                 </executions>
             </plugin>
 
+            <!-- Swagger UI download -->
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
@@ -565,6 +524,7 @@
                 </executions>
             </plugin>
 
+            <!-- Swagger UI resource copying -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.0.2</version>
@@ -590,6 +550,7 @@
                 </executions>
             </plugin>
 
+            <!-- Swagger UI spec path changes to index.html file -->
             <plugin>
                 <groupId>com.google.code.maven-replacer-plugin</groupId>
                 <artifactId>replacer</artifactId>
@@ -606,8 +567,8 @@
                     <file>${project.build.directory}/classes/static/swagger/index.html</file>
                     <replacements>
                         <replacement>
-                            <token>url: "http://petstore.swagger.io/v2/swagger.json"</token>
-                            <value>urls: [{url: "/codelist-intake/api/swagger.json", name: "Codelist Intake API"},{url: "/codelist-api/api/swagger.json", name: "Codelist Public API"}],
+                            <token>url: "https://petstore.swagger.io/v2/swagger.json"</token>
+                            <value>urls: [{url: "/codelist-intake/api/openapi.yaml", name: "Codelist Intake API"},{url: "/codelist-api/api/openapi.yaml", name: "Codelist Public API"}],
                                 validatorUrl: null</value>
                         </replacement>
                     </replacements>
@@ -624,14 +585,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spotify-docker.version>1.1.1</spotify-docker.version>
-        <swagger.version>1.5.18</swagger.version>
-        <swagger-ui.version>3.1.6</swagger-ui.version>
-        <swagger-maven-plugin.version>3.1.6</swagger-maven-plugin.version>
-        <postgresql.version>42.2.5</postgresql.version>
-        <flyway.version>5.1.4</flyway.version>
+        <swagger.version>2.0.9</swagger.version>
+        <swagger-ui.version>3.23.11</swagger-ui.version>
+        <postgresql.version>42.2.8</postgresql.version>
         <elastic.version>6.5.4</elastic.version>
-        <apache.poi.version>3.17</apache.poi.version>
-        <apache.httpclient.version>4.5.6</apache.httpclient.version>
+        <apache.poi.version>4.1.0</apache.poi.version>
+        <apache.httpclient.version>4.5.10</apache.httpclient.version>
         <psql.host>localhost</psql.host>
         <psql.port>5432</psql.port>
         <project.db.name>yti_codelist</project.db.name>

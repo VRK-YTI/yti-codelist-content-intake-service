@@ -13,13 +13,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fi.vm.yti.codelist.intake.api.ApiUtils;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @Component
 @Path("/configuration")
-@Api(value = "configuration")
 @Produces("text/plain")
 public class ConfigurationResource implements AbstractBaseResource {
 
@@ -32,8 +30,8 @@ public class ConfigurationResource implements AbstractBaseResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Get configuration values as JSON")
-    @ApiResponse(code = 200, message = "Returns the configuration JSON element to the frontend related to this service.")
+    @Operation(summary = "Get configuration values as JSON")
+    @ApiResponse(responseCode = "200", description = "Returns the configuration JSON element to the frontend related to this service.")
     public Response getConfig() {
         final ObjectMapper mapper = new ObjectMapper();
         final ObjectNode configJson = mapper.createObjectNode();

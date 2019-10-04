@@ -7,8 +7,6 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,6 +16,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import brave.Span;
+import brave.Tracer;
 import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
@@ -162,9 +162,9 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     }
 
     private String getTraceId() {
-        final Span span = tracer.getCurrentSpan();
+        final Span span = tracer.currentSpan();
         if (span != null) {
-            return span.traceIdString();
+            return span.context().traceIdString();
         }
         return null;
     }

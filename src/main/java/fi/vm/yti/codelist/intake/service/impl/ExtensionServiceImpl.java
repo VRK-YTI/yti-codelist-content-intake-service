@@ -11,8 +11,6 @@ import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
 import org.apache.poi.EmptyFileException;
-import org.apache.poi.POIXMLException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
@@ -148,7 +146,7 @@ public class ExtensionServiceImpl implements ExtensionService {
                                 }
                             }));
                         }
-                    } catch (final InvalidFormatException | EmptyFileException | IOException | POIXMLException e) {
+                    } catch (final EmptyFileException | IOException e) {
                         LOG.error("Error parsing Excel file!", e);
                         throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
                     }

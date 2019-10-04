@@ -1,16 +1,5 @@
 package fi.vm.yti.codelist.intake;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -19,33 +8,22 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Stopwatch;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import fi.vm.yti.codelist.intake.api.ApiUtils;
-import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.VersionInformation;
 import fi.vm.yti.codelist.intake.data.YtiDataAccess;
 import fi.vm.yti.codelist.intake.groupmanagement.OrganizationUpdater;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.service.UserService;
-import fi.vm.yti.codelist.intake.util.FileUtils;
 
 @Component
 public class ServiceInitializer implements ApplicationRunner {
 
-    public static final String LOCAL_SWAGGER_DATA_DIR = "/data/yti/yti-codelist-intake/swagger/";
     private static final Logger LOG = LoggerFactory.getLogger(ServiceInitializer.class);
     private final YtiDataAccess ytiDataAccess;
     private final Indexing indexing;
-    private final ApiUtils apiUtils;
     private final OrganizationUpdater organizationUpdater;
     private final UserService userService;
-    private final PublicApiServiceProperties publicApiServiceProperties;
     private final VersionInformation versionInformation;
 
     private boolean initializing;
@@ -53,18 +31,14 @@ public class ServiceInitializer implements ApplicationRunner {
     @Inject
     public ServiceInitializer(final VersionInformation versionInformation,
                               final Indexing indexing,
-                              final ApiUtils apiUtils,
                               final YtiDataAccess ytiDataAccess,
                               final OrganizationUpdater organizationUpdater,
-                              final UserService userService,
-                              final PublicApiServiceProperties publicApiServiceProperties) {
+                              final UserService userService) {
         this.versionInformation = versionInformation;
         this.indexing = indexing;
-        this.apiUtils = apiUtils;
         this.ytiDataAccess = ytiDataAccess;
         this.organizationUpdater = organizationUpdater;
         this.userService = userService;
-        this.publicApiServiceProperties = publicApiServiceProperties;
     }
 
     @Override
@@ -75,7 +49,6 @@ public class ServiceInitializer implements ApplicationRunner {
     private void initialize() {
         initializing = true;
         printLogo();
-        updateSwaggerHost();
         LOG.info("*** Initializing data. ***");
         indexing.cleanRunningIndexingBookkeeping();
         LOG.info("*** Updating organizations. ***");
@@ -113,30 +86,5 @@ public class ServiceInitializer implements ApplicationRunner {
         LOG.info("");
         LOG.info(String.format("                --- Version %s starting up. --- ", versionInformation.getVersion()));
         LOG.info("");
-    }
-
-    @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
-    private void updateSwaggerHost() {
-        final ObjectMapper mapper = new ObjectMapper();
-        try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/swagger/swagger.json")) {
-            final ObjectNode jsonObject = (ObjectNode) mapper.readTree(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            final String hostname = apiUtils.getContentIntakeServiceHostname();
-            jsonObject.put("host", hostname);
-            final String scheme = publicApiServiceProperties.getScheme();
-            final List<String> schemes = new ArrayList<>();
-            schemes.add(scheme);
-            final ArrayNode schemeArray = mapper.valueToTree(schemes);
-            jsonObject.putArray("schemes").addAll(schemeArray);
-            final File file = new File(LOCAL_SWAGGER_DATA_DIR + "swagger.json");
-            Files.createDirectories(Paths.get(file.getParentFile().getPath()));
-            final String fileLocation = file.toString();
-            LOG.info(String.format("Storing modified swagger.json description with hostname: %s to: %s", hostname, fileLocation));
-            try (FileOutputStream fos = new FileOutputStream(fileLocation, false)) {
-                mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-                fos.write(mapper.writeValueAsString(jsonObject).getBytes(StandardCharsets.UTF_8));
-            }
-        } catch (final IOException e) {
-            LOG.error("Swagger JSON parsing failed: ", e);
-        }
     }
 }

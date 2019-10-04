@@ -2,13 +2,11 @@ package fi.vm.yti.codelist.intake.configuration;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Priorities;
-import javax.ws.rs.core.MediaType;
 
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.EOFExceptionMapper;
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.UncaughtExceptionMapper;
@@ -26,26 +24,24 @@ import fi.vm.yti.codelist.intake.resource.ExternalReferenceResource;
 import fi.vm.yti.codelist.intake.resource.ImpersonateUserResource;
 import fi.vm.yti.codelist.intake.resource.InfoDomainResource;
 import fi.vm.yti.codelist.intake.resource.MemberResource;
-import fi.vm.yti.codelist.intake.resource.SystemResource;
 import fi.vm.yti.codelist.intake.resource.OrganizationResource;
 import fi.vm.yti.codelist.intake.resource.PingResource;
 import fi.vm.yti.codelist.intake.resource.PropertyTypeResource;
-import fi.vm.yti.codelist.intake.resource.SwaggerResource;
+import fi.vm.yti.codelist.intake.resource.SystemResource;
 import fi.vm.yti.codelist.intake.resource.UserResource;
 import fi.vm.yti.codelist.intake.resource.ValueTypeResource;
 import fi.vm.yti.codelist.intake.resource.VersionResource;
 import fi.vm.yti.codelist.intake.resource.externalresources.GroupManagementProxyResource;
 import fi.vm.yti.codelist.intake.resource.externalresources.TerminologyProxyResource;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.Contact;
-import io.swagger.annotations.Info;
-import io.swagger.annotations.License;
-import io.swagger.annotations.SwaggerDefinition;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_BASE_PATH;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.API_CONTEXT_PATH_INTAKE;
+import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.servers.Server;
 
 @Component
-@SwaggerDefinition(
+@OpenAPIDefinition(
     info = @Info(
         description = "YTI Codelist - Content Intake Service - Spring Boot microservice.",
         version = "v1",
@@ -61,20 +57,18 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.API_CONTEXT_PATH_
             url = "https://opensource.org/licenses/EUPL-1.1"
         )
     ),
-    host = "localhost:9602",
-    basePath = API_CONTEXT_PATH_INTAKE + API_BASE_PATH,
-    consumes = { MediaType.APPLICATION_JSON, "application/csv", "application/xls", "application/xlsx" },
-    produces = { MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN },
-    schemes = { SwaggerDefinition.Scheme.HTTPS }
+    servers = {
+        @Server(
+            description = "Codelist Content Intake Service API",
+            url = "/codelist-intake")
+    }
 )
-@Api(value = "/api")
 @ApplicationPath("/api")
 public class JerseyConfig extends ResourceConfig {
 
     public JerseyConfig() {
         final JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
-        CustomObjectMapper cm = new CustomObjectMapper();
-        provider.setMapper(cm);
+        provider.setMapper(new CustomObjectMapper());
 
         // Charset filter
         register(CharsetResponseFilter.class, Priorities.AUTHENTICATION);
@@ -86,6 +80,9 @@ public class JerseyConfig extends ResourceConfig {
         register(YtiCodeListExceptionMapper.class, Priorities.AUTHENTICATION);
         register(UncaughtExceptionMapper.class, Priorities.AUTHENTICATION);
         register(EOFExceptionMapper.class, Priorities.AUTHENTICATION);
+
+        // Multipart support
+        register(MultiPartFeature.class);
 
         // Logging
         register(RequestLoggingFilter.class);
@@ -110,10 +107,9 @@ public class JerseyConfig extends ResourceConfig {
 
         // Generic resources
         register(VersionResource.class);
-        register(SwaggerResource.class);
 
-        // Multipart support
-        register(MultiPartFeature.class);
+        // Swagger
+        register(OpenApiResource.class);
 
         // User authentication
         register(AuthenticatedUserResource.class);

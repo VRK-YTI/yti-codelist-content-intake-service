@@ -37,15 +37,13 @@ import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import fi.vm.yti.codelist.intake.service.PropertyTypeService;
 import fi.vm.yti.codelist.intake.service.ValueTypeService;
 import fi.vm.yti.codelist.intake.util.FileUtils;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.data.YtiDataAccess.*;
 
 @Component
 @Path("/admin")
-@Api(value = "admin")
 @Produces("text/plain")
 public class AdminResource implements AbstractBaseResource {
 
@@ -92,8 +90,8 @@ public class AdminResource implements AbstractBaseResource {
 
     @Path("/updateorganizations")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Fetches and updates organization information from groupmanagement service.")
-    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Operation(summary = "Fetches and updates organization information from groupmanagement service.", hidden = true)
+    @ApiResponse(responseCode = "200", description = "Upon successful request.")
     @Transactional
     public Response updateOrganizations() {
         if (authorizationManager.isSuperUser()) {
@@ -107,8 +105,8 @@ public class AdminResource implements AbstractBaseResource {
     @GET
     @Path("/coderegistries/rewriteuris")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Rewrites all coderegistry resource uris.")
-    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Operation(summary = "Rewrites all coderegistry resource uris.", hidden = true)
+    @ApiResponse(responseCode = "200", description = "Upon successful request.")
     @Transactional
     public Response rewriteCodeRegistryUris() {
         if (authorizationManager.isSuperUser()) {
@@ -116,7 +114,7 @@ public class AdminResource implements AbstractBaseResource {
             for (final CodeRegistry codeRegistry : codeRegistries) {
                 codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
             }
-            codeRegistryRepository.save(codeRegistries);
+            codeRegistryRepository.saveAll(codeRegistries);
             indexing.reIndexEverything();
             LOG.info("CodeRegistry uris rewritten.");
             return Response.ok().build();
@@ -128,8 +126,8 @@ public class AdminResource implements AbstractBaseResource {
     @GET
     @Path("/codeschemes/rewriteuris")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Rewrites all codescheme resource uris.")
-    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Operation(summary = "Rewrites all codescheme resource uris.", hidden = true)
+    @ApiResponse(responseCode = "200", description = "Upon successful request.")
     @Transactional
     public Response rewriteCodeSchemeUris() {
         if (authorizationManager.isSuperUser()) {
@@ -137,7 +135,7 @@ public class AdminResource implements AbstractBaseResource {
             for (final CodeScheme codeScheme : codeSchemes) {
                 codeScheme.setUri(apiUtils.createCodeSchemeUri(codeScheme));
             }
-            codeSchemeRepository.save(codeSchemes);
+            codeSchemeRepository.saveAll(codeSchemes);
             indexing.reIndexEverything();
             LOG.info("CodeScheme uris rewritten.");
             return Response.ok().build();
@@ -149,8 +147,8 @@ public class AdminResource implements AbstractBaseResource {
     @GET
     @Path("/codes/rewriteuris")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Rewrites all code resource uris.")
-    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Operation(summary = "Rewrites all code resource uris.", hidden = true)
+    @ApiResponse(responseCode = "200", description = "Upon successful request.")
     @Transactional
     public Response rewriteCodeUris() {
         if (authorizationManager.isSuperUser()) {
@@ -158,7 +156,7 @@ public class AdminResource implements AbstractBaseResource {
             for (final Code code : codes) {
                 code.setUri(apiUtils.createCodeUri(code));
             }
-            codeRepository.save(codes);
+            codeRepository.saveAll(codes);
             indexing.reIndexEverything();
             LOG.info("Code uris rewritten.");
             return Response.ok().build();
@@ -170,8 +168,8 @@ public class AdminResource implements AbstractBaseResource {
     @GET
     @Path("/extensions/rewriteuris")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Rewrites all code resource uris.")
-    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Operation(summary = "Rewrites all code resource uris.", hidden = true)
+    @ApiResponse(responseCode = "200", description = "Upon successful request.")
     @Transactional
     public Response rewriteExtensionUris() {
         if (authorizationManager.isSuperUser()) {
@@ -179,7 +177,7 @@ public class AdminResource implements AbstractBaseResource {
             for (final Extension extension : extensions) {
                 extension.setUri(apiUtils.createExtensionUrl(extension));
             }
-            extensionRepository.save(extensions);
+            extensionRepository.saveAll(extensions);
             indexing.reIndexEverything();
             LOG.info("Extension uris rewritten.");
             return Response.ok().build();
@@ -191,8 +189,8 @@ public class AdminResource implements AbstractBaseResource {
     @GET
     @Path("/members/rewriteuris")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Rewrites all code resource uris.")
-    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Operation(summary = "Rewrites all code resource uris.", hidden = true)
+    @ApiResponse(responseCode = "200", description = "Upon successful request.")
     @Transactional
     public Response rewriteMemberUris() {
         if (authorizationManager.isSuperUser()) {
@@ -200,7 +198,7 @@ public class AdminResource implements AbstractBaseResource {
             for (final Member member : members) {
                 member.setUri(apiUtils.createMemberUri(member));
             }
-            memberRepository.save(members);
+            memberRepository.saveAll(members);
             indexing.reIndexEverything();
             LOG.info("Member uris rewritten.");
             return Response.ok().build();
@@ -212,8 +210,8 @@ public class AdminResource implements AbstractBaseResource {
     @GET
     @Path("/externalreferences/reload")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Reloads global ExternalReferences from source data.")
-    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Operation(summary = "Reloads global ExternalReferences from source data.", hidden = true)
+    @ApiResponse(responseCode = "200", description = "Upon successful request.")
     @Transactional
     public Response reloadGlobalExternalReferences() {
         if (authorizationManager.isSuperUser()) {
@@ -235,8 +233,8 @@ public class AdminResource implements AbstractBaseResource {
     @GET
     @Path("/propertytypes/reload")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Reloads PropertyTypes from source data.")
-    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Operation(summary = "Reloads PropertyTypes from source data.", hidden = true)
+    @ApiResponse(responseCode = "200", description = "Upon successful request.")
     @Transactional
     public Response reloadPropertyTypes() {
         if (authorizationManager.isSuperUser()) {
@@ -258,8 +256,8 @@ public class AdminResource implements AbstractBaseResource {
     @GET
     @Path("/valuetypes/reload")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Reloads ValueTypes from source data.")
-    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Operation(summary = "Reloads ValueTypes from source data.", hidden = true)
+    @ApiResponse(responseCode = "200", description = "Upon successful request.")
     @Transactional
     public Response reloadValueTypes() {
         if (authorizationManager.isSuperUser()) {
@@ -281,8 +279,8 @@ public class AdminResource implements AbstractBaseResource {
     @GET
     @Path("/reindex")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Reindex ElasticSearch data.")
-    @ApiResponse(code = 200, message = "Upon successful request.")
+    @Operation(summary = "Reindex ElasticSearch data.", hidden = true)
+    @ApiResponse(responseCode = "200", description = "Upon successful request.")
     @Transactional
     public Response reIndex() {
         if (authorizationManager.isSuperUser()) {

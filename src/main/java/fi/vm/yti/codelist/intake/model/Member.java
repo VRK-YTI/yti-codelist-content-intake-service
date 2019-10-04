@@ -10,6 +10,7 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -24,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import fi.vm.yti.codelist.common.dto.Views;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @Entity
@@ -38,7 +39,9 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
     private Extension extension;
     private Member relatedMember;
     private Map<String, String> prefLabel;
+    @Convert(converter = LocalDateAttributeConverter.class)
     private LocalDate startDate;
+    @Convert(converter = LocalDateAttributeConverter.class)
     private LocalDate endDate;
     private Set<MemberValue> memberValues;
     private String uri;
@@ -129,7 +132,7 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
         setPrefLabel(prefLabel);
     }
 
-    @ApiModelProperty(dataType = "date")
+    @Schema(name = "date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Column(name = "startdate")
     public LocalDate getStartDate() {
@@ -147,7 +150,7 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
         }
     }
 
-    @ApiModelProperty(dataType = "date")
+    @Schema(name = "date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Column(name = "enddate")
     public LocalDate getEndDate() {

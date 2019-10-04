@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.AbstractIdentifyableCodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
@@ -97,7 +98,7 @@ public class IndexingImpl implements Indexing {
 
     @Inject
     public IndexingImpl(final IndexingTools indexingTools,
-                        final RestHighLevelClient client,
+                        final RestHighLevelClient elasticSearchRestHighLevelClient,
                         final IndexStatusRepository indexStatusRepository,
                         final CodeRegistryService codeRegistryService,
                         final CodeSchemeService codeSchemeService,
@@ -108,7 +109,7 @@ public class IndexingImpl implements Indexing {
                         final ExtensionService extensionService,
                         final MemberService memberService) {
         this.indexingTools = indexingTools;
-        this.client = client;
+        this.client = elasticSearchRestHighLevelClient;
         this.indexStatusRepository = indexStatusRepository;
         this.codeRegistryService = codeRegistryService;
         this.codeSchemeService = codeSchemeService;
@@ -149,7 +150,7 @@ public class IndexingImpl implements Indexing {
         int page = 0;
         boolean success = true;
         while (page + 1 <= pageCount) {
-            final PageRequest pageRequest = new PageRequest(page, MAX_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "codeValue")));
+            final PageRequest pageRequest = PageRequest.of(page, MAX_PAGE_COUNT, new Sort(Sort.Direction.ASC, "codeValue"));
             final Set<CodeDTO> codes = codeService.findAll(pageRequest);
             final boolean partIndexSuccess = indexData(codes, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
             if (!partIndexSuccess) {
@@ -186,7 +187,7 @@ public class IndexingImpl implements Indexing {
         int page = 0;
         boolean success = true;
         while (page + 1 <= pageCount) {
-            final PageRequest pageRequest = new PageRequest(page, MAX_EXTENSION_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "uri")));
+            final PageRequest pageRequest = PageRequest.of(page, MAX_EXTENSION_PAGE_COUNT, new Sort(Sort.Direction.ASC, "uri"));
             final Set<ExtensionDTO> extensions = extensionService.findAll(pageRequest);
             final boolean partIndexSuccess = indexData(extensions, indexName, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
             if (!partIndexSuccess) {
@@ -208,7 +209,7 @@ public class IndexingImpl implements Indexing {
         int page = 0;
         boolean success = true;
         while (page + 1 <= pageCount) {
-            final PageRequest pageRequest = new PageRequest(page, MAX_MEMBER_PAGE_COUNT, new Sort(new Sort.Order(Sort.Direction.ASC, "uri")));
+            final PageRequest pageRequest = PageRequest.of(page, MAX_MEMBER_PAGE_COUNT, new Sort(Sort.Direction.ASC, "uri"));
             final Set<MemberDTO> members = memberService.findAll(pageRequest);
             final boolean partIndexSuccess = indexData(members, indexName, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
             if (!partIndexSuccess) {
@@ -223,6 +224,7 @@ public class IndexingImpl implements Indexing {
 
     }
 
+    @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
     private <T> void deleteData(final Set<T> set,
                                 final String elasticIndex,
                                 final String elasticType,
@@ -510,7 +512,7 @@ public class IndexingImpl implements Indexing {
     public void cleanRunningIndexingBookkeeping() {
         final Set<IndexStatus> indexStatuses = indexStatusRepository.getRunningIndexStatuses();
         indexStatuses.forEach(indexStatus -> indexStatus.setStatus(UPDATE_FAILED));
-        indexStatusRepository.save(indexStatuses);
+        indexStatusRepository.saveAll(indexStatuses);
     }
 
     private boolean reIndex(final String indexName,

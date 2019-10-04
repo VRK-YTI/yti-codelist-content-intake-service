@@ -55,7 +55,7 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
     @Transactional
     public void save(final Set<CodeRegistry> codeRegistries,
                      final boolean logChange) {
-        codeRegistryRepository.save(codeRegistries);
+        codeRegistryRepository.saveAll(codeRegistries);
         if (logChange) {
             codeRegistries.forEach(entityChangeLogger::logCodeRegistryChange);
         }
@@ -88,7 +88,7 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         final Set<CodeRegistry> codeRegistries = new HashSet<>();
         codeRegistryDtos.forEach(codeRegistry -> codeRegistries.add(createOrUpdateCodeRegistry(codeRegistry)));
         if (!codeRegistries.isEmpty()) {
-            codeRegistryRepository.save(codeRegistries);
+            codeRegistryRepository.saveAll(codeRegistries);
             codeRegistries.forEach(entityChangeLogger::logCodeRegistryChange);
         }
         return codeRegistries;

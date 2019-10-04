@@ -86,7 +86,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
     public void delete(final Set<Extension> extensions) {
         extensions.forEach(entityChangeLogger::logExtensionChange);
-        extensionRepository.delete(extensions);
+        extensionRepository.deleteAll(extensions);
     }
 
     public void save(final Extension extension) {
@@ -96,7 +96,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
     public void save(final Set<Extension> extensions,
                      final boolean logChange) {
-        extensionRepository.save(extensions);
+        extensionRepository.saveAll(extensions);
         if (logChange) {
             extensions.forEach(entityChangeLogger::logExtensionChange);
         }

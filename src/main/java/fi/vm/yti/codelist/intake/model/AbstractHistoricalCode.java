@@ -3,22 +3,25 @@ package fi.vm.yti.codelist.intake.model;
 import java.time.LocalDate;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.MappedSuperclass;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import fi.vm.yti.codelist.common.dto.Views;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @MappedSuperclass
 public abstract class AbstractHistoricalCode extends AbstractCommonCode {
 
+    @Convert(converter = LocalDateAttributeConverter.class)
     private LocalDate startDate;
+    @Convert(converter = LocalDateAttributeConverter.class)
     private LocalDate endDate;
     private String status;
 
-    @ApiModelProperty(dataType = "date")
+    @Schema(name = "date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Column(name = "startdate")
     @JsonView(Views.Normal.class)
@@ -37,7 +40,7 @@ public abstract class AbstractHistoricalCode extends AbstractCommonCode {
         }
     }
 
-    @ApiModelProperty(dataType = "date")
+    @Schema(name = "date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Column(name = "enddate")
     @JsonView(Views.Normal.class)

@@ -22,6 +22,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.cfg.ObjectWriterInjector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,6 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
@@ -40,18 +40,20 @@ import fi.vm.yti.codelist.intake.dto.InfoDomainDTO;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_INFODOMAIN;
+import static fi.vm.yti.codelist.intake.configuration.ApplicationConstants.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.JUPO_REGISTRY;
-import static fi.vm.yti.codelist.intake.configuration.ApplicationConstants.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME;
 
 @Component
 @Path("/v1/infodomains")
-@Api(value = "infodomains")
 @Produces(MediaType.APPLICATION_JSON)
 public class InfoDomainResource implements AbstractBaseResource {
 
@@ -71,13 +73,13 @@ public class InfoDomainResource implements AbstractBaseResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Data classification (information domain) API for listing codes and counts.")
-    @ApiResponse(code = 200, message = "Returns data classifications (information domains) and counts.")
+    @Operation(summary = "Data classification (information domain) API for listing codes and counts.")
+    @ApiResponse(responseCode = "200", description = "Returns data classifications (information domains) and counts.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = InfoDomainDTO.class))))
     @Transactional
-    public Response getInfoDomains(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand,
-                                   @ApiParam(value = "Language code for sorting results.") @QueryParam("language") final String language,
-                                   @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_INFODOMAIN, expand), pretty));
+    public Response getInfoDomains(@Parameter(description = "Filter string (csl) for expanding specific child resources.", in = ParameterIn.QUERY) @QueryParam("expand") final String expand,
+                                   @Parameter(description = "Language code for sorting results.", in = ParameterIn.QUERY) @QueryParam("language") final String language,
+                                   @Parameter(description = "Pretty format JSON output.", in = ParameterIn.QUERY) @QueryParam("pretty") final String pretty) {
+        ObjectWriterInjector.set(new FilterModifier(createSimpleFilterProvider(FILTER_NAME_INFODOMAIN, expand), pretty));
         final Meta meta = new Meta();
         final ResponseWrapper<InfoDomainDTO> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);

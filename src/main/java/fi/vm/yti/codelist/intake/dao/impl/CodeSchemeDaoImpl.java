@@ -93,7 +93,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     @Transactional
     public void save(final Set<CodeScheme> codeSchemes,
                      final boolean logChange) {
-        codeSchemeRepository.save(codeSchemes);
+        codeSchemeRepository.saveAll(codeSchemes);
         if (logChange) {
             codeSchemes.forEach(entityChangeLogger::logCodeSchemeChange);
         }
@@ -367,7 +367,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         if (authorizationManager.isSuperUser()) { // super user can always create a new code list with any STATUS he/she wishes.
             anyStatusIsFineAtCreationTime = true;
         } else {
-            for (String initCodeScheme : ApplicationConstants.INITIALIZATION_CODE_SCHEMES) {
+            for (final String initCodeScheme : ApplicationConstants.initializationCodeSchemes()) {
                 if (initCodeScheme.equals(fromCodeScheme.getCodeValue())) {
                     anyStatusIsFineAtCreationTime = true;
                     break;

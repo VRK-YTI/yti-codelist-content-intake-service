@@ -14,25 +14,27 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.cfg.ObjectWriterInjector;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
 import fi.vm.yti.codelist.intake.service.ExtensionService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_EXTENSION;
 
 @Component
 @Path("/v1/extensions")
-@Api(value = "extensions")
 @Produces(MediaType.APPLICATION_JSON)
 public class ExtensionResource implements AbstractBaseResource {
 
@@ -50,13 +52,13 @@ public class ExtensionResource implements AbstractBaseResource {
     @Path("{extensionId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Parses and creates or updates Extensions from JSON input.")
+    @Operation(summary = "Parses and creates or updates Extensions from JSON input.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns success.")
+        @ApiResponse(responseCode = "200", description = "Extensions added or modified successfully.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ExtensionDTO.class))))
     })
-    public Response addOrUpdateExtensionsFromJson(@ApiParam(value = "Extension UUID", required = true) @PathParam("extensionId") final UUID extensionId,
-                                                  @ApiParam(value = "JSON playload for Extension data.", required = true) final String jsonPayload,
-                                                  @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
+    public Response addOrUpdateExtensionsFromJson(@Parameter(description = "Extension UUID", required = true, in = ParameterIn.PATH) @PathParam("extensionId") final UUID extensionId,
+                                                  @Parameter(description = "Pretty format JSON output.", in = ParameterIn.QUERY) @QueryParam("pretty") final String pretty,
+                                                  @RequestBody(description = "JSON payload for Extension data.", required = true) final String jsonPayload) {
         return parseAndPersistExtensionFromSource(extensionId, jsonPayload, pretty);
     }
 
@@ -68,7 +70,7 @@ public class ExtensionResource implements AbstractBaseResource {
         extensions.add(extension);
         indexing.updateExtensions(extensions);
         final Meta meta = new Meta();
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSION, "extension"), pretty));
+        ObjectWriterInjector.set(new FilterModifier(createSimpleFilterProvider(FILTER_NAME_EXTENSION, "extension"), pretty));
         final ResponseWrapper<ExtensionDTO> responseWrapper = new ResponseWrapper<>(meta);
         meta.setMessage("Extensions added or modified.");
         meta.setCode(200);

@@ -108,7 +108,7 @@ public class CodeDaoImpl implements CodeDao {
     @Transactional
     public void save(final Set<Code> codes,
                      final boolean logChange) {
-        codeRepository.save(codes);
+        codeRepository.saveAll(codes);
         if (logChange) {
             entityChangeLogger.logCodesChange(codes);
         }
@@ -128,7 +128,7 @@ public class CodeDaoImpl implements CodeDao {
     @Transactional
     public void delete(final Set<Code> codes) {
         entityChangeLogger.logCodesChange(codes);
-        codeRepository.delete(codes);
+        codeRepository.deleteAll(codes);
     }
 
     @Transactional

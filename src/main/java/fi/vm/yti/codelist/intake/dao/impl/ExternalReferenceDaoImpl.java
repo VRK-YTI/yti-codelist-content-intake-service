@@ -59,12 +59,12 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
     @Transactional
     public void delete(final Set<ExternalReference> externalReferences) {
         externalReferences.forEach(entityChangeLogger::logExternalReferenceChange);
-        externalReferenceRepository.delete(externalReferences);
+        externalReferenceRepository.deleteAll(externalReferences);
     }
 
     @Transactional
     public void save(final Set<ExternalReference> externalReferences) {
-        externalReferenceRepository.save(externalReferences);
+        externalReferenceRepository.saveAll(externalReferences);
         externalReferences.forEach(entityChangeLogger::logExternalReferenceChange);
     }
 

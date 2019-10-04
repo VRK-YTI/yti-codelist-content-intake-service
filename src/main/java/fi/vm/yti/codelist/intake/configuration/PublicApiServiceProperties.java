@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-@ConfigurationProperties("public_api")
+@ConfigurationProperties("publicapi")
 @Component
 @Validated
 public class PublicApiServiceProperties {

@@ -49,7 +49,7 @@ public class MemberValueDaoImpl implements MemberValueDao {
 
     @Transactional
     public void save(final Set<MemberValue> memberValues) {
-        memberValueRepository.save(memberValues);
+        memberValueRepository.saveAll(memberValues);
     }
 
     @Transactional

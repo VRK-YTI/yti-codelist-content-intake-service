@@ -13,7 +13,7 @@ import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Table(name = "indexstatus")
@@ -64,7 +64,7 @@ public class IndexStatus implements Serializable {
         this.indexAlias = indexAlias;
     }
 
-    @ApiModelProperty(dataType = "dateTime")
+    @Schema(name = "dateTime")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created")
@@ -83,7 +83,7 @@ public class IndexStatus implements Serializable {
         }
     }
 
-    @ApiModelProperty(dataType = "dateTime")
+    @Schema(name = "dateTime")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "modified")

@@ -37,16 +37,15 @@ import fi.vm.yti.codelist.intake.resource.AbstractBaseResource;
 import fi.vm.yti.security.AuthenticatedUserProvider;
 import fi.vm.yti.security.Role;
 import fi.vm.yti.security.YtiUser;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_401;
 
 @Component
 @Path("/v1/groupmanagement")
-@Api(value = "groupmanagement")
 public class GroupManagementProxyResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(GroupManagementProxyResource.class);
@@ -66,8 +65,8 @@ public class GroupManagementProxyResource implements AbstractBaseResource {
     @GET
     @Path("/requests")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Returns a list of user requests that the user has made.")
-    @ApiResponse(code = 200, message = "Returns success.")
+    @Operation(summary = "Returns a list of user requests that the user has made.")
+    @ApiResponse(responseCode = "200", description = "Returns success.")
     public Response getUserRequests() {
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
@@ -97,9 +96,9 @@ public class GroupManagementProxyResource implements AbstractBaseResource {
 
     @POST
     @Path("/request")
-    @ApiOperation(value = "Sends user request to add user to an organization to groupmanagement service.")
-    @ApiResponse(code = 200, message = "Returns success.")
-    public Response sendUserRequest(@ApiParam(value = "UUID for the requested organization.", required = true) @QueryParam("organizationId") final String organizationId) {
+    @Operation(summary = "Sends user request to add user to an organization to groupmanagement service.")
+    @ApiResponse(responseCode = "200", description = "Returns success.")
+    public Response sendUserRequest(@Parameter(description = "UUID for the requested organization.", required = true, in = ParameterIn.QUERY) @QueryParam("organizationId") final String organizationId) {
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));

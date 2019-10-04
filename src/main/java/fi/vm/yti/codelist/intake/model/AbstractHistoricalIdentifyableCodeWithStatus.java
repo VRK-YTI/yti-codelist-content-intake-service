@@ -3,12 +3,15 @@ package fi.vm.yti.codelist.intake.model;
 import java.time.LocalDate;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.MappedSuperclass;
 
 @MappedSuperclass
 public abstract class AbstractHistoricalIdentifyableCodeWithStatus extends AbstractIdentifyableTimestampedCode {
 
+    @Convert(converter = LocalDateAttributeConverter.class)
     private LocalDate startDate;
+    @Convert(converter = LocalDateAttributeConverter.class)
     private LocalDate endDate;
     private String status;
 

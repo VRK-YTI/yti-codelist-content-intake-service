@@ -95,7 +95,7 @@ public abstract class AbstractBaseParser {
     boolean isRowEmpty(final Row row) {
         for (int cellIndex = row.getFirstCellNum(); cellIndex < row.getLastCellNum(); cellIndex++) {
             final Cell cell = row.getCell(cellIndex);
-            if (cell != null && cell.getCellTypeEnum() != CellType.BLANK)
+            if (cell != null && cell.getCellType() != CellType.BLANK)
                 return false;
         }
         return true;
@@ -436,7 +436,7 @@ public abstract class AbstractBaseParser {
         }
         for (int cellNum = row.getFirstCellNum(); cellNum < row.getLastCellNum(); cellNum++) {
             final Cell cell = row.getCell(cellNum);
-            if (cell != null && cell.getCellTypeEnum() != CellType.BLANK && StringUtils.isNotBlank(trimWhiteSpaceFromString(cell.toString()))) {
+            if (cell != null && cell.getCellType() != CellType.BLANK && StringUtils.isNotBlank(trimWhiteSpaceFromString(cell.toString()))) {
                 return false;
             }
         }

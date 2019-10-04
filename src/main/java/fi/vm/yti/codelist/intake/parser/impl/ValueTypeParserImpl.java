@@ -17,8 +17,6 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.poi.EmptyFileException;
-import org.apache.poi.POIXMLException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -135,7 +133,7 @@ public class ValueTypeParserImpl extends AbstractBaseParser implements ValueType
                     valueTypes.add(valueType);
                 }
             }
-        } catch (final InvalidFormatException | EmptyFileException | IOException | POIXMLException e) {
+        } catch (final EmptyFileException | IOException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }

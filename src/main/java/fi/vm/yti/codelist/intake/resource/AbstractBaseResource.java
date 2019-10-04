@@ -7,6 +7,8 @@ import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.cfg.EndpointConfigBase;
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.cfg.ObjectWriterModifier;
 import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,8 +20,6 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.jaxrs.cfg.EndpointConfigBase;
-import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterModifier;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
@@ -35,8 +35,7 @@ public interface AbstractBaseResource {
         return createSimpleFilterProvider(baseFilters, expand);
     }
 
-    default SimpleFilterProvider createSimpleFilterProvider(final List<String> baseFilters,
-                                                            final String expand) {
+    default SimpleFilterProvider createBaseFilterProvider() {
         final SimpleFilterProvider filterProvider = new SimpleFilterProvider();
         filterProvider.addFilter(FILTER_NAME_CODEREGISTRY, SimpleBeanPropertyFilter.filterOutAllExcept(FIELD_NAME_URI, FIELD_NAME_URL));
         filterProvider.addFilter(FILTER_NAME_CODESCHEME, SimpleBeanPropertyFilter.filterOutAllExcept(FIELD_NAME_URI, FIELD_NAME_URL));
@@ -50,14 +49,20 @@ public interface AbstractBaseResource {
         filterProvider.addFilter(FILTER_NAME_VALUETYPE, SimpleBeanPropertyFilter.filterOutAllExcept(FIELD_NAME_URI, FIELD_NAME_URL));
         filterProvider.addFilter(FILTER_NAME_MEMBERVALUE, SimpleBeanPropertyFilter.filterOutAllExcept(FIELD_NAME_ID));
         filterProvider.addFilter(FILTER_NAME_SEARCHHIT, SimpleBeanPropertyFilter.filterOutAllExcept(FIELD_NAME_URI));
+        return filterProvider;
+    }
+
+    default SimpleFilterProvider createSimpleFilterProvider(final List<String> baseFilters,
+                                                            final String expand) {
+        final SimpleFilterProvider filterProvider = createBaseFilterProvider();
         filterProvider.setFailOnUnknownId(false);
         for (final String baseFilter : baseFilters) {
-            filterProvider.removeFilter(baseFilter);
+            filterProvider.removeFilter(baseFilter.trim());
         }
         if (expand != null && !expand.isEmpty()) {
             final String[] filterOptions = expand.split(",");
             for (final String filter : filterOptions) {
-                filterProvider.removeFilter(filter);
+                filterProvider.removeFilter(filter.trim());
             }
         }
         return filterProvider;
@@ -81,7 +86,7 @@ public interface AbstractBaseResource {
         }
     }
 
-    class FilterModifier extends ObjectWriterModifier {
+    static class FilterModifier extends ObjectWriterModifier {
 
         private final FilterProvider provider;
         private final boolean pretty;

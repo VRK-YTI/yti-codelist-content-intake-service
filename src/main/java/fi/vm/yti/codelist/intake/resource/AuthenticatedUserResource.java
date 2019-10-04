@@ -10,11 +10,9 @@ import org.springframework.stereotype.Component;
 
 import fi.vm.yti.security.AuthenticatedUserProvider;
 import fi.vm.yti.security.YtiUser;
-import io.swagger.annotations.Api;
 
 @Component
 @Path("/authenticated-user")
-@Api(value = "authenticated-user")
 @Produces(MediaType.APPLICATION_JSON)
 public class AuthenticatedUserResource implements AbstractBaseResource {
 

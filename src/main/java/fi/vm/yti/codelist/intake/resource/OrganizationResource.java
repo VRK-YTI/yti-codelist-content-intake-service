@@ -11,25 +11,27 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.cfg.ObjectWriterInjector;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.fasterxml.jackson.jaxrs.cfg.ObjectWriterInjector;
 
 import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.service.OrganizationService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_ORGANIZATION;
 
 @Component
 @Path("/v1/organizations")
-@Api(value = "organizations")
 @Produces(MediaType.APPLICATION_JSON)
 public class OrganizationResource implements AbstractBaseResource {
 
@@ -42,13 +44,13 @@ public class OrganizationResource implements AbstractBaseResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    @ApiOperation(value = "Organizations API.")
-    @ApiResponse(code = 200, message = "Returns organizations.")
+    @Operation(summary = "Organizations API.")
+    @ApiResponse(responseCode = "200", description = "Returns organizations.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = OrganizationDTO.class))))
     @Transactional
-    public Response getOrganizations(@ApiParam(value = "Filter string (csl) for expanding specific child resources.") @QueryParam("expand") final String expand,
-                                     @ApiParam(value = "A boolean value for only returning organizations with code lists.") @QueryParam("onlyOrganizationsWithCodeSchemes") final boolean onlyOrganizationsWithCodeSchemes,
-                                     @ApiParam(value = "Pretty format JSON output.") @QueryParam("pretty") final String pretty) {
-        ObjectWriterInjector.set(new AbstractBaseResource.FilterModifier(createSimpleFilterProvider(FILTER_NAME_ORGANIZATION, expand), pretty));
+    public Response getOrganizations(@Parameter(description = "Filter string (csl) for expanding specific child resources.", in = ParameterIn.QUERY) @QueryParam("expand") final String expand,
+                                     @Parameter(description = "A boolean value for only returning organizations with code lists.", in = ParameterIn.QUERY) @QueryParam("onlyOrganizationsWithCodeSchemes") final boolean onlyOrganizationsWithCodeSchemes,
+                                     @Parameter(description = "Pretty format JSON output.", in = ParameterIn.QUERY) @QueryParam("pretty") final String pretty) {
+        ObjectWriterInjector.set(new FilterModifier(createSimpleFilterProvider(FILTER_NAME_ORGANIZATION, expand), pretty));
         final Meta meta = new Meta();
         final ResponseWrapper<OrganizationDTO> wrapper = new ResponseWrapper<>();
         wrapper.setMeta(meta);

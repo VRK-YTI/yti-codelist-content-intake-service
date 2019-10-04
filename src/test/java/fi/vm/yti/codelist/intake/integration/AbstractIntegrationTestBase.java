@@ -1,7 +1,7 @@
 package fi.vm.yti.codelist.intake.integration;
 
-import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

@@ -86,7 +86,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             organizations.add(organization);
         }
         if (!organizations.isEmpty()) {
-            organizationRepository.save(organizations);
+            organizationRepository.saveAll(organizations);
         }
         return dtoMapperService.mapOrganizationDtos(organizations, true);
     }
