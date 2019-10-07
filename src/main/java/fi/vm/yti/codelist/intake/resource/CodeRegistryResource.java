@@ -70,6 +70,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
+import static fi.vm.yti.codelist.intake.util.StringUtils.urlDecodeString;
 
 @Component
 @Path("/v1/coderegistries")
