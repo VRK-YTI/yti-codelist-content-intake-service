@@ -18,6 +18,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.poi.EmptyFileException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -126,7 +127,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                                                        final Map<String, String> broaderCodeMapping) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
             return parseCodesFromExcelWorkbook(workbook, sheetName, broaderCodeMapping);
-        } catch (final IOException e) {
+        } catch (final EmptyFileException | IOException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
         }
