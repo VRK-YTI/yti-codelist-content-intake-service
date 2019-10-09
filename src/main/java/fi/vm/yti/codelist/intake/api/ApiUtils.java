@@ -1,19 +1,14 @@
 package fi.vm.yti.codelist.intake.api;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeRegistryDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
-import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
@@ -25,14 +20,13 @@ import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
 import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.TerminologyProperties;
 import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
-import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ERROR_ENCODING_STRING;
+import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlEncodeCodeValue;
 
 @Component
 public class ApiUtils {
@@ -139,16 +133,16 @@ public class ApiUtils {
     public String createCodeUri(final CodeRegistry codeRegistry,
                                 final CodeScheme codeScheme,
                                 final Code code) {
-        return createResourceUri(codeRegistry.getCodeValue() + "/" + codeScheme.getCodeValue() + "/code/" + urlEncodeString(code.getCodeValue()));
+        return createResourceUri(codeRegistry.getCodeValue() + "/" + codeScheme.getCodeValue() + "/code/" + urlEncodeCodeValue(code.getCodeValue()));
     }
 
     public String createExtensionUri(final Extension extension) {
-        return createResourceUri(extension.getParentCodeScheme().getCodeRegistry().getCodeValue() + "/" + extension.getParentCodeScheme().getCodeValue() + "/extension/" + urlEncodeString(extension.getCodeValue()));
+        return createResourceUri(extension.getParentCodeScheme().getCodeRegistry().getCodeValue() + "/" + extension.getParentCodeScheme().getCodeValue() + "/extension/" + urlEncodeCodeValue(extension.getCodeValue()));
     }
 
     public String createMemberUri(final Member member) {
         String theEndOfUri = member.getSequenceId() == null ? member.getId().toString() : member.getSequenceId().toString();
-        return createResourceUri(member.getExtension().getParentCodeScheme().getCodeRegistry().getCodeValue() + "/" + member.getExtension().getParentCodeScheme().getCodeValue() + "/extension/" + urlEncodeString(member.getExtension().getCodeValue()) + "/member/" + theEndOfUri);
+        return createResourceUri(member.getExtension().getParentCodeScheme().getCodeRegistry().getCodeValue() + "/" + member.getExtension().getParentCodeScheme().getCodeValue() + "/extension/" + urlEncodeCodeValue(member.getExtension().getCodeValue()) + "/member/" + theEndOfUri);
     }
 
     public String createCodeUrl(final CodeDTO code) {
@@ -158,7 +152,7 @@ public class ApiUtils {
     public String createCodeUrl(final String codeRegistryCodeValue,
                                 final String codeSchemeCodeValue,
                                 final String codeValue) {
-        return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES, urlEncodeString(codeValue));
+        return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_CODES, urlEncodeCodeValue(codeValue));
     }
 
     public String createExternalReferenceUrl(final ExternalReferenceDTO externalReference) {
@@ -180,13 +174,13 @@ public class ApiUtils {
     public String createExtensionUrl(final String codeRegistryCodeValue,
                                      final String codeSchemeCodeValue,
                                      final String codeValue) {
-        return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_EXTENSIONS, urlEncodeString(codeValue));
+        return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + codeRegistryCodeValue + API_PATH_CODESCHEMES + "/" + codeSchemeCodeValue + API_PATH_EXTENSIONS, urlEncodeCodeValue(codeValue));
     }
 
     public String createMemberUrl(final Member member) {
         return createResourceUrl(API_PATH_CODEREGISTRIES + "/" + member.getExtension().getParentCodeScheme().getCodeRegistry().getCodeValue() +
             API_PATH_CODESCHEMES + "/" + member.getExtension().getParentCodeScheme().getCodeValue() +
-            API_PATH_EXTENSIONS + "/" + urlEncodeString(member.getExtension().getCodeValue()) +
+            API_PATH_EXTENSIONS + "/" + urlEncodeCodeValue(member.getExtension().getCodeValue()) +
             API_PATH_MEMBERS, member.getSequenceId() == null ? member.getId().toString() : member.getSequenceId().toString());
     }
 
@@ -227,15 +221,6 @@ public class ApiUtils {
         if (port != null && !port.isEmpty()) {
             builder.append(":");
             builder.append(port);
-        }
-    }
-
-    private String urlEncodeString(final String value) {
-        try {
-            return URLEncoder.encode(value, "UTF-8");
-        } catch (final UnsupportedEncodingException e) {
-            LOG.error("Issue with url encoding a string.", e);
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ERROR_ENCODING_STRING));
         }
     }
 }

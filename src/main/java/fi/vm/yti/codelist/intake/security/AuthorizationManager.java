@@ -27,5 +27,4 @@ public interface AuthorizationManager {
     boolean isSuperUser();
 
     UUID getUserId();
-
 }

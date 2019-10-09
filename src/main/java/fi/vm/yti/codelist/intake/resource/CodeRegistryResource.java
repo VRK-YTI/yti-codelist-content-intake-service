@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.Encoded;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -70,7 +71,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
-import static fi.vm.yti.codelist.intake.util.StringUtils.urlDecodeString;
+import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlDecodeCodeValue;
+import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlDecodeString;
 
 @Component
 @Path("/v1/coderegistries")
@@ -816,13 +818,13 @@ public class CodeRegistryResource implements AbstractBaseResource {
     })
     public Response deleteCode(@Parameter(description = "CodeRegistry codeValue", required = true, in = ParameterIn.PATH) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                @Parameter(description = "CodeScheme codeValue", required = true, in = ParameterIn.PATH) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                               @Parameter(description = "Code codeValue.", required = true, in = ParameterIn.PATH) @PathParam("codeCodeValue") final String codeCodeValue) {
+                               @Parameter(description = "Code codeValue.", required = true, in = ParameterIn.PATH) @Encoded @PathParam("codeCodeValue") final String codeCodeValue) {
         final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
-            final CodeDTO codeToBeDeleted = codeService.findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
+            final CodeDTO codeToBeDeleted = codeService.findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue, urlDecodeCodeValue(codeCodeValue));
             if (codeToBeDeleted != null) {
                 final Set<CodeDTO> affectedCodes = new HashSet<>();
-                final CodeDTO code = codeService.deleteCode(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue, affectedCodes);
+                final CodeDTO code = codeService.deleteCode(codeRegistryCodeValue, codeSchemeCodeValue, urlDecodeCodeValue(codeCodeValue), affectedCodes);
                 if (!affectedCodes.isEmpty()) {
                     indexing.updateCodes(affectedCodes);
                 }
@@ -888,7 +890,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
     public Response checkForExistingCode(@Parameter(description = "CodeRegistry codeValue", required = true, in = ParameterIn.PATH) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                          @Parameter(description = "CodeScheme codeValue", required = true, in = ParameterIn.PATH) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
                                          @Parameter(description = "Code codeValue.", required = true, in = ParameterIn.PATH) @PathParam("codeCodeValue") final String codeCodeValue) {
-        final CodeDTO code = this.codeService.findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue);
+        final CodeDTO code = this.codeService.findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue, urlDecodeCodeValue(codeCodeValue));
         if (code == null) {
             return Response.status(404).build();
         }

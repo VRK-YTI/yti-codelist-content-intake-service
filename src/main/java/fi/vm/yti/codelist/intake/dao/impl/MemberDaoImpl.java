@@ -45,7 +45,7 @@ import fi.vm.yti.codelist.intake.model.MemberValue;
 import fi.vm.yti.codelist.intake.model.ValueType;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CODE_EXTENSION;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
-import static fi.vm.yti.codelist.intake.util.StringUtils.urlEncodeString;
+import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlEncodeCodeValue;
 
 @Component
 public class MemberDaoImpl implements MemberDao {
@@ -641,7 +641,7 @@ public class MemberDaoImpl implements MemberDao {
         if (fromCode.getUri() != null) {
             codeUri = fromCode.getUri();
         } else if (fromCode.getCodeValue() != null && !fromCode.getCodeValue().isEmpty()) {
-            codeUri = createCodeUriForCodeScheme(parentCodeScheme, urlEncodeString(fromCode.getCodeValue()));
+            codeUri = createCodeUriForCodeScheme(parentCodeScheme, urlEncodeCodeValue(fromCode.getCodeValue()));
         } else {
             codeUri = null;
         }
