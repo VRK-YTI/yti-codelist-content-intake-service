@@ -889,7 +889,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
     })
     public Response checkForExistingCode(@Parameter(description = "CodeRegistry codeValue", required = true, in = ParameterIn.PATH) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                          @Parameter(description = "CodeScheme codeValue", required = true, in = ParameterIn.PATH) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                                         @Parameter(description = "Code codeValue.", required = true, in = ParameterIn.PATH) @PathParam("codeCodeValue") final String codeCodeValue) {
+                                         @Parameter(description = "Code codeValue.", required = true, in = ParameterIn.PATH) @Encoded @PathParam("codeCodeValue") final String codeCodeValue) {
         final CodeDTO code = this.codeService.findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue, urlDecodeCodeValue(codeCodeValue));
         if (code == null) {
             return Response.status(404).build();
