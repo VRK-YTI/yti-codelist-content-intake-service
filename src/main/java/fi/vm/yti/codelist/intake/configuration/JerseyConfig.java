@@ -108,7 +108,7 @@ public class JerseyConfig extends ResourceConfig {
         // Generic resources
         register(VersionResource.class);
 
-        // Swagger
+        // OpenAPI
         register(OpenApiResource.class);
 
         // User authentication
