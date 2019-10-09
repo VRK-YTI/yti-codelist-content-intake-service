@@ -412,7 +412,7 @@
                                 </ports>
                                 <wait>
                                     <log>database system is ready to accept connections</log>
-                                    <time>30000</time>
+                                    <time>60000</time>
                                 </wait>
                             </run>
                         </image>
