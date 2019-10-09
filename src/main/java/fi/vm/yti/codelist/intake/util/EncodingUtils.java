@@ -24,9 +24,11 @@ public interface EncodingUtils {
     static String urlDecodeCodeValue(final String codeValue) {
         final String stringToDecode;
         switch (codeValue) {
-            case "U%B002E":
+            case "U+002E":
+            case "U%2B002E":
                 stringToDecode = ".";
                 break;
+            case "U%2B002EU%2B002E":
             case "U+002EU+002E":
                 stringToDecode = "..";
                 break;
