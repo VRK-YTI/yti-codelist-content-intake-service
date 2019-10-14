@@ -791,10 +791,10 @@ public class CodeRegistryResource implements AbstractBaseResource {
     })
     public Response updateCode(@Parameter(description = "CodeRegistry codeValue", required = true, in = ParameterIn.PATH) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                @Parameter(description = "CodeScheme codeValue", required = true, in = ParameterIn.PATH) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                               @Parameter(description = "Code codeValue.", required = true, in = ParameterIn.PATH) @PathParam("codeCodeValue") final String codeCodeValue,
+                               @Parameter(description = "Code codeValue.", required = true, in = ParameterIn.PATH) @Encoded @PathParam("codeCodeValue") final String codeCodeValue,
                                @RequestBody(description = "JSON payload for Code data.", required = true) final String jsonPayload) {
 
-        final Set<CodeDTO> codes = codeService.parseAndPersistCodeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, codeCodeValue, jsonPayload);
+        final Set<CodeDTO> codes = codeService.parseAndPersistCodeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, urlDecodeCodeValue(codeCodeValue), jsonPayload);
         indexing.updateCodes(codes);
         codes.forEach(code -> {
             indexing.updateExternalReferences(code.getExternalReferences());

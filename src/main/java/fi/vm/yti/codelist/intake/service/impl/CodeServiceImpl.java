@@ -45,7 +45,6 @@ import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.util.ValidationUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
-import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlDecodeCodeValue;
 
 @Singleton
 @Service
@@ -289,7 +288,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         final CodeDTO codeDto = codeParser.parseCodeFromJsonData(jsonPayload);
-                        if (!codeDto.getCodeValue().equalsIgnoreCase(urlDecodeCodeValue(codeCodeValue))) {
+                        if (!codeDto.getCodeValue().equalsIgnoreCase(codeCodeValue)) {
                             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_PATH_CODE_MISMATCH));
                         }
                         codes = codeDao.updateCodeFromDto(codeScheme, codeDto);
