@@ -5,48 +5,43 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class ConceptSuggestion {
+public class ConceptSuggestionRequest {
 
     private Attribute prefLabel;
     private Attribute definition;
     private UUID creator;
-    private UUID vocabulary;
-    private String uri;
+    private String terminologyUri;
 
     // Jackson constructor
-    private ConceptSuggestion() {
-        this(null, null, null, null, "");
+    private ConceptSuggestionRequest() {
+        this(null, null, null, "");
     }
 
-    public ConceptSuggestion(final Attribute prefLabel,
-                             final UUID vocabulary) {
+    public ConceptSuggestionRequest(final Attribute prefLabel,
+                             final String terminologyUri) {
         this.prefLabel = prefLabel;
         this.definition = null;
         this.creator = null;
-        this.vocabulary = vocabulary;
-        this.uri = null;
+        this.terminologyUri = terminologyUri;
     }
 
-    public ConceptSuggestion(final Attribute prefLabel,
+    public ConceptSuggestionRequest(final Attribute prefLabel,
                              final Attribute definition,
-                             final UUID vocabulary) {
+                             final String terminologyUri) {
         this.prefLabel = prefLabel;
         this.definition = definition;
         this.creator = null;
-        this.vocabulary = vocabulary;
-        this.uri = null;
+        this.terminologyUri = terminologyUri;
     }
 
-    public ConceptSuggestion(final Attribute prefLabel,
+    public ConceptSuggestionRequest(final Attribute prefLabel,
                              final Attribute definition,
                              final UUID creator,
-                             final UUID vocabulary,
-                             final String uri) {
+                             final String terminologyUri) {
         this.prefLabel = prefLabel;
         this.definition = definition;
         this.creator = creator;
-        this.vocabulary = vocabulary;
-        this.uri = uri;
+        this.terminologyUri = terminologyUri;
     }
 
     public Attribute getPrefLabel() {
@@ -73,19 +68,11 @@ public final class ConceptSuggestion {
         this.creator = creator;
     }
 
-    public UUID getVocabulary() {
-        return vocabulary;
+    public String getTerminologyUri() {
+        return terminologyUri;
     }
 
-    public void setVocabulary(final UUID vocabulary) {
-        this.vocabulary = vocabulary;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(final String uri) {
-        this.uri = uri;
+    public void setTerminologyUri(final String terminologyUri) {
+        this.terminologyUri = terminologyUri;
     }
 }

@@ -3,37 +3,37 @@ package fi.vm.yti.codelist.intake.terminology;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import static java.util.UUID.randomUUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Vocabulary {
 
-    private final UUID id;
+    private final String uri;
     private final Map prefLabel;
     private final String status;
+    private final Map description;
     private final List<String> languages;
 
     // Jackson constructor
     private Vocabulary() {
-        this(randomUUID(), Collections.emptyMap(), null, Collections.emptyList());
+        this(null, Collections.emptyMap(), null, Collections.emptyMap(), Collections.emptyList());
     }
 
-    public Vocabulary(final UUID id,
+    public Vocabulary(final String uri,
                       final Map prefLabel,
                       final String status,
+                      final Map description,
                       final List<String> languages) {
-        this.id = id;
+        this.uri = uri;
         this.prefLabel = prefLabel;
         this.status = status;
+        this.description = description;
         this.languages = languages;
     }
 
-    public UUID getId() {
-        return id;
+    public String getUri() {
+        return uri;
     }
 
     public Map getPrefLabel() {
@@ -44,7 +44,11 @@ public final class Vocabulary {
         return status;
     }
 
-    public List getLanguages() {
+    public Map getDescription() {
+        return description;
+    }
+
+    public List<String> getLanguages() {
         return languages;
     }
 }

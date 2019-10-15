@@ -1,94 +1,84 @@
 package fi.vm.yti.codelist.intake.terminology;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import static java.util.UUID.randomUUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Concept {
 
-    private final UUID id;
-    private final UUID vocabularyId;
-    private final Map prefLabel;
-    private final Map definition;
-    private final Map vocabularyPrefLabel;
     private final String uri;
+    private final Map prefLabel;
+    private final Map description;
     private final String status;
+    private final String containerUri; // this is the vocabulary
+    private final Date modified;
 
     // Jackson constructor
     private Concept() {
-        this(randomUUID(), randomUUID(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), "", "");
+        this("", Collections.emptyMap(), Collections.emptyMap(), "", "", null);
     }
 
-    public Concept(final UUID id,
-                   final UUID vocabularyId,
+    public Concept(final String uri,
                    final Map prefLabel,
-                   final Map definition,
-                   final Map vocabularyPrefLabel,
-                   final String uri,
-                   final String status) {
-        this.id = id;
-        this.vocabularyId = vocabularyId;
-        this.prefLabel = prefLabel;
-        this.definition = definition;
-        this.vocabularyPrefLabel = vocabularyPrefLabel;
+                   final Map description,
+                   final String status,
+                   final String containerUri,
+                   final Date modified) {
         this.uri = uri;
+        this.prefLabel = prefLabel;
+        this.description = description;
         this.status = status;
+        this.containerUri = containerUri;
+        this.modified = modified;
     }
 
-    public Concept(final ConceptSuggestion conceptSuggestion) {
-        this.id = null;
-        this.vocabularyId = conceptSuggestion.getVocabulary();
-        this.prefLabel = getPrefLabelFromSuggestion(conceptSuggestion.getPrefLabel());
-        this.definition = getDefinitionFromSuggestion(conceptSuggestion.getDefinition());
-        this.vocabularyPrefLabel = null;
-        this.uri = conceptSuggestion.getUri();
+    public Concept(final ConceptSuggestionResponse conceptSuggestionResponse) {
+        this.uri = conceptSuggestionResponse.getUri();
+        this.prefLabel = getPrefLabelFromSuggestion(conceptSuggestionResponse.getPrefLabel());
+        this.description = getDefinitionFromSuggestion(conceptSuggestionResponse.getDefinition());
         this.status = "SUGGESTED";
+        this.containerUri = conceptSuggestionResponse.getTerminologyUri();
+        this.modified = conceptSuggestionResponse.getCreated();
     }
 
     private Map getPrefLabelFromSuggestion(final Attribute attribute) {
-        final Map<String, String> prefLabel = new HashMap<>();
-        prefLabel.put(attribute.getLang(), attribute.getValue());
-        return prefLabel;
+        final Map<String, String> thePrefLabel = new HashMap<>();
+        thePrefLabel.put(attribute.getLang(), attribute.getValue());
+        return thePrefLabel;
     }
 
     private Map getDefinitionFromSuggestion(final Attribute attribute) {
-        final Map<String, String> definition = new HashMap<>();
-        definition.put(attribute.getLang(), attribute.getValue());
-        return definition;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getVocabularyId() {
-        return vocabularyId;
-    }
-
-    public Map getPrefLabel() {
-        return prefLabel;
-    }
-
-    public Map getDefinition() {
-        return definition;
-    }
-
-    public Map getVocabularyPrefLabel() {
-        return vocabularyPrefLabel;
+        final Map<String, String> theDescription = new HashMap<>();
+        theDescription.put(attribute.getLang(), attribute.getValue());
+        return theDescription;
     }
 
     public String getUri() {
         return uri;
     }
 
+    public Map getPrefLabel() {
+        return prefLabel;
+    }
+
+    public Map getDescription() {
+        return description;
+    }
+
     public String getStatus() {
         return status;
+    }
+
+    public String getContainerUri() {
+        return containerUri;
+    }
+
+    public Date getModified() {
+        return modified;
     }
 }
 
