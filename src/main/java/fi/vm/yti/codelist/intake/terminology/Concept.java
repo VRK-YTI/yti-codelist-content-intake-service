@@ -14,7 +14,7 @@ public final class Concept {
     private final Map prefLabel;
     private final Map description;
     private final String status;
-    private final String containerUri; // this is the vocabulary
+    private final String container; // this is the vocabulary
     private final Date modified;
 
     // Jackson constructor
@@ -26,13 +26,13 @@ public final class Concept {
                    final Map prefLabel,
                    final Map description,
                    final String status,
-                   final String containerUri,
+                   final String container,
                    final Date modified) {
         this.uri = uri;
         this.prefLabel = prefLabel;
         this.description = description;
         this.status = status;
-        this.containerUri = containerUri;
+        this.container = container;
         this.modified = modified;
     }
 
@@ -41,7 +41,7 @@ public final class Concept {
         this.prefLabel = getPrefLabelFromSuggestion(conceptSuggestionResponse.getPrefLabel());
         this.description = getDefinitionFromSuggestion(conceptSuggestionResponse.getDefinition());
         this.status = "SUGGESTED";
-        this.containerUri = conceptSuggestionResponse.getTerminologyUri();
+        this.container = conceptSuggestionResponse.getTerminologyUri();
         this.modified = conceptSuggestionResponse.getCreated();
     }
 
@@ -73,8 +73,8 @@ public final class Concept {
         return status;
     }
 
-    public String getContainerUri() {
-        return containerUri;
+    public String getContainer() {
+        return container;
     }
 
     public Date getModified() {
