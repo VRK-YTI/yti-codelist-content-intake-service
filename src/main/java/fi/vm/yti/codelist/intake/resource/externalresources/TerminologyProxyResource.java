@@ -166,11 +166,35 @@ public class TerminologyProxyResource implements AbstractBaseResource {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
 
+        Map<String, String> params = new HashMap<>();
+
+        if (!user.isSuperuser()) {
+            Set<String> usersOrganizations = new HashSet<>();
+            Map rolesInOrganisations = user.getRolesInOrganizations();
+            rolesInOrganisations.forEach((k, v) -> {
+                usersOrganizations.add(k.toString());
+            });
+
+            StringBuilder userOrgCsl = new StringBuilder();
+            int counter = 1;
+            for (String org : usersOrganizations) {
+                userOrgCsl.append(org);
+                if (counter < usersOrganizations.size()) {
+                    userOrgCsl.append(",");
+                }
+                counter++;
+            }
+            params.put("includeIncompleteFrom", userOrgCsl.toString());
+            params.put("includeIncomplete", "false");
+        } else {
+            params.put("includeIncompleteFrom", "");
+            params.put("includeIncomplete", "true");
+        }
+
         final Meta meta = new Meta();
         final ResponseWrapper<Concept> wrapper = new ResponseWrapper<>(meta);
         ResponseEntity response = null;
         try {
-            Map<String, String> params = new HashMap<>();
             params.put("status", status);
             params.put("searchTerm", searchTerm);
             params.put("container", containerUri);
@@ -210,7 +234,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     }
 
     private String createTerminologyConceptsApiUrl() {
-        String conceptsUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_RESOURCES + "?language={language}&status={status}&container={container}&searchTerm={searchTerm}";
+        String conceptsUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_RESOURCES + "?language={language}&status={status}&container={container}&searchTerm={searchTerm}&includeIncomplete={includeIncomplete}&includeIncompleteFrom={includeIncompleteFrom}";
         LOG.info("Terminology conceptsUrl created in Codelist TerminologyProxyResource is " + conceptsUrl);
         return conceptsUrl;
     }
