@@ -92,9 +92,36 @@ public class TerminologyProxyResource implements AbstractBaseResource {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
 
+
+        Map<String, String> params = new HashMap<>();
+
+        if (!user.isSuperuser()) {
+            Set<String> usersOrganizations = new HashSet<>();
+            Map rolesInOrganisations = user.getRolesInOrganizations();
+            rolesInOrganisations.forEach((k, v) -> {
+                usersOrganizations.add(k.toString());
+            });
+
+            StringBuilder userOrgCsl = new StringBuilder();
+            int counter = 1;
+            for (String org : usersOrganizations) {
+                userOrgCsl.append(org);
+                if (counter < usersOrganizations.size()) {
+                    userOrgCsl.append(",");
+                }
+                counter++;
+            }
+            params.put("includeIncompleteFrom", userOrgCsl.toString());
+            params.put("includeIncomplete", "false");
+        } else {
+            params.put("includeIncompleteFrom", "");
+            params.put("includeIncomplete", "true");
+        }
+
+
         final ResponseEntity response;
         try {
-            response = restTemplate.exchange(createTerminologyVocabulariesApiUrl(), HttpMethod.GET, null, String.class);
+            response = restTemplate.exchange(createTerminologyVocabulariesApiUrl(), HttpMethod.GET, null, String.class, params);
         } catch (final Exception e) {
             LOG.error("Error getting vocabularies from terminology response!", e);
             throw new UnreachableTerminologyApiException(ErrorConstants.ERR_MSG_CANT_REACH_TERMINOLOGY_API);
@@ -118,7 +145,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     }
 
     private String createTerminologyVocabulariesApiUrl() {
-        String vocabUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_CONTAINERS;
+        String vocabUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_CONTAINERS  + "?includeIncomplete={includeIncomplete}&includeIncompleteFrom={includeIncompleteFrom}";
         LOG.info("Terminology vocabularies URL created in Codelist TerminologyProxyResource is " + vocabUrl);
         return vocabUrl;
     }
