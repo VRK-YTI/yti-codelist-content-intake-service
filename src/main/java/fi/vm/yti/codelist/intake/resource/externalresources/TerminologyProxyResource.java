@@ -1,15 +1,13 @@
 package fi.vm.yti.codelist.intake.resource.externalresources;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -28,8 +26,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -41,6 +42,7 @@ import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.Meta;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.configuration.TerminologyProperties;
+import fi.vm.yti.codelist.intake.dto.ConceptsResponseDTO;
 import fi.vm.yti.codelist.intake.exception.ErrorConstants;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.exception.UnreachableTerminologyApiException;
@@ -59,7 +61,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_401;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_ERROR_ENCODING_STRING;
 
 @Component
 @Path("/v1/terminology")
@@ -91,42 +92,26 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
-
-
-        Map<String, String> params = new HashMap<>();
-
-        if (!user.isSuperuser()) {
-            Set<String> usersOrganizations = new HashSet<>();
-            Map rolesInOrganisations = user.getRolesInOrganizations();
-            rolesInOrganisations.forEach((k, v) -> {
-                usersOrganizations.add(k.toString());
-            });
-
-            StringBuilder userOrgCsl = new StringBuilder();
-            int counter = 1;
-            for (String org : usersOrganizations) {
-                userOrgCsl.append(org);
-                if (counter < usersOrganizations.size()) {
-                    userOrgCsl.append(",");
-                }
-                counter++;
-            }
-            params.put("includeIncompleteFrom", userOrgCsl.toString());
-            params.put("includeIncomplete", "false");
+        final LinkedMultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        if (user.isSuperuser()) {
+            params.add("includeIncomplete", "true");
         } else {
-            params.put("includeIncompleteFrom", "");
-            params.put("includeIncomplete", "true");
+            params.add("includeIncompleteFrom", getUserOrganizationsCsl(user));
         }
-
-
         final ResponseEntity response;
         try {
-            response = restTemplate.exchange(createTerminologyVocabulariesApiUrl(), HttpMethod.GET, null, String.class, params);
+            final HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_UTF8);
+            final HttpEntity<?> entity = new HttpEntity<>(headers);
+            final UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(createTerminologyVocabulariesApiUrl()).queryParams(params);
+            final UriComponents uriComponents = builder.build().encode();
+            final ParameterizedTypeReference<String> parameterizedTypeReference = new ParameterizedTypeReference<String>() {
+            };
+            response = restTemplate.exchange(uriComponents.toUri(), HttpMethod.GET, entity, parameterizedTypeReference);
         } catch (final Exception e) {
             LOG.error("Error getting vocabularies from terminology response!", e);
             throw new UnreachableTerminologyApiException(ErrorConstants.ERR_MSG_CANT_REACH_TERMINOLOGY_API);
         }
-
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         final Meta meta = new Meta();
@@ -144,12 +129,6 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         }
     }
 
-    private String createTerminologyVocabulariesApiUrl() {
-        String vocabUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_CONTAINERS  + "?includeIncomplete={includeIncomplete}&includeIncompleteFrom={includeIncompleteFrom}";
-        LOG.info("Terminology vocabularies URL created in Codelist TerminologyProxyResource is " + vocabUrl);
-        return vocabUrl;
-    }
-
     @GET
     @Path("/concepts")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
@@ -159,54 +138,44 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     public Response getConcepts(@Parameter(description = "Search term for filtering response data.", in = ParameterIn.QUERY) @QueryParam("searchTerm") String searchTerm,
                                 @Parameter(description = "Vocabulary ID for fetching concepts in specific vocabulary.", in = ParameterIn.QUERY) @QueryParam("containerUri") String containerUri,
                                 @Parameter(description = "Status for filtering response data based on resource status.", in = ParameterIn.QUERY) @QueryParam("status") String status,
-                                @Parameter(description = "Language parameter that is used in sorting data.", in = ParameterIn.QUERY) @QueryParam("language") String language) {
+                                @Parameter(description = "Language parameter that is used in sorting data.", in = ParameterIn.QUERY) @QueryParam("language") String language,
+                                @Parameter(description = "Pagination parameter for page size.", in = ParameterIn.QUERY) @QueryParam("pageSize") final Integer pageSize,
+                                @Parameter(description = "Pagination parameter for start index.", in = ParameterIn.QUERY) @QueryParam("from") @DefaultValue("0") final Integer from) {
 
         final YtiUser user = authenticatedUserProvider.getUser();
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
-
-        Map<String, String> params = new HashMap<>();
-
-        if (!user.isSuperuser()) {
-            Set<String> usersOrganizations = new HashSet<>();
-            Map rolesInOrganisations = user.getRolesInOrganizations();
-            rolesInOrganisations.forEach((k, v) -> {
-                usersOrganizations.add(k.toString());
-            });
-
-            StringBuilder userOrgCsl = new StringBuilder();
-            int counter = 1;
-            for (String org : usersOrganizations) {
-                userOrgCsl.append(org);
-                if (counter < usersOrganizations.size()) {
-                    userOrgCsl.append(",");
-                }
-                counter++;
-            }
-            params.put("includeIncompleteFrom", userOrgCsl.toString());
-            params.put("includeIncomplete", "false");
-        } else {
-            params.put("includeIncompleteFrom", "");
-            params.put("includeIncomplete", "true");
-        }
-
-        final Meta meta = new Meta();
-        final ResponseWrapper<Concept> wrapper = new ResponseWrapper<>(meta);
         ResponseEntity response = null;
         try {
-            params.put("status", status);
-            params.put("searchTerm", searchTerm);
-            params.put("container", containerUri);
-            if (!language.equals("all_selected") && !language.isEmpty()) {
-                params.put("language", language);
-            } else {
-                params.put("language", "");
+            final LinkedMultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("status", status);
+            if (searchTerm != null && !searchTerm.isEmpty()) {
+                params.add("searchTerm", searchTerm);
             }
-            ParameterizedTypeReference<String> parameterizedTypeReference =
-                new ParameterizedTypeReference<String>() {
-                };
-            response = restTemplate.exchange(createTerminologyConceptsApiUrl(), HttpMethod.GET, null, parameterizedTypeReference, params);
+            if (containerUri != null && !containerUri.isEmpty()) {
+                params.add("container", containerUri);
+            }
+            if (!language.equals("all_selected") && !language.isEmpty()) {
+                params.add("language", language);
+            }
+            if (pageSize != null) {
+                params.add("pageSize", pageSize.toString());
+            }
+            params.add("from", from.toString());
+            if (user.isSuperuser()) {
+                params.add("includeIncomplete", "true");
+            } else {
+                params.add("includeIncompleteFrom", getUserOrganizationsCsl(user));
+            }
+            final HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_UTF8);
+            final HttpEntity<?> entity = new HttpEntity<>(headers);
+            final UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(createTerminologyConceptsApiUrl()).queryParams(params);
+            final UriComponents uriComponents = builder.build().encode();
+            final ParameterizedTypeReference<String> parameterizedTypeReference = new ParameterizedTypeReference<String>() {
+            };
+            response = restTemplate.exchange(uriComponents.toUri(), HttpMethod.GET, entity, parameterizedTypeReference);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 // ok to continue
@@ -220,13 +189,13 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         }
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
-        final Set<Concept> concepts;
         try {
-            concepts = this.parseResourcesFromResponse(response);
-            meta.setCode(200);
-            meta.setResultCount(concepts.size());
-            wrapper.setResults(concepts);
-            return Response.ok(wrapper).build();
+            final ConceptsResponseDTO conceptsResponseDto = this.parseResourcesFromResponse(response);
+            if (conceptsResponseDto != null) {
+                return Response.ok(conceptsResponseDto).build();
+            } else {
+                throw new UnreachableTerminologyApiException(ErrorConstants.ERR_MSG_CANT_REACH_TERMINOLOGY_API);
+            }
         } catch (final Exception e) {
             LOG.error("Error parsing concepts from terminology response!", e);
             throw new UnreachableTerminologyApiException(ErrorConstants.ERR_MSG_CANT_REACH_TERMINOLOGY_API);
@@ -234,7 +203,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     }
 
     private String createTerminologyConceptsApiUrl() {
-        String conceptsUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_RESOURCES + "?language={language}&status={status}&container={container}&searchTerm={searchTerm}&includeIncomplete={includeIncomplete}&includeIncompleteFrom={includeIncompleteFrom}";
+        final String conceptsUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_RESOURCES;
         LOG.info("Terminology conceptsUrl created in Codelist TerminologyProxyResource is " + conceptsUrl);
         return conceptsUrl;
     }
@@ -258,9 +227,9 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         final Meta meta = new Meta();
         final ResponseWrapper<Concept> wrapper = new ResponseWrapper<>(meta);
         ResponseEntity response = null;
-        Attribute prefLabel = new Attribute(contentLanguage, suggestion);
-        Attribute definition = new Attribute(contentLanguage, suggestedDefinition);
-        ConceptSuggestionRequest conceptSuggestionRequest = new ConceptSuggestionRequest(prefLabel, definition, user.getId(), terminologyUri);
+        final Attribute prefLabel = new Attribute(contentLanguage, suggestion);
+        final Attribute definition = new Attribute(contentLanguage, suggestedDefinition);
+        final ConceptSuggestionRequest conceptSuggestionRequest = new ConceptSuggestionRequest(prefLabel, definition, user.getId(), terminologyUri);
 
         final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -268,7 +237,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_UTF8);
         headers.add("cookie", httpServletrequest.getHeader("cookie"));
 
-        HttpEntity<String> request;
+        final HttpEntity<String> request;
         try {
             request = new HttpEntity<>(objectMapper.writeValueAsString(conceptSuggestionRequest), headers);
         } catch (JsonProcessingException e) {
@@ -276,8 +245,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
             throw new UnreachableTerminologyApiException(ErrorConstants.ERR_MSG_CANT_REACH_TERMINOLOGY_API);
         }
         try {
-            response = restTemplate.exchange(createTerminologyConceptSuggestionApiUrl(), HttpMethod.POST, request
-                , String.class);
+            response = restTemplate.exchange(createTerminologyConceptSuggestionApiUrl(), HttpMethod.POST, request, String.class);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 // ok to continue
@@ -295,7 +263,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         try {
             meta.setCode(200);
             meta.setResultCount(1);
-            Set<Concept> resultAsConcept = new HashSet<>(); //always just one result in this Set.
+            final Set<Concept> resultAsConcept = new HashSet<>(); //always just one result in this Set.
             Concept theNewConcept = parseTheNewConceptFromResponse(response);
             resultAsConcept.add(theNewConcept);
 
@@ -307,10 +275,35 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         }
     }
 
+    private String createTerminologyVocabulariesApiUrl() {
+        String vocabUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_CONTAINERS;
+        LOG.info("Terminology vocabularies URL created in Codelist TerminologyProxyResource is " + vocabUrl);
+        return vocabUrl;
+    }
+
     private String createTerminologyConceptSuggestionApiUrl() {
-        String conceptSuggestionUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONCEPT_SUGGESTION_CONTEXT_PATH + "/terminology/conceptSuggestion";
+        final String conceptSuggestionUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONCEPT_SUGGESTION_CONTEXT_PATH + "/terminology/conceptSuggestion";
         LOG.info("Terminology conceptSuggestionUrl created in Codelist TerminologyProxyResource is " + conceptSuggestionUrl);
         return conceptSuggestionUrl;
+    }
+
+    private String getUserOrganizationsCsl(final YtiUser user) {
+        final Set<String> usersOrganizations = new HashSet<>();
+        final Map rolesInOrganisations = user.getRolesInOrganizations();
+        rolesInOrganisations.forEach((k, v) -> {
+            usersOrganizations.add(k.toString());
+        });
+
+        final StringBuilder userOrgCsl = new StringBuilder();
+        int counter = 1;
+        for (String org : usersOrganizations) {
+            userOrgCsl.append(org);
+            if (counter < usersOrganizations.size()) {
+                userOrgCsl.append(",");
+            }
+            counter++;
+        }
+        return userOrgCsl.toString();
     }
 
     private Set<Vocabulary> parseVocabulariesFromResponse(final ResponseEntity response) {
@@ -355,36 +348,19 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         }
     }
 
-    private Set<Concept> parseResourcesFromResponse(final ResponseEntity response) {
+    private ConceptsResponseDTO parseResourcesFromResponse(final ResponseEntity response) {
         final Object responseBody = response.getBody();
         if (responseBody != null) {
             try {
                 final ObjectMapper mapper = new ObjectMapper();
                 mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
                 final String data = responseBody.toString();
-                final JsonNode jsonNode = mapper.readTree(data);
-                final String dataString;
-                if (!jsonNode.isArray() && jsonNode.has("results")) {
-                    dataString = jsonNode.get("results").toString();
-                } else {
-                    return new HashSet<Concept>(); // in case nothing is found
-                }
-                return mapper.readValue(dataString, new TypeReference<Set<Concept>>() {
+                return mapper.readValue(data, new TypeReference<ConceptsResponseDTO>() {
                 });
             } catch (final IOException e) {
-                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to parse resources!"));
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to parse terminology concept resources!"));
             }
-        } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to parse resources!"));
         }
-    }
-
-    String urlEncodeString(final String string) {
-        try {
-            final String stringToDecode = string.replaceAll("\\+", "%2b");
-            return URLEncoder.encode(stringToDecode, "UTF-8");
-        } catch (final UnsupportedEncodingException e) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_ERROR_ENCODING_STRING));
-        }
+        return null;
     }
 }
