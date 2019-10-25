@@ -290,10 +290,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     private String getUserOrganizationsCsl(final YtiUser user) {
         final Set<String> usersOrganizations = new HashSet<>();
         final Map rolesInOrganisations = user.getRolesInOrganizations();
-        rolesInOrganisations.forEach((k, v) -> {
-            usersOrganizations.add(k.toString());
-        });
-
+        rolesInOrganisations.forEach((k, v) -> usersOrganizations.add(k.toString()));
         final StringBuilder userOrgCsl = new StringBuilder();
         int counter = 1;
         for (String org : usersOrganizations) {

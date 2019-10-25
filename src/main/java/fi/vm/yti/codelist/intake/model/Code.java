@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.model;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +20,8 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
@@ -40,6 +43,24 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     private Integer order;
     private String conceptUriInVocabularies;
     private CodeScheme subCodeScheme;
+    private Date statusModified;
+
+    @Column(name = "status_modified")
+    @Temporal(TemporalType.TIMESTAMP)
+    public Date getStatusModified() {
+        if (statusModified != null) {
+            return new Date(statusModified.getTime());
+        }
+        return null;
+    }
+
+    public void setStatusModified(final Date statusModified) {
+        if (statusModified != null) {
+            this.statusModified = new Date(statusModified.getTime());
+        } else {
+            this.statusModified = null;
+        }
+    }
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "codescheme_id", nullable = false, updatable = false)

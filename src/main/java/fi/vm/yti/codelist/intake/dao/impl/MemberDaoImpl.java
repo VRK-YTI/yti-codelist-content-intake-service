@@ -29,6 +29,7 @@ import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
+import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.dao.MemberValueDao;
@@ -59,6 +60,7 @@ public class MemberDaoImpl implements MemberDao {
     private final EntityChangeLogger entityChangeLogger;
     private final MemberRepository memberRepository;
     private final CodeDao codeDao;
+    private final CodeSchemeDao codeSchemeDao;
     private final UriSuomiProperties uriSuomiProperties;
     private final LanguageService languageService;
     private final MemberValueDao memberValueDao;
@@ -69,6 +71,7 @@ public class MemberDaoImpl implements MemberDao {
     public MemberDaoImpl(final EntityChangeLogger entityChangeLogger,
                          final MemberRepository memberRepository,
                          final CodeDao codeDao,
+                         final CodeSchemeDao codeSchemeDao,
                          final UriSuomiProperties uriSuomiProperties,
                          final LanguageService languageService,
                          final MemberValueDao memberValueDao,
@@ -77,6 +80,7 @@ public class MemberDaoImpl implements MemberDao {
         this.entityChangeLogger = entityChangeLogger;
         this.memberRepository = memberRepository;
         this.codeDao = codeDao;
+        this.codeSchemeDao = codeSchemeDao;
         this.uriSuomiProperties = uriSuomiProperties;
         this.languageService = languageService;
         this.memberValueDao = memberValueDao;
@@ -87,6 +91,7 @@ public class MemberDaoImpl implements MemberDao {
     @Transactional
     public void delete(final Member member) {
         entityChangeLogger.logMemberChange(member);
+        codeSchemeDao.updateContentModified(member.getExtension().getParentCodeScheme().getId());
         memberRepository.delete(member);
     }
 
@@ -500,6 +505,7 @@ public class MemberDaoImpl implements MemberDao {
             } else {
                 member = createMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, extension, fromMember, members);
             }
+            codeSchemeDao.updateContentModified(extension.getParentCodeScheme().getId(), member.getModified());
             return member;
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));

@@ -31,6 +31,9 @@ datamodel:
 comments:
   publicUrl: https://kommentit.dev.cloud.vrk.fi
 
+messaging:
+  url: http://localhost:9801
+
 service:
   name: yti-codelist-content-intake-service
   database-name: yti_codelist

@@ -201,6 +201,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
             checkForExistingCodeExtensions(codeScheme, fromExtension);
             extension = createExtension(fromExtension, codeScheme, autoCreateMembers);
         }
+        codeSchemeDao.updateContentModified(codeScheme.getId(), extension.getModified());
         return extension;
     }
 
@@ -236,12 +237,14 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
     private Extension updateExtension(final Extension existingExtension,
                                       final ExtensionDTO fromExtension) {
+        final Date timeStamp = new Date(System.currentTimeMillis());
         if (!Objects.equals(existingExtension.getStatus(), fromExtension.getStatus())) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(existingExtension.getParentCodeScheme().getCodeRegistry().getOrganizations()) &&
                 Status.valueOf(existingExtension.getStatus()).ordinal() >= Status.VALID.ordinal() &&
                 Status.valueOf(fromExtension.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
             }
+            existingExtension.setStatusModified(timeStamp);
             existingExtension.setStatus(fromExtension.getStatus());
         }
         final PropertyType propertyType = resolvePropertyType(fromExtension);
@@ -271,7 +274,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (!Objects.equals(existingExtension.getEndDate(), fromExtension.getEndDate())) {
             existingExtension.setEndDate(fromExtension.getEndDate());
         }
-        existingExtension.setModified(new Date(System.currentTimeMillis()));
+        existingExtension.setModified(timeStamp);
         return existingExtension;
     }
 

@@ -189,6 +189,17 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     }
 
     @Transactional
+    public void updateContentModified(final UUID codeSchemeId) {
+        updateContentModified(codeSchemeId, new Date(System.currentTimeMillis()));
+    }
+
+    @Transactional
+    public void updateContentModified(final UUID codeSchemeId,
+                                      final Date timeStamp) {
+        codeSchemeRepository.updateContentModified(codeSchemeId, timeStamp);
+    }
+
+    @Transactional
     public CodeScheme createOrUpdateCodeScheme(final CodeRegistry codeRegistry,
                                                final CodeSchemeDTO fromCodeScheme) {
         return createOrUpdateCodeScheme(false, codeRegistry, fromCodeScheme);
@@ -242,10 +253,12 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     private CodeScheme updateCodeScheme(final CodeRegistry codeRegistry,
                                         final CodeScheme existingCodeScheme,
                                         final CodeSchemeDTO fromCodeScheme) {
+        final Date timeStamp = new Date(System.currentTimeMillis());
         if (!Objects.equals(existingCodeScheme.getStatus(), fromCodeScheme.getStatus())) {
             if (!authorizationManager.isSuperUser() && Status.valueOf(existingCodeScheme.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCodeScheme.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
             }
+            existingCodeScheme.setStatusModified(timeStamp);
             existingCodeScheme.setStatus(fromCodeScheme.getStatus());
         }
         if (!Objects.equals(existingCodeScheme.getCodeRegistry(), codeRegistry)) {
@@ -328,7 +341,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         existingCodeScheme.setLastCodeschemeId(fromCodeScheme.getLastCodeschemeId());
         existingCodeScheme.setPrevCodeschemeId(fromCodeScheme.getPrevCodeschemeId());
         existingCodeScheme.setNextCodeschemeId(fromCodeScheme.getNextCodeschemeId());
-        existingCodeScheme.setModified(new Date(System.currentTimeMillis()));
+        existingCodeScheme.setModified(timeStamp);
         existingCodeScheme.setCumulative(fromCodeScheme.isCumulative());
 
         return existingCodeScheme;

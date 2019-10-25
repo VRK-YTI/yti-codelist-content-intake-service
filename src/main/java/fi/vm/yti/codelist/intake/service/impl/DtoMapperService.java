@@ -103,6 +103,7 @@ public class DtoMapperService {
         codeDto.setOrder(code.getOrder());
         codeDto.setCreated(code.getCreated());
         codeDto.setModified(code.getModified());
+        codeDto.setStatusModified(code.getStatusModified());
         return codeDto;
     }
 
@@ -185,6 +186,8 @@ public class DtoMapperService {
         codeSchemeDto.setUrl(apiUtils.createCodeSchemeUrl(codeSchemeDto));
         codeSchemeDto.setCreated(codeScheme.getCreated());
         codeSchemeDto.setModified(codeScheme.getModified());
+        codeSchemeDto.setContentModified(codeScheme.getContentModified());
+        codeSchemeDto.setStatusModified(codeScheme.getStatusModified());
         codeSchemeDto.setPrevCodeschemeId(codeScheme.getPrevCodeschemeId());
         codeSchemeDto.setNextCodeschemeId(codeScheme.getNextCodeschemeId());
         codeSchemeDto.setLastCodeschemeId(codeScheme.getLastCodeschemeId());
@@ -526,6 +529,7 @@ public class DtoMapperService {
         extensionDto.setUrl(apiUtils.createExtensionUrl(extension.getParentCodeScheme().getCodeRegistry().getCodeValue(), extension.getParentCodeScheme().getCodeValue(), codeValue));
         extensionDto.setCreated(extension.getCreated());
         extensionDto.setModified(extension.getModified());
+        extensionDto.setStatusModified(extension.getStatusModified());
         return extensionDto;
     }
 

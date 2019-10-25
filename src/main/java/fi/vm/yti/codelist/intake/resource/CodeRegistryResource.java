@@ -800,6 +800,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             indexing.updateExternalReferences(code.getExternalReferences());
             indexing.updateMembers(memberService.findByCodeId(code.getId()));
             indexing.updateMembers(memberService.findByRelatedMemberCode(code));
+            indexing.updateCodeScheme(codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue));
         });
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);

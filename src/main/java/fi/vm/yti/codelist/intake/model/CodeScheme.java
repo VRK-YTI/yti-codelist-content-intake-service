@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.model;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +21,8 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
@@ -54,6 +57,8 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     private Set<Organization> organizations;
     private boolean cumulative;
     private Map<String, String> feedbackChannel;
+    private Date contentModified;
+    private Date statusModified;
 
     public CodeScheme() {
         prefLabel = new HashMap<>();
@@ -69,6 +74,40 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         super.setStatus(status);
         this.version = version;
         prefLabel = new HashMap<>();
+    }
+
+    @Column(name = "content_modified")
+    @Temporal(TemporalType.TIMESTAMP)
+    public Date getContentModified() {
+        if (contentModified != null) {
+            return new Date(contentModified.getTime());
+        }
+        return null;
+    }
+
+    public void setContentModified(final Date contentModified) {
+        if (contentModified != null) {
+            this.contentModified = new Date(contentModified.getTime());
+        } else {
+            this.contentModified = null;
+        }
+    }
+
+    @Column(name = "status_modified")
+    @Temporal(TemporalType.TIMESTAMP)
+    public Date getStatusModified() {
+        if (statusModified != null) {
+            return new Date(statusModified.getTime());
+        }
+        return null;
+    }
+
+    public void setStatusModified(final Date statusModified) {
+        if (statusModified != null) {
+            this.statusModified = new Date(statusModified.getTime());
+        } else {
+            this.statusModified = null;
+        }
     }
 
     @Column(name = "version")

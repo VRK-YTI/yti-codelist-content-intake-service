@@ -32,6 +32,7 @@ import fi.vm.yti.codelist.intake.resource.UserResource;
 import fi.vm.yti.codelist.intake.resource.ValueTypeResource;
 import fi.vm.yti.codelist.intake.resource.VersionResource;
 import fi.vm.yti.codelist.intake.resource.externalresources.GroupManagementProxyResource;
+import fi.vm.yti.codelist.intake.resource.externalresources.MessagingProxyResource;
 import fi.vm.yti.codelist.intake.resource.externalresources.TerminologyProxyResource;
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
@@ -101,6 +102,9 @@ public class JerseyConfig extends ResourceConfig {
 
         // Terminology
         register(TerminologyProxyResource.class);
+
+        // Messaging
+        register(MessagingProxyResource.class);
 
         // Admin resources
         register(AdminResource.class);

@@ -122,6 +122,7 @@ public class CodeDaoImpl implements CodeDao {
     @Transactional
     public void delete(final Code code) {
         entityChangeLogger.logCodeChange(code);
+        codeSchemeDao.updateContentModified(code.getCodeScheme().getId());
         codeRepository.delete(code);
     }
 
@@ -311,6 +312,7 @@ public class CodeDaoImpl implements CodeDao {
         } else {
             code = createCode(codeScheme, codeDto, codes, nextOrder);
         }
+        codeSchemeDao.updateContentModified(codeScheme.getId(), code.getModified());
         return code;
     }
 
@@ -347,11 +349,13 @@ public class CodeDaoImpl implements CodeDao {
                             final CodeDTO fromCode,
                             final Set<Code> codes,
                             final MutableInt nextOrder) {
+        final Date timeStamp = new Date(System.currentTimeMillis());
         final String uri = apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, existingCode);
         if (!Objects.equals(existingCode.getStatus(), fromCode.getStatus())) {
             if (!authorizationManager.isSuperUser() && Status.valueOf(existingCode.getStatus()).ordinal() >= Status.VALID.ordinal() && Status.valueOf(fromCode.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
             }
+            existingCode.setStatusModified(timeStamp);
             existingCode.setStatus(fromCode.getStatus());
         }
         if (!Objects.equals(existingCode.getCodeScheme(), codeScheme)) {
@@ -408,7 +412,7 @@ public class CodeDaoImpl implements CodeDao {
         if (!Objects.equals(existingCode.getConceptUriInVocabularies(), fromCode.getConceptUriInVocabularies())) {
             existingCode.setConceptUriInVocabularies(fromCode.getConceptUriInVocabularies());
         }
-        existingCode.setModified(new Date(System.currentTimeMillis()));
+        existingCode.setModified(timeStamp);
         return existingCode;
     }
 

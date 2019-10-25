@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -43,4 +44,9 @@ public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String>
 
     @Query(value = "SELECT COUNT(cs) FROM codescheme AS cs WHERE cs.created >= :createdAfter", nativeQuery = true)
     long createdAfterCount(@Param("createdAfter") final Date createdAfter);
+
+    @Modifying
+    @Query(value = "UPDATE CodeScheme AS cs SET cs.contentModified = :timeStamp, cs.modified = :timeStamp WHERE cs.id = :codeSchemeId")
+    int updateContentModified(@Param("codeSchemeId") final UUID codeSchemeId,
+                              @Param("timeStamp") final Date timeStamp);
 }

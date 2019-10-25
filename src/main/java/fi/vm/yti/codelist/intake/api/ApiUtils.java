@@ -2,8 +2,6 @@ package fi.vm.yti.codelist.intake.api;
 
 import javax.inject.Inject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
@@ -30,8 +28,6 @@ import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlEncodeCodeValue;
 
 @Component
 public class ApiUtils {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ApiUtils.class);
 
     private final PublicApiServiceProperties publicApiServiceProperties;
     private final UriSuomiProperties uriSuomiProperties;

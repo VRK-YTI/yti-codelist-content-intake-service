@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.dao;
 
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -43,4 +44,9 @@ public interface CodeSchemeDao {
                                               final CodeRegistry codeRegistry,
                                               final Set<CodeSchemeDTO> codeSchemeDtos,
                                               final boolean updateExternalReferences);
+
+    void updateContentModified(final UUID codeSchemeId);
+
+    void updateContentModified(final UUID codeSchemeId,
+                               final Date timeStamp);
 }

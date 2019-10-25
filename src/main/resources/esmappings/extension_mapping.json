@@ -38,9 +38,16 @@
         "id": {
           "type": "keyword"
         },
+        "uri": {
+          "type": "text",
+          "analyzer": "text_analyzer"
+        },
         "codeValue": {
           "type": "text",
           "analyzer": "text_analyzer"
+        },
+        "organizations": {
+          "type": "nested"
         },
         "codeRegistry": {
           "properties": {
