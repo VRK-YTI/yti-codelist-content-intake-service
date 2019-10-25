@@ -52,6 +52,9 @@
               "analyzer": "text_analyzer"
             }
           }
+        },
+        "languageCodes": {
+          "type": "nested"
         }
       }
     },

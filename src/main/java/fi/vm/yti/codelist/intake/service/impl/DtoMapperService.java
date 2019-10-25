@@ -159,10 +159,10 @@ public class DtoMapperService {
                 codeSchemeDto.setOrganizations(mapOrganizationDtos(codeScheme.getOrganizations(), false));
             }
         }
+        if (codeScheme.getLanguageCodes() != null) {
+            codeSchemeDto.setLanguageCodes(mapCodeDtos(codeScheme.getLanguageCodes(), false, false));
+        }
         if (deep) {
-            if (codeScheme.getLanguageCodes() != null) {
-                codeSchemeDto.setLanguageCodes(mapCodeDtos(codeScheme.getLanguageCodes(), false, false));
-            }
             if (codeScheme.getDefaultCode() != null) {
                 codeSchemeDto.setDefaultCode(mapCodeDto(codeScheme.getDefaultCode(), false, false, false));
             }
