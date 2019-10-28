@@ -56,6 +56,11 @@ public class ConfigurationResource implements AbstractBaseResource {
         commentsConfig.put("url", commentsPublicUrl);
         configJson.set("commentsConfig", commentsConfig);
 
+        final boolean messagingEnabled = apiUtils.getMessagingEnabled();
+        final ObjectNode messagingConfig = mapper.createObjectNode();
+        messagingConfig.put("enabled", messagingEnabled);
+        configJson.set("messagingConfig", messagingConfig);
+
         configJson.put("env", apiUtils.getEnv());
         configJson.put("defaultStatus", apiUtils.getDefaultStatus());
         configJson.put("codeSchemeSortMode", apiUtils.getCodeSchemeSortMode());

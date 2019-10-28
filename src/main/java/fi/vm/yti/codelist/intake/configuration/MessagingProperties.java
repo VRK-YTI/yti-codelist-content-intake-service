@@ -14,11 +14,21 @@ public class MessagingProperties {
     @NotNull
     private String url;
 
+    private boolean enabled;
+
     public String getUrl() {
         return url;
     }
 
     public void setUrl(final String url) {
         this.url = url;
+    }
+
+    public boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(final boolean enabled) {
+        this.enabled = enabled;
     }
 }

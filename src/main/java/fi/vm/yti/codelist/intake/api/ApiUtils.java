@@ -15,6 +15,7 @@ import fi.vm.yti.codelist.intake.configuration.ContentIntakeServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.DataModelProperties;
 import fi.vm.yti.codelist.intake.configuration.FrontendProperties;
 import fi.vm.yti.codelist.intake.configuration.GroupManagementProperties;
+import fi.vm.yti.codelist.intake.configuration.MessagingProperties;
 import fi.vm.yti.codelist.intake.configuration.PublicApiServiceProperties;
 import fi.vm.yti.codelist.intake.configuration.TerminologyProperties;
 import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
@@ -37,6 +38,7 @@ public class ApiUtils {
     private final DataModelProperties dataModelProperties;
     private final CommentsProperties commentsProperties;
     private final FrontendProperties frontendProperties;
+    private final MessagingProperties messagingProperties;
 
     @Inject
     public ApiUtils(final PublicApiServiceProperties publicApiServiceProperties,
@@ -46,7 +48,8 @@ public class ApiUtils {
                     final DataModelProperties dataModelProperties,
                     final UriSuomiProperties uriSuomiProperties,
                     final CommentsProperties commentsProperties,
-                    final FrontendProperties frontendProperties) {
+                    final FrontendProperties frontendProperties,
+                    final MessagingProperties messagingProperties) {
         this.publicApiServiceProperties = publicApiServiceProperties;
         this.uriSuomiProperties = uriSuomiProperties;
         this.contentIntakeServiceProperties = contentIntakeServiceProperties;
@@ -55,6 +58,7 @@ public class ApiUtils {
         this.dataModelProperties = dataModelProperties;
         this.commentsProperties = commentsProperties;
         this.frontendProperties = frontendProperties;
+        this.messagingProperties = messagingProperties;
     }
 
     public String getEnv() {
@@ -210,6 +214,10 @@ public class ApiUtils {
 
     public String getDataModelPublicUrl() {
         return dataModelProperties.getPublicUrl();
+    }
+
+    public boolean getMessagingEnabled() {
+        return messagingProperties.getEnabled();
     }
 
     private void appendPortToUrlIfNotEmpty(final String port,
