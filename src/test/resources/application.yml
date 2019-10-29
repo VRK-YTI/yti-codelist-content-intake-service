@@ -33,6 +33,7 @@ comments:
 
 messaging:
   url: http://localhost:9801
+  enabled: false
 
 service:
   name: yti-codelist-content-intake-service
