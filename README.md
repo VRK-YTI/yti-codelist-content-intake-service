@@ -13,7 +13,8 @@ This is the implementation of the Content Intake Service microservice for the YT
 ## Interface Documentation
 
 When the microservice is running, you can get the Swagger REST API documentation from:
-- [http://localhost:9602/api/swagger.json](http://localhost:9602/codelist-api/api/swagger.json)
+- [http://localhost:9602/codelist-intake/api/openapi.json](http://localhost:9602/codelist-intake/api/openapi.json)
+- [http://localhost:9602/codelist-intake/api/openapi.yaml](http://localhost:9602/codelist-intake/api/openapi.yaml)
 - [http://localhost:9602/swagger/index.html](http://localhost:9602/codelist-api/swagger/index.html)
 
 ## Prerequisities
@@ -25,7 +26,7 @@ When the microservice is running, you can get the Swagger REST API documentation
 
 ## Running
 
-- [yti-codelist-config](https://github.com/vrk-yti/yti-codelist-config/) - Default configuration for development use.
+- [yti-compose](https://github.com/vrk-yti/yti-compose/) - Default configuration for development use.
 
 ## Starting service on local development environment
 
@@ -33,7 +34,7 @@ When the microservice is running, you can get the Swagger REST API documentation
 
 Add the following Run configurations options:
 
-- Program arguments: `--spring.profiles.active=local --spring.config.location=../yti-codelist-config/application.yml,../yti-codelist-config/yti-codelist-content-intake-service.yml`
+- Program arguments: `--spring.profiles.active=local --spring.config.location=../yti-compose/config/application.yml,../yti-compose/config/yti-codelist-content-intake-service.yml`
 - Workdir: `$MODULE_DIR$`
 
 Add folder for yti-codelist -project, application writes modified files there:
@@ -51,10 +52,10 @@ $ mvn clean package docker:build
 ### Running the Docker Image
 
 ```bash
-$ docker run --rm -p 9602:9602 -p 19602:19602 -v /path/to/yti-codelist-config:/config --name=yti-codelist-content-intake-service yti-codelist-content-intake-service -a --spring.config.location=/config/application.yml,/config/yti-codelist-content-intake-service.ym
+$ docker run --rm -p 9602:9602 -p 19602:19602 -v /path/to/yti-codelist-config:/config --name=yti-codelist-content-intake-service yti-codelist-content-intake-service -a --spring.config.location=/yti-compose/config/application.yml,/yti-compose/config/yti-codelist-content-intake-service.ym
 ```
 
-.. or in [yti-codelist-compose](https://github.com/vrk-yti/yti-codelist-compose/) run
+.. or in [yti-compose](https://github.com/vrk-yti/yti-compose/) run
 
 ```bash
 $ docker-compose up yti-codelist-content-intake-service
