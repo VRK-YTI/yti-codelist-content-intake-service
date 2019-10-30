@@ -30,10 +30,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Component
 @Path("/v1/system")
 @Produces({ "text/plain;charset=utf-8", MediaType.APPLICATION_JSON + ";charset=UTF-8" })
+@Tag(name = "System")
 public class SystemResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(SystemResource.class);

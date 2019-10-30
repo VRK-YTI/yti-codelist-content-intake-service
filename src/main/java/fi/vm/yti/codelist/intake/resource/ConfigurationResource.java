@@ -15,10 +15,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Component
 @Path("/configuration")
 @Produces("text/plain")
+@Tag(name = "Configuration")
 public class ConfigurationResource implements AbstractBaseResource {
 
     private final ApiUtils apiUtils;

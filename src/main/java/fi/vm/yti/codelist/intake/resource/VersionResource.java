@@ -9,10 +9,12 @@ import org.springframework.stereotype.Component;
 import fi.vm.yti.codelist.intake.configuration.VersionInformation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Component
 @Path("/version")
 @Produces("text/plain")
+@Tag(name = "System")
 public class VersionResource implements AbstractBaseResource {
 
     private final VersionInformation versionInformation;

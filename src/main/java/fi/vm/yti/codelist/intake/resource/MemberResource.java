@@ -37,6 +37,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CODE_EXTENSION;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_MEMBER;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_EXTENSION_NOT_FOUND;
@@ -44,6 +45,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_EX
 @Component
 @Path("/v1/members")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "Member")
 public class MemberResource implements AbstractBaseResource {
 
     private final Indexing indexing;

@@ -29,6 +29,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_USER;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_401;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
@@ -36,6 +37,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_40
 @Component
 @Path("/v1/users")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "System")
 public class UserResource implements AbstractBaseResource {
 
     private final AuthorizationManager authorizationManager;

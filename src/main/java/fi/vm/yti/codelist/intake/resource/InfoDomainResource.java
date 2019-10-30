@@ -47,6 +47,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_INFODOMAIN;
 import static fi.vm.yti.codelist.intake.configuration.ApplicationConstants.YTI_DATACLASSIFICATION_INFODOMAIN_CODESCHEME;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_500;
@@ -55,6 +56,7 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.JUPO_REGI
 @Component
 @Path("/v1/infodomains")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "InfoDomain")
 public class InfoDomainResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(InfoDomainResource.class);

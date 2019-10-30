@@ -39,12 +39,14 @@ import fi.vm.yti.codelist.intake.service.ValueTypeService;
 import fi.vm.yti.codelist.intake.util.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.data.YtiDataAccess.*;
 
 @Component
 @Path("/admin")
 @Produces("text/plain")
+@Tag(name = "Admin")
 public class AdminResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(AdminResource.class);

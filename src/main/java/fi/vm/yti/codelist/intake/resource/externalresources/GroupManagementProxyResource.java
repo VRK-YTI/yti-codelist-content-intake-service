@@ -41,11 +41,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_401;
 
 @Component
 @Path("/v1/groupmanagement")
+@Tag(name = "GroupManagement")
 public class GroupManagementProxyResource implements AbstractBaseResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(GroupManagementProxyResource.class);

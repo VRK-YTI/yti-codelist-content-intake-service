@@ -32,12 +32,14 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_CODEREGISTRY;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FORMAT_JSON;
 
 @Component
 @Path("/v1/propertytypes")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "PropertyType")
 public class PropertyTypeResource implements AbstractBaseResource {
 
     private final PropertyTypeService propertyTypeService;

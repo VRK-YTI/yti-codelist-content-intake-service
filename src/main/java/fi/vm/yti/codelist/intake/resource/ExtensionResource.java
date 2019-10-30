@@ -31,11 +31,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_EXTENSION;
 
 @Component
 @Path("/v1/extensions")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "Extension")
 public class ExtensionResource implements AbstractBaseResource {
 
     private final Indexing indexing;

@@ -33,12 +33,14 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
 
 @Component
 @Path("/v1/externalreferences")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "ExternalReference")
 public class ExternalReferenceResource implements AbstractBaseResource {
 
     private final ExternalReferenceService externalReferenceService;
