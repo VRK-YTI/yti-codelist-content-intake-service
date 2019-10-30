@@ -190,13 +190,13 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
     @Transactional
     public void updateContentModified(final UUID codeSchemeId) {
-//        updateContentModified(codeSchemeId, new Date(System.currentTimeMillis()));
+        updateContentModified(codeSchemeId, new Date(System.currentTimeMillis()));
     }
 
     @Transactional
     public void updateContentModified(final UUID codeSchemeId,
                                       final Date timeStamp) {
-//        codeSchemeRepository.updateContentModified(codeSchemeId, timeStamp);
+        codeSchemeRepository.updateContentModified(codeSchemeId, timeStamp);
     }
 
     @Transactional
