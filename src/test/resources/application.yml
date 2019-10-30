@@ -32,7 +32,6 @@ comments:
   publicUrl: https://kommentit.dev.cloud.vrk.fi
 
 messaging:
-  url: http://localhost:9801
   enabled: false
 
 service:
