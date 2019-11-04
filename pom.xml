@@ -569,6 +569,7 @@
                         <replacement>
                             <token>url: "https://petstore.swagger.io/v2/swagger.json"</token>
                             <value>urls: [{url: "/codelist-intake/api/openapi.yaml", name: "Codelist Intake API"},{url: "/codelist-api/api/openapi.yaml", name: "Codelist Public API"}],
+                                docExpansion: 'none',
                                 validatorUrl: null</value>
                         </replacement>
                     </replacements>
