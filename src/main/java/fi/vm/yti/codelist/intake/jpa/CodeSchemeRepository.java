@@ -46,7 +46,7 @@ public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String>
     long createdAfterCount(@Param("createdAfter") final Date createdAfter);
 
     @Modifying
-    @Query(value = "UPDATE CodeScheme AS cs SET cs.contentModified = :timeStamp, cs.modified = :timeStamp WHERE cs.id = :codeSchemeId")
+    @Query(value = "UPDATE CodeScheme AS cs SET cs.contentModified = :timeStamp WHERE cs.id = :codeSchemeId")
     int updateContentModified(@Param("codeSchemeId") final UUID codeSchemeId,
                               @Param("timeStamp") final Date timeStamp);
 }
