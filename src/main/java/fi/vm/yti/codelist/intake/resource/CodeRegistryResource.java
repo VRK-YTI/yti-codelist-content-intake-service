@@ -825,7 +825,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
             indexing.updateMembers(memberService.findByCodeId(code.getId()));
             indexing.updateMembers(memberService.findByRelatedMemberCode(code));
         });
-        indexing.updateCodeScheme(codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue));
+        CodeSchemeDTO parentCodeSchemeDTO = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        codeSchemeService.populateAllVersionsToCodeSchemeDTO(parentCodeSchemeDTO);
+        indexing.updateCodeScheme(parentCodeSchemeDTO);
         final Meta meta = new Meta();
         final MetaResponseWrapper responseWrapper = new MetaResponseWrapper(meta);
         return Response.ok(responseWrapper).build();
