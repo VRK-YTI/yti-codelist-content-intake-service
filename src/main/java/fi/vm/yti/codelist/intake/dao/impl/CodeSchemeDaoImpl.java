@@ -457,7 +457,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                 if (code != null) {
                     codes.add(code);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_LANGUAGECODE));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_LANGUAGECODE, codeDto.getCodeValue()));
                 }
             });
         } else {
