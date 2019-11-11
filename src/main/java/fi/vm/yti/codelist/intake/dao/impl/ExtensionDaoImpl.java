@@ -81,11 +81,16 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
     public void delete(final Extension extension) {
         entityChangeLogger.logExtensionChange(extension);
+        codeSchemeDao.updateContentModified(extension.getParentCodeScheme().getId());
         extensionRepository.delete(extension);
     }
 
     public void delete(final Set<Extension> extensions) {
         extensions.forEach(entityChangeLogger::logExtensionChange);
+        if (!extensions.isEmpty()) {
+            final UUID codeSchemeId = extensions.iterator().next().getParentCodeScheme().getId();
+            codeSchemeDao.updateContentModified(codeSchemeId);
+        }
         extensionRepository.deleteAll(extensions);
     }
 
@@ -148,6 +153,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                                                   final boolean autoCreateMembers) {
         final Extension extension = createOrUpdateExtension(codeScheme, extensionDto, autoCreateMembers);
         save(extension);
+        codeSchemeDao.updateContentModified(codeScheme.getId(), extension.getModified());
         return extension;
     }
 
@@ -164,6 +170,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
         validateCodeExtensionsForDuplicates(extensions.stream().filter(extension -> CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())).collect(Collectors.toSet()));
         save(extensions);
+        codeSchemeDao.updateContentModified(codeScheme.getId());
         return extensions;
     }
 

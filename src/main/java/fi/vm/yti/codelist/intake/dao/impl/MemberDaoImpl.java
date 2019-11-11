@@ -98,6 +98,10 @@ public class MemberDaoImpl implements MemberDao {
     @Transactional
     public void delete(final Set<Member> members) {
         entityChangeLogger.logMemberChanges(members);
+        if (!members.isEmpty()) {
+            final UUID codeSchemeId = members.iterator().next().getExtension().getParentCodeScheme().getId();
+            codeSchemeDao.updateContentModified(codeSchemeId);
+        }
         memberRepository.deleteAll(members);
     }
 
@@ -182,6 +186,7 @@ public class MemberDaoImpl implements MemberDao {
         save(member);
         affectedMembers.add(member);
         resolveAffectedRelatedMembers(existingMembers, affectedMembers, member.getId());
+        codeSchemeDao.updateContentModified(extension.getParentCodeScheme().getId(), member.getModified());
         return affectedMembers;
     }
 
@@ -210,6 +215,9 @@ public class MemberDaoImpl implements MemberDao {
             }
             save(membersToBeStored);
             resolveMemberRelations(extension, existingMembers, affectedMembers, memberDtos);
+        }
+        if (!affectedMembers.isEmpty()) {
+            codeSchemeDao.updateContentModified(extension.getParentCodeScheme().getId());
         }
         return affectedMembers;
     }
@@ -505,7 +513,6 @@ public class MemberDaoImpl implements MemberDao {
             } else {
                 member = createMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, extension, fromMember, members);
             }
-            codeSchemeDao.updateContentModified(extension.getParentCodeScheme().getId(), member.getModified());
             return member;
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
