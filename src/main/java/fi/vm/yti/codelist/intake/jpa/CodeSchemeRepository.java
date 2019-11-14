@@ -49,4 +49,13 @@ public interface CodeSchemeRepository extends CrudRepository<CodeScheme, String>
     @Query(value = "UPDATE CodeScheme AS cs SET cs.contentModified = :timeStamp WHERE cs.id = :codeSchemeId")
     int updateContentModified(@Param("codeSchemeId") final UUID codeSchemeId,
                               @Param("timeStamp") final Date timeStamp);
+
+    @Query(value = "SELECT DISTINCT language FROM code_preflabel WHERE code_id IN (SELECT id FROM code WHERE codescheme_id = :codeSchemeId) " +
+        "UNION SELECT DISTINCT language FROM code_description WHERE code_id IN (SELECT id FROM code WHERE codescheme_id = :codeSchemeId) " +
+        "UNION SELECT DISTINCT language FROM code_definition WHERE code_id IN (SELECT id FROM code WHERE codescheme_id = :codeSchemeId) " +
+        "UNION SELECT DISTINCT language FROM member_preflabel WHERE member_id IN (SELECT id FROM member WHERE extension_id IN (SELECT id FROM extension where parentcodescheme_id = :codeSchemeId)) " +
+        "UNION SELECT DISTINCT language FROM extension_preflabel WHERE extension_id IN (SELECT id from extension WHERE parentcodescheme_id = :codeSchemeId) " +
+        "UNION SELECT DISTINCT language FROM externalreference_title WHERE externalreference_id IN (SELECT id FROM externalreference WHERE parentcodescheme_id = :codeSchemeId) " +
+        "UNION SELECT DISTINCT language FROM externalreference_description WHERE externalreference_id IN (SELECT id FROM externalreference WHERE parentcodescheme_id = :codeSchemeId)", nativeQuery = true)
+    Set<String> getUsedLanguagesInContent(@Param("codeSchemeId") final UUID codeSchemeId);
 }
