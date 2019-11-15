@@ -246,7 +246,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                                       final ExtensionDTO fromExtension) {
         final Date timeStamp = new Date(System.currentTimeMillis());
         if (!Objects.equals(existingExtension.getStatus(), fromExtension.getStatus())) {
-            if (!authorizationManager.canBeModifiedByUserInOrganization(existingExtension.getParentCodeScheme().getCodeRegistry().getOrganizations()) &&
+            if (!authorizationManager.canBeModifiedByUserInOrganization(existingExtension.getParentCodeScheme().getOrganizations()) &&
                 Status.valueOf(existingExtension.getStatus()).ordinal() >= Status.VALID.ordinal() &&
                 Status.valueOf(fromExtension.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
