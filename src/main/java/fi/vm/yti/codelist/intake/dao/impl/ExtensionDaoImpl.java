@@ -262,11 +262,12 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (fromExtension.getCodeSchemes() != null && !fromExtension.getCodeSchemes().isEmpty()) {
             for (final CodeSchemeDTO codeSchemeDto : fromExtension.getCodeSchemes()) {
                 if (codeSchemeDto.getUri() != null && !codeSchemeDto.getUri().isEmpty()) {
-                    final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
+                    final String codeSchemeUri = codeSchemeDto.getUri();
+                    final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeUri);
                     if (relatedCodeScheme != null) {
                         codeSchemes.add(relatedCodeScheme);
                     } else {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_NOT_FOUND));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_NOT_FOUND, codeSchemeUri));
                     }
                 }
             }
@@ -305,13 +306,14 @@ public class ExtensionDaoImpl implements ExtensionDao {
         LinkedHashSet<CodeScheme> codeSchemesAlphabeticallyOrdered = new LinkedHashSet<>();
         if (fromExtension.getCodeSchemes() != null && !fromExtension.getCodeSchemes().isEmpty()) {
             fromExtension.getCodeSchemes().forEach(codeSchemeDto -> {
-                final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
+                final String codeSchemeUri = codeSchemeDto.getUri();
+                final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeUri);
                 if (relatedCodeScheme != null && relatedCodeScheme.getId().equals(codeScheme.getId())) {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_MAPPED_TO_PARENT));
                 } else if (relatedCodeScheme != null) {
                     codeSchemes.add(relatedCodeScheme);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_NOT_FOUND));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_NOT_FOUND, codeSchemeUri));
                 }
             });
             codeSchemesAlphabeticallyOrdered = orderExtensionsCodeSchemesAlphabetically(codeSchemes);
