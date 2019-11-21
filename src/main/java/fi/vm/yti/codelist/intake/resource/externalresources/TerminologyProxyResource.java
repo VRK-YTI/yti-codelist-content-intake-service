@@ -284,7 +284,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     }
 
     private String createTerminologyConceptSuggestionApiUrl() {
-        final String conceptSuggestionUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_BASE_PATH + API_PATH_VERSION_V1 + API_PATH_INTEGRATION + TERMINOLOGY_API_CONCEPT_SUGGESTION_PATH;
+        final String conceptSuggestionUrl = terminologyProperties.getUrl() + TERMINOLOGY_PRIVATE_API_BASE_PATH + API_PATH_VERSION_V1 + API_PATH_INTEGRATION + TERMINOLOGY_API_CONCEPT_SUGGESTION_PATH;
         LOG.info("Terminology conceptSuggestionUrl created in Codelist TerminologyProxyResource is " + conceptSuggestionUrl);
         return conceptSuggestionUrl;
     }
