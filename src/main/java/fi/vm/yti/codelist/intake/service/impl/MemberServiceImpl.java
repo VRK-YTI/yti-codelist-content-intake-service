@@ -127,7 +127,7 @@ public class MemberServiceImpl implements MemberService {
             final MemberDTO memberDto = memberParser.parseMemberFromJson(jsonPayload);
             if (memberDto.getExtension() != null) {
                 final Extension extension = extensionDao.findById(memberDto.getExtension().getId());
-                if (!authorizationManager.canBeModifiedByUserInOrganization(extension.getParentCodeScheme().getCodeRegistry().getOrganizations())) {
+                if (!authorizationManager.canBeModifiedByUserInOrganization(extension.getParentCodeScheme().getOrganizations())) {
                     throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                 }
                 members = memberDao.updateMemberEntityFromDto(extension, memberDto);
@@ -198,7 +198,7 @@ public class MemberServiceImpl implements MemberService {
     public Set<MemberDTO> parseAndPersistMembersFromExcelWorkbook(final Extension extension,
                                                                   final Workbook workbook,
                                                                   final String sheetName) {
-        if (!authorizationManager.canBeModifiedByUserInOrganization(extension.getParentCodeScheme().getCodeRegistry().getOrganizations())) {
+        if (!authorizationManager.canBeModifiedByUserInOrganization(extension.getParentCodeScheme().getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
         final Set<MemberDTO> memberDtos = memberParser.parseMembersFromExcelWorkbook(extension, workbook, sheetName);

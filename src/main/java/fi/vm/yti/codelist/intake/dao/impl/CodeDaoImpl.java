@@ -129,6 +129,10 @@ public class CodeDaoImpl implements CodeDao {
     @Transactional
     public void delete(final Set<Code> codes) {
         entityChangeLogger.logCodesChange(codes);
+        if (!codes.isEmpty()) {
+            final UUID codeSchemeId = codes.iterator().next().getId();
+            codeSchemeDao.updateContentModified(codeSchemeId);
+        }
         codeRepository.deleteAll(codes);
     }
 
@@ -207,6 +211,7 @@ public class CodeDaoImpl implements CodeDao {
         code.setMembers(codeMembers);
         save(code);
         codeSchemeRepository.save(codeScheme);
+        codeSchemeDao.updateContentModified(codeScheme.getId(), code.getModified());
         return codesAffected;
     }
 
@@ -262,6 +267,7 @@ public class CodeDaoImpl implements CodeDao {
             codesAffected.forEach(this::checkCodeHierarchyLevels);
             setBroaderCodesAndEvaluateHierarchyLevels(broaderCodeMapping, codesAffected, codeScheme);
             save(codesAffected);
+            codeSchemeDao.updateContentModified(codeScheme.getId());
             codeSchemeRepository.save(codeScheme);
         }
         return codesAffected;
@@ -312,7 +318,6 @@ public class CodeDaoImpl implements CodeDao {
         } else {
             code = createCode(codeScheme, codeDto, codes, nextOrder);
         }
-        codeSchemeDao.updateContentModified(codeScheme.getId(), code.getModified());
         return code;
     }
 

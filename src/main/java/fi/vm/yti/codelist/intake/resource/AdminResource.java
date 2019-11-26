@@ -44,7 +44,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.data.YtiDataAccess.*;
 
 @Component
-@Path("/admin")
+@Path("/v1/admin")
 @Produces("text/plain")
 @Tag(name = "Admin")
 public class AdminResource implements AbstractBaseResource {

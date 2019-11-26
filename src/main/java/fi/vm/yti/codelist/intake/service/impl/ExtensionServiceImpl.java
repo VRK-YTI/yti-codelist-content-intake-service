@@ -196,7 +196,7 @@ public class ExtensionServiceImpl implements ExtensionService {
                 try {
                     if (jsonPayload != null && !jsonPayload.isEmpty()) {
                         final ExtensionDTO extensionDTO = extensionParser.parseExtensionFromJson(jsonPayload);
-                        if (!authorizationManager.canBeModifiedByUserInOrganization(parentCodeScheme.getCodeRegistry().getOrganizations())) {
+                        if (!authorizationManager.canBeModifiedByUserInOrganization(parentCodeScheme.getOrganizations())) {
                             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
                         }
                         extension = extensionDao.updateExtensionEntityFromDto(parentCodeScheme, extensionDTO, autoCreateMembers);

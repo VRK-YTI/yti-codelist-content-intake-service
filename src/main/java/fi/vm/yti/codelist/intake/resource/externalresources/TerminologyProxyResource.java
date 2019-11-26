@@ -205,7 +205,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     }
 
     private String createTerminologyConceptsApiUrl() {
-        final String conceptsUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_RESOURCES;
+        final String conceptsUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_BASE_PATH + API_PATH_VERSION_V1 + API_PATH_INTEGRATION + API_PATH_RESOURCES;
         LOG.info("Terminology conceptsUrl created in Codelist TerminologyProxyResource is " + conceptsUrl);
         return conceptsUrl;
     }
@@ -278,13 +278,13 @@ public class TerminologyProxyResource implements AbstractBaseResource {
     }
 
     private String createTerminologyVocabulariesApiUrl() {
-        String vocabUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONTEXT_PATH + API_PATH_CONTAINERS;
+        String vocabUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_BASE_PATH + API_PATH_VERSION_V1 + API_PATH_INTEGRATION + API_PATH_CONTAINERS;
         LOG.info("Terminology vocabularies URL created in Codelist TerminologyProxyResource is " + vocabUrl);
         return vocabUrl;
     }
 
     private String createTerminologyConceptSuggestionApiUrl() {
-        final String conceptSuggestionUrl = terminologyProperties.getUrl() + TERMINOLOGY_API_CONCEPT_SUGGESTION_CONTEXT_PATH + "/terminology/conceptSuggestion";
+        final String conceptSuggestionUrl = terminologyProperties.getUrl() + TERMINOLOGY_PRIVATE_API_BASE_PATH + API_PATH_VERSION_V1 + API_PATH_INTEGRATION + TERMINOLOGY_API_CONCEPT_SUGGESTION_PATH;
         LOG.info("Terminology conceptSuggestionUrl created in Codelist TerminologyProxyResource is " + conceptSuggestionUrl);
         return conceptSuggestionUrl;
     }

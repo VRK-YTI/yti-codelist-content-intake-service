@@ -273,7 +273,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                 existingCodeScheme.setInfoDomains(null);
             }
         }
-        final Set<Code> languageCodes = resolveLanguageCodesFromDtos(fromCodeScheme.getLanguageCodes());
+        final Set<Code> languageCodes = resolveLanguageCodesFromDtosAndCodeScheme(fromCodeScheme.getLanguageCodes(), existingCodeScheme.getId());
         existingCodeScheme.setLanguageCodes(languageCodes);
         final String uri = apiUtils.createCodeSchemeUri(codeRegistry, existingCodeScheme);
         if (!Objects.equals(existingCodeScheme.getUri(), uri)) {
@@ -446,24 +446,46 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
         return codes;
     }
 
-    private Set<Code> resolveLanguageCodesFromDtos(final Set<CodeDTO> codeDtos) {
-        final Set<Code> codes;
-        if (codeDtos != null && !codeDtos.isEmpty()) {
-            codes = new HashSet<>();
-            final CodeRegistry codeRegistry = codeRegistryRepository.findByCodeValueIgnoreCase(YTI_REGISTRY);
-            final CodeScheme codeScheme = codeSchemeRepository.findByCodeRegistryAndCodeValueIgnoreCase(codeRegistry, ApplicationConstants.YTI_LANGUAGECODE_CODESCHEME);
-            codeDtos.forEach(codeDto -> {
-                final Code code = codeRepository.findByCodeSchemeAndCodeValueIgnoreCase(codeScheme, codeDto.getCodeValue());
+    private Set<Code> resolveLanguageCodesFromDtos(final Set<CodeDTO> languageCodeDtos) {
+        final Set<Code> languageCodes;
+        if (languageCodeDtos != null && !languageCodeDtos.isEmpty()) {
+            languageCodes = new HashSet<>();
+            languageCodeDtos.forEach(codeDto -> {
+                final String languageCodeCodeValue = codeDto.getCodeValue();
+                final Code code = languageService.getLanguageCode(languageCodeCodeValue);
                 if (code != null) {
-                    codes.add(code);
+                    languageCodes.add(code);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_LANGUAGECODE, codeDto.getCodeValue()));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_LANGUAGECODE, languageCodeCodeValue));
                 }
             });
         } else {
-            codes = null;
+            languageCodes = null;
         }
-        return codes;
+        return languageCodes;
+
+    }
+
+    private Set<Code> resolveLanguageCodesFromDtosAndCodeScheme(final Set<CodeDTO> languageCodeDtos,
+                                                                final UUID codeSchemmeId) {
+        final Set<Code> inputLanguageCodes = resolveLanguageCodesFromDtos(languageCodeDtos);
+        final Set<Code> languageCodes;
+        if (inputLanguageCodes != null) {
+            languageCodes = inputLanguageCodes;
+        } else {
+            languageCodes = new HashSet<>();
+        }
+        if (codeSchemmeId != null) {
+            final Set<String> usedLanguages = codeSchemeRepository.getUsedLanguagesInContent(codeSchemmeId);
+            usedLanguages.forEach(language -> {
+                final Code code = languageService.getLanguageCode(language);
+                languageCodes.add(code);
+            });
+        }
+        if (languageCodes.isEmpty()) {
+            return null;
+        }
+        return languageCodes;
     }
 
     private void validateCodeSchemeCodeValueForExistingCodeScheme(final CodeSchemeDTO codeScheme) {

@@ -57,7 +57,7 @@ public class LanguageService {
     public Code getLanguageCode(final String languageCodeValue) {
         final Code languageCode = languageCodes.get(languageCodeValue.toLowerCase());
         if (languageCode == null) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), "No language code found for codeValue " + languageCodeValue + "!"));
+            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_LANGUAGECODE, languageCodeValue));
         }
         return languageCode;
     }

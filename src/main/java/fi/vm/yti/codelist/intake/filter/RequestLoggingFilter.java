@@ -42,7 +42,7 @@ public class RequestLoggingFilter implements ContainerRequestFilter, ContainerRe
             LOG.debug("User: anonymous");
         }
         logQueryParameters(requestContext);
-        logRequestHeader(requestContext);
+        logRequestHeaders(requestContext);
     }
 
     private void logQueryParameters(final ContainerRequestContext requestContext) {
@@ -54,11 +54,16 @@ public class RequestLoggingFilter implements ContainerRequestFilter, ContainerRe
         LOG.debug("*** End query parameters section of request ***");
     }
 
-    private void logRequestHeader(final ContainerRequestContext requestContext) {
+    private void logRequestHeaders(final ContainerRequestContext requestContext) {
         LOG.debug("*** Start header section of request ***");
         LOG.debug("Method type: {}", requestContext.getMethod());
         requestContext.getHeaders().keySet().forEach(headerName -> {
-            String headerValue = requestContext.getHeaderString(headerName);
+            final String headerValue;
+            if ("Authorization".equalsIgnoreCase(headerName) || "cookie".equalsIgnoreCase(headerName)) {
+                headerValue = "[PROTECTED]";
+            } else {
+                headerValue = requestContext.getHeaderString(headerName);
+            }
             if ("User-Agent".equalsIgnoreCase(headerName)) {
                 MDC.put("userAgent", headerValue);
             } else if ("Host".equalsIgnoreCase(headerName)) {

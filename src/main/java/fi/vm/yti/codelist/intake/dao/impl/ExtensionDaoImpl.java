@@ -81,11 +81,16 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
     public void delete(final Extension extension) {
         entityChangeLogger.logExtensionChange(extension);
+        codeSchemeDao.updateContentModified(extension.getParentCodeScheme().getId());
         extensionRepository.delete(extension);
     }
 
     public void delete(final Set<Extension> extensions) {
         extensions.forEach(entityChangeLogger::logExtensionChange);
+        if (!extensions.isEmpty()) {
+            final UUID codeSchemeId = extensions.iterator().next().getParentCodeScheme().getId();
+            codeSchemeDao.updateContentModified(codeSchemeId);
+        }
         extensionRepository.deleteAll(extensions);
     }
 
@@ -148,6 +153,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                                                   final boolean autoCreateMembers) {
         final Extension extension = createOrUpdateExtension(codeScheme, extensionDto, autoCreateMembers);
         save(extension);
+        codeSchemeDao.updateContentModified(codeScheme.getId(), extension.getModified());
         return extension;
     }
 
@@ -164,6 +170,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
         validateCodeExtensionsForDuplicates(extensions.stream().filter(extension -> CODE_EXTENSION.equalsIgnoreCase(extension.getPropertyType().getContext())).collect(Collectors.toSet()));
         save(extensions);
+        codeSchemeDao.updateContentModified(codeScheme.getId());
         return extensions;
     }
 
@@ -239,7 +246,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                                       final ExtensionDTO fromExtension) {
         final Date timeStamp = new Date(System.currentTimeMillis());
         if (!Objects.equals(existingExtension.getStatus(), fromExtension.getStatus())) {
-            if (!authorizationManager.canBeModifiedByUserInOrganization(existingExtension.getParentCodeScheme().getCodeRegistry().getOrganizations()) &&
+            if (!authorizationManager.canBeModifiedByUserInOrganization(existingExtension.getParentCodeScheme().getOrganizations()) &&
                 Status.valueOf(existingExtension.getStatus()).ordinal() >= Status.VALID.ordinal() &&
                 Status.valueOf(fromExtension.getStatus()).ordinal() < Status.VALID.ordinal()) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_STATUS_CHANGE_NOT_ALLOWED));
@@ -255,11 +262,12 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (fromExtension.getCodeSchemes() != null && !fromExtension.getCodeSchemes().isEmpty()) {
             for (final CodeSchemeDTO codeSchemeDto : fromExtension.getCodeSchemes()) {
                 if (codeSchemeDto.getUri() != null && !codeSchemeDto.getUri().isEmpty()) {
-                    final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
+                    final String codeSchemeUri = codeSchemeDto.getUri();
+                    final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeUri);
                     if (relatedCodeScheme != null) {
                         codeSchemes.add(relatedCodeScheme);
                     } else {
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_NOT_FOUND));
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_NOT_FOUND, codeSchemeUri));
                     }
                 }
             }
@@ -298,13 +306,14 @@ public class ExtensionDaoImpl implements ExtensionDao {
         LinkedHashSet<CodeScheme> codeSchemesAlphabeticallyOrdered = new LinkedHashSet<>();
         if (fromExtension.getCodeSchemes() != null && !fromExtension.getCodeSchemes().isEmpty()) {
             fromExtension.getCodeSchemes().forEach(codeSchemeDto -> {
-                final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeDto.getUri());
+                final String codeSchemeUri = codeSchemeDto.getUri();
+                final CodeScheme relatedCodeScheme = codeSchemeDao.findByUri(codeSchemeUri);
                 if (relatedCodeScheme != null && relatedCodeScheme.getId().equals(codeScheme.getId())) {
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_MAPPED_TO_PARENT));
                 } else if (relatedCodeScheme != null) {
                     codeSchemes.add(relatedCodeScheme);
                 } else {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_NOT_FOUND));
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_CODESCHEME_NOT_FOUND, codeSchemeUri));
                 }
             });
             codeSchemesAlphabeticallyOrdered = orderExtensionsCodeSchemesAlphabetically(codeSchemes);
