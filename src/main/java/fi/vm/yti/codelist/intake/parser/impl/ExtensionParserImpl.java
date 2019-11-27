@@ -205,10 +205,10 @@ public class ExtensionParserImpl extends AbstractBaseParser implements Extension
                 }
                 extension.setPrefLabel(parseLocalizedValueFromExcelRow(prefLabelHeaders, row, formatter));
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
-                    extension.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), getRowIdentifier(row)));
+                    parseDateFromExcel(formatter, headerMap, row, getRowIdentifier(row), null, extension, null, CONTENT_HEADER_STARTDATE, ERR_MSG_USER_ERRONEOUS_START_DATE);
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
-                    extension.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), getRowIdentifier(row)));
+                    parseDateFromExcel(formatter, headerMap, row, getRowIdentifier(row), null, extension, null, CONTENT_HEADER_ENDDATE, ERR_MSG_USER_ERRONEOUS_END_DATE);
                 }
                 validateStartDateIsBeforeEndDate(extension);
                 final String propertyTypeLocalName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_PROPERTYTYPE)));

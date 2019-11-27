@@ -1,6 +1,7 @@
 package fi.vm.yti.codelist.intake.parser.impl;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -17,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +30,12 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import fi.vm.yti.codelist.common.dto.AbstractHistoricalCodeDTO;
+import fi.vm.yti.codelist.common.dto.AbstractHistoricalIdentifyableCodeWithStatusDTO;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.dto.OrganizationDTO;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.exception.CodeParsingException;
@@ -38,6 +43,7 @@ import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValuePrefLabelException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.model.AbstractHistoricalCode;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
@@ -456,6 +462,70 @@ public abstract class AbstractBaseParser {
             }
         }
         return false;
+    }
+
+    /**
+     * Due to the realities of multiple different class hiearchies in the DTOs there are 3 differing targets of setting the dates in this method which represent an
+     * either/or type of situation, only one target is used at any one time. If targetDto is empty, set the dates to alternateTargetDto, or if that too is empty, set the
+     * dates to MemberDTO (TargetDto used with code and codescheme, alternateTargetDto is used with extension, and MemberDTO is used directly in case of Members).
+     */
+    protected void parseDateFromExcel(final DataFormatter formatter,
+                                      final Map<String, Integer> headerMap,
+                                      final Row row,
+                                      final String rowIdentifier,
+                                      final AbstractHistoricalCodeDTO targetDto,
+                                      final AbstractHistoricalIdentifyableCodeWithStatusDTO alternateTargetDto,
+                                      final MemberDTO memberDTO,
+                                      final String theContentHeader,
+                                      final String theErrorMessage) {
+        Cell cell = row.getCell(headerMap.get(theContentHeader));
+        CellType cellType = cell.getCellType();
+        if (cellType.compareTo(CellType.STRING) == 0) {
+            if (theContentHeader != null && theContentHeader.equals(CONTENT_HEADER_STARTDATE)) {
+                if (targetDto != null) {
+                    targetDto.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(theContentHeader))), rowIdentifier));
+                } else if (alternateTargetDto != null) {
+                    alternateTargetDto.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(theContentHeader))), rowIdentifier));
+                } else {
+                    memberDTO.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(theContentHeader))), rowIdentifier));
+                }
+            } else if (theContentHeader != null && theContentHeader.equals(CONTENT_HEADER_ENDDATE)) {
+                if (targetDto != null) {
+                    targetDto.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(theContentHeader))), rowIdentifier));
+                } else if (alternateTargetDto != null) {
+                    alternateTargetDto.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(theContentHeader))), rowIdentifier));
+                } else {
+                    memberDTO.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(theContentHeader))), rowIdentifier));
+                }
+            }
+        } else if (cellType.compareTo(CellType.NUMERIC) == 0) {
+            try {
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    if (theContentHeader != null && theContentHeader.equals(CONTENT_HEADER_STARTDATE)) {
+                        if (targetDto != null) {
+                            targetDto.setStartDate(cell.getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                        } else if (alternateTargetDto != null) {
+                            alternateTargetDto.setStartDate(cell.getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                        } else {
+                            memberDTO.setStartDate(cell.getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                        }
+                    } else if (theContentHeader != null && theContentHeader.equals(CONTENT_HEADER_ENDDATE)) {
+                        if (targetDto != null) {
+                            targetDto.setEndDate(cell.getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                        } else if (alternateTargetDto != null) {
+                            alternateTargetDto.setEndDate(cell.getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                        } else {
+                            memberDTO.setEndDate(cell.getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                        }
+
+                    }
+                }
+            } catch (Exception e) {
+                LOG.error(String.format("Parsing " + theContentHeader + " failed from non-string Cell with contents: %s", cell.getDateCellValue().toString()));
+                throw new CodeParsingException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                    theErrorMessage, rowIdentifier));
+            }
+        }
     }
 
     protected void validateRequiredDataOnRow(final Row row,

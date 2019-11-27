@@ -196,10 +196,10 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                     }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
-                    code.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), rowIdentifier));
+                    parseDateFromExcel(formatter, headerMap, row, rowIdentifier, code, null, null, CONTENT_HEADER_STARTDATE, ERR_MSG_USER_ERRONEOUS_START_DATE);
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
-                    code.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), rowIdentifier));
+                    parseDateFromExcel(formatter, headerMap, row, rowIdentifier, code, null, null, CONTENT_HEADER_ENDDATE, ERR_MSG_USER_ERRONEOUS_END_DATE);
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_SUBCODESCHEME)) {
                     code.setSubCodeScheme(parseSubCodeSchemeFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SUBCODESCHEME)))));
