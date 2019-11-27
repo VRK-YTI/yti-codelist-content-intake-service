@@ -1138,8 +1138,11 @@ public class CodeRegistryResource implements AbstractBaseResource {
     private Response createMissingMembersForExtension(final UUID codeSchemeId,
                                                       final String extensionCodeValue,
                                                       final String pretty) {
-        ExtensionDTO extension = extensionService.findByCodeSchemeIdAndCodeValue(codeSchemeId, extensionCodeValue);
-        Set<MemberDTO> createdMembers = memberService.createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(extension);
+        final ExtensionDTO extension = extensionService.findByCodeSchemeIdAndCodeValue(codeSchemeId, extensionCodeValue);
+        final Set<MemberDTO> createdMembers = memberService.createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(extension);
+        final CodeSchemeDTO codeScheme = codeSchemeService.findById(codeSchemeId);
+        codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
+        indexing.updateCodeScheme(codeScheme);
         indexing.updateExtension(extension);
         indexing.updateMembers(createdMembers);
         final Meta meta = new Meta();
