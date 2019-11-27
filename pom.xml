@@ -44,7 +44,7 @@
         <dependency>
             <groupId>fi.vm.yti.codelist</groupId>
             <artifactId>yti-codelist-common-model</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.2-SNAPSHOT</version>
         </dependency>
 
         <!-- YTI Spring Security -->
