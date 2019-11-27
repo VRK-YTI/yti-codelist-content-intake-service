@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
@@ -28,6 +29,7 @@ import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
+import fi.vm.yti.codelist.intake.service.CodeSchemeService;
 import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExtensionService;
 import fi.vm.yti.codelist.intake.service.MemberService;
@@ -51,16 +53,19 @@ public class MemberResource implements AbstractBaseResource {
     private final Indexing indexing;
     private final MemberService memberService;
     private final ExtensionService extensionService;
+    private final CodeSchemeService codeSchemeService;
     private final CodeService codeService;
 
     @Inject
     public MemberResource(final Indexing indexing,
                           final MemberService memberService,
                           final ExtensionService extensionService,
+                          final CodeSchemeService codeSchemeService,
                           final CodeService codeService) {
         this.indexing = indexing;
         this.memberService = memberService;
         this.extensionService = extensionService;
+        this.codeSchemeService = codeSchemeService;
         this.codeService = codeService;
     }
 
@@ -92,6 +97,9 @@ public class MemberResource implements AbstractBaseResource {
         if (existingMember != null) {
             final Set<MemberDTO> affectedMembers = new HashSet<>();
             memberService.deleteMember(existingMember.getId(), affectedMembers);
+            final CodeSchemeDTO updatedCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(existingMember.getExtension().getParentCodeScheme().getCodeRegistry().getCodeValue(), existingMember.getExtension().getParentCodeScheme().getCodeValue());
+            codeSchemeService.populateAllVersionsToCodeSchemeDTO(updatedCodeScheme);
+            indexing.updateCodeScheme(updatedCodeScheme);
             indexing.deleteMember(existingMember);
             indexing.updateMembers(affectedMembers);
         } else {

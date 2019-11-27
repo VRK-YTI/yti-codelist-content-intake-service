@@ -708,6 +708,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 final UUID extensionId = existingExtension.getId();
                 final Set<MemberDTO> members = memberService.findByExtensionId(extensionId);
                 final ExtensionDTO extension = extensionService.deleteExtension(extensionId);
+                final CodeSchemeDTO updatedCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
                 indexing.deleteMembers(members);
                 indexing.deleteExtension(extension);
                 ExtensionDTO extensionToBeRemoved = null;
@@ -719,9 +720,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 if (extensionToBeRemoved != null) {
                     codeScheme.getExtensions().remove(extensionToBeRemoved);
                 }
-                codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
-                indexing.updateCodeScheme(codeScheme);
-                indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
+                codeSchemeService.populateAllVersionsToCodeSchemeDTO(updatedCodeScheme);
+                indexing.updateCodeScheme(updatedCodeScheme);
+                indexing.updateCodes(codeService.findByCodeSchemeId(updatedCodeScheme.getId()));
             } else {
                 return Response.status(404).build();
             }
@@ -751,8 +752,12 @@ public class CodeRegistryResource implements AbstractBaseResource {
         if (existingMember != null) {
             final Set<MemberDTO> affectedMembers = new HashSet<>();
             final MemberDTO memberToBeDeleted = memberService.deleteMember(existingMember.getId(), affectedMembers);
+            final CodeSchemeDTO updatedCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
             indexing.updateMembers(affectedMembers);
             indexing.updateCode(codeService.findById(existingMember.getCode().getId()));
+            codeSchemeService.populateAllVersionsToCodeSchemeDTO(updatedCodeScheme);
+            indexing.updateCodeScheme(updatedCodeScheme);
+            indexing.updateCodes(codeService.findByCodeSchemeId(updatedCodeScheme.getId()));
             indexing.deleteMember(memberToBeDeleted);
         } else {
             return Response.status(404).build();
@@ -853,6 +858,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
             if (codeToBeDeleted != null) {
                 final Set<CodeDTO> affectedCodes = new HashSet<>();
                 final CodeDTO code = codeService.deleteCode(codeRegistryCodeValue, codeSchemeCodeValue, urlDecodeCodeValue(codeCodeValue), affectedCodes);
+                final CodeSchemeDTO updatedCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
                 if (!affectedCodes.isEmpty()) {
                     indexing.updateCodes(affectedCodes);
                 }
@@ -861,9 +867,9 @@ public class CodeRegistryResource implements AbstractBaseResource {
                     indexing.deleteMembers(members);
                 }
                 indexing.deleteCode(code);
-                codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
-                indexing.updateCodeScheme(codeScheme);
-                final Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(codeScheme.getId());
+                codeSchemeService.populateAllVersionsToCodeSchemeDTO(updatedCodeScheme);
+                indexing.updateCodeScheme(updatedCodeScheme);
+                final Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(updatedCodeScheme.getId());
                 indexing.updateExtensions(extensions);
                 final Meta meta = new Meta();
                 meta.setCode(200);
