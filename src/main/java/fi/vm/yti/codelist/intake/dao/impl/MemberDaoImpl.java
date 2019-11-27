@@ -774,6 +774,10 @@ public class MemberDaoImpl implements MemberDao {
             });
         });
 
+        if (!createdMembers.isEmpty()) {
+            codeSchemeDao.updateContentModified(extension.getParentCodeScheme().getId());
+        }
+
         return createdMembers;
     }
 
