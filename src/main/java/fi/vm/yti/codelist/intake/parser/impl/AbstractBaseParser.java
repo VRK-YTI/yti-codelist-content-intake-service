@@ -479,6 +479,9 @@ public abstract class AbstractBaseParser {
                                       final String theContentHeader,
                                       final String theErrorMessage) {
         Cell cell = row.getCell(headerMap.get(theContentHeader));
+        if (cell == null) {
+            return;
+        }
         CellType cellType = cell.getCellType();
         if (cellType.compareTo(CellType.STRING) == 0) {
             if (theContentHeader != null && theContentHeader.equals(CONTENT_HEADER_STARTDATE)) {
