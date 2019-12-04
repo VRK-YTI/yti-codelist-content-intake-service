@@ -349,6 +349,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
     private CodeScheme createCodeScheme(final CodeRegistry codeRegistry,
                                         final CodeSchemeDTO fromCodeScheme) {
+        final Date timeStamp = new Date(System.currentTimeMillis());
         final CodeScheme codeScheme = new CodeScheme();
         codeScheme.setCodeRegistry(codeRegistry);
         codeScheme.setInfoDomains(resolveInfoDomainsFromDtos(fromCodeScheme.getInfoDomains()));
@@ -397,12 +398,12 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                 throw new InvalidStatusAtCreationTimeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ErrorConstants.ERR_MSG_STATUS_NOT_VALID, status));
             }
         }
+        codeScheme.setStatusModified(timeStamp);
 
         codeScheme.setStartDate(fromCodeScheme.getStartDate());
         codeScheme.setEndDate(fromCodeScheme.getEndDate());
         codeScheme.setUri(apiUtils.createCodeSchemeUri(codeRegistry, codeScheme));
         codeScheme.setConceptUriInVocabularies(fromCodeScheme.getConceptUriInVocabularies());
-        final Date timeStamp = new Date(System.currentTimeMillis());
         codeScheme.setCreated(timeStamp);
         codeScheme.setModified(timeStamp);
         Set<CodeScheme> variants = new LinkedHashSet<>();

@@ -289,6 +289,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
     private Extension createExtension(final ExtensionDTO fromExtension,
                                       final CodeScheme codeScheme,
                                       final boolean autoCreateMembers) {
+        final Date timeStamp = new Date(System.currentTimeMillis());
         final Extension extension = new Extension();
         if (fromExtension.getId() != null) {
             extension.setId(fromExtension.getId());
@@ -300,6 +301,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         extension.setStartDate(fromExtension.getStartDate());
         extension.setEndDate(fromExtension.getEndDate());
         extension.setStatus(fromExtension.getStatus());
+        extension.setStatusModified(timeStamp);
         final PropertyType propertyType = resolvePropertyType(fromExtension);
         extension.setPropertyType(propertyType);
         final Set<CodeScheme> codeSchemes = new HashSet<>();
@@ -325,7 +327,6 @@ public class ExtensionDaoImpl implements ExtensionDao {
         if (!CODE_EXTENSION.equalsIgnoreCase(propertyType.getContext())) {
             mapPrefLabel(fromExtension, extension);
         }
-        final Date timeStamp = new Date(System.currentTimeMillis());
         extension.setCreated(timeStamp);
         extension.setModified(timeStamp);
 
