@@ -59,7 +59,7 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
         this.uri = uri;
     }
 
-    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
     @CollectionTable(name = "propertytype_preflabel", joinColumns = @JoinColumn(name = "propertytype_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
@@ -99,7 +99,7 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
         setPrefLabel(prefLabel);
     }
 
-    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
     @CollectionTable(name = "propertytype_definition", joinColumns = @JoinColumn(name = "propertytype_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "definition")
@@ -139,7 +139,7 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
         setDefinition(definition);
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "propertytype_valuetype",
         joinColumns = {
             @JoinColumn(name = "propertytype_id", referencedColumnName = "id") },

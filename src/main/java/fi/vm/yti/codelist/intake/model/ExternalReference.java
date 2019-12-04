@@ -44,7 +44,7 @@ public class ExternalReference extends AbstractIdentifyableTimestampedCode imple
         this.global = global;
     }
 
-    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
     @CollectionTable(name = "externalreference_title", joinColumns = @JoinColumn(name = "externalreference_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "title")
@@ -84,7 +84,7 @@ public class ExternalReference extends AbstractIdentifyableTimestampedCode imple
         setTitle(title);
     }
 
-    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
     @CollectionTable(name = "externalreference_description", joinColumns = @JoinColumn(name = "externalreference_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "description")
@@ -152,7 +152,7 @@ public class ExternalReference extends AbstractIdentifyableTimestampedCode imple
         this.codes = codes;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "propertytype_id", nullable = false)
     public PropertyType getPropertyType() {
         return propertyType;

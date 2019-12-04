@@ -28,7 +28,7 @@ public class MemberValue extends AbstractIdentifyableTimestampedCode implements 
         this.value = value;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "valuetype_id", nullable = false)
     public ValueType getValueType() {
         return valueType;
@@ -38,7 +38,7 @@ public class MemberValue extends AbstractIdentifyableTimestampedCode implements 
         this.valueType = valueType;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     public Member getMember() {
         return member;

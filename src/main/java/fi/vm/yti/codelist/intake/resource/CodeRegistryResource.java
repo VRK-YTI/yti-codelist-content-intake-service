@@ -22,8 +22,6 @@ import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.jackson.internal.jackson.jaxrs.cfg.ObjectWriterInjector;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -79,8 +77,6 @@ import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlDecodeString;
 @Path("/v1/coderegistries")
 @Produces("text/plain")
 public class CodeRegistryResource implements AbstractBaseResource {
-
-    private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryResource.class);
 
     private final CodeService codeService;
     private final CodeSchemeService codeSchemeService;

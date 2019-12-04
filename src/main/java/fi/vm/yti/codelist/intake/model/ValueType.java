@@ -56,7 +56,7 @@ public class ValueType extends AbstractIdentifyableCode implements Serializable 
         this.uri = uri;
     }
 
-    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
     @CollectionTable(name = "valuetype_preflabel", joinColumns = @JoinColumn(name = "valuetype_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")

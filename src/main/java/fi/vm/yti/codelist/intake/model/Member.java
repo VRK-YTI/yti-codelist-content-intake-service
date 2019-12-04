@@ -92,7 +92,7 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
         this.relatedMember = relatedMember;
     }
 
-    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
     @CollectionTable(name = "member_preflabel", joinColumns = @JoinColumn(name = "member_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
@@ -168,7 +168,7 @@ public class Member extends AbstractIdentifyableTimestampedCode implements Seria
         }
     }
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     public Set<MemberValue> getMemberValues() {
         return memberValues;
     }

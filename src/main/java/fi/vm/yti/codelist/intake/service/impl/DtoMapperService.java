@@ -1,5 +1,6 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -75,8 +76,8 @@ public class DtoMapperService {
         codeDto.setStatus(code.getStatus());
         codeDto.setHierarchyLevel(code.getHierarchyLevel());
         codeDto.setShortName(code.getShortName());
-        codeDto.setPrefLabel(code.getPrefLabel());
-        codeDto.setDefinition(code.getDefinition());
+        codeDto.setPrefLabel(new HashMap<>(code.getPrefLabel()));
+        codeDto.setDefinition(new HashMap<>(code.getDefinition()));
         if (includeCodeScheme) {
             codeDto.setCodeScheme(mapCodeSchemeDto(code.getCodeScheme(), false, true));
             codeDto.setUrl(apiUtils.createCodeUrl(codeDto));
@@ -99,7 +100,7 @@ public class DtoMapperService {
                 codeDto.setCodeExtensions(mapExtensionDtosWithCodeMembers(codeExtensions, code));
             }
         }
-        codeDto.setDescription(code.getDescription());
+        codeDto.setDescription(new HashMap<>(code.getDescription()));
         codeDto.setOrder(code.getOrder());
         codeDto.setCreated(code.getCreated());
         codeDto.setModified(code.getModified());
@@ -118,7 +119,9 @@ public class DtoMapperService {
                                     final boolean includeCodeScheme) {
         final Set<CodeDTO> codeDtos = new HashSet<>();
         if (codes != null && !codes.isEmpty()) {
-            codes.forEach(code -> codeDtos.add(mapCodeDto(code, deep, includeCodeScheme, true)));
+            codes.forEach(code -> {
+                codeDtos.add(mapCodeDto(code, deep, includeCodeScheme, true));
+            });
         }
         return codeDtos;
     }
@@ -141,15 +144,15 @@ public class DtoMapperService {
         codeSchemeDto.setId(codeScheme.getId());
         codeSchemeDto.setCodeValue(codeScheme.getCodeValue());
         codeSchemeDto.setUri(codeScheme.getUri());
-        codeSchemeDto.setChangeNote(codeScheme.getChangeNote());
+        codeSchemeDto.setChangeNote(new HashMap<>(codeScheme.getChangeNote()));
         codeSchemeDto.setStartDate(codeScheme.getStartDate());
         codeSchemeDto.setEndDate(codeScheme.getEndDate());
         codeSchemeDto.setStatus(codeScheme.getStatus());
         codeSchemeDto.setSource(codeScheme.getSource());
-        codeSchemeDto.setDefinition(codeScheme.getDefinition());
-        codeSchemeDto.setPrefLabel(codeScheme.getPrefLabel());
-        codeSchemeDto.setFeedbackChannel(codeScheme.getFeedbackChannel());
-        codeSchemeDto.setDescription(codeScheme.getDescription());
+        codeSchemeDto.setDefinition(new HashMap<>(codeScheme.getDefinition()));
+        codeSchemeDto.setPrefLabel(new HashMap<>(codeScheme.getPrefLabel()));
+        codeSchemeDto.setFeedbackChannel(new HashMap<>(codeScheme.getFeedbackChannel()));
+        codeSchemeDto.setDescription(new HashMap<>(codeScheme.getDescription()));
         codeSchemeDto.setCodeRegistry(mapCodeRegistryDto(codeScheme.getCodeRegistry(), false));
         codeSchemeDto.setVersion(codeScheme.getVersion());
         codeSchemeDto.setGovernancePolicy(codeScheme.getGovernancePolicy());
@@ -267,8 +270,8 @@ public class DtoMapperService {
         codeRegistryDto.setId(codeRegistry.getId());
         codeRegistryDto.setCodeValue(codeRegistry.getCodeValue());
         codeRegistryDto.setUri(codeRegistry.getUri());
-        codeRegistryDto.setPrefLabel(codeRegistry.getPrefLabel());
-        codeRegistryDto.setDescription(codeRegistry.getDescription());
+        codeRegistryDto.setPrefLabel(new HashMap<>(codeRegistry.getPrefLabel()));
+        codeRegistryDto.setDescription(new HashMap<>(codeRegistry.getDescription()));
         codeRegistryDto.setUrl(apiUtils.createCodeRegistryUrl(codeRegistryDto));
         if (deep) {
             codeRegistryDto.setOrganizations(mapOrganizationDtos(codeRegistry.getOrganizations(), false));
@@ -311,9 +314,9 @@ public class DtoMapperService {
         }
         final ExternalReferenceDTO externalReferenceDto = new ExternalReferenceDTO();
         externalReferenceDto.setId(externalReference.getId());
-        externalReferenceDto.setDescription(externalReference.getDescription());
+        externalReferenceDto.setDescription(new HashMap<>(externalReference.getDescription()));
         externalReferenceDto.setGlobal(externalReference.getGlobal());
-        externalReferenceDto.setTitle(externalReference.getTitle());
+        externalReferenceDto.setTitle(new HashMap<>(externalReference.getTitle()));
         externalReferenceDto.setHref(externalReference.getHref());
         externalReferenceDto.setPropertyType(mapPropertyTypeDto(externalReference.getPropertyType()));
         if (externalReference.getParentCodeScheme() != null) {
@@ -353,9 +356,9 @@ public class DtoMapperService {
         final PropertyTypeDTO propertyTypeDto = new PropertyTypeDTO();
         propertyTypeDto.setId(propertyType.getId());
         propertyTypeDto.setContext(propertyType.getContext());
-        propertyTypeDto.setDefinition(propertyType.getDefinition());
+        propertyTypeDto.setDefinition(new HashMap<>(propertyType.getDefinition()));
         propertyTypeDto.setLocalName(propertyType.getLocalName());
-        propertyTypeDto.setPrefLabel(propertyType.getPrefLabel());
+        propertyTypeDto.setPrefLabel(new HashMap<>(propertyType.getPrefLabel()));
         propertyTypeDto.setUri(propertyType.getUri());
         propertyTypeDto.setUrl(apiUtils.createPropertyTypeUrl(propertyTypeDto));
         propertyTypeDto.setCreated(propertyType.getCreated());
@@ -392,7 +395,7 @@ public class DtoMapperService {
         valueTypeDto.setUri(valueType.getUri());
         valueTypeDto.setLocalName(valueType.getLocalName());
         valueTypeDto.setRegexp(valueType.getRegexp());
-        valueTypeDto.setPrefLabel(valueType.getPrefLabel());
+        valueTypeDto.setPrefLabel(new HashMap<>(valueType.getPrefLabel()));
         valueTypeDto.setRequired(valueType.getRequired());
         valueTypeDto.setUrl(apiUtils.createValueTypeUrl(valueTypeDto));
         return valueTypeDto;
@@ -445,7 +448,7 @@ public class DtoMapperService {
         memberDto.setOrder(member.getOrder());
         memberDto.setSequenceId(member.getSequenceId());
         memberDto.setCode(mapCodeDto(member.getCode(), false, true, false));
-        memberDto.setPrefLabel(member.getPrefLabel());
+        memberDto.setPrefLabel(new HashMap<>(member.getPrefLabel()));
         if (member.getMemberValues() != null && !member.getMemberValues().isEmpty()) {
             memberDto.setMemberValues(mapMemberValueDtos(member.getMemberValues()));
         }
@@ -505,7 +508,7 @@ public class DtoMapperService {
         final ExtensionDTO extensionDto = new ExtensionDTO();
         extensionDto.setId(extension.getId());
         extensionDto.setPropertyType(mapPropertyTypeDto(extension.getPropertyType()));
-        extensionDto.setPrefLabel(extension.getPrefLabel());
+        extensionDto.setPrefLabel(new HashMap<>(extension.getPrefLabel()));
         extensionDto.setStatus(extension.getStatus());
         final String codeValue = extension.getCodeValue();
         extensionDto.setUrl(apiUtils.createExtensionUrl(extension));
@@ -523,7 +526,7 @@ public class DtoMapperService {
         if (deep && extension.getMembers() != null) {
             extensionDto.setMembers(mapMemberDtos(extension.getMembers(), false));
         }
-        if (extension.getParentCodeScheme() == null || extension.getParentCodeScheme().getCodeRegistry() == null){
+        if (extension.getParentCodeScheme() == null || extension.getParentCodeScheme().getCodeRegistry() == null) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_406));
         }
         extensionDto.setUrl(apiUtils.createExtensionUrl(extension.getParentCodeScheme().getCodeRegistry().getCodeValue(), extension.getParentCodeScheme().getCodeValue(), codeValue));
@@ -564,7 +567,7 @@ public class DtoMapperService {
         final ExtensionDTO extensionDto = new ExtensionDTO();
         extensionDto.setId(extension.getId());
         extensionDto.setPropertyType(mapPropertyTypeDto(extension.getPropertyType()));
-        extensionDto.setPrefLabel(extension.getPrefLabel());
+        extensionDto.setPrefLabel(new HashMap<>(extension.getPrefLabel()));
         extensionDto.setStatus(extension.getStatus());
         final String codeValue = extension.getCodeValue();
         extensionDto.setUrl(apiUtils.createExtensionUrl(extension));
@@ -589,8 +592,8 @@ public class DtoMapperService {
         organizationDto.setId(organization.getId());
         organizationDto.setRemoved(organization.getRemoved());
         organizationDto.setUrl(organization.getUrl());
-        organizationDto.setDescription(organization.getDescription());
-        organizationDto.setPrefLabel(organization.getPrefLabel());
+        organizationDto.setDescription(new HashMap<>(organization.getDescription()));
+        organizationDto.setPrefLabel(new HashMap<>(organization.getPrefLabel()));
         if (deep && organization.getCodeRegistries() != null) {
             organizationDto.setCodeRegistries(mapCodeRegistryDtos(organization.getCodeRegistries(), false));
         }
