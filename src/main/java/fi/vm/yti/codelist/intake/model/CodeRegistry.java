@@ -32,7 +32,7 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
     private Set<CodeScheme> codeSchemes;
     private Set<Organization> organizations;
 
-    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
+    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "coderegistry_preflabel", joinColumns = @JoinColumn(name = "coderegistry_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
@@ -72,7 +72,7 @@ public class CodeRegistry extends AbstractCommonCode implements Serializable {
         setPrefLabel(prefLabel);
     }
 
-    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
+    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "coderegistry_description", joinColumns = @JoinColumn(name = "coderegistry_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "description")

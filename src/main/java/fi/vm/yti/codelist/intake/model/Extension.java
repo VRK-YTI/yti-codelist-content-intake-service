@@ -66,7 +66,7 @@ public class Extension extends AbstractHistoricalIdentifyableCodeWithStatus impl
         this.codeValue = codeValue;
     }
 
-    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
+    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "extension_preflabel", joinColumns = @JoinColumn(name = "extension_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
