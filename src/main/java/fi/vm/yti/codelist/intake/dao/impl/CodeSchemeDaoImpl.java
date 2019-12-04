@@ -45,6 +45,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.*;
 
 @Component
+@Transactional
 public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
     private final EntityChangeLogger entityChangeLogger;

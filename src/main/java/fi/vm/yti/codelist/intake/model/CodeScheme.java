@@ -146,7 +146,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         this.governancePolicy = governancePolicy;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coderegistry_id", nullable = false, updatable = false)
     public CodeRegistry getCodeRegistry() {
         return codeRegistry;
@@ -323,7 +323,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         setChangeNote(this.changeNote);
     }
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinTable(name = "codescheme_externalreference",
         joinColumns = {
             @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
@@ -346,7 +346,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         this.codes = codes;
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "service_codescheme_code",
         joinColumns = {
             @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
@@ -360,7 +360,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         this.infoDomains = infoDomains;
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "languagecode_codescheme_code",
         joinColumns = {
             @JoinColumn(name = "codescheme_id", referencedColumnName = "id", nullable = false, updatable = false) },
@@ -419,7 +419,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         this.lastCodeschemeId = lastCodeschemeId;
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "codescheme_variant",
         joinColumns = {
             @JoinColumn(name = "codescheme_id", referencedColumnName = "id") },
@@ -433,7 +433,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
         this.variants = variants;
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "codescheme_variant",
         joinColumns = {
             @JoinColumn(name = "variant_codescheme_id", referencedColumnName = "id") },
@@ -509,7 +509,7 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     public void setFeedbackChannel(final String language,
-                             final String value) {
+                                   final String value) {
         if (this.feedbackChannel == null) {
             this.feedbackChannel = new HashMap<>();
         }

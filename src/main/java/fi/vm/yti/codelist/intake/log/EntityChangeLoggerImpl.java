@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ import fi.vm.yti.codelist.intake.model.ValueType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 
 @Service
+@Transactional
 public class EntityChangeLoggerImpl implements EntityChangeLogger {
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityChangeLoggerImpl.class);
@@ -48,6 +50,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         this.entityPayloadLogger = entityPayloadLogger;
     }
 
+    @Transactional
     public void logCodeRegistryChange(final CodeRegistry codeRegistry) {
         entityPayloadLogger.logCodeRegistry(codeRegistry);
         final EditedEntity editedEntity = new EditedEntity(createCommit());
@@ -55,6 +58,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         editedEntityRepository.save(editedEntity);
     }
 
+    @Transactional
     public void logCodeSchemeChange(final CodeScheme codeScheme) {
         entityPayloadLogger.logCodeScheme(codeScheme);
         final EditedEntity editedEntity = new EditedEntity(createCommit());
@@ -62,6 +66,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         editedEntityRepository.save(editedEntity);
     }
 
+    @Transactional
     public void logCodesChange(final Set<Code> codes) {
         final Commit commit = createCommit();
         codes.forEach(code -> {
@@ -72,6 +77,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         });
     }
 
+    @Transactional
     public void logCodeChange(final Code code) {
         entityPayloadLogger.logCode(code);
         final EditedEntity editedEntity = new EditedEntity(createCommit());
@@ -79,6 +85,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         editedEntityRepository.save(editedEntity);
     }
 
+    @Transactional
     public void logExternalReferenceChange(final ExternalReference externalReference) {
         entityPayloadLogger.logExternalReference(externalReference);
         final EditedEntity editedEntity = new EditedEntity(createCommit());
@@ -86,6 +93,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         editedEntityRepository.save(editedEntity);
     }
 
+    @Transactional
     public void logPropertyTypeChange(final PropertyType propertyType) {
         entityPayloadLogger.logPropertyType(propertyType);
         final EditedEntity editedEntity = new EditedEntity(createCommit());
@@ -93,6 +101,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         editedEntityRepository.save(editedEntity);
     }
 
+    @Transactional
     public void logExtensionChange(final Extension extension) {
         entityPayloadLogger.logExtension(extension);
         final EditedEntity editedEntity = new EditedEntity(createCommit());
@@ -100,6 +109,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         editedEntityRepository.save(editedEntity);
     }
 
+    @Transactional
     public void logMemberChange(final Member member) {
         entityPayloadLogger.logMember(member);
         final EditedEntity editedEntity = new EditedEntity(createCommit());
@@ -107,6 +117,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         editedEntityRepository.save(editedEntity);
     }
 
+    @Transactional
     public void logMemberChanges(final Set<Member> members) {
         final Set<EditedEntity> editedEntities = new HashSet<>();
         final Commit commit = createCommit();
@@ -119,6 +130,7 @@ public class EntityChangeLoggerImpl implements EntityChangeLogger {
         editedEntityRepository.saveAll(editedEntities);
     }
 
+    @Transactional
     public void logValueTypeChange(final ValueType valueType) {
         entityPayloadLogger.logValueType(valueType);
         final EditedEntity editedEntity = new EditedEntity(createCommit());

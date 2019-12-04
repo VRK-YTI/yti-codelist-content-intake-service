@@ -152,7 +152,7 @@ public class ExternalReference extends AbstractIdentifyableTimestampedCode imple
         this.codes = codes;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "propertytype_id", nullable = false)
     public PropertyType getPropertyType() {
         return propertyType;

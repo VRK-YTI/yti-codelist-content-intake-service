@@ -21,6 +21,7 @@ import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.model.ValueType;
 
 @Component
+@Transactional
 public class PropertyTypeDaoImpl implements PropertyTypeDao {
 
     private final EntityChangeLogger entityChangeLogger;

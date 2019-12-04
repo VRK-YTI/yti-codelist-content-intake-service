@@ -49,6 +49,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlEncodeCodeValue;
 
 @Component
+@Transactional
 public class MemberDaoImpl implements MemberDao {
 
     private static final String PREFIX_FOR_EXTENSION_SEQUENCE_NAME = "seq_for_ext_";

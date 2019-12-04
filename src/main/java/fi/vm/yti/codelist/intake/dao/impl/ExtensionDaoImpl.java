@@ -46,6 +46,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.EXTENSION;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
+@Transactional
 public class ExtensionDaoImpl implements ExtensionDao {
 
     private final AuthorizationManager authorizationManager;

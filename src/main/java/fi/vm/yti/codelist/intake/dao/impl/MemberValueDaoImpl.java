@@ -25,6 +25,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.util.ValidationUtils.validateStringAgainstRegexp;
 
 @Component
+@Transactional
 public class MemberValueDaoImpl implements MemberValueDao {
 
     private final MemberValueRepository memberValueRepository;

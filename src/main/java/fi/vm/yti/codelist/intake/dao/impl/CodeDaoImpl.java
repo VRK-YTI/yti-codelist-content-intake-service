@@ -48,6 +48,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateCodeCodeValue;
 
 @Component
+@Transactional
 public class CodeDaoImpl implements CodeDao {
 
     private static final int MAX_LEVEL = 10;

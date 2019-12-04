@@ -3,6 +3,8 @@ package fi.vm.yti.codelist.intake.jpa;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,6 +12,7 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 
 @Repository
+@Transactional
 public interface ExternalReferenceRepository extends CrudRepository<ExternalReference, String> {
 
     ExternalReference findByGlobalTrueAndHref(final String href);

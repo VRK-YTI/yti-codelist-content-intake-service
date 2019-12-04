@@ -28,6 +28,7 @@ import fi.vm.yti.codelist.intake.model.PropertyType;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
+@Transactional
 public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
     private static final String CONTEXT_EXTERNALREFERENCE = "ExternalReference";
