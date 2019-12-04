@@ -50,7 +50,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
         this.removed = removed;
     }
 
-    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
     @CollectionTable(name = "organization_preflabel", joinColumns = @JoinColumn(name = "organization_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "preflabel")
@@ -87,7 +87,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
         setPrefLabel(this.prefLabel);
     }
 
-    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
     @CollectionTable(name = "organization_description", joinColumns = @JoinColumn(name = "organization_id", referencedColumnName = "id"))
     @MapKeyColumn(name = "language")
     @Column(name = "description")
