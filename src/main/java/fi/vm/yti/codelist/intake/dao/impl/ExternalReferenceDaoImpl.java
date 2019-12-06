@@ -8,10 +8,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import javax.transaction.Transactional;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
@@ -28,7 +27,6 @@ import fi.vm.yti.codelist.intake.model.PropertyType;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
-@Transactional
 public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
     private static final String CONTEXT_EXTERNALREFERENCE = "ExternalReference";

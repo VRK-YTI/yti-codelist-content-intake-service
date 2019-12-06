@@ -15,12 +15,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
@@ -49,7 +49,6 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlEncodeCodeValue;
 
 @Component
-@Transactional
 public class MemberDaoImpl implements MemberDao {
 
     private static final String PREFIX_FOR_EXTENSION_SEQUENCE_NAME = "seq_for_ext_";

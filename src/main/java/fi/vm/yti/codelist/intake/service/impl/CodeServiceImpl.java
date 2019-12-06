@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.transaction.Transactional;
 
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
@@ -20,6 +19,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.common.dto.CodeDTO;

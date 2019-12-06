@@ -5,11 +5,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.transaction.Transactional;
-
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
@@ -18,8 +17,8 @@ import fi.vm.yti.codelist.intake.data.YtiDataAccess;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
-import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_BAD_LANGUAGECODE;
 import static fi.vm.yti.codelist.intake.configuration.ApplicationConstants.YTI_LANGUAGECODE_CODESCHEME;
+import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_BAD_LANGUAGECODE;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.YTI_REGISTRY;
 
 @Component

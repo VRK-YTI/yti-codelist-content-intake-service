@@ -15,11 +15,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
@@ -46,7 +46,6 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.EXTENSION;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
-@Transactional
 public class ExtensionDaoImpl implements ExtensionDao {
 
     private final AuthorizationManager authorizationManager;
@@ -120,7 +119,6 @@ public class ExtensionDaoImpl implements ExtensionDao {
     public Set<Extension> findAll(final PageRequest pageRequest) {
         return new HashSet<>(extensionRepository.findAll(pageRequest).getContent());
     }
-
 
     public Extension findById(final UUID id) {
         return extensionRepository.findById(id);

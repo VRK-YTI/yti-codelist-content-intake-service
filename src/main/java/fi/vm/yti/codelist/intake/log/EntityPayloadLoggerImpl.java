@@ -4,11 +4,11 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -19,7 +19,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import brave.Span;
 import brave.Tracer;
-import fi.vm.yti.codelist.common.dto.ExternalReferenceDTO;
 import fi.vm.yti.codelist.common.dto.Views;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;

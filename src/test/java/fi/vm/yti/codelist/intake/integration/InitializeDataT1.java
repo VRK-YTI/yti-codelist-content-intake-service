@@ -16,8 +16,8 @@ import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {ContentIntakeServiceApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles({"automatedtest"})
+@SpringBootTest(classes = { ContentIntakeServiceApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles({ "automatedtest" })
 @TestPropertySource(locations = "classpath:test-port.properties")
 public class InitializeDataT1 extends AbstractIntegrationTestBase {
 

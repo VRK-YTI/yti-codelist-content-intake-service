@@ -6,13 +6,13 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.transaction.Transactional;
 
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.constants.ApiConstants;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
@@ -69,8 +69,8 @@ public class ExternalReferenceServiceImpl implements ExternalReferenceService {
 
     @Transactional
     public void parseAndPersistExternalReferencesFromExcelWorkbook(final Workbook workbook,
-                                                                                        final String sheetName,
-                                                                                        final CodeScheme codeScheme) {
+                                                                   final String sheetName,
+                                                                   final CodeScheme codeScheme) {
         if (codeScheme != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));

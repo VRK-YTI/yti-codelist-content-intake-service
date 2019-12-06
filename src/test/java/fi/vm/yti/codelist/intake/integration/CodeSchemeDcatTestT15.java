@@ -1,7 +1,6 @@
 package fi.vm.yti.codelist.intake.integration;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.intake.ContentIntakeServiceApplication;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
@@ -21,8 +21,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = { ContentIntakeServiceApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles({"automatedtest"})
+@SpringBootTest(classes = { ContentIntakeServiceApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles({ "automatedtest" })
 @TestPropertySource(locations = "classpath:test-port.properties")
 public class CodeSchemeDcatTestT15 extends AbstractIntegrationTestBase {
 

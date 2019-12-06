@@ -13,10 +13,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
-import javax.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;

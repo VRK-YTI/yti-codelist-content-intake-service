@@ -8,8 +8,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.transaction.Transactional;
-
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +15,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
@@ -48,7 +47,6 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateCodeCodeValue;
 
 @Component
-@Transactional
 public class CodeDaoImpl implements CodeDao {
 
     private static final int MAX_LEVEL = 10;

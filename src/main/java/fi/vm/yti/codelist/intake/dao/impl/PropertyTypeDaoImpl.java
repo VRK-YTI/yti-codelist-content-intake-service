@@ -7,9 +7,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.transaction.Transactional;
-
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
@@ -21,7 +20,6 @@ import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.model.ValueType;
 
 @Component
-@Transactional
 public class PropertyTypeDaoImpl implements PropertyTypeDao {
 
     private final EntityChangeLogger entityChangeLogger;

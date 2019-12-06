@@ -4,11 +4,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import brave.Span;
 import brave.Tracer;
@@ -27,7 +27,6 @@ import fi.vm.yti.codelist.intake.model.ValueType;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 
 @Service
-@Transactional
 public class EntityChangeLoggerImpl implements EntityChangeLogger {
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityChangeLoggerImpl.class);

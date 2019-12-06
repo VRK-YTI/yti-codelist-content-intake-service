@@ -6,10 +6,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.MemberValueDTO;
@@ -25,7 +25,6 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.util.ValidationUtils.validateStringAgainstRegexp;
 
 @Component
-@Transactional
 public class MemberValueDaoImpl implements MemberValueDao {
 
     private final MemberValueRepository memberValueRepository;

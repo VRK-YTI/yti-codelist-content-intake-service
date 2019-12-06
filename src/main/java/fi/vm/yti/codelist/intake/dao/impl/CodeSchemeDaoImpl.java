@@ -9,10 +9,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
@@ -42,10 +42,10 @@ import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Organization;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
-import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.*;
+import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.JUPO_REGISTRY;
+import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateCodeValue;
 
 @Component
-@Transactional
 public class CodeSchemeDaoImpl implements CodeSchemeDao {
 
     private final EntityChangeLogger entityChangeLogger;
