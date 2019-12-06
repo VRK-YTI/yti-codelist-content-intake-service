@@ -43,7 +43,6 @@ import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValuePrefLabelException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
-import fi.vm.yti.codelist.intake.model.AbstractHistoricalCode;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
