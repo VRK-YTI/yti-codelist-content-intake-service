@@ -156,8 +156,14 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Transactional
-    public Set<Member> findByExtensionId(final UUID id) {
-        return memberRepository.findByExtensionId(id);
+    public Set<Member> findByExtensionId(final UUID extensionId) {
+        return memberRepository.findByExtensionId(extensionId);
+    }
+
+    @Transactional
+    public Set<Member> findByExtensionIdAndCodeId(final UUID extensionId,
+                                                  final UUID codeId) {
+        return memberRepository.findByExtensionIdAndCodeId(extensionId, codeId);
     }
 
     @Transactional

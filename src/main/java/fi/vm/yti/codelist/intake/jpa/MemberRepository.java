@@ -33,7 +33,10 @@ public interface MemberRepository extends CrudRepository<Member, String> {
 
     Set<Member> findByRelatedMemberCode(final Code id);
 
-    Set<Member> findByExtensionId(final UUID id);
+    Set<Member> findByExtensionId(final UUID extensionId);
+
+    Set<Member> findByExtensionIdAndCodeId(final UUID extensionId,
+                                           final UUID codeId);
 
     Member findById(final UUID id);
 

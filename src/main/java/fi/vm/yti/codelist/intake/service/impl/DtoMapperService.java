@@ -8,7 +8,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,7 @@ import fi.vm.yti.codelist.common.dto.PropertyTypeDTO;
 import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
+import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.exception.UnauthorizedException;
 import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
@@ -41,13 +44,17 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.CODE_EXTENSION;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_406;
 
 @Component
+@Singleton
 public class DtoMapperService {
 
     private final ApiUtils apiUtils;
+    private final MemberDao memberDao;
 
     @Inject
-    public DtoMapperService(final ApiUtils apiUtils) {
+    public DtoMapperService(final ApiUtils apiUtils,
+                            @Lazy final MemberDao memberDao) {
         this.apiUtils = apiUtils;
+        this.memberDao = memberDao;
     }
 
     @Transactional
@@ -120,9 +127,7 @@ public class DtoMapperService {
                                     final boolean includeCodeScheme) {
         final Set<CodeDTO> codeDtos = new HashSet<>();
         if (codes != null && !codes.isEmpty()) {
-            codes.forEach(code -> {
-                codeDtos.add(mapCodeDto(code, deep, includeCodeScheme, true));
-            });
+            codes.forEach(code -> codeDtos.add(mapCodeDto(code, deep, includeCodeScheme, true)));
         }
         return codeDtos;
     }
@@ -576,10 +581,9 @@ public class DtoMapperService {
         extensionDto.setCodeValue(codeValue);
         extensionDto.setStartDate(extension.getStartDate());
         extensionDto.setEndDate(extension.getEndDate());
-        if (extension.getMembers() != null && code != null) {
-            final Set<Member> membersForCode = extension.getMembers().stream().filter(member -> member.getCode().getId().equals(code.getId())).collect(Collectors.toSet());
-            extensionDto.setMembers(mapMemberDtos(membersForCode, false));
-        }
+        // TODO: Figure out why this is needed (the entity level access via proxy fails to resolve updates inside transaction)
+        final Set<Member> membersForCode = memberDao.findByExtensionIdAndCodeId(extension.getId(), code.getId());
+        extensionDto.setMembers(mapMemberDtos(membersForCode, false));
         extensionDto.setUrl(apiUtils.createExtensionUrl(extension.getParentCodeScheme().getCodeRegistry().getCodeValue(), extension.getParentCodeScheme().getCodeValue(), codeValue));
         extensionDto.setCreated(extension.getCreated());
         extensionDto.setModified(extension.getModified());
