@@ -8,8 +8,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.transaction.Transactional;
-
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +15,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
@@ -425,6 +424,7 @@ public class CodeDaoImpl implements CodeDao {
                             final CodeDTO fromCode,
                             final Set<Code> codes,
                             final MutableInt nextOrder) {
+        final Date timeStamp = new Date(System.currentTimeMillis());
         final Code code = new Code();
         if (fromCode.getId() != null) {
             code.setId(fromCode.getId());
@@ -433,6 +433,7 @@ public class CodeDaoImpl implements CodeDao {
             code.setId(uuid);
         }
         code.setStatus(fromCode.getStatus());
+        code.setStatusModified(timeStamp);
         code.setCodeScheme(codeScheme);
         final String codeValue = fromCode.getCodeValue();
         validateCodeCodeValue(codeValue);
@@ -471,7 +472,6 @@ public class CodeDaoImpl implements CodeDao {
         code.setEndDate(fromCode.getEndDate());
         code.setUri(apiUtils.createCodeUri(codeScheme.getCodeRegistry(), codeScheme, code));
         code.setConceptUriInVocabularies(fromCode.getConceptUriInVocabularies());
-        final Date timeStamp = new Date(System.currentTimeMillis());
         code.setCreated(timeStamp);
         code.setModified(timeStamp);
         return code;

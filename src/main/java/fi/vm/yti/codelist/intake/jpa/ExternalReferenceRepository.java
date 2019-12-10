@@ -5,11 +5,13 @@ import java.util.UUID;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 
 @Repository
+@Transactional
 public interface ExternalReferenceRepository extends CrudRepository<ExternalReference, String> {
 
     ExternalReference findByGlobalTrueAndHref(final String href);

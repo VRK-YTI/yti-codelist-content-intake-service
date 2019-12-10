@@ -235,10 +235,10 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                     }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
-                    member.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), rowIdentifier));
+                    parseDateFromExcel(formatter, headerMap, row, rowIdentifier, null, null, member, CONTENT_HEADER_STARTDATE, ERR_MSG_USER_ERRONEOUS_START_DATE);
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
-                    member.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), rowIdentifier));
+                    parseDateFromExcel(formatter, headerMap, row, rowIdentifier, null, null, member, CONTENT_HEADER_ENDDATE, ERR_MSG_USER_ERRONEOUS_END_DATE);
                 }
                 validateStartDateIsBeforeEndDate(member);
                 members.add(member);

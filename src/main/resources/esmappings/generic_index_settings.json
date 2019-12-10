@@ -1,6 +1,6 @@
 {
   "index": {
-    "max_result_window": 50000,
+    "max_result_window": 10000,
     "mapping.total_fields.limit": 5000,
     "number_of_shards": 1
   },

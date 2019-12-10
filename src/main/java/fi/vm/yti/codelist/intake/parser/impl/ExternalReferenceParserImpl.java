@@ -72,7 +72,7 @@ public class ExternalReferenceParserImpl extends AbstractBaseParser implements E
         final ObjectMapper mapper = createObjectMapper();
         final Set<ExternalReferenceDTO> externalReferences;
         try {
-            externalReferences = mapper.readValue(jsonPayload, new TypeReference<List<ExternalReferenceDTO>>() {
+            externalReferences = mapper.readValue(jsonPayload, new TypeReference<Set<ExternalReferenceDTO>>() {
             });
         } catch (final IOException e) {
             LOG.error("ExternalReferences parsing failed from JSON!", e);

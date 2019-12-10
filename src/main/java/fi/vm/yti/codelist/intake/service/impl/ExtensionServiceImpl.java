@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Singleton;
-import javax.transaction.Transactional;
 
 import org.apache.poi.EmptyFileException;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -18,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;

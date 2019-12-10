@@ -38,6 +38,9 @@ public interface MemberDao {
 
     Set<Member> findByExtensionId(final UUID id);
 
+    Set<Member> findByExtensionIdAndCodeId(final UUID id,
+                                           final UUID codeId);
+
     Member findByExtensionAndSequenceId(final Extension extension,
                                         final Integer sequenceId);
 

@@ -8,6 +8,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -46,15 +47,15 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
     private final AuthorizationManager authorizationManager;
     private final Tracer tracer;
     private final ObjectMapper mapper;
-    private final DtoMapperService baseService;
+    private final DtoMapperService dtoMapperService;
 
     @Inject
     public EntityPayloadLoggerImpl(final AuthorizationManager authorizationManager,
                                    final Tracer tracer,
-                                   final DtoMapperService baseService) {
+                                   final DtoMapperService dtoMapperService) {
         this.authorizationManager = authorizationManager;
         this.tracer = tracer;
-        this.baseService = baseService;
+        this.dtoMapperService = dtoMapperService;
         this.mapper = createMapper();
     }
 
@@ -67,84 +68,95 @@ public class EntityPayloadLoggerImpl implements EntityPayloadLogger {
         return objectMapper;
     }
 
+    @Transactional
     public void logCodeRegistry(final CodeRegistry codeRegistry) {
         beginPayloadLogging(CODEREGISTRY, codeRegistry.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapDeepCodeRegistryDto(codeRegistry)));
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(dtoMapperService.mapDeepCodeRegistryDto(codeRegistry)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for codeRegistry: %s", codeRegistry.getId()), e);
         }
         endPayloadLogging(CODEREGISTRY, codeRegistry.getId());
     }
 
+    @Transactional
     public void logCodeScheme(final CodeScheme codeScheme) {
         beginPayloadLogging(CODESCHEME, codeScheme.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.ExtendedCodeScheme.class).writeValueAsString(baseService.mapCodeSchemeDto(codeScheme)));
+            LOG.debug(mapper.writerWithView(Views.ExtendedCodeScheme.class).writeValueAsString(dtoMapperService.mapDeepCodeSchemeDto(codeScheme)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for codeScheme: %s", codeScheme.getId()), e);
         }
         endPayloadLogging(CODESCHEME, codeScheme.getId());
     }
 
+    @Transactional
     public void logCode(final Code code) {
         beginPayloadLogging(CODE, code.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.ExtendedCode.class).writeValueAsString(baseService.mapCodeDto(code)));
+            LOG.debug(mapper.writerWithView(Views.ExtendedCode.class).writeValueAsString(dtoMapperService.mapDeepCodeDto(code)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for code: %s", code.getId()), e);
         }
         endPayloadLogging(CODE, code.getId());
     }
 
+    @Transactional
     public void logExternalReference(final ExternalReference externalReference) {
         beginPayloadLogging(EXTERNALREFERENCE, externalReference.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.ExtendedExternalReference.class).writeValueAsString(baseService.mapExternalReferenceDto(externalReference)));
+            LOG.debug(mapper.writerWithView(Views.ExtendedExternalReference.class).writeValueAsString(dtoMapperService.mapDeepExternalReferenceDto(externalReference)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for externalReference: %s", externalReference.getId()), e);
+        } catch (final Exception e) {
+            LOG.error("Exception caught when logging externalReference: ", e);
         }
         endPayloadLogging(EXTERNALREFERENCE, externalReference.getId());
     }
 
+    @Transactional
     public void logPropertyType(final PropertyType propertyType) {
         beginPayloadLogging(PROPERTYTYPE, propertyType.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapPropertyTypeDto(propertyType)));
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(dtoMapperService.mapPropertyTypeDto(propertyType)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for propertyType: %s", propertyType.getId()), e);
         }
         endPayloadLogging(PROPERTYTYPE, propertyType.getId());
     }
 
+    @Transactional
     public void logExtension(final Extension extension) {
         beginPayloadLogging(EXTENSION, extension.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapExtensionDto(extension)));
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(dtoMapperService.mapExtensionDto(extension)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for extension: %s", extension.getId()), e);
         }
         endPayloadLogging(EXTENSION, extension.getId());
     }
 
+    @Transactional
     public void logMember(final Member member) {
         beginPayloadLogging(MEMBER, member.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapMemberDto(member)));
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(dtoMapperService.mapMemberDto(member)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for member: %s", member.getId()), e);
         }
         endPayloadLogging(MEMBER, member.getId());
     }
 
+    @Transactional
     public void logMembers(final Set<Member> members) {
         members.forEach(this::logMember);
     }
 
+    @Transactional
     public void logValueType(final ValueType valueType) {
         beginPayloadLogging(VALUETYPE, valueType.getId());
         try {
-            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(baseService.mapValueTypeDto(valueType)));
+            LOG.debug(mapper.writerWithView(Views.Normal.class).writeValueAsString(dtoMapperService.mapValueTypeDto(valueType)));
         } catch (final JsonProcessingException e) {
             LOG.error(String.format("Failed to write log for valueType: %s", valueType.getId()), e);
         }

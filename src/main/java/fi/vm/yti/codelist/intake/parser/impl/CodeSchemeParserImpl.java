@@ -290,10 +290,10 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                     }
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_STARTDATE)) {
-                    codeScheme.setStartDate(parseStartDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STARTDATE))), rowIdentifier));
+                    parseDateFromExcel(formatter, headerMap, row, rowIdentifier, codeScheme, null, null, CONTENT_HEADER_STARTDATE, ERR_MSG_USER_ERRONEOUS_START_DATE);
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
-                    codeScheme.setEndDate(parseEndDateFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_ENDDATE))), rowIdentifier));
+                    parseDateFromExcel(formatter, headerMap, row, rowIdentifier, codeScheme, null, null, CONTENT_HEADER_ENDDATE, ERR_MSG_USER_ERRONEOUS_END_DATE);
                 }
                 if (headerMap.containsKey(CONTENT_HEADER_EXTENSIONSSHEET)) {
                     final String extensionsSheetName = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_EXTENSIONSSHEET)));

@@ -15,12 +15,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
@@ -156,8 +156,14 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Transactional
-    public Set<Member> findByExtensionId(final UUID id) {
-        return memberRepository.findByExtensionId(id);
+    public Set<Member> findByExtensionId(final UUID extensionId) {
+        return memberRepository.findByExtensionId(extensionId);
+    }
+
+    @Transactional
+    public Set<Member> findByExtensionIdAndCodeId(final UUID extensionId,
+                                                  final UUID codeId) {
+        return memberRepository.findByExtensionIdAndCodeId(extensionId, codeId);
     }
 
     @Transactional

@@ -139,7 +139,7 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
         setDefinition(definition);
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "propertytype_valuetype",
         joinColumns = {
             @JoinColumn(name = "propertytype_id", referencedColumnName = "id") },
