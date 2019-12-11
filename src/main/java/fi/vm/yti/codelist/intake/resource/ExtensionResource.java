@@ -30,7 +30,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_EXTENSION;
 
@@ -55,9 +54,7 @@ public class ExtensionResource implements AbstractBaseResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Operation(summary = "Parses and creates or updates Extensions from JSON input.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Extensions added or modified successfully.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ExtensionDTO.class))))
-    })
+    @ApiResponse(responseCode = "200", description = "Extensions added or modified successfully.", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ExtensionDTO.class))))
     public Response addOrUpdateExtensionsFromJson(@Parameter(description = "Extension UUID", required = true, in = ParameterIn.PATH) @PathParam("extensionId") final UUID extensionId,
                                                   @Parameter(description = "Pretty format JSON output.", in = ParameterIn.QUERY) @QueryParam("pretty") final String pretty,
                                                   @RequestBody(description = "JSON payload for Extension data.", required = true) final String jsonPayload) {

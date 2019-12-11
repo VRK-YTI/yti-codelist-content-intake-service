@@ -28,7 +28,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_USER;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_401;
@@ -57,9 +56,7 @@ public class UserResource implements AbstractBaseResource {
     @Path("/user")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Operation(summary = "Returns the user information for user that has done the latest modification for the resource.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Returns success.")
-    })
+    @ApiResponse(responseCode = "200", description = "Returns success.")
     public Response getUser(@Parameter(description = "CodeRegistry UUID", in = ParameterIn.QUERY) @QueryParam("codeRegistryId") final UUID codeRegistryId,
                             @Parameter(description = "CodeScheme UUID", in = ParameterIn.QUERY) @QueryParam("codeSchemeId") final UUID codeSchemeId,
                             @Parameter(description = "Code UUID", in = ParameterIn.QUERY) @QueryParam("codeId") final UUID codeId,

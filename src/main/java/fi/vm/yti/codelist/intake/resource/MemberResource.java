@@ -38,7 +38,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.CODE_EXTENSION;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.FILTER_NAME_MEMBER;
@@ -74,9 +73,7 @@ public class MemberResource implements AbstractBaseResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Operation(summary = "Parses and creates or updates single Member from JSON input.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Returns success.")
-    })
+    @ApiResponse(responseCode = "200", description = "Returns success.")
     public Response addOrUpdateMemberFromJson(@Parameter(description = "Member UUID", required = true, in = ParameterIn.PATH) @PathParam("memberId") final UUID memberId,
                                               @Parameter(description = "Pretty format JSON output.") @QueryParam("pretty") final String pretty,
                                               @RequestBody(description = "JSON payload for Member data.", required = true) final String jsonPayload) {
@@ -88,10 +85,8 @@ public class MemberResource implements AbstractBaseResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Operation(summary = "Deletes a single existing Member.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Member deleted."),
-        @ApiResponse(responseCode = "404", description = "Member not found.")
-    })
+    @ApiResponse(responseCode = "200", description = "Member deleted.")
+    @ApiResponse(responseCode = "404", description = "Member not found.")
     public Response deleteMember(@Parameter(description = "Member UUID", required = true, in = ParameterIn.PATH) @PathParam("memberId") final UUID memberId) {
         final MemberDTO existingMember = memberService.findById(memberId);
         if (existingMember != null) {
