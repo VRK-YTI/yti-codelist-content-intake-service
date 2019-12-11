@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 
-@ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+@ResponseStatus(HttpStatus.UNAUTHORIZED)
 public class UnauthorizedException extends YtiCodeListException {
 
     public UnauthorizedException(final ErrorModel errorModel) {
