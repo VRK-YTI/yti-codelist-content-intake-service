@@ -19,6 +19,10 @@
     "id": {
       "type": "keyword"
     },
+    "uri": {
+      "type": "text",
+      "analyzer": "text_analyzer"
+    },
     "order": {
       "type": "integer"
     },

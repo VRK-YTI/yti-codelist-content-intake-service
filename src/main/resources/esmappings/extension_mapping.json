@@ -26,6 +26,10 @@
         }
       }
     },
+    "uri": {
+      "type": "text",
+      "analyzer": "text_analyzer"
+    },
     "id": {
       "type": "keyword"
     },
