@@ -5,7 +5,10 @@ import javax.ws.rs.Priorities;
 
 import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.message.DeflateEncoder;
+import org.glassfish.jersey.message.GZipEncoder;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.filter.EncodingFilter;
 import org.springframework.stereotype.Component;
 
 import fi.vm.yti.codelist.intake.exception.exceptionmapping.EOFExceptionMapper;
@@ -79,6 +82,11 @@ public class JerseyConfig extends ResourceConfig {
         register(YtiCodeListExceptionMapper.class, Priorities.AUTHENTICATION);
         register(UncaughtExceptionMapper.class, Priorities.AUTHENTICATION);
         register(EOFExceptionMapper.class, Priorities.AUTHENTICATION);
+
+        // Gzip
+        register(EncodingFilter.class);
+        register(GZipEncoder.class);
+        register(DeflateEncoder.class);
 
         // Multipart support
         register(MultiPartFeature.class);
