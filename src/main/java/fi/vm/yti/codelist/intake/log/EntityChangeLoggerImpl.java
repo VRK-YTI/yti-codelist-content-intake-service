@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import brave.Span;
 import brave.Tracer;
+import fi.vm.yti.codelist.intake.jpa.CodeRepository;
 import fi.vm.yti.codelist.intake.jpa.CommitRepository;
 import fi.vm.yti.codelist.intake.jpa.EditedEntityRepository;
 import fi.vm.yti.codelist.intake.model.Code;

@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.apache.poi.ss.usermodel.Workbook;
 
+import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 

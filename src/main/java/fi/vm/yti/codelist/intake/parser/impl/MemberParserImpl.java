@@ -50,6 +50,7 @@ import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ValueType;
 import fi.vm.yti.codelist.intake.parser.MemberParser;
+import fi.vm.yti.codelist.intake.util.ValidationUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.util.ValidationUtils.validateStringAgainstRegexp;
@@ -178,7 +179,9 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
 
     public Set<MemberDTO> parseMembersFromExcelWorkbook(final Extension extension,
                                                         final Workbook workbook,
-                                                        final String sheetName) {
+                                                        final String sheetName,
+                                                        final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension,
+                                                        final String codeSchemeStatus) {
         final Set<ValueType> valueTypes = extension.getPropertyType().getValueTypes();
         final Set<MemberDTO> members = new LinkedHashSet<>();
         final DataFormatter formatter = new DataFormatter();
@@ -195,6 +198,9 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
         boolean firstRow = true;
         checkIfExcelEmpty(rowIterator);
         List<Integer> sequenceIds = new LinkedList<>();
+
+        final boolean membersCanBeDeletedFromThisCodeScheme = ValidationUtils.canDeleteMember(codeSchemeStatus);
+
         while (rowIterator.hasNext()) {
             final Row row = rowIterator.next();
             if (firstRow) {
@@ -240,8 +246,25 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
                 if (headerMap.containsKey(CONTENT_HEADER_ENDDATE)) {
                     parseDateFromExcel(formatter, headerMap, row, rowIdentifier, null, null, member, CONTENT_HEADER_ENDDATE, ERR_MSG_USER_ERRONEOUS_END_DATE);
                 }
-                validateStartDateIsBeforeEndDate(member);
-                members.add(member);
+                if (headerMap.containsKey(CONTENT_HEADER_OPERATION)) {
+                    String possibleOperation = parseOperationFromExcelRow(headerMap, row, formatter);
+                    if (possibleOperation.equalsIgnoreCase(OPERATION_DELETE) && membersCanBeDeletedFromThisCodeScheme) {
+                        LinkedHashSet<MemberDTO> membersToDeleteFromThisExtension = memberDTOsToBeDeletedPerExtension.get(extension.getUri());
+                        if (membersToDeleteFromThisExtension == null) {
+                            membersToDeleteFromThisExtension = new LinkedHashSet<>();
+                        }
+                        if (!membersToDeleteFromThisExtension.contains(member)) {
+                            membersToDeleteFromThisExtension.add(member);
+                        }
+                        memberDTOsToBeDeletedPerExtension.put(extension.getUri(), membersToDeleteFromThisExtension);
+                    } else {
+                        validateStartDateIsBeforeEndDate(member);
+                        members.add(member);
+                    }
+                } else {
+                    validateStartDateIsBeforeEndDate(member);
+                    members.add(member);
+                }
             }
         }
 
@@ -365,9 +388,11 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
 
     public Set<MemberDTO> parseMembersFromExcelInputStream(final Extension extension,
                                                            final InputStream inputStream,
-                                                           final String sheetName) {
+                                                           final String sheetName,
+                                                           final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension,
+                                                           final String codeSchemeStatus) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-            return parseMembersFromExcelWorkbook(extension, workbook, sheetName);
+            return parseMembersFromExcelWorkbook(extension, workbook, sheetName, memberDTOsToBeDeletedPerExtension, codeSchemeStatus);
         } catch (final EmptyFileException | IOException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);

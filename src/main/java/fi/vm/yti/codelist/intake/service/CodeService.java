@@ -8,6 +8,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.data.domain.PageRequest;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.intake.model.Code;
 import fi.vm.yti.codelist.intake.model.CodeScheme;
 
 public interface CodeService {
@@ -24,20 +25,26 @@ public interface CodeService {
 
     Set<CodeDTO> parseAndPersistCodesFromExcelWorkbook(final Workbook workbook,
                                                        final String sheetName,
-                                                       final CodeScheme codeScheme);
+                                                       final CodeScheme codeScheme,
+                                                       final Set<CodeDTO> codeDTOsToBeDeleted,
+                                                       final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions);
 
     Set<CodeDTO> parseAndPersistCodesFromSourceData(final boolean isAuthorized,
                                                     final String codeRegistryCodeValue,
                                                     final String codeSchemeCodeValue,
                                                     final String format,
                                                     final InputStream inputStream,
-                                                    final String jsonPayload);
+                                                    final String jsonPayload,
+                                                    final Set<CodeDTO> codeDTOsToBeDeleted,
+                                                    final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions);
 
     Set<CodeDTO> parseAndPersistCodesFromSourceData(final String codeRegistryCodeValue,
                                                     final String codeSchemeCodeValue,
                                                     final String format,
                                                     final InputStream inputStream,
-                                                    final String jsonPayload);
+                                                    final String jsonPayload,
+                                                    final Set<CodeDTO> codeDTOsToBeDeleted,
+                                                    final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions);
 
     Set<CodeDTO> massChangeCodeStatuses(final String codeRegistryCodeValue,
                                         final String codeSchemeCodeValue,
@@ -58,4 +65,9 @@ public interface CodeService {
     CodeDTO findByCodeRegistryCodeValueAndCodeSchemeCodeValueAndCodeValue(final String codeRegistryCodeValue,
                                                                           final String codeSchemeCodeValue,
                                                                           final String codeCodeValue);
+
+    boolean canThisCodeBeDeleted (final Code codeToBeDeleted,
+                                  final CodeScheme codeScheme,
+                                  final String codeCodeValue,
+                                  final boolean useExceptions);
 }

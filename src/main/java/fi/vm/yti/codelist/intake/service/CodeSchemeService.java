@@ -2,11 +2,13 @@ package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 
 public interface CodeSchemeService {
 
@@ -26,7 +28,10 @@ public interface CodeSchemeService {
                                                                 final String jsonPayload,
                                                                 final boolean userIsCreatingANewVersionOfACodeSchene,
                                                                 final String originalCodeSchemeId,
-                                                                final boolean updatingExistingCodeScheme);
+                                                                final boolean updatingExistingCodeScheme,
+                                                                final Set<CodeDTO> codeDTOsToBeDeleted,
+                                                                final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions,
+                                                                final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension);
 
     Set<CodeSchemeDTO> parseAndPersistCodeSchemesFromSourceData(final String codeRegistryCodeValue,
                                                                 final String format,
@@ -34,7 +39,10 @@ public interface CodeSchemeService {
                                                                 final String jsonPayload,
                                                                 final boolean userIsCreatingANewVersionOfACodeSchene,
                                                                 final String originalCodeSchemeId,
-                                                                final boolean updatingExistingCodeScheme);
+                                                                final boolean updatingExistingCodeScheme,
+                                                                final Set<CodeDTO> codeDTOsToBeDeleted,
+                                                                final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions,
+                                                                final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension);
 
     CodeSchemeDTO parseAndPersistCodeSchemeFromJson(final String codeRegistryCodeValue,
                                                     final String codeSchemeCodeValue,

@@ -202,7 +202,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
         }
         final Extension extension;
         if (existingExtension != null) {
-            extension = updateExtension(existingExtension, fromExtension);
+            extension = updateExtension(existingExtension, fromExtension, codeScheme);
         } else {
             checkForExistingCodeExtensions(codeScheme, fromExtension);
             extension = createExtension(fromExtension, codeScheme, autoCreateMembers);
@@ -242,7 +242,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
     }
 
     private Extension updateExtension(final Extension existingExtension,
-                                      final ExtensionDTO fromExtension) {
+                                      final ExtensionDTO fromExtension,
+                                      final CodeScheme codeScheme) {
         final Date timeStamp = new Date(System.currentTimeMillis());
         if (!Objects.equals(existingExtension.getStatus(), fromExtension.getStatus())) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(existingExtension.getParentCodeScheme().getOrganizations()) &&
@@ -282,6 +283,9 @@ public class ExtensionDaoImpl implements ExtensionDao {
             existingExtension.setEndDate(fromExtension.getEndDate());
         }
         existingExtension.setModified(timeStamp);
+        codeScheme.getExtensions().removeIf(extension -> extension.getId().compareTo(existingExtension.getId())== 0);
+        codeScheme.getExtensions().add(existingExtension);
+        codeSchemeDao.save(codeScheme);
         return existingExtension;
     }
 

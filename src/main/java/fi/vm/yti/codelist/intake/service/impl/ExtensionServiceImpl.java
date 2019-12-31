@@ -3,6 +3,7 @@ package fi.vm.yti.codelist.intake.service.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
@@ -142,7 +144,8 @@ public class ExtensionServiceImpl implements ExtensionService {
                         if (!membersSheetNames.isEmpty()) {
                             membersSheetNames.forEach((extensionDto, membersSheetName) -> extensions.forEach(extension -> {
                                 if (extension.getCodeValue().equalsIgnoreCase(extensionDto.getCodeValue())) {
-                                    memberDao.updateMemberEntitiesFromDtos(extension, memberParser.parseMembersFromExcelWorkbook(extension, workbook, membersSheetName));
+                                    final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension = new HashMap<>();
+                                    memberDao.updateMemberEntitiesFromDtos(extension, memberParser.parseMembersFromExcelWorkbook(extension, workbook, membersSheetName, memberDTOsToBeDeletedPerExtension, codeScheme.getStatus()));
                                 }
                             }));
                         }

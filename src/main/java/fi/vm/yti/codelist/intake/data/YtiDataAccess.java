@@ -3,6 +3,7 @@ package fi.vm.yti.codelist.intake.data;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -217,7 +218,7 @@ public class YtiDataAccess {
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODESCHEMES, identifier, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODESCHEMES + "/" + identifier + ".csv")) {
                     watch.reset().start();
-                    codeSchemes.addAll(codeSchemeService.parseAndPersistCodeSchemesFromSourceData(true, codeRegistry.getCodeValue(), FORMAT_CSV, inputStream, null, false, "", false));
+                    codeSchemes.addAll(codeSchemeService.parseAndPersistCodeSchemesFromSourceData(true, codeRegistry.getCodeValue(), FORMAT_CSV, inputStream, null, false, "", false, new LinkedHashSet<>(), new LinkedHashSet<>(),  null));
                     LOG.info(String.format("CodeScheme data parsed and persisted in: %s", watch));
                 } catch (final IOException e) {
                     LOG.error("Issue with parsing CodeScheme file. ", e);
@@ -246,7 +247,7 @@ public class YtiDataAccess {
                 LOG.info(String.format("Loading Codes from CodeScheme: %s", identifier));
                 final UpdateStatus updateStatus = updateManager.createStatus(DATA_CODES, identifier, SOURCE_INTERNAL, identifier, UpdateManager.UPDATE_RUNNING);
                 try (final InputStream inputStream = FileUtils.loadFileFromClassPath("/" + DATA_CODES + "/" + identifier + ".csv")) {
-                    final Set<CodeDTO> codes = codeService.parseAndPersistCodesFromSourceData(true, codeScheme.getCodeRegistry().getCodeValue(), codeScheme.getCodeValue(), FORMAT_CSV, inputStream, null);
+                    final Set<CodeDTO> codes = codeService.parseAndPersistCodesFromSourceData(true, codeScheme.getCodeRegistry().getCodeValue(), codeScheme.getCodeValue(), FORMAT_CSV, inputStream, null,null, null);
                     LOG.info(String.format("Code data loaded: %d Codes in %s", codes.size(), watch));
                 } catch (final IOException e) {
                     LOG.error("Issue with parsing Code file. ", e);

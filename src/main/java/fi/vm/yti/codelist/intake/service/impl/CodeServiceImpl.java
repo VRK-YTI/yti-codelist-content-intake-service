@@ -121,15 +121,34 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
     @Transactional
     public Set<CodeDTO> parseAndPersistCodesFromExcelWorkbook(final Workbook workbook,
                                                               final String sheetName,
-                                                              final CodeScheme codeScheme) {
-        Set<Code> codes;
+                                                              final CodeScheme codeScheme,
+                                                              final Set<CodeDTO> codeDTOsToBeDeleted,
+                                                              final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions) {
+        Set<Code> codes = null;
         if (codeScheme != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
             final HashMap<String, String> broaderCodeMapping = new HashMap<>();
-            final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelWorkbook(workbook, sheetName, broaderCodeMapping);
-            codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, true);
+            final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelWorkbook(workbook, sheetName, broaderCodeMapping, codeDTOsToBeDeleted, codeDTOsThatCouldNotBeDeletedDueToRestrictions, codeScheme);
+            if (!codeDTOsToBeDeleted.isEmpty()) {
+                Set<Code> codeEntitiesToDelete = new LinkedHashSet<>();
+                codeDTOsToBeDeleted.forEach(codeDTO -> {
+                    Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeDTO.getCodeValue());
+                    codeEntitiesToDelete.add(code);
+                    codeDTO.setId(UUID.fromString(code.getId().toString())); // need this later for indexing purposes
+                    codeDao.delete(codeEntitiesToDelete);
+                });
+            }
+            if (!codeDTOsThatCouldNotBeDeletedDueToRestrictions.isEmpty()) {
+                codeDTOsThatCouldNotBeDeletedDueToRestrictions.forEach( codeDTO -> {
+                    System.out.println("COULD NOT DELETE FOLLOWING CODE TUE TO RESTRICTIONS " +  codeDTO.getCodeValue());
+                });
+            }
+            if (!codeDtos.isEmpty()) {
+                codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, true);
+            }
+
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
         }
@@ -141,8 +160,10 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                                                            final String codeSchemeCodeValue,
                                                            final String format,
                                                            final InputStream inputStream,
-                                                           final String jsonPayload) {
-        return parseAndPersistCodesFromSourceData(false, codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload);
+                                                           final String jsonPayload,
+                                                           final Set<CodeDTO> codeDTOsToBeDeleted,
+                                                           final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions) {
+        return parseAndPersistCodesFromSourceData(false, codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload, codeDTOsToBeDeleted, codeDTOsThatCouldNotBeDeletedDueToRestrictions);
     }
 
     @Transactional
@@ -151,7 +172,9 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                                                            final String codeSchemeCodeValue,
                                                            final String format,
                                                            final InputStream inputStream,
-                                                           final String jsonPayload) {
+                                                           final String jsonPayload,
+                                                           final Set<CodeDTO> codeDTOsToBeDeleted,
+                                                           final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions) {
         final Set<Code> codes;
         final CodeRegistry codeRegistry = codeRegistryDao.findByCodeValue(codeRegistryCodeValue);
         if (codeRegistry != null) {
@@ -175,7 +198,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                         }
                         break;
                     case FORMAT_EXCEL:
-                        final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelInputStream(inputStream, ApiConstants.EXCEL_SHEET_CODES, broaderCodeMapping);
+                        final Set<CodeDTO> codeDtos = codeParser.parseCodesFromExcelInputStream(inputStream, ApiConstants.EXCEL_SHEET_CODES, broaderCodeMapping, codeDTOsToBeDeleted, codeDTOsThatCouldNotBeDeletedDueToRestrictions, codeScheme);
                         if (previousCodeScheme != null && previousCodeScheme.isCumulative()) {
                             if (preventPossibleImplicitCodeDeletionDuringFileImport) {
                                 LinkedHashSet<CodeDTO> missingCodes = checkPossiblyMissingCodesInCaseOfCumulativeCodeScheme(previousCodeScheme, codeDtos);
@@ -183,6 +206,15 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                             }
                         }
                         codes = codeDao.updateCodesFromDtos(codeScheme, codeDtos, broaderCodeMapping, false);
+                        if (codeDTOsToBeDeleted.size() > 0) {
+                            Set<Code> codeEntitiesToDelete = new LinkedHashSet<>();
+                            codeDTOsToBeDeleted.forEach(codeDTO -> {
+                                Code code = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeDTO.getCodeValue());
+                                codeEntitiesToDelete.add(code);
+                                codeDTO.setId(code.getId()); // need this later for indexing purposes
+                                codeDao.delete(codeEntitiesToDelete);
+                            });
+                        }
                         parseExternalReferencesFromCodeDtos(codeScheme, codes, codeDtos);
                         break;
                     case FORMAT_CSV:
@@ -325,62 +357,114 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
     }
 
     @Transactional
+    public boolean canThisCodeBeDeleted(final Code codeToBeDeleted,
+                                        final CodeScheme codeScheme,
+                                        final String codeCodeValue,
+                                        final boolean useExceptions) {
+        boolean result = true;
+
+        if (isServiceClassificationCodeScheme(codeScheme) || isLanguageCodeCodeScheme(codeScheme)) {
+            if (useExceptions) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_CANNOT_BE_DELETED));
+            } else {
+                return false;
+            }
+        }
+
+        try {
+            if (codeScheme.isCumulative()) { // in this case, if the previous version was also cumulative, we can't delete any of the codes which existed previously.
+                LinkedHashSet<CodeScheme> previousVersions = new LinkedHashSet<>();
+                previousVersions = cloningService.getPreviousVersions(codeScheme.getPrevCodeschemeId(), previousVersions);
+                if (previousVersions.iterator().hasNext()) {
+                    CodeScheme previousVersion = previousVersions.iterator().next();
+                    if (previousVersion.isCumulative()) {
+                        previousVersions.forEach(cs -> cs.getCodes().forEach(code -> {
+                            if (code.getCodeValue().equals(codeCodeValue)) {
+                                throw new UndeletableCodeDueToCumulativeCodeSchemeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
+                                    ERR_MSG_USER_CODE_CANNOT_BE_DELETED_BECAUSE_CUMULATIVE_CODELIST));
+                            }
+                        }));
+                    }
+                }
+            }
+        } catch (UndeletableCodeDueToCumulativeCodeSchemeException e) {
+            if (useExceptions) {
+                throw e;
+            } else {
+                return false;
+            }
+
+        }
+
+        if (codeToBeDeleted != null) {
+            if (authorizationManager.canCodeBeDeleted(codeToBeDeleted)) {
+                if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(codeToBeDeleted.getCodeValue())) {
+                    if (useExceptions) {
+                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_CANT_DELETE_DEFAULT_CODE));
+                    } else {
+                        return false;
+                    }
+                }
+            } else {
+                if (useExceptions) {
+                    throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+                } else {
+                    return false;
+                }
+
+            }
+        } else {
+            if (useExceptions) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_NOT_FOUND));
+            } else {
+                return false;
+            }
+
+        }
+
+        final Set<Member> filteredMembers = filterRelatedExtensionMembers(codeToBeDeleted);
+        if (!filteredMembers.isEmpty()) {
+            final StringBuilder identifier = new StringBuilder();
+            for (final Member relatedMember : codeToBeDeleted.getMembers()) {
+                if (identifier.length() == 0) {
+                    identifier.append(relatedMember.getUri());
+                } else {
+                    identifier.append("\n").append(relatedMember.getUri());
+                }
+            }
+            if (useExceptions) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_IN_USE, identifier.toString()));
+            } else {
+                return false; // TODO HOW CAN WE RETURN FROM HERE THE MEMBER IDENFITIER LIST identifier.toString() ? We need yet another input-output-parameter
+            }
+
+        }
+
+        return result;
+    }
+
+    @Transactional
     public CodeDTO deleteCode(final String codeRegistryCodeValue,
                               final String codeSchemeCodeValue,
                               final String codeCodeValue,
                               final Set<CodeDTO> affectedCodes) {
+
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
-        if (isServiceClassificationCodeScheme(codeScheme) || isLanguageCodeCodeScheme(codeScheme)) {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_CANNOT_BE_DELETED));
-        }
-        if (codeScheme.isCumulative()) { // in this case, if the previous version was also cumulative, we can't delete any of the codes which existed previously.
-            LinkedHashSet<CodeScheme> previousVersions = new LinkedHashSet<>();
-            previousVersions = cloningService.getPreviousVersions(codeScheme.getPrevCodeschemeId(), previousVersions);
-            if (previousVersions.iterator().hasNext()) {
-                CodeScheme previousVersion = previousVersions.iterator().next();
-                if (previousVersion.isCumulative()) {
-                    previousVersions.forEach(cs -> cs.getCodes().forEach(code -> {
-                        if (code.getCodeValue().equals(codeCodeValue)) {
-                            throw new UndeletableCodeDueToCumulativeCodeSchemeException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),
-                                ERR_MSG_USER_CODE_CANNOT_BE_DELETED_BECAUSE_CUMULATIVE_CODELIST));
-                        }
-                    }));
-                }
-            }
-        }
         final Code codeToBeDeleted = codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeCodeValue);
-        if (codeToBeDeleted != null) {
-            if (authorizationManager.canCodeBeDeleted(codeToBeDeleted)) {
-                if (codeScheme.getDefaultCode() != null && codeScheme.getDefaultCode().getCodeValue().equalsIgnoreCase(codeToBeDeleted.getCodeValue())) {
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_CANT_DELETE_DEFAULT_CODE));
-                }
-                final Set<Member> filteredMembers = filterRelatedExtensionMembers(codeToBeDeleted);
-                if (!filteredMembers.isEmpty()) {
-                    final StringBuilder identifier = new StringBuilder();
-                    for (final Member relatedMember : codeToBeDeleted.getMembers()) {
-                        if (identifier.length() == 0) {
-                            identifier.append(relatedMember.getUri());
-                        } else {
-                            identifier.append("\n").append(relatedMember.getUri());
-                        }
-                    }
-                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_DELETE_IN_USE, identifier.toString()));
-                }
-                final Set<Member> membersToBeDeleted = filterToBeDeletedMembers(codeScheme, codeToBeDeleted);
-                if (!membersToBeDeleted.isEmpty()) {
-                    memberDao.delete(membersToBeDeleted);
-                }
-                removeBroaderCodeId(codeToBeDeleted.getId(), affectedCodes);
-                final CodeDTO codeToBeDeletedDTO = dtoMapperService.mapCodeDto(codeToBeDeleted, true, true, true);
-                codeToBeDeleted.setMembers(null);
-                codeDao.delete(codeToBeDeleted);
-                return codeToBeDeletedDTO;
-            } else {
-                throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
+        final boolean thisCodeCanBeDeleted = this.canThisCodeBeDeleted(codeToBeDeleted, codeScheme, codeCodeValue, true);
+
+        CodeDTO codeToBeDeletedDTO = null;
+        if (thisCodeCanBeDeleted) {
+            final Set<Member> membersToBeDeleted = filterToBeDeletedMembers(codeScheme, codeToBeDeleted);
+            if (!membersToBeDeleted.isEmpty()) {
+                memberDao.delete(membersToBeDeleted);
             }
-        } else {
-            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODE_NOT_FOUND));
+            removeBroaderCodeId(codeToBeDeleted.getId(), affectedCodes);
+            codeToBeDeletedDTO = dtoMapperService.mapCodeDto(codeToBeDeleted, true, true, true);
+            codeToBeDeleted.setMembers(null);
+            codeDao.delete(codeToBeDeleted);
         }
+        return codeToBeDeletedDTO;
     }
 
     private Set<Member> filterRelatedExtensionMembers(final Code code) {
@@ -418,5 +502,14 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
             return null;
         }
         return dtoMapperService.mapDeepCodeDto(code);
+    }
+
+    @Transactional
+    public boolean codeCanBeDeleted(final String codeSchemeStatus,
+                                    final CodeDTO codeDTO) {
+        boolean result = true;
+
+        return result;
+
     }
 }

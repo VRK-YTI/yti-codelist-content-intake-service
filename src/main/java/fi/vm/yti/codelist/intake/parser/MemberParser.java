@@ -1,6 +1,8 @@
 package fi.vm.yti.codelist.intake.parser;
 
 import java.io.InputStream;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.poi.ss.usermodel.Workbook;
@@ -19,9 +21,13 @@ public interface MemberParser {
 
     Set<MemberDTO> parseMembersFromExcelInputStream(final Extension extension,
                                                     final InputStream inputStream,
-                                                    final String sheetName);
+                                                    final String sheetName,
+                                                    final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension,
+                                                    final String codeSchemeStatus);
 
     Set<MemberDTO> parseMembersFromExcelWorkbook(final Extension extension,
                                                  final Workbook workbook,
-                                                 final String sheetName);
+                                                 final String sheetName,
+                                                 final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension,
+                                                 final String codeSchemeStatus);
 }

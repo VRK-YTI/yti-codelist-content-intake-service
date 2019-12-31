@@ -44,4 +44,25 @@ public interface ValidationUtils {
                 ERR_MSG_USER_CODE_STATUS_TRANSITION_WRONG_END_STATUS, endCodeStatus));
         }
     }
+
+    static boolean statusIsValidOrLater(Status status) {
+        return status.compareTo(Status.VALID) == 0 || status.compareTo(Status.INVALID) == 0 || status.compareTo(Status.SUPERSEDED) == 0 ||
+            status.compareTo(Status.RETIRED) == 0;
+    }
+
+    static boolean canDeleteCode(final String codeSchemeStatus) {
+        if (!statusIsValidOrLater(Status.valueOf(codeSchemeStatus))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    static boolean canDeleteMember(final String codeSchemeStatus) {
+        if (!statusIsValidOrLater(Status.valueOf(codeSchemeStatus))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

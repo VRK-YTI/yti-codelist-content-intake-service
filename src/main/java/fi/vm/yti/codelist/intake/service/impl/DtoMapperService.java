@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -450,7 +451,7 @@ public class DtoMapperService {
     public MemberDTO mapMemberDto(final Member member,
                                   final boolean deep) {
         final MemberDTO memberDto = new MemberDTO();
-        memberDto.setId(member.getId());
+        memberDto.setId(UUID.fromString(member.getId().toString()));
         memberDto.setOrder(member.getOrder());
         memberDto.setSequenceId(member.getSequenceId());
         memberDto.setCode(mapCodeDto(member.getCode(), false, true, false));
@@ -512,7 +513,7 @@ public class DtoMapperService {
                                         final boolean includeParentCodeScheme,
                                         final boolean includeCodeSchemes) {
         final ExtensionDTO extensionDto = new ExtensionDTO();
-        extensionDto.setId(extension.getId());
+        extensionDto.setId(UUID.fromString(extension.getId().toString()));
         extensionDto.setPropertyType(mapPropertyTypeDto(extension.getPropertyType()));
         extensionDto.setPrefLabel(copyStringMap(extension.getPrefLabel()));
         extensionDto.setStatus(extension.getStatus());

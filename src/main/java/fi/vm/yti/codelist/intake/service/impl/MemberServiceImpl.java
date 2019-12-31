@@ -1,6 +1,8 @@
 package fi.vm.yti.codelist.intake.service.impl;
 
 import java.io.InputStream;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -29,6 +31,7 @@ import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
 import fi.vm.yti.codelist.intake.parser.MemberParser;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
+import fi.vm.yti.codelist.intake.service.ExtensionService;
 import fi.vm.yti.codelist.intake.service.MemberService;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -44,6 +47,7 @@ public class MemberServiceImpl implements MemberService {
     private final CodeSchemeDao codeSchemeDao;
     private final DtoMapperService dtoMapperService;
     private final CodeDao codeDao;
+    private final ExtensionService extensionService;
 
     @Inject
     public MemberServiceImpl(final AuthorizationManager authorizationManager,
@@ -52,7 +56,8 @@ public class MemberServiceImpl implements MemberService {
                              final ExtensionDao extensionDao,
                              final CodeSchemeDao codeSchemeDao,
                              final DtoMapperService dtoMapperService,
-                             final CodeDao codeDao) {
+                             final CodeDao codeDao,
+                             final ExtensionService extensionService) {
         this.authorizationManager = authorizationManager;
         this.memberDao = memberDao;
         this.memberParser = memberParser;
@@ -60,6 +65,7 @@ public class MemberServiceImpl implements MemberService {
         this.codeSchemeDao = codeSchemeDao;
         this.dtoMapperService = dtoMapperService;
         this.codeDao = codeDao;
+        this.extensionService = extensionService;
     }
 
     @Transactional
@@ -150,7 +156,8 @@ public class MemberServiceImpl implements MemberService {
                                                                final String format,
                                                                final InputStream inputStream,
                                                                final String jsonPayload,
-                                                               final String sheetName) {
+                                                               final String sheetName,
+                                                               final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension) {
         final CodeScheme codeScheme = codeSchemeDao.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         if (codeScheme != null) {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
@@ -168,12 +175,22 @@ public class MemberServiceImpl implements MemberService {
                         }
                         break;
                     case FORMAT_EXCEL:
-                        final Set<MemberDTO> memberDtos = memberParser.parseMembersFromExcelInputStream(extension, inputStream, sheetName);
+                        final Set<MemberDTO> memberDtos = memberParser.parseMembersFromExcelInputStream(extension, inputStream, sheetName, memberDTOsToBeDeletedPerExtension, codeScheme.getStatus());
                         memberDtos.forEach(memberDto -> {
                             Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDto.getSequenceId());
                             memberDto.setId(correspondingMemberFromDb == null ? UUID.randomUUID() : correspondingMemberFromDb.getId());
                         });
                         members = memberDao.updateMemberEntitiesFromDtos(extension, memberDtos);
+                        LinkedHashSet<MemberDTO> memberDTOsToBeDeleted = memberDTOsToBeDeletedPerExtension.get(extension.getUri());
+                        if (memberDTOsToBeDeleted.size() > 0) {
+                            Set<Member> memberEntitiesToDelete = new LinkedHashSet<>();
+                            memberDTOsToBeDeleted.forEach(memberDTO -> {
+                                Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDTO.getSequenceId());
+                                memberEntitiesToDelete.add(correspondingMemberFromDb);
+                                memberDTO.setId(correspondingMemberFromDb.getId()); // need this later for indexing purposes
+                            });
+                            memberDao.delete(memberEntitiesToDelete);
+                        }
                         break;
                     case FORMAT_CSV:
                         final Set<MemberDTO> memberDtossFromCsv = memberParser.parseMembersFromCsvInputStream(extension, inputStream);
@@ -198,12 +215,42 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public Set<MemberDTO> parseAndPersistMembersFromExcelWorkbook(final Extension extension,
                                                                   final Workbook workbook,
-                                                                  final String sheetName) {
+                                                                  final String sheetName,
+                                                                  final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension,
+                                                                  final CodeScheme codeScheme) {
         if (!authorizationManager.canBeModifiedByUserInOrganization(extension.getParentCodeScheme().getOrganizations())) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
-        final Set<MemberDTO> memberDtos = memberParser.parseMembersFromExcelWorkbook(extension, workbook, sheetName);
-        final Set<Member> members = memberDao.updateMemberEntitiesFromDtos(extension, memberDtos);
+        Set<Member> members = null;
+
+        final Set<MemberDTO> memberDtos = memberParser.parseMembersFromExcelWorkbook(extension, workbook, sheetName, memberDTOsToBeDeletedPerExtension, codeScheme.getStatus());
+
+        if (memberDtos == null || memberDtos.isEmpty()) {
+            return null;
+        }
+
+        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDtos);
+
+
+        LinkedHashSet<MemberDTO> memberDTOsToBeDeleted = memberDTOsToBeDeletedPerExtension.get(extension.getUri());
+        if (memberDTOsToBeDeleted != null && memberDTOsToBeDeleted.size() > 0) {
+            Set<Member> memberEntitiesToDelete = new LinkedHashSet<>();
+
+            memberDTOsToBeDeleted.forEach(memberDTO -> {
+                Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDTO.getSequenceId());
+                memberEntitiesToDelete.add(correspondingMemberFromDb);
+                memberDTO.setId(correspondingMemberFromDb.getId()); // need this later for indexing purposes
+                extension.getMembers().removeIf(member -> member.getId().compareTo(correspondingMemberFromDb.getId()) == 0);
+            });
+
+/*            memberDao.delete(memberEntitiesToDelete);
+            extensionDao.save(extension);
+            codeScheme.getExtensions().removeIf(extension1 -> extension1.getId().compareTo(extension.getId()) == 0 );
+            codeScheme.getExtensions().add(extension);
+            codeSchemeDao.save(codeScheme);*/
+
+        }
+
         return dtoMapperService.mapDeepMemberDtos(members);
     }
 

@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.inject.Inject;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -26,8 +28,10 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,6 +40,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
+import fi.vm.yti.codelist.common.model.Status;
+import fi.vm.yti.codelist.intake.dao.CodeDao;
 import fi.vm.yti.codelist.intake.exception.CsvParsingException;
 import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.JsonParsingException;
@@ -44,7 +50,11 @@ import fi.vm.yti.codelist.intake.exception.MissingHeaderStatusException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueCodeValueException;
 import fi.vm.yti.codelist.intake.exception.MissingRowValueStatusException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
+import fi.vm.yti.codelist.intake.model.Code;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.parser.CodeParser;
+import fi.vm.yti.codelist.intake.service.CodeService;
+import fi.vm.yti.codelist.intake.util.ValidationUtils;
 import static fi.vm.yti.codelist.common.constants.ApiConstants.*;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
@@ -52,6 +62,16 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeParserImpl.class);
+
+    CodeService codeService;
+    CodeDao codeDao;
+
+    @Inject
+    public CodeParserImpl(@Lazy final CodeService codeService,
+                          CodeDao codeDao) {
+        this.codeService = codeService;
+        this.codeDao = codeDao;
+    }
 
     @Override
     public Set<CodeDTO> parseCodesFromCsvInputStream(final InputStream inputStream,
@@ -122,11 +142,15 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
     }
 
     @Override
+    @Transactional
     public Set<CodeDTO> parseCodesFromExcelInputStream(final InputStream inputStream,
                                                        final String sheetName,
-                                                       final Map<String, String> broaderCodeMapping) {
+                                                       final Map<String, String> broaderCodeMapping,
+                                                       final Set codeDTOsToBeDeleted,
+                                                       final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions,
+                                                       final CodeScheme codeScheme) {
         try (final Workbook workbook = WorkbookFactory.create(inputStream)) {
-            return parseCodesFromExcelWorkbook(workbook, sheetName, broaderCodeMapping);
+            return parseCodesFromExcelWorkbook(workbook, sheetName, broaderCodeMapping, codeDTOsToBeDeleted, codeDTOsThatCouldNotBeDeletedDueToRestrictions, codeScheme);
         } catch (final EmptyFileException | IOException e) {
             LOG.error("Error parsing Excel file!", e);
             throw new ExcelParsingException(ERR_MSG_USER_ERROR_PARSING_EXCEL_FILE);
@@ -135,9 +159,13 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
 
     @Override
     @SuppressFBWarnings("UC_USELESS_OBJECT")
+    @Transactional
     public Set<CodeDTO> parseCodesFromExcelWorkbook(final Workbook workbook,
                                                     final String sheetName,
-                                                    final Map<String, String> broaderCodeMapping) {
+                                                    final Map<String, String> broaderCodeMapping,
+                                                    final Set codeDTOsToBeDeleted,
+                                                    final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions,
+                                                    final CodeScheme codeScheme) {
         final Set<CodeDTO> codes = new LinkedHashSet<>();
         final Set<String> codeValues = new HashSet<>();
         final DataFormatter formatter = new DataFormatter();
@@ -155,6 +183,9 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         Map<String, Integer> definitionHeaders = null;
         Map<String, Integer> descriptionHeaders = null;
         checkIfExcelEmpty(rowIterator);
+
+        final boolean codesCanBeDeletedFromThisCodeScheme = ValidationUtils.canDeleteCode(codeScheme.getStatus());
+
         while (rowIterator.hasNext()) {
             final Row row = rowIterator.next();
             final String rowIdentifier = getRowIdentifier(row);
@@ -204,13 +235,35 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 if (headerMap.containsKey(CONTENT_HEADER_SUBCODESCHEME)) {
                     code.setSubCodeScheme(parseSubCodeSchemeFromString(formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_SUBCODESCHEME)))));
                 }
-                validateStartDateIsBeforeEndDate(code);
-                codes.add(code);
+                if (headerMap.containsKey(CONTENT_HEADER_OPERATION)) {
+                    String possibleOperation = parseOperationFromExcelRow(headerMap, row, formatter);
+
+                    if (possibleOperation.equalsIgnoreCase(OPERATION_DELETE)) {
+                        if (thisCodeIsOkToDelete(code, codeScheme)) {
+                            codeDTOsToBeDeleted.add(code);
+                        } else {
+                            codeDTOsThatCouldNotBeDeletedDueToRestrictions.add(code);
+                        }
+                    } else {
+                        validateStartDateIsBeforeEndDate(code);
+                        codes.add(code);
+                    }
+                } else {
+                    validateStartDateIsBeforeEndDate(code);
+                    codes.add(code);
+                }
+
             }
 
         }
         checkOrdersForDuplicateValues(codes);
         return codes;
+    }
+
+    @Transactional
+    public boolean thisCodeIsOkToDelete(CodeDTO codeDTO, CodeScheme codeScheme) {
+        return !ValidationUtils.statusIsValidOrLater(Status.valueOf((codeScheme.getStatus()))) &&
+            codeService.canThisCodeBeDeleted(codeDao.findByCodeSchemeAndCodeValue(codeScheme, codeDTO.getCodeValue()), codeScheme, codeDTO.getCodeValue(), false);
     }
 
     @Override

@@ -561,4 +561,16 @@ public abstract class AbstractBaseParser {
                 ERR_MSG_USER_ROW_MISSING_PREFLABEL_VALUE, getRowIdentifier(row)));
         }
     }
+
+    protected String parseOperationFromExcelRow(final Map<String, Integer> genericHeaders,
+                                                final Row row,
+                                                final DataFormatter formatter) {
+        final String operation;
+        if (genericHeaders.get(CONTENT_HEADER_OPERATION) != null) {
+            operation = formatter.formatCellValue(row.getCell(genericHeaders.get(CONTENT_HEADER_OPERATION)));
+        } else {
+            operation = null;
+        }
+        return operation;
+    }
 }

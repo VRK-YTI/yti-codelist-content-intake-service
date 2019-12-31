@@ -31,6 +31,7 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.CodeSchemeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
+import fi.vm.yti.codelist.common.dto.MemberDTO;
 import fi.vm.yti.codelist.common.model.CodeSchemeListItem;
 import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
@@ -153,8 +154,11 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                                                        final String jsonPayload,
                                                                        final boolean userIsCreatingANewVersionOfACodeSchene,
                                                                        final String originalCodeSchemeId,
-                                                                       final boolean updatingExistingCodeScheme) {
-        return parseAndPersistCodeSchemesFromSourceData(false, codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeSchene, originalCodeSchemeId, updatingExistingCodeScheme);
+                                                                       final boolean updatingExistingCodeScheme,
+                                                                       final Set<CodeDTO> codeDTOsToBeDeleted,
+                                                                       final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions,
+                                                                       final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension) {
+        return parseAndPersistCodeSchemesFromSourceData(false, codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeSchene, originalCodeSchemeId, updatingExistingCodeScheme, codeDTOsToBeDeleted, codeDTOsThatCouldNotBeDeletedDueToRestrictions, memberDTOsToBeDeletedPerExtension);
     }
 
     public boolean canANewVersionOfACodeSchemeBeCreatedFromTheIncomingFileDirectly(final String codeRegistryCodeValue,
@@ -254,7 +258,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                                                        final String jsonPayload,
                                                                        final boolean userIsCreatingANewVersionOfACodeScheme,
                                                                        final String originalCodeSchemeId,
-                                                                       final boolean updatingExistingCodeScheme) {
+                                                                       final boolean updatingExistingCodeScheme,
+                                                                       final Set<CodeDTO> codeDTOsToBeDeleted,
+                                                                       final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions,
+                                                                       final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension) {
         final Set<CodeScheme> codeSchemes;
         Set<CodeSchemeDTO> otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = new LinkedHashSet<>();
         Set<CodeSchemeDTO> resultingCodeSchemeSetForIndexing = new LinkedHashSet<>();
@@ -288,8 +295,9 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                         codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, false);
                         parseExternalReferences(codeSchemes, externalReferencesSheetNames, workbook);
                         parseExternalReferencesFromCodeSchemeDtos(codeSchemes, codeSchemeDtos);
-                        final Map<CodeScheme, Set<CodeDTO>> codeParsingResult = parseCodes(codeSchemes, codeSchemeDtos, codesSheetNames, workbook);
-                        parseExtensions(codeSchemes, extensionsSheetNames, workbook);
+                        final Map<CodeScheme, Set<CodeDTO>> codeParsingResult = parseCodes(codeSchemes, codeSchemeDtos, codesSheetNames, workbook, codeDTOsToBeDeleted, codeDTOsThatCouldNotBeDeletedDueToRestrictions);
+                        parseExtensions(codeSchemes, extensionsSheetNames, workbook, memberDTOsToBeDeletedPerExtension);
+
                         if (userIsCreatingANewVersionOfACodeScheme) {
                             if (previousCodeScheme.isCumulative()) {
                                 if (preventPossibleImplicitCodeDeletionDuringFileImport) {
@@ -438,21 +446,24 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         }
     }
 
-    private Map<CodeScheme, Set<CodeDTO>> parseCodes(final Set<CodeScheme> codeSchemes,
+    @Transactional
+    public Map<CodeScheme, Set<CodeDTO>> parseCodes(final Set<CodeScheme> codeSchemes,
                                                      final Set<CodeSchemeDTO> codeSchemeDtos,
                                                      final Map<CodeSchemeDTO, String> codesSheetNames,
-                                                     final Workbook workbook) {
+                                                     final Workbook workbook,
+                                                     final Set<CodeDTO> codeDTOsToBeDeleted,
+                                                     final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions) {
         Map<CodeScheme, Set<CodeDTO>> returnMap = new HashMap<>();
         if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
             final CodeScheme codeScheme = codeSchemes.iterator().next();
-            returnMap.put(codeScheme, codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeScheme));
+            returnMap.put(codeScheme, codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeScheme, codeDTOsToBeDeleted, codeDTOsThatCouldNotBeDeletedDueToRestrictions));
             resolveAndSetCodeSchemeDefaultCode(codeScheme, codeSchemeDtos.iterator().next());
         } else if (!codesSheetNames.isEmpty()) {
             codesSheetNames.forEach((codeSchemeDto, sheetName) -> {
                 if (workbook.getSheet(sheetName) != null) {
                     for (final CodeScheme codeScheme : codeSchemes) {
                         if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
-                            returnMap.put(codeScheme, codeService.parseAndPersistCodesFromExcelWorkbook(workbook, sheetName, codeScheme));
+                            returnMap.put(codeScheme, codeService.parseAndPersistCodesFromExcelWorkbook(workbook, sheetName, codeScheme, codeDTOsToBeDeleted, codeDTOsThatCouldNotBeDeletedDueToRestrictions));
                             resolveAndSetCodeSchemeDefaultCode(codeScheme, codeSchemeDto);
                         }
                     }
@@ -466,12 +477,13 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
     private void parseExtensions(final Set<CodeScheme> codeSchemes,
                                  final Map<CodeSchemeDTO, String> extensionsSheetNames,
-                                 final Workbook workbook) {
+                                 final Workbook workbook,
+                                 final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension) {
         if (codeSchemes != null && !codeSchemes.isEmpty()) {
             extensionsSheetNames.forEach((codeSchemeDto, sheetName) -> {
                 for (final CodeScheme codeScheme : codeSchemes) {
                     if (codeScheme.getCodeValue().equalsIgnoreCase(codeSchemeDto.getCodeValue())) {
-                        parseExtensions(workbook, sheetName, codeScheme);
+                        parseExtensions(workbook, sheetName, codeScheme, memberDTOsToBeDeletedPerExtension);
                     }
                 }
             });
@@ -481,7 +493,8 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
     @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
     private void parseExtensions(final Workbook workbook,
                                  final String sheetName,
-                                 final CodeScheme codeScheme) {
+                                 final CodeScheme codeScheme,
+                                 final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension) {
         if (workbook.getSheet(sheetName) != null) {
             final Map<ExtensionDTO, String> membersSheetNames = new HashMap<>();
             final Set<ExtensionDTO> extensions = extensionService.parseAndPersistExtensionsFromExcelWorkbook(codeScheme, workbook, sheetName, membersSheetNames, false);
@@ -489,9 +502,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                 membersSheetNames.forEach((extensionDto, memberSheetName) -> {
                     final Extension extension = extensionDao.findById(extensionDto.getId());
                     if (extension != null) {
-                        parseMembers(workbook, memberSheetName, extension);
+                        parseMembers(workbook, memberSheetName, extension, codeScheme, memberDTOsToBeDeletedPerExtension);
                     }
                 });
+
             }
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSIONS_SHEET_NOT_FOUND, sheetName));
@@ -500,9 +514,11 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
 
     private void parseMembers(final Workbook workbook,
                               final String sheetName,
-                              final Extension extension) {
+                              final Extension extension,
+                              final CodeScheme codeScheme,
+                              final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension) {
         if (workbook.getSheet(sheetName) != null) {
-            memberService.parseAndPersistMembersFromExcelWorkbook(extension, workbook, sheetName);
+            memberService.parseAndPersistMembersFromExcelWorkbook(extension, workbook, sheetName, memberDTOsToBeDeletedPerExtension, codeScheme);
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERS_SHEET_NOT_FOUND, sheetName));
         }

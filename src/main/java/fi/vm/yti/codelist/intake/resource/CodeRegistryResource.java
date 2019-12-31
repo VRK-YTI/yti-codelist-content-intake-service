@@ -1,8 +1,11 @@
 package fi.vm.yti.codelist.intake.resource;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -20,10 +23,14 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.poi.EmptyFileException;
 import org.glassfish.jersey.jackson.internal.jackson.jaxrs.cfg.ObjectWriterInjector;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -44,6 +51,7 @@ import fi.vm.yti.codelist.common.model.Status;
 import fi.vm.yti.codelist.common.util.YtiCollectionUtils;
 import fi.vm.yti.codelist.intake.api.MetaResponseWrapper;
 import fi.vm.yti.codelist.intake.api.ResponseWrapper;
+import fi.vm.yti.codelist.intake.exception.ExcelParsingException;
 import fi.vm.yti.codelist.intake.exception.TooManyCodeSchemesException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.indexing.Indexing;
@@ -56,6 +64,7 @@ import fi.vm.yti.codelist.intake.service.CodeService;
 import fi.vm.yti.codelist.intake.service.ExtensionService;
 import fi.vm.yti.codelist.intake.service.ExternalReferenceService;
 import fi.vm.yti.codelist.intake.service.MemberService;
+import fi.vm.yti.codelist.intake.service.impl.CodeSchemeServiceImpl;
 import fi.vm.yti.codelist.intake.util.ValidationUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -76,6 +85,8 @@ import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlDecodeString;
 @Path("/v1/coderegistries")
 @Produces("text/plain")
 public class CodeRegistryResource implements AbstractBaseResource {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CodeRegistryResource.class);
 
     private final CodeService codeService;
     private final CodeSchemeService codeSchemeService;
@@ -746,7 +757,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         if (initialCodeStatus != null && !initialCodeStatus.isEmpty() && endCodeStatus != null && !endCodeStatus.isEmpty()) {
             return massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, parseStatusFromString(initialCodeStatus), parseStatusFromString(endCodeStatus), pretty);
         }
-        return parseAndPersistCodesFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, null, jsonPayload, pretty);
+        return parseAndPersistCodesFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, null, jsonPayload, pretty, null, null);
     }
 
     @POST
@@ -763,7 +774,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                              @Parameter(description = "Pretty format JSON output.") @QueryParam("pretty") final String pretty,
                                              @Parameter(description = "Input-file for CSV or Excel import.", required = true, schema = @Schema(type = "string", format = "binary", description = "Incoming file.")) @FormDataParam("file") final InputStream inputStream) {
 
-        return parseAndPersistCodesFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, null, pretty);
+        return parseAndPersistCodesFromSource(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, null, pretty, new HashSet<CodeDTO>(), new HashSet<CodeDTO>());
     }
 
     @POST
@@ -1003,15 +1014,19 @@ public class CodeRegistryResource implements AbstractBaseResource {
         return Response.ok(responseWrapper).build();
     }
 
-    private Response parseAndPersistCodeSchemesFromSource(final String codeRegistryCodeValue,
-                                                          final String format,
-                                                          final InputStream inputStream,
-                                                          final String jsonPayload,
-                                                          final boolean userIsCreatingANewVersionOfACodeScheme,
-                                                          final String originalCodeSchemeId,
-                                                          final boolean updatingExistingCodeScheme,
-                                                          final String pretty) {
-        final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeId, updatingExistingCodeScheme);
+    @Transactional
+    public Response parseAndPersistCodeSchemesFromSource(final String codeRegistryCodeValue,
+                                                         final String format,
+                                                         final InputStream inputStream,
+                                                         final String jsonPayload,
+                                                         final boolean userIsCreatingANewVersionOfACodeScheme,
+                                                         final String originalCodeSchemeId,
+                                                         final boolean updatingExistingCodeScheme,
+                                                         final String pretty) {
+        final LinkedHashSet codeDTOsToBeDeleted = new LinkedHashSet<CodeDTO>();
+        final LinkedHashSet codeDTOsThatCouldNotBeDeletedDueToRestrictions = new LinkedHashSet<CodeDTO>();
+        Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension = new HashMap<>();
+        final Set<CodeSchemeDTO> codeSchemes = codeSchemeService.parseAndPersistCodeSchemesFromSourceData(codeRegistryCodeValue, format, inputStream, jsonPayload, userIsCreatingANewVersionOfACodeScheme, originalCodeSchemeId, updatingExistingCodeScheme, codeDTOsToBeDeleted, codeDTOsThatCouldNotBeDeletedDueToRestrictions, memberDTOsToBeDeletedPerExtension);
         for (CodeSchemeDTO codeScheme : codeSchemes) {
             if (codeScheme.getLastCodeschemeId() != null) {
                 codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
@@ -1021,6 +1036,11 @@ public class CodeRegistryResource implements AbstractBaseResource {
         indexing.updateCodeRegistry(codeRegistryService.findByCodeValue(codeRegistryCodeValue));
         for (final CodeSchemeDTO codeScheme : codeSchemes) {
             indexing.updateCodes(codeService.findByCodeSchemeId(codeScheme.getId()));
+
+            if (!codeDTOsToBeDeleted.isEmpty()) {
+                indexing.deleteCodes(codeDTOsToBeDeleted);
+            }
+
             indexing.updateExternalReferences(externalReferenceService.findByParentCodeSchemeId(codeScheme.getId()));
             final Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(codeScheme.getId());
             if (extensions != null && !extensions.isEmpty()) {
@@ -1029,6 +1049,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                     indexing.updateMembers(memberService.findByExtensionId(extension.getId()));
                 }
             }
+
             final Set<ExtensionDTO> relatedExtensions = extensionService.findByCodeSchemeId(codeScheme.getId());
             if (relatedExtensions != null && !relatedExtensions.isEmpty()) {
                 indexing.updateExtensions(relatedExtensions);
@@ -1036,6 +1057,24 @@ public class CodeRegistryResource implements AbstractBaseResource {
                     indexing.updateMembers(memberService.findByExtensionId(extension.getId()));
                 }
             }
+
+            final Set<MemberDTO> affectedMembers = new HashSet<>();
+            for (final String extensionUri : memberDTOsToBeDeletedPerExtension.keySet()) {
+
+                //TODO FINISH THIS NICELY
+                try {
+                    LinkedHashSet<MemberDTO> memberDTOs = memberDTOsToBeDeletedPerExtension.get((extensionUri));
+                    memberDTOs.forEach(memberDTO -> {
+                        memberService.deleteMember(memberService.findById(memberDTO.getId()).getId(), affectedMembers);
+                    });
+                } catch (final Exception e) {
+                    LOG.error("Error in Excel file delete operations, transaction rolled back!", e);
+                    throw new ExcelParsingException(ERR_MSG_USER_ERROR_EXCEL_DELETE_OPERATIONS_FAILED);
+                }
+                final Set<MemberDTO> membersToDeleteFromIndex = memberDTOsToBeDeletedPerExtension.get(extensionUri);
+                indexing.deleteMembers(membersToDeleteFromIndex);
+            }
+
         }
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new FilterModifier(createSimpleFilterProvider(FILTER_NAME_CODESCHEME, "codeRegistry,code,extension,valueType,member,memberValue"), pretty));
@@ -1106,10 +1145,17 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                       final String sheetName,
                                                       final String pretty) {
         final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+        final ExtensionDTO extension = extensionService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionCodeValue);
+        final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension = new HashMap<String, LinkedHashSet<MemberDTO>>();
+        memberDTOsToBeDeletedPerExtension.put(extension.getUri(), new LinkedHashSet<MemberDTO>());
+
         if (codeScheme != null) {
-            final Set<MemberDTO> members = memberService.parseAndPersistMembersFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, extensionCodeValue, format, inputStream, jsonPayload, sheetName);
+            final Set<MemberDTO> members = memberService.parseAndPersistMembersFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, extensionCodeValue, format, inputStream, jsonPayload, sheetName, memberDTOsToBeDeletedPerExtension);
             indexing.updateMembers(members);
-            final ExtensionDTO extension = extensionService.findByCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionCodeValue);
+            if (!memberDTOsToBeDeletedPerExtension.get(extension.getUri()).isEmpty()) {
+                indexing.deleteMembers(memberDTOsToBeDeletedPerExtension.get(extension.getUri()));
+            }
+
             if (extension == null) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
             } else {
@@ -1139,7 +1185,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                             final String endCodeStatus,
                                             final String pretty) {
         final Set<CodeDTO> codes = codeService.massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, initialCodeStatus, endCodeStatus, false);
-        return constructCodeResponse(codeRegistryCodeValue, codeSchemeCodeValue, codes, pretty);
+        return constructCodeResponse(codeRegistryCodeValue, codeSchemeCodeValue, codes, null, pretty);
     }
 
     private Response parseAndPersistCodesFromSource(final String codeRegistryCodeValue,
@@ -1147,17 +1193,23 @@ public class CodeRegistryResource implements AbstractBaseResource {
                                                     final String format,
                                                     final InputStream inputStream,
                                                     final String jsonPayload,
-                                                    final String pretty) {
-        final Set<CodeDTO> codes = codeService.parseAndPersistCodesFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload);
-        return constructCodeResponse(codeRegistryCodeValue, codeSchemeCodeValue, codes, pretty);
+                                                    final String pretty,
+                                                    final Set<CodeDTO> codeDTOsToBeDeleted,
+                                                    final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions) {
+        final Set<CodeDTO> codes = codeService.parseAndPersistCodesFromSourceData(codeRegistryCodeValue, codeSchemeCodeValue, format, inputStream, jsonPayload, codeDTOsToBeDeleted, codeDTOsThatCouldNotBeDeletedDueToRestrictions);
+        return constructCodeResponse(codeRegistryCodeValue, codeSchemeCodeValue, codes, codeDTOsToBeDeleted, pretty);
     }
 
     private Response constructCodeResponse(final String codeRegistryCodeValue,
                                            final String codeSchemeCodeValue,
                                            final Set<CodeDTO> codes,
+                                           final Set<CodeDTO> codeDTOsThatWereDeleted,
                                            final String pretty) {
         final CodeSchemeDTO codeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
         indexing.updateCodes(codes);
+        if (codeDTOsThatWereDeleted != null && !codeDTOsThatWereDeleted.isEmpty()) {
+            indexing.deleteCodes(codeDTOsThatWereDeleted);
+        }
         codes.forEach(code -> indexing.updateMembers(memberService.findByCodeId(code.getId())));
         codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
         indexing.updateCodeScheme(codeScheme);

@@ -7,6 +7,7 @@ import java.util.Set;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
 
 public interface CodeParser {
 
@@ -15,11 +16,17 @@ public interface CodeParser {
 
     Set<CodeDTO> parseCodesFromExcelInputStream(final InputStream inputStream,
                                                 final String sheetName,
-                                                final Map<String, String> broaderCodeMapping);
+                                                final Map<String, String> broaderCodeMapping,
+                                                final Set codeDTOsToBeDeleted,
+                                                final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions,
+                                                final CodeScheme codeSchene);
 
     Set<CodeDTO> parseCodesFromExcelWorkbook(final Workbook workbook,
                                              final String sheetName,
-                                             final Map<String, String> broaderCodeMapping);
+                                             final Map<String, String> broaderCodeMapping,
+                                             final Set codeDTOsToBeDeleted,
+                                             final Set<CodeDTO> codeDTOsThatCouldNotBeDeletedDueToRestrictions,
+                                             final CodeScheme codeSchene);
 
     CodeDTO parseCodeFromJsonData(final String jsonPayload);
 

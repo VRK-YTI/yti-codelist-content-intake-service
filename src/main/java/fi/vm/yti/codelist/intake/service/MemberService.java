@@ -1,6 +1,8 @@
 package fi.vm.yti.codelist.intake.service;
 
 import java.io.InputStream;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -10,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
+import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 
 public interface MemberService {
@@ -39,11 +42,14 @@ public interface MemberService {
                                                         final String format,
                                                         final InputStream inputStream,
                                                         final String jsonPayload,
-                                                        final String sheetname);
+                                                        final String sheetname,
+                                                        final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension);
 
     Set<MemberDTO> parseAndPersistMembersFromExcelWorkbook(final Extension extension,
                                                            final Workbook workbook,
-                                                           final String sheetName);
+                                                           final String sheetName,
+                                                           final Map<String, LinkedHashSet<MemberDTO>> memberDTOsToBeDeletedPerExtension,
+                                                           final CodeScheme codeScheme);
 
     Set<MemberDTO> createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(final ExtensionDTO extension);
 }
