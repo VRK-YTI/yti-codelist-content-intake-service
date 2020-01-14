@@ -24,8 +24,6 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
-
 @Entity
 @Table(name = "codescheme")
 public class CodeScheme extends AbstractHistoricalCode implements Serializable {
@@ -180,14 +178,10 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     public String getPrefLabel(final String language) {
-        String prefLabelValue = null;
         if (this.prefLabel != null && !this.prefLabel.isEmpty()) {
-            prefLabelValue = this.prefLabel.get(language);
-            if (prefLabelValue == null) {
-                prefLabelValue = this.prefLabel.get(LANGUAGE_CODE_EN);
-            }
+            return this.prefLabel.get(language);
         }
-        return prefLabelValue;
+        return null;
     }
 
     public void setPrefLabel(final String language,
@@ -220,14 +214,10 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     public String getDefinition(final String language) {
-        String definitionValue = null;
         if (this.definition != null && !this.definition.isEmpty()) {
-            definitionValue = this.definition.get(language);
-            if (definitionValue == null) {
-                definitionValue = this.definition.get(LANGUAGE_CODE_EN);
-            }
+            return this.definition.get(language);
         }
-        return definitionValue;
+        return null;
     }
 
     public void setDefinition(final String language,
@@ -260,14 +250,10 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     public String getDescription(final String language) {
-        String descriptionValue = null;
         if (this.description != null && !this.description.isEmpty()) {
-            descriptionValue = this.description.get(language);
-            if (descriptionValue == null) {
-                descriptionValue = this.description.get(LANGUAGE_CODE_EN);
-            }
+            return this.description.get(language);
         }
-        return descriptionValue;
+        return null;
     }
 
     public void setDescription(final String language,
@@ -300,14 +286,10 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     public String getChangeNote(final String language) {
-        String changeNoteValue = null;
         if (this.changeNote != null && !this.changeNote.isEmpty()) {
-            changeNoteValue = this.changeNote.get(language);
-            if (changeNoteValue == null) {
-                changeNoteValue = this.changeNote.get(LANGUAGE_CODE_EN);
-            }
+            return this.changeNote.get(language);
         }
-        return changeNoteValue;
+        return null;
     }
 
     public void setChangeNote(final String language,
@@ -498,14 +480,10 @@ public class CodeScheme extends AbstractHistoricalCode implements Serializable {
     }
 
     public String getFeedbackChannel(final String language) {
-        String feedbackChannelValue = null;
         if (this.feedbackChannel != null && !this.feedbackChannel.isEmpty()) {
-            feedbackChannelValue = this.feedbackChannel.get(language);
-            if (feedbackChannelValue == null) {
-                feedbackChannelValue = this.feedbackChannel.get(LANGUAGE_CODE_EN);
-            }
+            return this.feedbackChannel.get(language);
         }
-        return feedbackChannelValue;
+        return null;
     }
 
     public void setFeedbackChannel(final String language,

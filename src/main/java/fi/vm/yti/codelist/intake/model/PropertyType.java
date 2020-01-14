@@ -17,8 +17,6 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
-import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
-
 @Entity
 @Table(name = "propertytype")
 public class PropertyType extends AbstractIdentifyableTimestampedCode implements Serializable {
@@ -76,14 +74,10 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
     }
 
     public String getPrefLabel(final String language) {
-        String prefLabelValue = null;
         if (this.prefLabel != null && !this.prefLabel.isEmpty()) {
-            prefLabelValue = this.prefLabel.get(language);
-            if (prefLabelValue == null) {
-                prefLabelValue = this.prefLabel.get(LANGUAGE_CODE_EN);
-            }
+            return this.prefLabel.get(language);
         }
-        return prefLabelValue;
+        return null;
     }
 
     public void setPrefLabel(final String language,
@@ -116,14 +110,10 @@ public class PropertyType extends AbstractIdentifyableTimestampedCode implements
     }
 
     public String getDefinition(final String language) {
-        String definitionValue = null;
         if (this.definition != null && !this.definition.isEmpty()) {
-            definitionValue = this.definition.get(language);
-            if (definitionValue == null) {
-                definitionValue = this.definition.get(LANGUAGE_CODE_EN);
-            }
+            return this.definition.get(language);
         }
-        return definitionValue;
+        return null;
     }
 
     public void setDefinition(final String language,

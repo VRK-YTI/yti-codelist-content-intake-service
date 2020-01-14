@@ -18,8 +18,6 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
-import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
-
 @Entity
 @Table(name = "externalreference")
 public class ExternalReference extends AbstractIdentifyableTimestampedCode implements Serializable {
@@ -64,9 +62,6 @@ public class ExternalReference extends AbstractIdentifyableTimestampedCode imple
         String titleValue = null;
         if (this.title != null && !this.title.isEmpty()) {
             titleValue = this.title.get(language);
-            if (titleValue == null) {
-                titleValue = this.title.get(LANGUAGE_CODE_EN);
-            }
         }
         return titleValue;
     }
@@ -101,14 +96,10 @@ public class ExternalReference extends AbstractIdentifyableTimestampedCode imple
     }
 
     public String getDescription(final String language) {
-        String descriptionValue = null;
         if (this.description != null && !this.description.isEmpty()) {
-            descriptionValue = this.description.get(language);
-            if (descriptionValue == null) {
-                descriptionValue = this.description.get(LANGUAGE_CODE_EN);
-            }
+            return this.description.get(language);
         }
-        return descriptionValue;
+        return null;
     }
 
     public void setDescription(final String language,

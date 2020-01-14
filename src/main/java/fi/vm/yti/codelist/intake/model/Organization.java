@@ -17,8 +17,6 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
-import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
-
 @Entity
 @Table(name = "organization")
 public class Organization extends AbstractIdentifyableCode implements Serializable {
@@ -64,14 +62,10 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     }
 
     public String getPrefLabel(final String language) {
-        String prefLabelValue = null;
         if (this.prefLabel != null && !this.prefLabel.isEmpty()) {
-            prefLabelValue = this.prefLabel.get(language);
-            if (prefLabelValue == null) {
-                prefLabelValue = this.prefLabel.get(LANGUAGE_CODE_EN);
-            }
+            return this.prefLabel.get(language);
         }
-        return prefLabelValue;
+        return null;
     }
 
     public void setPrefLabel(final String language,
@@ -104,14 +98,10 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     }
 
     public String getDescription(final String language) {
-        String descriptionValue = null;
         if (this.description != null && !this.description.isEmpty()) {
-            descriptionValue = this.description.get(language);
-            if (descriptionValue == null) {
-                descriptionValue = this.description.get(LANGUAGE_CODE_EN);
-            }
+            return this.description.get(language);
         }
-        return descriptionValue;
+        return null;
     }
 
     public void setDescription(final String language,

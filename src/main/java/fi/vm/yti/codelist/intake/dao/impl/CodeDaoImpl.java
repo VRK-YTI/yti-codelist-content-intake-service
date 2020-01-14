@@ -651,6 +651,7 @@ public class CodeDaoImpl implements CodeDao {
             for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
                 final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
                 final String value = entry.getValue();
+                final String currentValue = code.getPrefLabel(language);
                 if (!Objects.equals(code.getPrefLabel(language), value)) {
                     code.setPrefLabel(language, value);
                 }

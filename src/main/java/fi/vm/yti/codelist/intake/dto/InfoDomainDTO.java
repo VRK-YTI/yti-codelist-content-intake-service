@@ -13,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonView;
 
 import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.Views;
-import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
 
 @JsonFilter("infoDomain")
 @XmlRootElement
@@ -78,14 +77,10 @@ public class InfoDomainDTO implements Serializable {
     }
 
     public String getPrefLabel(final String language) {
-        String prefLabelValue = null;
         if (this.prefLabel != null && !this.prefLabel.isEmpty()) {
-            prefLabelValue = this.prefLabel.get(language);
-            if (prefLabelValue == null) {
-                prefLabelValue = this.prefLabel.get(LANGUAGE_CODE_EN);
-            }
+            return this.prefLabel.get(language);
         }
-        return prefLabelValue;
+        return null;
     }
 
     @JsonView(Views.Normal.class)
