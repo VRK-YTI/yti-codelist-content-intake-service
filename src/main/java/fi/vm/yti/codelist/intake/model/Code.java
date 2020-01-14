@@ -23,8 +23,6 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import static fi.vm.yti.codelist.common.constants.ApiConstants.LANGUAGE_CODE_EN;
-
 @Entity
 @Table(name = "code")
 public class Code extends AbstractHistoricalCode implements Serializable {
@@ -104,14 +102,10 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     }
 
     public String getPrefLabel(final String language) {
-        String prefLabelValue = null;
         if (this.prefLabel != null && !this.prefLabel.isEmpty()) {
-            prefLabelValue = this.prefLabel.get(language);
-            if (prefLabelValue == null) {
-                prefLabelValue = this.prefLabel.get(LANGUAGE_CODE_EN);
-            }
+            return this.prefLabel.get(language);
         }
-        return prefLabelValue;
+        return null;
     }
 
     public void setPrefLabel(final String language,
@@ -147,9 +141,6 @@ public class Code extends AbstractHistoricalCode implements Serializable {
         String definitionValue = null;
         if (this.definition != null && !this.definition.isEmpty()) {
             definitionValue = this.definition.get(language);
-            if (definitionValue == null) {
-                definitionValue = this.definition.get(LANGUAGE_CODE_EN);
-            }
         }
         return definitionValue;
     }
@@ -184,14 +175,10 @@ public class Code extends AbstractHistoricalCode implements Serializable {
     }
 
     public String getDescription(final String language) {
-        String descriptionValue = null;
         if (this.description != null && !this.description.isEmpty()) {
-            descriptionValue = this.description.get(language);
-            if (descriptionValue == null) {
-                descriptionValue = this.description.get(LANGUAGE_CODE_EN);
-            }
+            return this.description.get(language);
         }
-        return descriptionValue;
+        return null;
     }
 
     public void setDescription(final String language,
