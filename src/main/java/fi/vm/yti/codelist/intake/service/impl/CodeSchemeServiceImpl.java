@@ -68,6 +68,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseService {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeServiceImpl.class);
+
     private final AuthorizationManager authorizationManager;
     private final CodeRegistryDao codeRegistryDao;
     private final CodeSchemeDao codeSchemeDao;
@@ -311,13 +312,10 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                     if (updatingExistingCodeScheme) {
                         handleUpdatingOneParticularCodeSchemeThroughFileUpload(originalCodeSchemeId, codeSchemeDtos);
                     }
-
                     codeSchemes = codeSchemeDao.updateCodeSchemesFromDtos(isAuthorized, codeRegistry, codeSchemeDtos, false);
-
                     if (userIsCreatingANewVersionOfACodeScheme) {
                         otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated = handleNewVersionCreationFromFileRelatedActivities(codeSchemes, originalCodeSchemeId);
                     }
-
                     break;
                 default:
                     throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
@@ -328,7 +326,6 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
         if (userIsCreatingANewVersionOfACodeScheme) {
             resultingCodeSchemeSetForIndexing.addAll(otherCodeSchemeDtosThatNeedToGetIndexedInCaseANewCodeSchemeVersionWasCreated);
         }
-
         resultingCodeSchemeSetForIndexing.addAll(dtoMapperService.mapCodeSchemeDtos(codeSchemes, true));
         return resultingCodeSchemeSetForIndexing;
     }
@@ -442,7 +439,7 @@ public class CodeSchemeServiceImpl implements CodeSchemeService, AbstractBaseSer
                                                      final Set<CodeSchemeDTO> codeSchemeDtos,
                                                      final Map<CodeSchemeDTO, String> codesSheetNames,
                                                      final Workbook workbook) {
-        Map<CodeScheme, Set<CodeDTO>> returnMap = new HashMap<>();
+        final Map<CodeScheme, Set<CodeDTO>> returnMap = new HashMap<>();
         if (codesSheetNames.isEmpty() && codeSchemes != null && codeSchemes.size() == 1 && workbook.getSheet(EXCEL_SHEET_CODES) != null) {
             final CodeScheme codeScheme = codeSchemes.iterator().next();
             returnMap.put(codeScheme, codeService.parseAndPersistCodesFromExcelWorkbook(workbook, EXCEL_SHEET_CODES, codeScheme));

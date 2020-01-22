@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import fi.vm.yti.codelist.intake.model.Code;
-import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.Member;
 
 @Repository
@@ -43,8 +42,12 @@ public interface MemberRepository extends CrudRepository<Member, String> {
     @Query(value = "SELECT nextval(:sequenceName)", nativeQuery = true)
     Integer getMemberSequenceId(@Param("sequenceName") final String sequenceName);
 
-    Member findByExtensionAndSequenceId(final Extension extension,
-                                        final Integer sequenceId);
+    @Query(value = "SELECT last_value from (:sequenceName)", nativeQuery = true)
+    Integer getLastMemberSequenceId(@Param("sequenceName") final String sequenceName);
+
+    @Query(value = "SELECT setval(:sequenceName, :value)", nativeQuery = true)
+    Integer setMemberSequenceId(@Param("sequenceName") final String sequenceName,
+                                @Param("value") final int value);
 
     @Query("SELECT COUNT(m) FROM Member as m")
     int getMemberCount();

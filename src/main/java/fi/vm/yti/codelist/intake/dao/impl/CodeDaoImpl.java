@@ -250,17 +250,14 @@ public class CodeDaoImpl implements CodeDao {
         final Set<Code> existingCodes = codeRepository.findByCodeSchemeId(codeScheme.getId());
         for (final CodeDTO codeDto : codeDtos) {
             final Code code = createOrUpdateCode(codeScheme, codeDto, existingCodes, codesAffected, nextOrder);
-            save(code, false);
             codeDto.setId(code.getId());
             setCodeExtensionMemberValues(codeDto);
             final Set<Member> codeMembers = memberDao.findByCodeId(code.getId());
             code.setMembers(codeMembers);
-            save(code);
             if (updateExternalReferences) {
                 updateExternalReferences(codeScheme, code, codeDto);
             }
             codesAffected.add(code);
-            save(code, false);
         }
         if (!codesAffected.isEmpty()) {
             codesAffected.forEach(this::checkCodeHierarchyLevels);
