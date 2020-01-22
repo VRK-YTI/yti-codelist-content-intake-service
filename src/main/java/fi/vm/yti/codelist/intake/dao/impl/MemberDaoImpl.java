@@ -604,36 +604,40 @@ public class MemberDaoImpl implements MemberDao {
         final Date timeStamp = new Date(System.currentTimeMillis());
         member.setCreated(timeStamp);
         member.setModified(timeStamp);
-        final Integer fromMemberSequenceId = fromMember.getSequenceId();
-        if (fromMemberSequenceId != null) {
-            if (fromMemberSequenceId > getLastMemberSequence(extension)) {
-                setMemberSequence(extension, fromMemberSequenceId);
-            }
-            member.setSequenceId(fromMember.getSequenceId());
-        } else {
-            member.setSequenceId(getNextMemberSequence(extension));
-        }
+        member.setSequenceId(resolveSequenceValue(fromMember, extension));
         member.setUri(apiUtils.createMemberUri(member));
         return member;
     }
 
-    private Integer getNextMemberSequence(final Extension extension) {
-        final String postFixPartOfTheSequenceName = extension.getId().toString().replaceAll("-", "_");
-        final String sequenceName = PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
-        return memberRepository.getMemberSequenceId(sequenceName);
+    private Integer resolveSequenceValue(final MemberDTO fromMember,
+                                         final Extension extension) {
+        final Integer nextSequenceValue = getNextValueForMemberSequence(extension);
+        final Integer previousSequenceValue = nextSequenceValue - 1;
+        final Integer fromMemberSequenceId = fromMember.getSequenceId();
+        if (fromMemberSequenceId != null) {
+            if (fromMemberSequenceId > previousSequenceValue) {
+                setMemberSequence(extension, fromMemberSequenceId);
+            } else {
+                setMemberSequence(extension, previousSequenceValue);
+            }
+            return fromMemberSequenceId;
+        } else {
+            return nextSequenceValue;
+        }
     }
 
-    private Integer getLastMemberSequence(final Extension extension) {
+    private String createSequenceName(final Extension extension) {
         final String postFixPartOfTheSequenceName = extension.getId().toString().replaceAll("-", "_");
-        final String sequenceName = PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
-        return memberRepository.getLastMemberSequenceId(sequenceName);
+        return PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
+    }
+
+    private Integer getNextValueForMemberSequence(final Extension extension) {
+        return memberRepository.getNextMemberSequenceId(createSequenceName(extension));
     }
 
     private Integer setMemberSequence(final Extension extension,
-                                      final int value) {
-        final String postFixPartOfTheSequenceName = extension.getId().toString().replaceAll("-", "_");
-        final String sequenceName = PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
-        return memberRepository.setMemberSequenceId(sequenceName, value);
+                                      final Integer value) {
+        return memberRepository.setMemberSequenceId(createSequenceName(extension), value);
     }
 
     private void validateExtensionMatch(final Member member,
@@ -783,7 +787,7 @@ public class MemberDaoImpl implements MemberDao {
                     m.setExtension(extension);
                     m.setMemberValues(null);
                     m.setPrefLabel(null);
-                    m.setSequenceId(getNextMemberSequence(extension));
+                    m.setSequenceId(getNextValueForMemberSequence(extension));
                     m.setUri(apiUtils.createMemberUri(m));
                     m.setCreated(timeStamp);
                     m.setModified(timeStamp);

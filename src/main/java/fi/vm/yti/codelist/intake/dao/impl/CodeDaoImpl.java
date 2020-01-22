@@ -248,6 +248,7 @@ public class CodeDaoImpl implements CodeDao {
         final Set<Code> codesAffected = new HashSet<>();
         MutableInt nextOrder = new MutableInt(getNextOrderInSequence(codeScheme));
         final Set<Code> existingCodes = codeRepository.findByCodeSchemeId(codeScheme.getId());
+        final Set<Code> addedOrUpdatedCodes = new HashSet<>();
         for (final CodeDTO codeDto : codeDtos) {
             final Code code = createOrUpdateCode(codeScheme, codeDto, existingCodes, codesAffected, nextOrder);
             codeDto.setId(code.getId());
@@ -258,6 +259,10 @@ public class CodeDaoImpl implements CodeDao {
                 updateExternalReferences(codeScheme, code, codeDto);
             }
             codesAffected.add(code);
+            addedOrUpdatedCodes.add(code);
+        }
+        if (!addedOrUpdatedCodes.isEmpty()) {
+            save(addedOrUpdatedCodes);
         }
         if (!codesAffected.isEmpty()) {
             codesAffected.forEach(this::checkCodeHierarchyLevels);

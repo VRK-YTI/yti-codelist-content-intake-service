@@ -40,14 +40,11 @@ public interface MemberRepository extends CrudRepository<Member, String> {
     Member findById(final UUID id);
 
     @Query(value = "SELECT nextval(:sequenceName)", nativeQuery = true)
-    Integer getMemberSequenceId(@Param("sequenceName") final String sequenceName);
+    Integer getNextMemberSequenceId(@Param("sequenceName") final String sequenceName);
 
-    @Query(value = "SELECT last_value from (:sequenceName)", nativeQuery = true)
-    Integer getLastMemberSequenceId(@Param("sequenceName") final String sequenceName);
-
-    @Query(value = "SELECT setval(:sequenceName, :value)", nativeQuery = true)
+    @Query(value = "SELECT setval(:sequenceName, :sequenceValue)", nativeQuery = true)
     Integer setMemberSequenceId(@Param("sequenceName") final String sequenceName,
-                                @Param("value") final int value);
+                                @Param("sequenceValue") final Integer sequenceValue);
 
     @Query("SELECT COUNT(m) FROM Member as m")
     int getMemberCount();
