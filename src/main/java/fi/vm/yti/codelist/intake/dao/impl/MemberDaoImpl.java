@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -174,26 +175,10 @@ public class MemberDaoImpl implements MemberDao {
 
     @Transactional
     public Set<Member> updateMemberEntityFromDto(final Extension extension,
-                                                 final MemberDTO fromMemberDto) {
-        final Set<Member> affectedMembers = new HashSet<>();
-        final Map<String, Code> codesMap = new HashMap<>();
-        final CodeScheme parentCodeScheme = extension.getParentCodeScheme();
-        final Set<Code> codes = codeDao.findByCodeSchemeId(parentCodeScheme.getId());
-        if (codes != null) {
-            codes.forEach(code -> codesMap.put(code.getUri(), code));
-        }
-        final Set<Member> existingMembers = findByExtensionId(extension.getId());
-        final Set<CodeScheme> allowedCodeSchemes = gatherAllowedCodeSchemes(parentCodeScheme, extension);
-        final Member member = createOrUpdateMember(extension, existingMembers, codesMap, allowedCodeSchemes, fromMemberDto, affectedMembers);
-        existingMembers.add(member);
-        fromMemberDto.setId(member.getId());
-        updateMemberMemberValues(extension, member, fromMemberDto);
-        resolveMemberRelation(extension, existingMembers, member, fromMemberDto);
-        save(member);
-        affectedMembers.add(member);
-        resolveAffectedRelatedMembers(existingMembers, affectedMembers, member.getId());
-        codeSchemeDao.updateContentModified(extension.getParentCodeScheme().getId(), member.getModified());
-        return affectedMembers;
+                                                 final MemberDTO memberDto) {
+        final Set<MemberDTO> memberDtos = new HashSet<>();
+        memberDtos.add(memberDto);
+        return updateMemberEntitiesFromDtos(extension, memberDtos);
     }
 
     @Transactional
@@ -208,10 +193,12 @@ public class MemberDaoImpl implements MemberDao {
         }
         final Set<CodeScheme> allowedCodeSchemes = gatherAllowedCodeSchemes(parentCodeScheme, extension);
         final Set<Member> membersToBeStored = new HashSet<>();
+        final Integer origNextSequenceId = getNextOrderInSequence(extension);
+        final MutableInt nextSequenceId = new MutableInt(origNextSequenceId);
         if (memberDtos != null) {
             final Set<Member> existingMembers = findByExtensionId(extension.getId());
             for (final MemberDTO memberDto : memberDtos) {
-                final Member member = createOrUpdateMember(extension, existingMembers, codesMap, allowedCodeSchemes, memberDto, affectedMembers);
+                final Member member = createOrUpdateMember(extension, existingMembers, codesMap, allowedCodeSchemes, memberDto, affectedMembers, nextSequenceId);
                 existingMembers.add(member);
                 memberDto.setId(member.getId());
                 affectedMembers.add(member);
@@ -224,6 +211,9 @@ public class MemberDaoImpl implements MemberDao {
         }
         if (!affectedMembers.isEmpty()) {
             codeSchemeDao.updateContentModified(extension.getParentCodeScheme().getId());
+        }
+        if (nextSequenceId.toInteger() > origNextSequenceId) {
+            setMemberSequence(extension, nextSequenceId.toInteger() - 1);
         }
         return affectedMembers;
     }
@@ -498,7 +488,8 @@ public class MemberDaoImpl implements MemberDao {
                                        final Map<String, Code> codesMap,
                                        final Set<CodeScheme> allowedCodeSchemes,
                                        final MemberDTO fromMember,
-                                       final Set<Member> members) {
+                                       final Set<Member> members,
+                                       final MutableInt nextSequenceId) {
         Member existingMember = null;
         if (extension != null) {
             if (fromMember.getId() != null || fromMember.getSequenceId() != null) {
@@ -517,7 +508,7 @@ public class MemberDaoImpl implements MemberDao {
             if (existingMember != null) {
                 member = updateMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, existingMember, fromMember, members);
             } else {
-                member = createMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, extension, fromMember, members);
+                member = createMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, extension, fromMember, members, nextSequenceId);
             }
             return member;
         } else {
@@ -584,7 +575,8 @@ public class MemberDaoImpl implements MemberDao {
                                 final Set<CodeScheme> allowedCodeSchemes,
                                 final Extension extension,
                                 final MemberDTO fromMember,
-                                final Set<Member> affectedMembers) {
+                                final Set<Member> affectedMembers,
+                                final MutableInt nextSequenceId) {
         final Member member = new Member();
         if (fromMember.getId() != null) {
             member.setId(fromMember.getId());
@@ -608,19 +600,38 @@ public class MemberDaoImpl implements MemberDao {
         final Date timeStamp = new Date(System.currentTimeMillis());
         member.setCreated(timeStamp);
         member.setModified(timeStamp);
-        if (fromMember.getSequenceId() != null) {
-            member.setSequenceId(fromMember.getSequenceId());
-        } else {
-            member.setSequenceId(getNextMemberSequence(extension));
-        }
+        member.setSequenceId(resolveSequenceValue(fromMember, nextSequenceId));
         member.setUri(apiUtils.createMemberUri(member));
         return member;
     }
 
-    private Integer getNextMemberSequence(final Extension extension) {
+    private Integer resolveSequenceValue(final MemberDTO fromMember,
+                                         final MutableInt nextSequenceId) {
+        final Integer fromMemberSequenceId = fromMember.getSequenceId();
+        if (fromMemberSequenceId != null) {
+            if (fromMemberSequenceId > nextSequenceId.toInteger()) {
+                nextSequenceId.setValue(fromMemberSequenceId + 1);
+            }
+            return fromMemberSequenceId;
+        } else {
+            final Integer nextSeqId = nextSequenceId.toInteger();
+            nextSequenceId.setValue(nextSeqId + 1);
+            return nextSeqId;
+        }
+    }
+
+    private String constructSequenceName(final Extension extension) {
         final String postFixPartOfTheSequenceName = extension.getId().toString().replaceAll("-", "_");
-        final String theNameOfTheSequence = PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
-        return memberRepository.getMemberSequenceId(theNameOfTheSequence);
+        return PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
+    }
+
+    private Integer getNextValueForMemberSequence(final Extension extension) {
+        return memberRepository.getNextMemberSequenceId(constructSequenceName(extension));
+    }
+
+    private Integer setMemberSequence(final Extension extension,
+                                      final Integer value) {
+        return memberRepository.setMemberSequenceId(constructSequenceName(extension), value);
     }
 
     private void validateExtension(final Member member,
@@ -770,7 +781,7 @@ public class MemberDaoImpl implements MemberDao {
                     m.setExtension(extension);
                     m.setMemberValues(null);
                     m.setPrefLabel(null);
-                    m.setSequenceId(getNextMemberSequence(extension));
+                    m.setSequenceId(getNextValueForMemberSequence(extension));
                     m.setUri(apiUtils.createMemberUri(m));
                     m.setCreated(timeStamp);
                     m.setModified(timeStamp);
