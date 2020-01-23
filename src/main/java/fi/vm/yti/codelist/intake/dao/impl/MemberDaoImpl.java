@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -198,10 +199,12 @@ public class MemberDaoImpl implements MemberDao {
         parentCodeSchemeCodes.forEach(code -> parentCodeSchemeCodesMap.put(code.getUri(), code));
         final Set<CodeScheme> allowedCodeSchemes = gatherAllowedCodeSchemes(parentCodeScheme, extension);
         final Set<Member> membersToBeStored = new HashSet<>();
+        final Integer origNextSequenceId = getNextOrderInSequence(extension);
+        final MutableInt nextSequenceId = new MutableInt(origNextSequenceId);
         if (memberDtos != null) {
             final Set<Member> existingMembers = findByExtensionId(extension.getId());
             for (final MemberDTO memberDto : memberDtos) {
-                final Member member = createOrUpdateMember(extension, existingMembers, parentCodeSchemeCodesMap, allowedCodeSchemes, memberDto, affectedMembers);
+                final Member member = createOrUpdateMember(extension, existingMembers, parentCodeSchemeCodesMap, allowedCodeSchemes, memberDto, affectedMembers, nextSequenceId);
                 existingMembers.add(member);
                 memberDto.setId(member.getId());
                 affectedMembers.add(member);
@@ -214,6 +217,9 @@ public class MemberDaoImpl implements MemberDao {
         }
         if (!affectedMembers.isEmpty()) {
             codeSchemeDao.updateContentModified(extension.getParentCodeScheme().getId());
+        }
+        if (nextSequenceId.toInteger() > origNextSequenceId) {
+            setMemberSequence(extension, nextSequenceId.toInteger() - 1);
         }
         return affectedMembers;
     }
@@ -494,7 +500,8 @@ public class MemberDaoImpl implements MemberDao {
                                        final Map<String, Code> codesMap,
                                        final Set<CodeScheme> allowedCodeSchemes,
                                        final MemberDTO fromMember,
-                                       final Set<Member> members) {
+                                       final Set<Member> members,
+                                       final MutableInt nextSequenceId) {
         Member existingMember = null;
         if (extension != null) {
             if (fromMember.getId() != null || fromMember.getSequenceId() != null) {
@@ -513,7 +520,7 @@ public class MemberDaoImpl implements MemberDao {
             if (existingMember != null) {
                 member = updateMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, existingMember, fromMember, members);
             } else {
-                member = createMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, extension, fromMember, members);
+                member = createMember(extension.getParentCodeScheme(), existingMembers, codesMap, allowedCodeSchemes, extension, fromMember, members, nextSequenceId);
             }
             return member;
         } else {
@@ -580,7 +587,8 @@ public class MemberDaoImpl implements MemberDao {
                                 final Set<CodeScheme> allowedCodeSchemes,
                                 final Extension extension,
                                 final MemberDTO fromMember,
-                                final Set<Member> affectedMembers) {
+                                final Set<Member> affectedMembers,
+                                final MutableInt nextSequenceId) {
         final Member member = new Member();
         if (fromMember.getId() != null) {
             member.setId(fromMember.getId());
@@ -604,40 +612,38 @@ public class MemberDaoImpl implements MemberDao {
         final Date timeStamp = new Date(System.currentTimeMillis());
         member.setCreated(timeStamp);
         member.setModified(timeStamp);
-        member.setSequenceId(resolveSequenceValue(fromMember, extension));
+        member.setSequenceId(resolveSequenceValue(fromMember, nextSequenceId));
         member.setUri(apiUtils.createMemberUri(member));
         return member;
     }
 
     private Integer resolveSequenceValue(final MemberDTO fromMember,
-                                         final Extension extension) {
-        final Integer nextSequenceValue = getNextValueForMemberSequence(extension);
-        final Integer previousSequenceValue = nextSequenceValue - 1;
+                                         final MutableInt nextSequenceId) {
         final Integer fromMemberSequenceId = fromMember.getSequenceId();
         if (fromMemberSequenceId != null) {
-            if (fromMemberSequenceId > previousSequenceValue) {
-                setMemberSequence(extension, fromMemberSequenceId);
-            } else {
-                setMemberSequence(extension, previousSequenceValue);
+            if (fromMemberSequenceId > nextSequenceId.toInteger()) {
+                nextSequenceId.setValue(fromMemberSequenceId + 1);
             }
             return fromMemberSequenceId;
         } else {
-            return nextSequenceValue;
+            final Integer nextSeqId = nextSequenceId.toInteger();
+            nextSequenceId.setValue(nextSeqId + 1);
+            return nextSeqId;
         }
     }
 
-    private String createSequenceName(final Extension extension) {
+    private String constructSequenceName(final Extension extension) {
         final String postFixPartOfTheSequenceName = extension.getId().toString().replaceAll("-", "_");
         return PREFIX_FOR_EXTENSION_SEQUENCE_NAME + postFixPartOfTheSequenceName;
     }
 
     private Integer getNextValueForMemberSequence(final Extension extension) {
-        return memberRepository.getNextMemberSequenceId(createSequenceName(extension));
+        return memberRepository.getNextMemberSequenceId(constructSequenceName(extension));
     }
 
     private Integer setMemberSequence(final Extension extension,
                                       final Integer value) {
-        return memberRepository.setMemberSequenceId(createSequenceName(extension), value);
+        return memberRepository.setMemberSequenceId(constructSequenceName(extension), value);
     }
 
     private void validateExtensionMatch(final Member member,
