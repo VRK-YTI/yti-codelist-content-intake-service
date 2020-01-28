@@ -27,6 +27,7 @@ import fi.vm.yti.codelist.common.dto.CodeDTO;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.ExtensionDTO;
 import fi.vm.yti.codelist.common.dto.MemberDTO;
+import fi.vm.yti.codelist.common.dto.MemberValueDTO;
 import fi.vm.yti.codelist.intake.api.ApiUtils;
 import fi.vm.yti.codelist.intake.configuration.UriSuomiProperties;
 import fi.vm.yti.codelist.intake.dao.CodeDao;
@@ -34,6 +35,7 @@ import fi.vm.yti.codelist.intake.dao.CodeSchemeDao;
 import fi.vm.yti.codelist.intake.dao.ExtensionDao;
 import fi.vm.yti.codelist.intake.dao.MemberDao;
 import fi.vm.yti.codelist.intake.dao.MemberValueDao;
+import fi.vm.yti.codelist.intake.dao.ValueTypeDao;
 import fi.vm.yti.codelist.intake.exception.NotFoundException;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.MemberRepository;
@@ -67,6 +69,7 @@ public class MemberDaoImpl implements MemberDao {
     private final MemberValueDao memberValueDao;
     private final ApiUtils apiUtils;
     private final ExtensionDao extensionDao;
+    private final ValueTypeDao valueTypeDao;
 
     @Inject
     public MemberDaoImpl(final EntityChangeLogger entityChangeLogger,
@@ -77,7 +80,8 @@ public class MemberDaoImpl implements MemberDao {
                          final LanguageService languageService,
                          final MemberValueDao memberValueDao,
                          final ApiUtils apiUtils,
-                         @Lazy final ExtensionDao extensionDao) {
+                         @Lazy final ExtensionDao extensionDao,
+                         final ValueTypeDao valueTypeDao) {
         this.entityChangeLogger = entityChangeLogger;
         this.memberRepository = memberRepository;
         this.codeDao = codeDao;
@@ -87,6 +91,7 @@ public class MemberDaoImpl implements MemberDao {
         this.memberValueDao = memberValueDao;
         this.apiUtils = apiUtils;
         this.extensionDao = extensionDao;
+        this.valueTypeDao = valueTypeDao;
     }
 
     @Transactional
@@ -168,12 +173,6 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Transactional
-    public Member findByExtensionAndSequenceId(final Extension extension,
-                                               final Integer sequenceId) {
-        return memberRepository.findByExtensionAndSequenceId(extension, sequenceId);
-    }
-
-    @Transactional
     public Set<Member> updateMemberEntityFromDto(final Extension extension,
                                                  final MemberDTO memberDto) {
         final Set<MemberDTO> memberDtos = new HashSet<>();
@@ -181,16 +180,23 @@ public class MemberDaoImpl implements MemberDao {
         return updateMemberEntitiesFromDtos(extension, memberDtos);
     }
 
+    private Map<String, ValueType> getValueTypeMap() {
+        final Map<String, ValueType> valueTypeMap = new HashMap<>();
+        valueTypeDao.findAll().forEach(valueType -> {
+            valueTypeMap.put(valueType.getLocalName(), valueType);
+        });
+        return valueTypeMap;
+    }
+
     @Transactional
     public Set<Member> updateMemberEntitiesFromDtos(final Extension extension,
                                                     final Set<MemberDTO> memberDtos) {
+        final Map<String, ValueType> valueTypeMap = getValueTypeMap();
         final Set<Member> affectedMembers = new HashSet<>();
-        final Map<String, Code> codesMap = new HashMap<>();
+        final Map<String, Code> parentCodeSchemeCodesMap = new HashMap<>();
         final CodeScheme parentCodeScheme = extension.getParentCodeScheme();
-        final Set<Code> codes = codeDao.findByCodeSchemeId(parentCodeScheme.getId());
-        if (codes != null) {
-            codes.forEach(code -> codesMap.put(code.getUri(), code));
-        }
+        final Set<Code> parentCodeSchemeCodes = codeDao.findByCodeSchemeId(parentCodeScheme.getId());
+        parentCodeSchemeCodes.forEach(code -> parentCodeSchemeCodesMap.put(code.getUri(), code));
         final Set<CodeScheme> allowedCodeSchemes = gatherAllowedCodeSchemes(parentCodeScheme, extension);
         final Set<Member> membersToBeStored = new HashSet<>();
         final Integer origNextSequenceId = getNextOrderInSequence(extension);
@@ -198,11 +204,11 @@ public class MemberDaoImpl implements MemberDao {
         if (memberDtos != null) {
             final Set<Member> existingMembers = findByExtensionId(extension.getId());
             for (final MemberDTO memberDto : memberDtos) {
-                final Member member = createOrUpdateMember(extension, existingMembers, codesMap, allowedCodeSchemes, memberDto, affectedMembers, nextSequenceId);
+                final Member member = createOrUpdateMember(extension, existingMembers, parentCodeSchemeCodesMap, allowedCodeSchemes, memberDto, affectedMembers, nextSequenceId);
                 existingMembers.add(member);
                 memberDto.setId(member.getId());
                 affectedMembers.add(member);
-                updateMemberMemberValues(extension, member, memberDto);
+                updateMemberMemberValues(extension, member, memberDto, valueTypeMap);
                 membersToBeStored.add(member);
                 resolveAffectedRelatedMembers(existingMembers, affectedMembers, member.getId());
             }
@@ -232,10 +238,16 @@ public class MemberDaoImpl implements MemberDao {
 
     private void updateMemberMemberValues(final Extension extension,
                                           final Member member,
-                                          final MemberDTO fromMemberDto) {
+                                          final MemberDTO fromMemberDto,
+                                          final Map<String, ValueType> valueTypeMap) {
         final Set<MemberValue> memberValues;
         try {
-            memberValues = memberValueDao.updateMemberValueEntitiesFromDtos(member, fromMemberDto.getMemberValues());
+            final Set<MemberValueDTO> memberValueDtos = fromMemberDto.getMemberValues();
+            if (memberValueDtos != null && !memberValueDtos.isEmpty()) {
+                memberValues = memberValueDao.updateMemberValueEntitiesFromDtos(member, fromMemberDto.getMemberValues(), valueTypeMap);
+            } else {
+                memberValues = new HashSet<>();
+            }
         } catch (final Exception e) {
             if (e.getMessage().contains("unique_order")) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_CODE_ORDER_CONTAINS_DUPLICATE_VALUES));
@@ -390,7 +402,7 @@ public class MemberDaoImpl implements MemberDao {
                         throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_CODE_NOT_FOUND_WITH_IDENTIFIER, memberCodeCodeValueIdentifier));
                     }
                 } else {
-                    String memberSequenceId;
+                    final String memberSequenceId;
                     if (memberCodeCodeValueIdentifier.startsWith(MEMBER_PREFIX) && memberCodeCodeValueIdentifier.length() > MEMBER_PREFIX.length()) {
                         memberSequenceId = memberCodeCodeValueIdentifier.substring(MEMBER_PREFIX.length());
                     } else {
@@ -474,7 +486,7 @@ public class MemberDaoImpl implements MemberDao {
             }
             if (member != null) {
                 final Set<Member> linkedMembers = resolveMemberRelation(extension, existingMembers, member, fromMember);
-                if (linkedMembers != null && !linkedMembers.isEmpty()) {
+                if (!linkedMembers.isEmpty()) {
                     linkedMembersToBeStored.addAll(linkedMembers);
                 }
             }
@@ -500,7 +512,7 @@ public class MemberDaoImpl implements MemberDao {
                     }
                 }
                 if (existingMember != null) {
-                    validateExtension(existingMember, extension);
+                    validateExtensionMatch(existingMember, extension);
                 }
             }
             validateMultipleLinkedCodesForCodeExtensionMembers(extension, existingMembers, existingMember, fromMember);
@@ -634,8 +646,8 @@ public class MemberDaoImpl implements MemberDao {
         return memberRepository.setMemberSequenceId(constructSequenceName(extension), value);
     }
 
-    private void validateExtension(final Member member,
-                                   final Extension extension) {
+    private void validateExtensionMatch(final Member member,
+                                        final Extension extension) {
         if (member.getExtension() != extension) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_EXTENSION_DOES_NOT_MATCH));
         }
@@ -809,12 +821,12 @@ public class MemberDaoImpl implements MemberDao {
      * alphabetically (by codevalue) a, c. And then the other codeschemes, alphabetically according to the codevalue (although in this case there is only one codescheme) and from
      * there we get alphabetically d, f.
      */
-    private void populateMapWhereCodesAreOrderedBasedOnFlatOrderAscending(CodeScheme cs,
-                                                                          HashMap<CodeScheme, LinkedHashSet<Code>> codeSchemesWithCodesOrdered) {
-        List<Code> codesSorted = new ArrayList<>(cs.getCodes());
+    private void populateMapWhereCodesAreOrderedBasedOnFlatOrderAscending(final CodeScheme codeScheme,
+                                                                          final HashMap<CodeScheme, LinkedHashSet<Code>> codeSchemesWithCodesOrdered) {
+        List<Code> codesSorted = new ArrayList<>(codeScheme.getCodes());
         codesSorted.sort(Comparator.comparing(Code::getOrder));
         LinkedHashSet<Code> codesOrdered = new LinkedHashSet<>(codesSorted);
-        codeSchemesWithCodesOrdered.put(cs, codesOrdered);
+        codeSchemesWithCodesOrdered.put(codeScheme, codesOrdered);
     }
 
     @Transactional

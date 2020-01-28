@@ -156,42 +156,38 @@ public class MemberServiceImpl implements MemberService {
             if (!authorizationManager.canBeModifiedByUserInOrganization(codeScheme.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
-            final Set<Member> members;
+            final Set<MemberDTO> memberDtos;
             final Extension extension = extensionDao.findByParentCodeSchemeIdAndCodeValue(codeScheme.getId(), extensionCodeValue);
             if (extension != null) {
-                switch (format.toLowerCase()) {
-                    case FORMAT_JSON:
-                        if (jsonPayload != null && !jsonPayload.isEmpty()) {
-                            members = memberDao.updateMemberEntitiesFromDtos(extension, memberParser.parseMembersFromJson(jsonPayload));
-                        } else {
-                            throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
-                        }
-                        break;
-                    case FORMAT_EXCEL:
-                        final Set<MemberDTO> memberDtos = memberParser.parseMembersFromExcelInputStream(extension, inputStream, sheetName);
-                        memberDtos.forEach(memberDto -> {
-                            Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDto.getSequenceId());
-                            memberDto.setId(correspondingMemberFromDb == null ? UUID.randomUUID() : correspondingMemberFromDb.getId());
-                        });
-                        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDtos);
-                        break;
-                    case FORMAT_CSV:
-                        final Set<MemberDTO> memberDtossFromCsv = memberParser.parseMembersFromCsvInputStream(extension, inputStream);
-                        memberDtossFromCsv.forEach(memberDto -> {
-                            Member correspondingMemberFromDb = memberDao.findByExtensionAndSequenceId(extension, memberDto.getSequenceId());
-                            memberDto.setId(correspondingMemberFromDb == null ? UUID.randomUUID() : correspondingMemberFromDb.getId());
-                        });
-                        members = memberDao.updateMemberEntitiesFromDtos(extension, memberDtossFromCsv);
-                        break;
-                    default:
-                        throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
-                }
+                memberDtos = resolveMemberDtos(format, extension, jsonPayload, inputStream, sheetName);
+                final Set<Member> members = memberDao.updateMemberEntitiesFromDtos(extension, memberDtos);
                 return dtoMapperService.mapDeepMemberDtos(members);
             } else {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_EXTENSION_NOT_FOUND));
             }
         } else {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODESCHEME_NOT_FOUND));
+        }
+    }
+
+    private Set<MemberDTO> resolveMemberDtos(final String format,
+                                             final Extension extension,
+                                             final String jsonPayload,
+                                             final InputStream inputStream,
+                                             final String sheetName) {
+        switch (format.toLowerCase()) {
+            case FORMAT_JSON:
+                if (jsonPayload != null && !jsonPayload.isEmpty()) {
+                    return memberParser.parseMembersFromJson(jsonPayload);
+                } else {
+                    throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_JSON_PAYLOAD_EMPTY));
+                }
+            case FORMAT_EXCEL:
+                return memberParser.parseMembersFromExcelInputStream(extension, inputStream, sheetName);
+            case FORMAT_CSV:
+                return memberParser.parseMembersFromCsvInputStream(extension, inputStream);
+            default:
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_INVALID_FORMAT));
         }
     }
 

@@ -2,6 +2,7 @@ package fi.vm.yti.codelist.intake.dao.impl;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import fi.vm.yti.codelist.common.dto.ErrorModel;
 import fi.vm.yti.codelist.common.dto.MemberValueDTO;
 import fi.vm.yti.codelist.intake.dao.MemberValueDao;
-import fi.vm.yti.codelist.intake.dao.ValueTypeDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.MemberValueRepository;
 import fi.vm.yti.codelist.intake.model.Member;
@@ -28,13 +28,10 @@ import static fi.vm.yti.codelist.intake.util.ValidationUtils.validateStringAgain
 public class MemberValueDaoImpl implements MemberValueDao {
 
     private final MemberValueRepository memberValueRepository;
-    private final ValueTypeDao valueTypeDao;
 
     @Inject
-    public MemberValueDaoImpl(final MemberValueRepository memberValueRepository,
-                              final ValueTypeDao valueTypeDao) {
+    public MemberValueDaoImpl(final MemberValueRepository memberValueRepository) {
         this.memberValueRepository = memberValueRepository;
-        this.valueTypeDao = valueTypeDao;
     }
 
     @Transactional
@@ -59,12 +56,13 @@ public class MemberValueDaoImpl implements MemberValueDao {
 
     @Transactional
     public Set<MemberValue> updateMemberValueEntitiesFromDtos(final Member member,
-                                                              final Set<MemberValueDTO> memberValueDtos) {
+                                                              final Set<MemberValueDTO> memberValueDtos,
+                                                              final Map<String, ValueType> valueTypeMap) {
         final Set<MemberValue> memberValues = new HashSet<>();
         final Set<MemberValue> existingMemberValues = findByMemberId(member.getId());
-        if (memberValueDtos != null) {
+        if (memberValueDtos != null && !memberValueDtos.isEmpty()) {
             memberValueDtos.forEach(memberValueDto -> {
-                final MemberValue memberValue = createOrUpdateMemberValue(existingMemberValues, member, memberValueDto);
+                final MemberValue memberValue = createOrUpdateMemberValue(existingMemberValues, member, memberValueDto, valueTypeMap);
                 if (memberValue != null) {
                     existingMemberValues.add(memberValue);
                     memberValues.add(memberValue);
@@ -76,11 +74,12 @@ public class MemberValueDaoImpl implements MemberValueDao {
 
     private MemberValue createOrUpdateMemberValue(final Set<MemberValue> existingMemberValues,
                                                   final Member member,
-                                                  final MemberValueDTO fromMemberValue) {
+                                                  final MemberValueDTO fromMemberValue,
+                                                  final Map<String, ValueType> valueTypeMap) {
         validateMemberValue(fromMemberValue, member.getExtension().getPropertyType());
         MemberValue existingMemberValue = null;
         if (fromMemberValue.getValueType() != null) {
-            final ValueType valueType = valueTypeDao.findByLocalName(fromMemberValue.getValueType().getLocalName());
+            final ValueType valueType = valueTypeMap.get(fromMemberValue.getValueType().getLocalName());
             if (valueType == null) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBERVALUE_VALUETYPE_NOT_SET));
             }
@@ -95,10 +94,10 @@ public class MemberValueDaoImpl implements MemberValueDao {
         }
         final MemberValue memberValue;
         if (existingMemberValue != null) {
-            validateMember(member, existingMemberValue.getMember());
+            validateMemberIdsToMatch(member, existingMemberValue.getMember());
             memberValue = updateMemberValue(member, existingMemberValue, fromMemberValue);
         } else {
-            memberValue = createMemberValue(member, fromMemberValue);
+            memberValue = createMemberValue(member, fromMemberValue, valueTypeMap);
         }
         return memberValue;
     }
@@ -114,10 +113,11 @@ public class MemberValueDaoImpl implements MemberValueDao {
     }
 
     private MemberValue createMemberValue(final Member member,
-                                          final MemberValueDTO fromMemberValue) {
+                                          final MemberValueDTO fromMemberValue,
+                                          final Map<String, ValueType> valueTypeMap) {
         final MemberValue memberValue = new MemberValue();
         memberValue.setId(UUID.randomUUID());
-        final ValueType valueType = valueTypeDao.findByLocalName(fromMemberValue.getValueType().getLocalName());
+        final ValueType valueType = valueTypeMap.get(fromMemberValue.getValueType().getLocalName());
         if (valueType != null) {
             memberValue.setValueType(valueType);
         } else {
@@ -131,8 +131,8 @@ public class MemberValueDaoImpl implements MemberValueDao {
         return memberValue;
     }
 
-    private void validateMember(final Member member,
-                                final Member existingMember) {
+    private void validateMemberIdsToMatch(final Member member,
+                                          final Member existingMember) {
         if (!existingMember.getId().equals(member.getId())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_ID_MISMATCH));
         }

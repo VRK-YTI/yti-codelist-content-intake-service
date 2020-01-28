@@ -41,9 +41,6 @@ public interface MemberDao {
     Set<Member> findByExtensionIdAndCodeId(final UUID id,
                                            final UUID codeId);
 
-    Member findByExtensionAndSequenceId(final Extension extension,
-                                        final Integer sequenceId);
-
     Set<Member> updateMemberEntityFromDto(final Extension extension,
                                           final MemberDTO memberDto);
 

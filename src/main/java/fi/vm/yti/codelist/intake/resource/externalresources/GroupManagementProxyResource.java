@@ -74,8 +74,7 @@ public class GroupManagementProxyResource implements AbstractBaseResource {
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
-
-        final String response = restTemplate.getForObject(createGroupManagementRequestsApiUrl(user.getEmail()), String.class);
+        final String response = restTemplate.getForObject(createGroupManagementRequestsApiUrl(user.getId().toString()), String.class);
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false));
         final Meta meta = new Meta();
@@ -105,17 +104,14 @@ public class GroupManagementProxyResource implements AbstractBaseResource {
         if (user.isAnonymous()) {
             throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
         }
-
         final String requestUrl = createGroupManagementRequestApiUrl();
-
         final LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
-        parameters.add("email", user.getEmail());
+        parameters.add("userId", user.getId().toString());
         parameters.add("organizationId", organizationId);
         parameters.add("role", Role.CODE_LIST_EDITOR.toString());
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(org.springframework.http.MediaType.MULTIPART_FORM_DATA);
         final HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(parameters, headers);
-
         final ResponseEntity response = restTemplate.exchange(requestUrl, HttpMethod.POST, entity, String.class);
         if (response.getStatusCode() == HttpStatus.OK) {
             return Response.status(200).build();
@@ -125,10 +121,10 @@ public class GroupManagementProxyResource implements AbstractBaseResource {
     }
 
     private String createGroupManagementRequestApiUrl() {
-        return groupManagementProperties.getUrl() + GROUPMANAGEMENT_API_CONTEXT_PATH + GROUPMANAGEMENT_API_REQUEST;
+        return groupManagementProperties.getUrl() + GROUPMANAGEMENT_API_PRIVATE_CONTEXT_PATH + GROUPMANAGEMENT_API_REQUEST;
     }
 
-    private String createGroupManagementRequestsApiUrl(final String email) {
-        return groupManagementProperties.getUrl() + GROUPMANAGEMENT_API_CONTEXT_PATH + GROUPMANAGEMENT_API_REQUESTS + "?email=" + email;
+    private String createGroupManagementRequestsApiUrl(final String userId) {
+        return groupManagementProperties.getUrl() + GROUPMANAGEMENT_API_PRIVATE_CONTEXT_PATH + GROUPMANAGEMENT_API_REQUESTS + "?userId=" + userId;
     }
 }
