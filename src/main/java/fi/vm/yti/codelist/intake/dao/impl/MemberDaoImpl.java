@@ -55,7 +55,7 @@ import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlEncodeCodeValue;
 public class MemberDaoImpl implements MemberDao {
 
     private static final String PREFIX_FOR_EXTENSION_SEQUENCE_NAME = "seq_for_ext_";
-    private static final int MAX_LEVEL = 10;
+    private static final int MAX_LEVEL = 15;
     private static final int MAX_LEVEL_FOR_CROSS_REFERENCE_LIST = 2;
     private static final String CODE_PREFIX = "code:";
     private static final String MEMBER_PREFIX = "member:";

@@ -49,7 +49,7 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateC
 @Component
 public class CodeDaoImpl implements CodeDao {
 
-    private static final int MAX_LEVEL = 10;
+    private static final int MAX_LEVEL = 15;
     private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParserImpl.class);
 
     private final EntityChangeLogger entityChangeLogger;
