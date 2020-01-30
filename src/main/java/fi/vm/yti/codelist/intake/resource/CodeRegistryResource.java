@@ -269,7 +269,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         Set<CodeDTO> codesWhereStatusChanged = null;
 
         if (changeCodeStatuses != null && changeCodeStatuses.equals("true") && !authorizationManager.isSuperUser()) {
-            ValidationUtils.validateCodeStatusTransitions(initialCodeStatus, endCodeStatus);
+            ValidationUtils.validateStatusTransitions(initialCodeStatus, endCodeStatus);
         }
 
         final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);

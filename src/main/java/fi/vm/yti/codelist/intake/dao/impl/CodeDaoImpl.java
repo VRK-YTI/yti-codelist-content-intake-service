@@ -325,7 +325,7 @@ public class CodeDaoImpl implements CodeDao {
 
     private void validateCodeStatusChange(final Code existingCode,
                                           final CodeDTO codeWithChanges) {
-        ValidationUtils.validateCodeStatusTransitions(existingCode.getStatus(), codeWithChanges.getStatus());
+        ValidationUtils.validateStatusTransitions(existingCode.getStatus(), codeWithChanges.getStatus());
     }
 
     private boolean codeStatusHasChanged(final Code existingCode,
