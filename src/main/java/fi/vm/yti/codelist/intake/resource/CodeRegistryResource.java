@@ -1084,9 +1084,11 @@ public class CodeRegistryResource implements AbstractBaseResource {
         final ExtensionDTO extension = extensionService.findByCodeSchemeIdAndCodeValue(codeSchemeId, extensionCodeValue);
         final Set<MemberDTO> createdMembers = memberService.createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(extension);
         final CodeSchemeDTO codeScheme = codeSchemeService.findById(codeSchemeId);
+        final Set<CodeDTO> codes = codeService.findByCodeSchemeId(codeScheme.getId());
         codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
         indexing.updateCodeScheme(codeScheme);
         indexing.updateExtension(extension);
+        indexing.updateCodes(codes);
         indexing.updateMembers(createdMembers);
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new FilterModifier(createSimpleFilterProvider(FILTER_NAME_MEMBER, "extension,codeScheme,code,codeRegistry,propertyType,valueType,memberValue"), pretty));
