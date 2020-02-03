@@ -35,7 +35,6 @@ public class SpringAppConfig {
 
     private static final int CONNECTION_TIMEOUT = 30000;
     private static final int ES_CONNECTION_TIMEOUT = 300000;
-    private static final int ES_RETRY_TIMEOUT = 60000;
 
     @Value("${yti_codelist_content_intake_service_elastic_host}")
     private String elasticsearchHost;
