@@ -182,9 +182,7 @@ public class MemberDaoImpl implements MemberDao {
 
     private Map<String, ValueType> getValueTypeMap() {
         final Map<String, ValueType> valueTypeMap = new HashMap<>();
-        valueTypeDao.findAll().forEach(valueType -> {
-            valueTypeMap.put(valueType.getLocalName(), valueType);
-        });
+        valueTypeDao.findAll().forEach(valueType -> valueTypeMap.put(valueType.getLocalName(), valueType));
         return valueTypeMap;
     }
 
