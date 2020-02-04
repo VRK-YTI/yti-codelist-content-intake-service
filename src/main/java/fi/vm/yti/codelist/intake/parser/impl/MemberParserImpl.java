@@ -153,7 +153,7 @@ public class MemberParserImpl extends AbstractBaseParser implements MemberParser
     private void handlePossibleDuplicateSequenceIds(final List<Integer> sequenceIds) {
         LinkedHashSet<Integer> possibleMembersWithDuplicatedSequenceId = findDuplicateSequenceIds(sequenceIds);
         possibleMembersWithDuplicatedSequenceId.removeIf(Objects::isNull);
-        if (possibleMembersWithDuplicatedSequenceId.size() > 0) {
+        if (!possibleMembersWithDuplicatedSequenceId.isEmpty()) {
             String theSequenceIdsSeparatedByCommas = possibleMembersWithDuplicatedSequenceId
                 .stream()
                 .map(Object::toString)
