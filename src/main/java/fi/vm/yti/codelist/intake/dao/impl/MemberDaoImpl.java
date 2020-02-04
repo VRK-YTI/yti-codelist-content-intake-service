@@ -54,6 +54,7 @@ import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlEncodeCodeValue;
 @Component
 public class MemberDaoImpl implements MemberDao {
 
+    private static final String LOCALNAME_CROSS_REFERENCE_LIST = "crossReferenceList";
     private static final String PREFIX_FOR_EXTENSION_SEQUENCE_NAME = "seq_for_ext_";
     private static final int MAX_LEVEL = 15;
     private static final int MAX_LEVEL_FOR_CROSS_REFERENCE_LIST = 2;
@@ -450,7 +451,7 @@ public class MemberDaoImpl implements MemberDao {
                                                final Member member,
                                                final int level,
                                                final Extension extension) {
-        if (extension.getPropertyType().getLocalName().equals("crossReferenceList")) {
+        if (LOCALNAME_CROSS_REFERENCE_LIST.equalsIgnoreCase(extension.getPropertyType().getLocalName())) {
             if (level > MAX_LEVEL_FOR_CROSS_REFERENCE_LIST) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_HIERARCHY_MAXLEVEL_REACHED));
             }
