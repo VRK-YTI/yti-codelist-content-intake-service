@@ -259,7 +259,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
     @Tag(name = "CodeScheme")
     public Response updateCodeScheme(@Parameter(description = "CodeRegistry codeValue", required = true, in = ParameterIn.PATH) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @Parameter(description = "CodeScheme codeValue", required = true, in = ParameterIn.PATH) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                                     @Parameter(description = "Control query parameter that changes code status according to codeScheme status change.", in = ParameterIn.QUERY) @QueryParam("changeCodeStatuses") final String changeCodeStatuses,
+                                     @Parameter(description = "Control query parameter that changes code status according to codeScheme status change.", in = ParameterIn.QUERY) @QueryParam("changeCodeStatuses") @DefaultValue("false") final boolean changeCodeStatuses,
                                      @RequestBody(description = "JSON payload for CodeScheme data.", required = true) final String jsonPayload) {
 
         final CodeSchemeDTO originalCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
@@ -268,7 +268,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
         String endCodeStatus = newCodeScheme.getStatus();
         Set<CodeDTO> codesWhereStatusChanged = null;
 
-        if (changeCodeStatuses != null && changeCodeStatuses.equals("true") && !authorizationManager.isSuperUser()) {
+        if (changeCodeStatuses && !authorizationManager.isSuperUser()) {
             ValidationUtils.validateStatusTransitions(initialCodeStatus, endCodeStatus);
         }
 
@@ -374,7 +374,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 }
             }
 
-            if (changeCodeStatuses != null && changeCodeStatuses.equals("true")) {
+            if (changeCodeStatuses) {
                 codesWhereStatusChanged = codeService.massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, initialCodeStatus, endCodeStatus, true);
             }
 
