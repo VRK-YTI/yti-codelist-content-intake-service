@@ -69,7 +69,10 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_40
 public class TerminologyProxyResource implements AbstractBaseResource {
 
     public static final String ERROR_CREATING_A_CONCEPT_IN_TERMINOLOGY_API = "Error creating a concept in terminology-api!";
+
+    private static final String LANGUAGES_ALL_SELECTED = "all_selected";
     private static final Logger LOG = LoggerFactory.getLogger(TerminologyProxyResource.class);
+
     private final RestTemplate restTemplate;
     private final AuthenticatedUserProvider authenticatedUserProvider;
     private final TerminologyProperties terminologyProperties;
@@ -158,7 +161,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
             if (containerUri != null && !containerUri.isEmpty()) {
                 params.add("container", containerUri);
             }
-            if (!language.equals("all_selected") && !language.isEmpty()) {
+            if (!LANGUAGES_ALL_SELECTED.equalsIgnoreCase(language) && !language.isEmpty()) {
                 params.add("language", language);
             }
             if (pageSize != null) {
