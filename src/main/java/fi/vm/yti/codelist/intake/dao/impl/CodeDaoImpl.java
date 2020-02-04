@@ -40,7 +40,6 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Member;
-import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.util.ValidationUtils;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
@@ -50,7 +49,7 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateC
 public class CodeDaoImpl implements CodeDao {
 
     private static final int MAX_LEVEL = 15;
-    private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParserImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CodeDaoImpl.class);
 
     private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
