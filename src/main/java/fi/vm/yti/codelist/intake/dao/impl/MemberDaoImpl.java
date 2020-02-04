@@ -199,7 +199,7 @@ public class MemberDaoImpl implements MemberDao {
         parentCodeSchemeCodes.forEach(code -> parentCodeSchemeCodesMap.put(code.getUri(), code));
         final Set<CodeScheme> allowedCodeSchemes = gatherAllowedCodeSchemes(parentCodeScheme, extension);
         final Set<Member> membersToBeStored = new HashSet<>();
-        final Integer origNextSequenceId = getNextOrderInSequence(extension);
+        final Integer origNextSequenceId = getNextValueForMemberSequence(extension);
         final MutableInt nextSequenceId = new MutableInt(origNextSequenceId);
         if (memberDtos != null) {
             final Set<Member> existingMembers = findByExtensionId(extension.getId());
