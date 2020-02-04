@@ -1,6 +1,6 @@
 package fi.vm.yti.codelist.intake.configuration;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import javax.sql.DataSource;
 
@@ -96,7 +96,7 @@ public class SpringAppConfig {
     RestTemplate restTemplate() {
         final RestTemplate restTemplate = new RestTemplate(httpRequestFactory());
         restTemplate.getMessageConverters()
-            .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+            .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
         return restTemplate;
     }
 }
