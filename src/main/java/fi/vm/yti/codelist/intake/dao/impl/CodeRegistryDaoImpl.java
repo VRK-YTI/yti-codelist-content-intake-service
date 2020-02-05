@@ -113,8 +113,8 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
             codeRegistry.setUri(uri);
         }
         codeRegistry.setOrganizations(resolveOrganizationsFromDtos(fromCodeRegistry.getOrganizations()));
-        mapPrefLabel(fromCodeRegistry, codeRegistry);
-        mapDescription(fromCodeRegistry, codeRegistry);
+        codeRegistry.setPrefLabel(fromCodeRegistry.getPrefLabel());
+        codeRegistry.setDescription(fromCodeRegistry.getDescription());
         for (final Map.Entry<String, String> entry : fromCodeRegistry.getDescription().entrySet()) {
             final String language = entry.getKey();
             final String value = entry.getValue();
@@ -133,8 +133,8 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         validateCodeValue(codeValue);
         codeRegistry.setCodeValue(codeValue);
         codeRegistry.setOrganizations(resolveOrganizationsFromDtos(fromCodeRegistry.getOrganizations()));
-        mapPrefLabel(fromCodeRegistry, codeRegistry);
-        mapDescription(fromCodeRegistry, codeRegistry);
+        codeRegistry.setPrefLabel(fromCodeRegistry.getPrefLabel());
+        codeRegistry.setDescription(fromCodeRegistry.getDescription());
         codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
         final Date timeStamp = new Date(System.currentTimeMillis());
         codeRegistry.setCreated(timeStamp);
@@ -154,37 +154,5 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_CODEREGISTRY_NO_ORGANIZATION));
         }
         return organizations;
-    }
-
-    private void mapPrefLabel(final CodeRegistryDTO fromCodeRegistry,
-                              final CodeRegistry codeRegistry) {
-        final Map<String, String> prefLabel = fromCodeRegistry.getPrefLabel();
-        if (prefLabel != null && !prefLabel.isEmpty()) {
-            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
-                final String language = entry.getKey();
-                final String value = entry.getValue();
-                if (!Objects.equals(codeRegistry.getPrefLabel(language), value)) {
-                    codeRegistry.setPrefLabel(language, value);
-                }
-            }
-        } else {
-            codeRegistry.setPrefLabel(null);
-        }
-    }
-
-    private void mapDescription(final CodeRegistryDTO fromCodeRegistry,
-                                final CodeRegistry codeRegistry) {
-        final Map<String, String> description = fromCodeRegistry.getDescription();
-        if (description != null && !description.isEmpty()) {
-            for (final Map.Entry<String, String> entry : description.entrySet()) {
-                final String language = entry.getKey();
-                final String value = entry.getValue();
-                if (!Objects.equals(codeRegistry.getDescription(language), value)) {
-                    codeRegistry.setDescription(language, value);
-                }
-            }
-        } else {
-            codeRegistry.setDescription(null);
-        }
     }
 }

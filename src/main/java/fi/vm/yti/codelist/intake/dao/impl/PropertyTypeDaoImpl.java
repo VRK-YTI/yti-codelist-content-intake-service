@@ -106,8 +106,8 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
         if (!Objects.equals(existingPropertyType.getLocalName(), fromPropertyType.getLocalName())) {
             existingPropertyType.setLocalName(fromPropertyType.getLocalName());
         }
-        mapPrefLabel(fromPropertyType, existingPropertyType);
-        mapDefinition(fromPropertyType, existingPropertyType);
+        existingPropertyType.setPrefLabel(fromPropertyType.getPrefLabel());
+        existingPropertyType.setDefinition(fromPropertyType.getDefinition());
         for (final Map.Entry<String, String> entry : fromPropertyType.getDefinition().entrySet()) {
             final String language = entry.getKey();
             final String value = entry.getValue();
@@ -131,8 +131,8 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
         propertyType.setContext(fromPropertyType.getContext());
         propertyType.setLocalName(fromPropertyType.getLocalName());
         propertyType.setUri(fromPropertyType.getUri());
-        mapPrefLabel(fromPropertyType, propertyType);
-        mapDefinition(fromPropertyType, propertyType);
+        propertyType.setPrefLabel(fromPropertyType.getPrefLabel());
+        propertyType.setDefinition(fromPropertyType.getDefinition());
         propertyType.setValueTypes(resolveValueTypesFromDtos(fromPropertyType.getValueTypes()));
         final Date timeStamp = new Date(System.currentTimeMillis());
         propertyType.setCreated(timeStamp);
@@ -151,37 +151,5 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
             });
         }
         return valueTypes;
-    }
-
-    private void mapPrefLabel(final PropertyTypeDTO fromPropertyType,
-                              final PropertyType propertyType) {
-        final Map<String, String> prefLabel = fromPropertyType.getPrefLabel();
-        if (prefLabel != null && !prefLabel.isEmpty()) {
-            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
-                final String language = entry.getKey();
-                final String value = entry.getValue();
-                if (!Objects.equals(propertyType.getPrefLabel(language), value)) {
-                    propertyType.setPrefLabel(language, value);
-                }
-            }
-        } else {
-            propertyType.setPrefLabel(null);
-        }
-    }
-
-    private void mapDefinition(final PropertyTypeDTO fromPropertyType,
-                               final PropertyType propertyType) {
-        final Map<String, String> definition = fromPropertyType.getPrefLabel();
-        if (definition != null && !definition.isEmpty()) {
-            for (final Map.Entry<String, String> entry : definition.entrySet()) {
-                final String language = entry.getKey();
-                final String value = entry.getValue();
-                if (!Objects.equals(propertyType.getDefinition(language), value)) {
-                    propertyType.setDefinition(language, value);
-                }
-            }
-        } else {
-            propertyType.setDefinition(null);
-        }
     }
 }

@@ -46,7 +46,7 @@ import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.JUPO_REGI
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateCodeValue;
 
 @Component
-public class CodeSchemeDaoImpl implements CodeSchemeDao {
+public class CodeSchemeDaoImpl extends AbstractDao implements CodeSchemeDao {
 
     private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
@@ -68,6 +68,7 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
                              final ExternalReferenceDao externalReferenceDao,
                              final LanguageService languageService,
                              final OrganizationRepository organizationRepository) {
+        super(languageService);
         this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.codeRegistryRepository = codeRegistryRepository;
@@ -521,75 +522,36 @@ public class CodeSchemeDaoImpl implements CodeSchemeDao {
     private void mapPrefLabel(final CodeSchemeDTO fromCodeScheme,
                               final CodeScheme codeScheme) {
         final Map<String, String> prefLabel = fromCodeScheme.getPrefLabel();
-        if (prefLabel != null && !prefLabel.isEmpty()) {
-            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
-                final String value = entry.getValue();
-                if (!Objects.equals(codeScheme.getPrefLabel(language), value)) {
-                    codeScheme.setPrefLabel(language, value);
-                }
-            }
-        }
+        validateAndAppendLanguagesForCodeScheme(prefLabel, codeScheme);
+        codeScheme.setPrefLabel(prefLabel);
     }
 
     private void mapDefinition(final CodeSchemeDTO fromCodeScheme,
                                final CodeScheme codeScheme) {
         final Map<String, String> definition = fromCodeScheme.getDefinition();
-        if (definition != null && !definition.isEmpty()) {
-            for (final Map.Entry<String, String> entry : definition.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
-                final String value = entry.getValue();
-                if (!Objects.equals(codeScheme.getDefinition(language), value)) {
-                    codeScheme.setDefinition(language, value);
-                }
-            }
-        }
+        validateAndAppendLanguagesForCodeScheme(definition, codeScheme);
+        codeScheme.setDefinition(definition);
     }
 
     private void mapDescription(final CodeSchemeDTO fromCodeScheme,
                                 final CodeScheme codeScheme) {
         final Map<String, String> description = fromCodeScheme.getDescription();
-        if (description != null && !description.isEmpty()) {
-            for (final Map.Entry<String, String> entry : description.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
-                final String value = entry.getValue();
-                if (!Objects.equals(codeScheme.getDescription(language), value)) {
-                    codeScheme.setDescription(language, value);
-                }
-            }
-        } else {
-            codeScheme.setDescription(null);
-        }
+        validateAndAppendLanguagesForCodeScheme(description, codeScheme);
+        codeScheme.setDescription(description);
     }
 
     private void mapChangeNote(final CodeSchemeDTO fromCodeScheme,
                                final CodeScheme codeScheme) {
         final Map<String, String> changeNote = fromCodeScheme.getChangeNote();
-        if (changeNote != null && !changeNote.isEmpty()) {
-            for (final Map.Entry<String, String> entry : changeNote.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
-                final String value = entry.getValue();
-                if (!Objects.equals(codeScheme.getChangeNote(language), value)) {
-                    codeScheme.setChangeNote(language, value);
-                }
-            }
-        } else {
-            codeScheme.setChangeNote(null);
-        }
+        validateAndAppendLanguagesForCodeScheme(changeNote, codeScheme);
+        codeScheme.setChangeNote(changeNote);
     }
 
     private void mapFeedbackChannel(final CodeSchemeDTO fromCodeScheme,
                                     final CodeScheme codeScheme) {
         final Map<String, String> feedbackChannel = fromCodeScheme.getFeedbackChannel();
-        if (feedbackChannel != null && !feedbackChannel.isEmpty()) {
-            for (final Map.Entry<String, String> entry : feedbackChannel.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
-                final String value = entry.getValue();
-                if (!Objects.equals(codeScheme.getFeedbackChannel(language), value)) {
-                    codeScheme.setFeedbackChannel(language, value);
-                }
-            }
-        }
+        validateAndAppendLanguagesForCodeScheme(feedbackChannel, codeScheme);
+        codeScheme.setFeedbackChannel(feedbackChannel);
     }
 }
 

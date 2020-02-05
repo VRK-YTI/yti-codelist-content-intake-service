@@ -52,7 +52,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlEncodeCodeValue;
 
 @Component
-public class MemberDaoImpl implements MemberDao {
+public class MemberDaoImpl extends AbstractDao implements MemberDao {
 
     private static final String LOCALNAME_CROSS_REFERENCE_LIST = "crossReferenceList";
     private static final String PREFIX_FOR_EXTENSION_SEQUENCE_NAME = "seq_for_ext_";
@@ -83,6 +83,7 @@ public class MemberDaoImpl implements MemberDao {
                          final ApiUtils apiUtils,
                          @Lazy final ExtensionDao extensionDao,
                          final ValueTypeDao valueTypeDao) {
+        super(languageService);
         this.entityChangeLogger = entityChangeLogger;
         this.memberRepository = memberRepository;
         this.codeDao = codeDao;
@@ -837,16 +838,7 @@ public class MemberDaoImpl implements MemberDao {
                               final Member member,
                               final CodeScheme codeScheme) {
         final Map<String, String> prefLabel = fromMember.getPrefLabel();
-        if (prefLabel != null && !prefLabel.isEmpty()) {
-            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
-                final String value = entry.getValue();
-                if (!Objects.equals(member.getPrefLabel(language), value)) {
-                    member.setPrefLabel(language, value);
-                }
-            }
-        } else {
-            member.setPrefLabel(null);
-        }
+        validateAndAppendLanguagesForCodeScheme(prefLabel, codeScheme);
+        member.setPrefLabel(prefLabel);
     }
 }
