@@ -218,7 +218,7 @@ public class MemberDaoImpl extends AbstractDao implements MemberDao {
         if (!affectedMembers.isEmpty()) {
             codeSchemeDao.updateContentModified(extension.getParentCodeScheme().getId());
         }
-        if (nextSequenceId.toInteger() > origNextSequenceId) {
+        if (nextSequenceId.toInteger() >= origNextSequenceId) {
             setMemberSequence(extension, nextSequenceId.toInteger() - 1);
         }
         return affectedMembers;
