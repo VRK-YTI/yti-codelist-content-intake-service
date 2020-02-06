@@ -621,7 +621,7 @@ public class MemberDaoImpl extends AbstractDao implements MemberDao {
                                          final MutableInt nextSequenceId) {
         final Integer fromMemberSequenceId = fromMember.getSequenceId();
         if (fromMemberSequenceId != null) {
-            if (fromMemberSequenceId > nextSequenceId.toInteger()) {
+            if (fromMemberSequenceId >= nextSequenceId.toInteger()) {
                 nextSequenceId.setValue(fromMemberSequenceId + 1);
             }
             return fromMemberSequenceId;
