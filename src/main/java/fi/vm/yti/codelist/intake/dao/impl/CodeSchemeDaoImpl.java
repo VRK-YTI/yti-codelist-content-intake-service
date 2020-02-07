@@ -294,16 +294,6 @@ public class CodeSchemeDaoImpl extends AbstractDao implements CodeSchemeDao {
         mapDefinition(fromCodeScheme, existingCodeScheme);
         mapChangeNote(fromCodeScheme, existingCodeScheme);
         mapFeedbackChannel(fromCodeScheme, existingCodeScheme);
-        final Map<String, String> changeNote = fromCodeScheme.getChangeNote();
-        if (changeNote != null) {
-            for (final Map.Entry<String, String> entry : fromCodeScheme.getChangeNote().entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(existingCodeScheme, entry.getKey(), false);
-                final String value = entry.getValue();
-                if (!Objects.equals(existingCodeScheme.getChangeNote(language), value)) {
-                    existingCodeScheme.setChangeNote(language, value);
-                }
-            }
-        }
         if (!Objects.equals(existingCodeScheme.getVersion(), fromCodeScheme.getVersion())) {
             existingCodeScheme.setVersion(fromCodeScheme.getVersion());
         }
