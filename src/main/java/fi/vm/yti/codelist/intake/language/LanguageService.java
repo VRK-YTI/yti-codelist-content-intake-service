@@ -61,6 +61,16 @@ public class LanguageService {
         return languageCode;
     }
 
+    public String getLanguageCodeCodeValue(final String languageCodeValue) {
+        if (!ytiDataAccess.isInitializing()) {
+            final Code languageCode = languageCodes.get(languageCodeValue.toLowerCase());
+            if (languageCode == null) {
+                throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_BAD_LANGUAGECODE, languageCodeValue));
+            }
+            return languageCode.getCodeValue();
+        } return languageCodeValue;
+    }
+
     public String validateInputLanguageForCodeScheme(final CodeScheme codeScheme,
                                                      final String languageCodeCodeValue) {
         if (!ytiDataAccess.isInitializing()) {

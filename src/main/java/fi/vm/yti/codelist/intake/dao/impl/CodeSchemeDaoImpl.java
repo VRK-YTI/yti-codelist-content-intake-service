@@ -521,36 +521,32 @@ public class CodeSchemeDaoImpl extends AbstractDao implements CodeSchemeDao {
 
     private void mapPrefLabel(final CodeSchemeDTO fromCodeScheme,
                               final CodeScheme codeScheme) {
-        final Map<String, String> prefLabel = fromCodeScheme.getPrefLabel();
-        validateAndAppendLanguagesForCodeScheme(prefLabel, codeScheme);
+
+        final Map<String, String> prefLabel = validateAndAppendLanguagesForCodeScheme(fromCodeScheme.getPrefLabel(), codeScheme);
         codeScheme.setPrefLabel(prefLabel);
     }
 
     private void mapDefinition(final CodeSchemeDTO fromCodeScheme,
                                final CodeScheme codeScheme) {
-        final Map<String, String> definition = fromCodeScheme.getDefinition();
-        validateAndAppendLanguagesForCodeScheme(definition, codeScheme);
+        final Map<String, String> definition = validateAndAppendLanguagesForCodeScheme(fromCodeScheme.getDefinition(), codeScheme);
         codeScheme.setDefinition(definition);
     }
 
     private void mapDescription(final CodeSchemeDTO fromCodeScheme,
                                 final CodeScheme codeScheme) {
-        final Map<String, String> description = fromCodeScheme.getDescription();
-        validateAndAppendLanguagesForCodeScheme(description, codeScheme);
+        final Map<String, String> description = validateAndAppendLanguagesForCodeScheme(fromCodeScheme.getDescription(), codeScheme);
         codeScheme.setDescription(description);
     }
 
     private void mapChangeNote(final CodeSchemeDTO fromCodeScheme,
                                final CodeScheme codeScheme) {
-        final Map<String, String> changeNote = fromCodeScheme.getChangeNote();
-        validateAndAppendLanguagesForCodeScheme(changeNote, codeScheme);
+        final Map<String, String> changeNote = validateAndAppendLanguagesForCodeScheme(fromCodeScheme.getChangeNote(), codeScheme);
         codeScheme.setChangeNote(changeNote);
     }
 
     private void mapFeedbackChannel(final CodeSchemeDTO fromCodeScheme,
                                     final CodeScheme codeScheme) {
-        final Map<String, String> feedbackChannel = fromCodeScheme.getFeedbackChannel();
-        validateAndAppendLanguagesForCodeScheme(feedbackChannel, codeScheme);
+        final Map<String, String> feedbackChannel = validateAndAppendLanguagesForCodeScheme(fromCodeScheme.getFeedbackChannel(), codeScheme);
         codeScheme.setFeedbackChannel(feedbackChannel);
     }
 }

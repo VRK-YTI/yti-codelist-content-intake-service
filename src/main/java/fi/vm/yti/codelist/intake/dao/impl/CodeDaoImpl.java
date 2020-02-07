@@ -649,24 +649,21 @@ public class CodeDaoImpl extends AbstractDao implements CodeDao {
     private void mapPrefLabel(final CodeDTO fromCode,
                               final Code code,
                               final CodeScheme codeScheme) {
-        final Map<String, String> prefLabel = fromCode.getPrefLabel();
-        validateAndAppendLanguagesForCodeScheme(prefLabel, codeScheme);
+        final Map<String, String> prefLabel = validateAndAppendLanguagesForCodeScheme(fromCode.getPrefLabel(),codeScheme);
         code.setPrefLabel(prefLabel);
     }
 
     private void mapDefinition(final CodeDTO fromCode,
                                final Code code,
                                final CodeScheme codeScheme) {
-        final Map<String, String> definition = fromCode.getDefinition();
-        validateAndAppendLanguagesForCodeScheme(definition, codeScheme);
+        final Map<String, String> definition = validateAndAppendLanguagesForCodeScheme(fromCode.getDefinition(), codeScheme);
         code.setDefinition(definition);
     }
 
     private void mapDescription(final CodeDTO fromCode,
                                 final Code code,
                                 final CodeScheme codeScheme) {
-        final Map<String, String> description = fromCode.getDescription();
-        validateAndAppendLanguagesForCodeScheme(description, codeScheme);
+        final Map<String, String> description = validateAndAppendLanguagesForCodeScheme(fromCode.getDescription(), codeScheme);
         code.setDescription(description);
     }
 }

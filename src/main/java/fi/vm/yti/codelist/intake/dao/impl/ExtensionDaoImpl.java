@@ -408,8 +408,7 @@ public class ExtensionDaoImpl extends AbstractDao implements ExtensionDao {
 
     private void mapPrefLabel(final ExtensionDTO fromExtension,
                               final Extension extension) {
-        final Map<String, String> prefLabel = fromExtension.getPrefLabel();
-        validateAndAppendLanguagesForCodeScheme(prefLabel, extension.getParentCodeScheme());
+        final Map<String, String> prefLabel = validateAndAppendLanguagesForCodeScheme(fromExtension.getPrefLabel(), extension.getParentCodeScheme());
         extension.setPrefLabel(prefLabel);
     }
 

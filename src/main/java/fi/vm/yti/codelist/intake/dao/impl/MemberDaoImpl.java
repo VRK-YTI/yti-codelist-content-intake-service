@@ -837,8 +837,7 @@ public class MemberDaoImpl extends AbstractDao implements MemberDao {
     private void mapPrefLabel(final MemberDTO fromMember,
                               final Member member,
                               final CodeScheme codeScheme) {
-        final Map<String, String> prefLabel = fromMember.getPrefLabel();
-        validateAndAppendLanguagesForCodeScheme(prefLabel, codeScheme);
+        final Map<String, String> prefLabel = validateAndAppendLanguagesForCodeScheme(fromMember.getPrefLabel(), codeScheme);
         member.setPrefLabel(prefLabel);
     }
 }

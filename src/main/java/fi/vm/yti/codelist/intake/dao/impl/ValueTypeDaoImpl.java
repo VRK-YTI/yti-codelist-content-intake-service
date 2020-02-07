@@ -1,7 +1,6 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -12,17 +11,20 @@ import org.springframework.transaction.annotation.Transactional;
 import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.intake.dao.ValueTypeDao;
 import fi.vm.yti.codelist.intake.jpa.ValueTypeRepository;
+import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.ValueType;
 
 @Component
-public class ValueTypeDaoImpl implements ValueTypeDao {
+public class ValueTypeDaoImpl extends AbstractDao implements ValueTypeDao {
 
     private final EntityChangeLogger entityChangeLogger;
     private final ValueTypeRepository valueTypeRepository;
 
     public ValueTypeDaoImpl(final EntityChangeLogger entityChangeLogger,
-                            final ValueTypeRepository valueTypeRepository) {
+                            final ValueTypeRepository valueTypeRepository,
+                            final LanguageService languageService) {
+        super(languageService);
         this.entityChangeLogger = entityChangeLogger;
         this.valueTypeRepository = valueTypeRepository;
     }
@@ -92,7 +94,7 @@ public class ValueTypeDaoImpl implements ValueTypeDao {
             existingValueType.setRegexp(fromValueType.getRegexp());
         }
         existingValueType.setRequired(fromValueType.getRequired());
-        existingValueType.setPrefLabel(fromValueType.getPrefLabel());
+        existingValueType.setPrefLabel(validateLanguagesForLocalizable(fromValueType.getPrefLabel()));
         return existingValueType;
     }
 
@@ -109,7 +111,7 @@ public class ValueTypeDaoImpl implements ValueTypeDao {
         valueType.setLocalName(fromValueType.getLocalName());
         valueType.setRegexp(fromValueType.getRegexp());
         valueType.setRequired(fromValueType.getRequired());
-        valueType.setPrefLabel(fromValueType.getPrefLabel());
+        valueType.setPrefLabel(validateLanguagesForLocalizable(fromValueType.getPrefLabel()));
         return valueType;
     }
 }

@@ -255,15 +255,13 @@ public class ExternalReferenceDaoImpl extends AbstractDao implements ExternalRef
 
     private void mapTitle(final ExternalReferenceDTO fromExternalReference,
                           final ExternalReference externalReference) {
-        final Map<String, String> title = fromExternalReference.getTitle();
-        validateAndAppendLanguagesForCodeScheme(title, externalReference.getParentCodeScheme());
+        final Map<String, String> title = validateAndAppendLanguagesForCodeScheme(fromExternalReference.getTitle(), externalReference.getParentCodeScheme());
         externalReference.setTitle(title);
     }
 
     private void mapDescription(final ExternalReferenceDTO fromExternalReference,
                                 final ExternalReference externalReference) {
-        final Map<String, String> description = fromExternalReference.getDescription();
-        validateAndAppendLanguagesForCodeScheme(description, externalReference.getParentCodeScheme());
+        final Map<String, String> description = validateAndAppendLanguagesForCodeScheme(fromExternalReference.getDescription(), externalReference.getParentCodeScheme());
         externalReference.setDescription(description);
     }
 }

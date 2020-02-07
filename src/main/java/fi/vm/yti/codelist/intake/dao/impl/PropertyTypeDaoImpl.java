@@ -15,12 +15,13 @@ import fi.vm.yti.codelist.common.dto.ValueTypeDTO;
 import fi.vm.yti.codelist.intake.dao.PropertyTypeDao;
 import fi.vm.yti.codelist.intake.dao.ValueTypeDao;
 import fi.vm.yti.codelist.intake.jpa.PropertyTypeRepository;
+import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.PropertyType;
 import fi.vm.yti.codelist.intake.model.ValueType;
 
 @Component
-public class PropertyTypeDaoImpl implements PropertyTypeDao {
+public class PropertyTypeDaoImpl extends AbstractDao implements PropertyTypeDao {
 
     private final EntityChangeLogger entityChangeLogger;
     private final PropertyTypeRepository propertyTypeRepository;
@@ -28,7 +29,9 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
 
     public PropertyTypeDaoImpl(final EntityChangeLogger entityChangeLogger,
                                final PropertyTypeRepository propertyTypeRepository,
-                               final ValueTypeDao valueTypeDao) {
+                               final ValueTypeDao valueTypeDao,
+                               final LanguageService languageService) {
+        super(languageService);
         this.entityChangeLogger = entityChangeLogger;
         this.propertyTypeRepository = propertyTypeRepository;
         this.valueTypeDao = valueTypeDao;
@@ -106,8 +109,8 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
         if (!Objects.equals(existingPropertyType.getLocalName(), fromPropertyType.getLocalName())) {
             existingPropertyType.setLocalName(fromPropertyType.getLocalName());
         }
-        existingPropertyType.setPrefLabel(fromPropertyType.getPrefLabel());
-        existingPropertyType.setDefinition(fromPropertyType.getDefinition());
+        existingPropertyType.setPrefLabel(validateLanguagesForLocalizable(fromPropertyType.getPrefLabel()));
+        existingPropertyType.setDefinition(validateLanguagesForLocalizable(fromPropertyType.getDefinition()));
         for (final Map.Entry<String, String> entry : fromPropertyType.getDefinition().entrySet()) {
             final String language = entry.getKey();
             final String value = entry.getValue();
@@ -131,8 +134,8 @@ public class PropertyTypeDaoImpl implements PropertyTypeDao {
         propertyType.setContext(fromPropertyType.getContext());
         propertyType.setLocalName(fromPropertyType.getLocalName());
         propertyType.setUri(fromPropertyType.getUri());
-        propertyType.setPrefLabel(fromPropertyType.getPrefLabel());
-        propertyType.setDefinition(fromPropertyType.getDefinition());
+        propertyType.setPrefLabel(validateLanguagesForLocalizable(fromPropertyType.getPrefLabel()));
+        propertyType.setDefinition(validateLanguagesForLocalizable(fromPropertyType.getDefinition()));
         propertyType.setValueTypes(resolveValueTypesFromDtos(fromPropertyType.getValueTypes()));
         final Date timeStamp = new Date(System.currentTimeMillis());
         propertyType.setCreated(timeStamp);

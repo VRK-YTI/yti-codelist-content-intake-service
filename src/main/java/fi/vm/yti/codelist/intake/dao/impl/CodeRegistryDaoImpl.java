@@ -21,6 +21,7 @@ import fi.vm.yti.codelist.intake.dao.CodeRegistryDao;
 import fi.vm.yti.codelist.intake.exception.YtiCodeListException;
 import fi.vm.yti.codelist.intake.jpa.CodeRegistryRepository;
 import fi.vm.yti.codelist.intake.jpa.OrganizationRepository;
+import fi.vm.yti.codelist.intake.language.LanguageService;
 import fi.vm.yti.codelist.intake.log.EntityChangeLogger;
 import fi.vm.yti.codelist.intake.model.CodeRegistry;
 import fi.vm.yti.codelist.intake.model.Organization;
@@ -28,7 +29,7 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_CO
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateCodeValue;
 
 @Component
-public class CodeRegistryDaoImpl implements CodeRegistryDao {
+public class CodeRegistryDaoImpl extends AbstractDao implements CodeRegistryDao {
 
     private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
@@ -39,7 +40,9 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
     public CodeRegistryDaoImpl(final EntityChangeLogger entityChangeLogger,
                                final ApiUtils apiUtils,
                                final CodeRegistryRepository codeRegistryRepository,
-                               final OrganizationRepository organizationRepository) {
+                               final OrganizationRepository organizationRepository,
+                               final LanguageService languageService) {
+        super(languageService);
         this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.codeRegistryRepository = codeRegistryRepository;
@@ -106,24 +109,24 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         return codeRegistry;
     }
 
-    private CodeRegistry updateCodeRegistry(final CodeRegistry codeRegistry,
+    private CodeRegistry updateCodeRegistry(final CodeRegistry existingCodeRegistry,
                                             final CodeRegistryDTO fromCodeRegistry) {
-        final String uri = apiUtils.createCodeRegistryUri(codeRegistry);
-        if (!Objects.equals(codeRegistry.getUri(), uri)) {
-            codeRegistry.setUri(uri);
+        final String uri = apiUtils.createCodeRegistryUri(existingCodeRegistry);
+        if (!Objects.equals(existingCodeRegistry.getUri(), uri)) {
+            existingCodeRegistry.setUri(uri);
         }
-        codeRegistry.setOrganizations(resolveOrganizationsFromDtos(fromCodeRegistry.getOrganizations()));
-        codeRegistry.setPrefLabel(fromCodeRegistry.getPrefLabel());
-        codeRegistry.setDescription(fromCodeRegistry.getDescription());
+        existingCodeRegistry.setOrganizations(resolveOrganizationsFromDtos(fromCodeRegistry.getOrganizations()));
+        existingCodeRegistry.setPrefLabel(validateLanguagesForLocalizable(fromCodeRegistry.getPrefLabel()));
+        existingCodeRegistry.setDescription(validateLanguagesForLocalizable(fromCodeRegistry.getDescription()));
         for (final Map.Entry<String, String> entry : fromCodeRegistry.getDescription().entrySet()) {
             final String language = entry.getKey();
             final String value = entry.getValue();
-            if (!Objects.equals(codeRegistry.getDescription(language), value)) {
-                codeRegistry.setDescription(language, value);
+            if (!Objects.equals(existingCodeRegistry.getDescription(language), value)) {
+                existingCodeRegistry.setDescription(language, value);
             }
         }
-        codeRegistry.setModified(new Date(System.currentTimeMillis()));
-        return codeRegistry;
+        existingCodeRegistry.setModified(new Date(System.currentTimeMillis()));
+        return existingCodeRegistry;
     }
 
     private CodeRegistry createCodeRegistry(final CodeRegistryDTO fromCodeRegistry) {
@@ -133,8 +136,8 @@ public class CodeRegistryDaoImpl implements CodeRegistryDao {
         validateCodeValue(codeValue);
         codeRegistry.setCodeValue(codeValue);
         codeRegistry.setOrganizations(resolveOrganizationsFromDtos(fromCodeRegistry.getOrganizations()));
-        codeRegistry.setPrefLabel(fromCodeRegistry.getPrefLabel());
-        codeRegistry.setDescription(fromCodeRegistry.getDescription());
+        codeRegistry.setPrefLabel(validateLanguagesForLocalizable(fromCodeRegistry.getPrefLabel()));
+        codeRegistry.setDescription(validateLanguagesForLocalizable(fromCodeRegistry.getDescription()));
         codeRegistry.setUri(apiUtils.createCodeRegistryUri(codeRegistry));
         final Date timeStamp = new Date(System.currentTimeMillis());
         codeRegistry.setCreated(timeStamp);
