@@ -46,7 +46,7 @@ import static fi.vm.yti.codelist.common.constants.ApiConstants.EXTENSION;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
-public class ExtensionDaoImpl implements ExtensionDao {
+public class ExtensionDaoImpl extends AbstractDao implements ExtensionDao {
 
     private final AuthorizationManager authorizationManager;
     private final EntityChangeLogger entityChangeLogger;
@@ -68,6 +68,7 @@ public class ExtensionDaoImpl implements ExtensionDao {
                             final MemberDao memberDao,
                             final ApiUtils apiUtils,
                             final MemberRepository memberRepository) {
+        super(languageService);
         this.authorizationManager = authorizationManager;
         this.entityChangeLogger = entityChangeLogger;
         this.extensionRepository = extensionRepository;
@@ -407,18 +408,8 @@ public class ExtensionDaoImpl implements ExtensionDao {
 
     private void mapPrefLabel(final ExtensionDTO fromExtension,
                               final Extension extension) {
-        final Map<String, String> prefLabel = fromExtension.getPrefLabel();
-        if (prefLabel != null && !prefLabel.isEmpty()) {
-            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(extension.getParentCodeScheme(), entry.getKey());
-                final String value = entry.getValue();
-                if (!Objects.equals(extension.getPrefLabel(language), value)) {
-                    extension.setPrefLabel(language, value);
-                }
-            }
-        } else {
-            extension.setPrefLabel(null);
-        }
+        final Map<String, String> prefLabel = validateAndAppendLanguagesForCodeScheme(fromExtension.getPrefLabel(), extension.getParentCodeScheme());
+        extension.setPrefLabel(prefLabel);
     }
 
     @Transactional

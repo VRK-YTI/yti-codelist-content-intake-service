@@ -52,10 +52,11 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.util.EncodingUtils.urlEncodeCodeValue;
 
 @Component
-public class MemberDaoImpl implements MemberDao {
+public class MemberDaoImpl extends AbstractDao implements MemberDao {
 
+    private static final String LOCALNAME_CROSS_REFERENCE_LIST = "crossReferenceList";
     private static final String PREFIX_FOR_EXTENSION_SEQUENCE_NAME = "seq_for_ext_";
-    private static final int MAX_LEVEL = 10;
+    private static final int MAX_LEVEL = 15;
     private static final int MAX_LEVEL_FOR_CROSS_REFERENCE_LIST = 2;
     private static final String CODE_PREFIX = "code:";
     private static final String MEMBER_PREFIX = "member:";
@@ -82,6 +83,7 @@ public class MemberDaoImpl implements MemberDao {
                          final ApiUtils apiUtils,
                          @Lazy final ExtensionDao extensionDao,
                          final ValueTypeDao valueTypeDao) {
+        super(languageService);
         this.entityChangeLogger = entityChangeLogger;
         this.memberRepository = memberRepository;
         this.codeDao = codeDao;
@@ -182,9 +184,7 @@ public class MemberDaoImpl implements MemberDao {
 
     private Map<String, ValueType> getValueTypeMap() {
         final Map<String, ValueType> valueTypeMap = new HashMap<>();
-        valueTypeDao.findAll().forEach(valueType -> {
-            valueTypeMap.put(valueType.getLocalName(), valueType);
-        });
+        valueTypeDao.findAll().forEach(valueType -> valueTypeMap.put(valueType.getLocalName(), valueType));
         return valueTypeMap;
     }
 
@@ -452,7 +452,7 @@ public class MemberDaoImpl implements MemberDao {
                                                final Member member,
                                                final int level,
                                                final Extension extension) {
-        if (extension.getPropertyType().getLocalName().equals("crossReferenceList")) {
+        if (LOCALNAME_CROSS_REFERENCE_LIST.equalsIgnoreCase(extension.getPropertyType().getLocalName())) {
             if (level > MAX_LEVEL_FOR_CROSS_REFERENCE_LIST) {
                 throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_MEMBER_HIERARCHY_MAXLEVEL_REACHED));
             }
@@ -837,17 +837,7 @@ public class MemberDaoImpl implements MemberDao {
     private void mapPrefLabel(final MemberDTO fromMember,
                               final Member member,
                               final CodeScheme codeScheme) {
-        final Map<String, String> prefLabel = fromMember.getPrefLabel();
-        if (prefLabel != null && !prefLabel.isEmpty()) {
-            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey());
-                final String value = entry.getValue();
-                if (!Objects.equals(member.getPrefLabel(language), value)) {
-                    member.setPrefLabel(language, value);
-                }
-            }
-        } else {
-            member.setPrefLabel(null);
-        }
+        final Map<String, String> prefLabel = validateAndAppendLanguagesForCodeScheme(fromMember.getPrefLabel(), codeScheme);
+        member.setPrefLabel(prefLabel);
     }
 }

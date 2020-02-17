@@ -47,7 +47,7 @@ public interface Indexing {
 
     void updatePropertyTypes(final Set<PropertyTypeDTO> propertyTypes);
 
-    void updateValueType(final ValueTypeDTO ValueTypeDTO);
+    void updateValueType(final ValueTypeDTO valueTypeDTO);
 
     void updateValueTypes(final Set<ValueTypeDTO> valueTypes);
 

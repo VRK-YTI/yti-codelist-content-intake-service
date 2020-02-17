@@ -1,6 +1,6 @@
 package fi.vm.yti.codelist.intake.configuration;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import javax.sql.DataSource;
 
@@ -35,7 +35,6 @@ public class SpringAppConfig {
 
     private static final int CONNECTION_TIMEOUT = 30000;
     private static final int ES_CONNECTION_TIMEOUT = 300000;
-    private static final int ES_RETRY_TIMEOUT = 60000;
 
     @Value("${yti_codelist_content_intake_service_elastic_host}")
     private String elasticsearchHost;
@@ -81,8 +80,7 @@ public class SpringAppConfig {
             .setRequestConfigCallback(
                 requestConfigBuilder -> requestConfigBuilder
                     .setConnectTimeout(ES_CONNECTION_TIMEOUT)
-                    .setSocketTimeout(ES_CONNECTION_TIMEOUT))
-            .setMaxRetryTimeoutMillis(ES_RETRY_TIMEOUT);
+                    .setSocketTimeout(ES_CONNECTION_TIMEOUT));
         return new RestHighLevelClient(builder);
     }
 
@@ -98,7 +96,7 @@ public class SpringAppConfig {
     RestTemplate restTemplate() {
         final RestTemplate restTemplate = new RestTemplate(httpRequestFactory());
         restTemplate.getMessageConverters()
-            .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+            .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
         return restTemplate;
     }
 }

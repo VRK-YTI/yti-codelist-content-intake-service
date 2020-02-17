@@ -25,14 +25,15 @@ public interface ValidationUtils {
     }
 
     @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
-    static void validateCodeStatusTransitions(final String initialCodeStatus,
-                                              final String endCodeStatus) {
+    static void validateStatusTransitions(final String initialCodeStatus,
+                                          final String endCodeStatus) {
         final Map<String, List<String>> allowedTransitions = new HashMap<>();
         allowedTransitions.put(Status.INCOMPLETE.toString(), new ArrayList<>(Arrays.asList(Status.DRAFT.toString())));
         allowedTransitions.put(Status.DRAFT.toString(), new ArrayList<>(Arrays.asList(Status.INCOMPLETE.toString(), Status.VALID.toString())));
-        allowedTransitions.put(Status.VALID.toString(), new ArrayList<>(Arrays.asList(Status.RETIRED.toString(), Status.INVALID.toString())));
-        allowedTransitions.put(Status.RETIRED.toString(), new ArrayList<>(Arrays.asList(Status.VALID.toString(), Status.INVALID.toString())));
-        allowedTransitions.put(Status.INVALID.toString(), new ArrayList<>(Arrays.asList(Status.VALID.toString(), Status.RETIRED.toString())));
+        allowedTransitions.put(Status.VALID.toString(), new ArrayList<>(Arrays.asList(Status.RETIRED.toString(), Status.INVALID.toString(), Status.SUPERSEDED.toString())));
+        allowedTransitions.put(Status.RETIRED.toString(), new ArrayList<>(Arrays.asList(Status.VALID.toString(), Status.INVALID.toString(), Status.SUPERSEDED.toString())));
+        allowedTransitions.put(Status.INVALID.toString(), new ArrayList<>(Arrays.asList(Status.VALID.toString(), Status.RETIRED.toString(), Status.SUPERSEDED.toString())));
+        allowedTransitions.put(Status.SUPERSEDED.toString(), new ArrayList<>(Arrays.asList(Status.VALID.toString(), Status.RETIRED.toString(), Status.INVALID.toString())));
 
         if (!allowedTransitions.keySet().contains(initialCodeStatus)) {
             throw new CodeStatusTransitionWrongInitialStatusException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),

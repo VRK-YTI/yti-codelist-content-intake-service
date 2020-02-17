@@ -259,7 +259,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
     @Tag(name = "CodeScheme")
     public Response updateCodeScheme(@Parameter(description = "CodeRegistry codeValue", required = true, in = ParameterIn.PATH) @PathParam("codeRegistryCodeValue") final String codeRegistryCodeValue,
                                      @Parameter(description = "CodeScheme codeValue", required = true, in = ParameterIn.PATH) @PathParam("codeSchemeCodeValue") final String codeSchemeCodeValue,
-                                     @Parameter(description = "Control query parameter that changes code status according to codeScheme status change.", in = ParameterIn.QUERY) @QueryParam("changeCodeStatuses") final String changeCodeStatuses,
+                                     @Parameter(description = "Control query parameter that changes code status according to codeScheme status change.", in = ParameterIn.QUERY) @QueryParam("changeCodeStatuses") @DefaultValue("false") final boolean changeCodeStatuses,
                                      @RequestBody(description = "JSON payload for CodeScheme data.", required = true) final String jsonPayload) {
 
         final CodeSchemeDTO originalCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
@@ -268,8 +268,8 @@ public class CodeRegistryResource implements AbstractBaseResource {
         String endCodeStatus = newCodeScheme.getStatus();
         Set<CodeDTO> codesWhereStatusChanged = null;
 
-        if (changeCodeStatuses != null && changeCodeStatuses.equals("true") && !authorizationManager.isSuperUser()) {
-            ValidationUtils.validateCodeStatusTransitions(initialCodeStatus, endCodeStatus);
+        if (changeCodeStatuses && !authorizationManager.isSuperUser()) {
+            ValidationUtils.validateStatusTransitions(initialCodeStatus, endCodeStatus);
         }
 
         final CodeSchemeDTO codeScheme = codeSchemeService.parseAndPersistCodeSchemeFromJson(codeRegistryCodeValue, codeSchemeCodeValue, jsonPayload);
@@ -374,7 +374,7 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 }
             }
 
-            if (changeCodeStatuses != null && changeCodeStatuses.equals("true")) {
+            if (changeCodeStatuses) {
                 codesWhereStatusChanged = codeService.massChangeCodeStatuses(codeRegistryCodeValue, codeSchemeCodeValue, initialCodeStatus, endCodeStatus, true);
             }
 
@@ -1084,9 +1084,11 @@ public class CodeRegistryResource implements AbstractBaseResource {
         final ExtensionDTO extension = extensionService.findByCodeSchemeIdAndCodeValue(codeSchemeId, extensionCodeValue);
         final Set<MemberDTO> createdMembers = memberService.createMissingMembersForAllCodesOfAllCodelistsOfAnExtension(extension);
         final CodeSchemeDTO codeScheme = codeSchemeService.findById(codeSchemeId);
+        final Set<CodeDTO> codes = codeService.findByCodeSchemeId(codeScheme.getId());
         codeSchemeService.populateAllVersionsToCodeSchemeDTO(codeScheme);
         indexing.updateCodeScheme(codeScheme);
         indexing.updateExtension(extension);
+        indexing.updateCodes(codes);
         indexing.updateMembers(createdMembers);
         final Meta meta = new Meta();
         ObjectWriterInjector.set(new FilterModifier(createSimpleFilterProvider(FILTER_NAME_MEMBER, "extension,codeScheme,code,codeRegistry,propertyType,valueType,memberValue"), pretty));

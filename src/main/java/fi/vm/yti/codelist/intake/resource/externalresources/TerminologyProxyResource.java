@@ -69,7 +69,10 @@ import static fi.vm.yti.codelist.intake.exception.ErrorConstants.ERR_MSG_USER_40
 public class TerminologyProxyResource implements AbstractBaseResource {
 
     public static final String ERROR_CREATING_A_CONCEPT_IN_TERMINOLOGY_API = "Error creating a concept in terminology-api!";
+
+    private static final String LANGUAGES_ALL_SELECTED = "all_selected";
     private static final Logger LOG = LoggerFactory.getLogger(TerminologyProxyResource.class);
+
     private final RestTemplate restTemplate;
     private final AuthenticatedUserProvider authenticatedUserProvider;
     private final TerminologyProperties terminologyProperties;
@@ -158,7 +161,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
             if (containerUri != null && !containerUri.isEmpty()) {
                 params.add("container", containerUri);
             }
-            if (!language.equals("all_selected") && !language.isEmpty()) {
+            if (!LANGUAGES_ALL_SELECTED.equalsIgnoreCase(language) && !language.isEmpty()) {
                 params.add("language", language);
             }
             if (pageSize != null) {
@@ -265,11 +268,10 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         try {
             meta.setCode(200);
             meta.setResultCount(1);
-            final Set<Concept> resultAsConcept = new HashSet<>(); //always just one result in this Set.
-            Concept theNewConcept = parseTheNewConceptFromResponse(response);
-            resultAsConcept.add(theNewConcept);
-
-            wrapper.setResults(new HashSet<>(resultAsConcept));
+            final Set<Concept> concepts = new HashSet<>(); //always just one result in this Set.
+            final Concept concept = parseConceptFromResponse(response);
+            concepts.add(concept);
+            wrapper.setResults(new HashSet<>(concepts));
             return Response.ok(wrapper).build();
         } catch (final Exception e) {
             LOG.error("Error parsing conceptSuggestion from terminology response!", e);
@@ -329,7 +331,7 @@ public class TerminologyProxyResource implements AbstractBaseResource {
         }
     }
 
-    private Concept parseTheNewConceptFromResponse(final ResponseEntity response) {
+    private Concept parseConceptFromResponse(final ResponseEntity response) {
         final Object responseBody = response.getBody();
         if (responseBody != null) {
             try {

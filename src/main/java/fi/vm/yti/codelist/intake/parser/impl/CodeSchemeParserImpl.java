@@ -361,12 +361,6 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
         }
     }
 
-    protected void validateRequiredDataOnRow(final Row row,
-                                             final Map<String, Integer> headerMap,
-                                             final DataFormatter formatter) {
-        super.validateRequiredDataOnRow(row, headerMap, formatter);
-    }
-
     private void validateRequiredHeaders(final Map<String, Integer> headerMap) {
         if (!headerMap.containsKey(CONTENT_HEADER_CODEVALUE)) {
             throw new MissingHeaderCodeValueException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(),

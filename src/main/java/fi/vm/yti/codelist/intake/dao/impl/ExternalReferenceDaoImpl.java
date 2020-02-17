@@ -27,7 +27,7 @@ import fi.vm.yti.codelist.intake.model.PropertyType;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 
 @Component
-public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
+public class ExternalReferenceDaoImpl extends AbstractDao implements ExternalReferenceDao {
 
     private static final String CONTEXT_EXTERNALREFERENCE = "ExternalReference";
     private static final String EXTERNALREFERENCE_LINK_TYPE = "link";
@@ -43,6 +43,7 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
                                     final ExternalReferenceRepository externalReferenceRepository,
                                     final PropertyTypeRepository propertyTypeRepository,
                                     final LanguageService languageService) {
+        super(languageService);
         this.entityChangeLogger = entityChangeLogger;
         this.externalReferenceRepository = externalReferenceRepository;
         this.propertyTypeRepository = propertyTypeRepository;
@@ -254,33 +255,13 @@ public class ExternalReferenceDaoImpl implements ExternalReferenceDao {
 
     private void mapTitle(final ExternalReferenceDTO fromExternalReference,
                           final ExternalReference externalReference) {
-        final Map<String, String> title = fromExternalReference.getTitle();
-        if (title != null && !title.isEmpty()) {
-            for (final Map.Entry<String, String> entry : title.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(externalReference.getParentCodeScheme(), entry.getKey());
-                final String value = entry.getValue();
-                if (!Objects.equals(externalReference.getTitle(language), value)) {
-                    externalReference.setTitle(language, value);
-                }
-            }
-        } else {
-            externalReference.setTitle(null);
-        }
+        final Map<String, String> title = validateAndAppendLanguagesForCodeScheme(fromExternalReference.getTitle(), externalReference.getParentCodeScheme());
+        externalReference.setTitle(title);
     }
 
     private void mapDescription(final ExternalReferenceDTO fromExternalReference,
                                 final ExternalReference externalReference) {
-        final Map<String, String> description = fromExternalReference.getDescription();
-        if (description != null && !description.isEmpty()) {
-            for (final Map.Entry<String, String> entry : description.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(externalReference.getParentCodeScheme(), entry.getKey());
-                final String value = entry.getValue();
-                if (!Objects.equals(externalReference.getDescription(language), value)) {
-                    externalReference.setDescription(language, value);
-                }
-            }
-        } else {
-            externalReference.setDescription(null);
-        }
+        final Map<String, String> description = validateAndAppendLanguagesForCodeScheme(fromExternalReference.getDescription(), externalReference.getParentCodeScheme());
+        externalReference.setDescription(description);
     }
 }

@@ -250,9 +250,8 @@ public class CloningServiceImpl implements CloningService {
         }
     }
 
-    @Transactional
-    protected Set<Extension> handleExtensions(final CodeScheme newCodeScheme,
-                                              final Set<Extension> originalExtensions) {
+    private Set<Extension> handleExtensions(final CodeScheme newCodeScheme,
+                                            final Set<Extension> originalExtensions) {
         final Set<Extension> clonedExtensions = new HashSet<>();
         for (final Extension originalExtension : originalExtensions) {
             clonedExtensions.add(cloneExtension(originalExtension, newCodeScheme));
@@ -345,9 +344,8 @@ public class CloningServiceImpl implements CloningService {
         }
     }
 
-    @Transactional
-    protected Extension cloneExtension(final Extension original,
-                                       final CodeScheme newCodeScheme) {
+    private Extension cloneExtension(final Extension original,
+                                     final CodeScheme newCodeScheme) {
         final Extension copy = new Extension();
         copy.setId(UUID.randomUUID());
         copy.setEndDate(original.getEndDate());
@@ -505,10 +503,9 @@ public class CloningServiceImpl implements CloningService {
         return externalReferenceMap;
     }
 
-    @Transactional
-    protected void handleCodeSchemeExternalReferences(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
-                                                      final CodeScheme originalCodeScheme,
-                                                      final Map<UUID, ExternalReference> externalReferenceMap) {
+    private void handleCodeSchemeExternalReferences(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
+                                                    final CodeScheme originalCodeScheme,
+                                                    final Map<UUID, ExternalReference> externalReferenceMap) {
         final Set<ExternalReference> originalExternalReferences = originalCodeScheme.getExternalReferences();
         final Set<ExternalReference> newExternalReferences = new HashSet<>();
         originalExternalReferences.forEach(originalExternalReference -> {
@@ -524,12 +521,11 @@ public class CloningServiceImpl implements CloningService {
         codeSchemeWithUserChangesFromUi.setExternalReferences(extRefDtos);
     }
 
-    @Transactional
     @SuppressFBWarnings({ "UC_USELESS_OBJECT" })
-    protected Set<Code> handleCodes(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
-                                    final Set<Code> originalCodes,
-                                    final CodeScheme newCodeScheme,
-                                    final Map<UUID, ExternalReference> externalReferenceMap) {
+    private Set<Code> handleCodes(final CodeSchemeDTO codeSchemeWithUserChangesFromUi,
+                                  final Set<Code> originalCodes,
+                                  final CodeScheme newCodeScheme,
+                                  final Map<UUID, ExternalReference> externalReferenceMap) {
         final Set<Code> clonedCodes = new HashSet<>();
 
         final Map<UUID, Code> originalCodesMap = originalCodes.stream().collect(Collectors.toMap(Code::getId, code -> code));
@@ -613,9 +609,8 @@ public class CloningServiceImpl implements CloningService {
         return codeSchemeRepository.findCodeSchemeAndEagerFetchTheChildren(id);
     }
 
-    @Transactional
-    ExternalReference cloneExternalReference(final ExternalReference original,
-                                             final CodeScheme newCodeScheme) {
+    private ExternalReference cloneExternalReference(final ExternalReference original,
+                                                     final CodeScheme newCodeScheme) {
         final ExternalReference copy = new ExternalReference();
         copy.setParentCodeScheme(newCodeScheme);
         copy.setId(UUID.randomUUID());

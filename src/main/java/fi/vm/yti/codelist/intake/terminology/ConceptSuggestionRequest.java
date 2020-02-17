@@ -18,26 +18,9 @@ public class ConceptSuggestionRequest {
     }
 
     public ConceptSuggestionRequest(final Attribute prefLabel,
-                             final String terminologyUri) {
-        this.prefLabel = prefLabel;
-        this.definition = null;
-        this.creator = null;
-        this.terminologyUri = terminologyUri;
-    }
-
-    public ConceptSuggestionRequest(final Attribute prefLabel,
-                             final Attribute definition,
-                             final String terminologyUri) {
-        this.prefLabel = prefLabel;
-        this.definition = definition;
-        this.creator = null;
-        this.terminologyUri = terminologyUri;
-    }
-
-    public ConceptSuggestionRequest(final Attribute prefLabel,
-                             final Attribute definition,
-                             final UUID creator,
-                             final String terminologyUri) {
+                                    final Attribute definition,
+                                    final UUID creator,
+                                    final String terminologyUri) {
         this.prefLabel = prefLabel;
         this.definition = definition;
         this.creator = creator;

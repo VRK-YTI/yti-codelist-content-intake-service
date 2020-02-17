@@ -231,7 +231,7 @@ public class CodeServiceImpl implements CodeService, AbstractBaseService {
                                                final String endCodeStatus,
                                                final boolean skipValidation) {
         if (!skipValidation && !authorizationManager.isSuperUser()) {
-            ValidationUtils.validateCodeStatusTransitions(initialCodeStatus, endCodeStatus);
+            ValidationUtils.validateStatusTransitions(initialCodeStatus, endCodeStatus);
         }
 
         final Set<Code> codes;

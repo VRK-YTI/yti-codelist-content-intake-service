@@ -150,7 +150,7 @@ public class IndexingImpl implements Indexing {
         int page = 0;
         boolean success = true;
         while (page + 1 <= pageCount) {
-            final PageRequest pageRequest = PageRequest.of(page, MAX_PAGE_COUNT, new Sort(Sort.Direction.ASC, "codeValue"));
+            final PageRequest pageRequest = PageRequest.of(page, MAX_PAGE_COUNT, Sort.by(Sort.Direction.ASC, "codeValue"));
             final Set<CodeDTO> codes = codeService.findAll(pageRequest);
             final boolean partIndexSuccess = indexData(codes, indexName, ELASTIC_TYPE_CODE, NAME_CODES, Views.ExtendedCode.class);
             if (!partIndexSuccess) {
@@ -187,7 +187,7 @@ public class IndexingImpl implements Indexing {
         int page = 0;
         boolean success = true;
         while (page + 1 <= pageCount) {
-            final PageRequest pageRequest = PageRequest.of(page, MAX_EXTENSION_PAGE_COUNT, new Sort(Sort.Direction.ASC, "uri"));
+            final PageRequest pageRequest = PageRequest.of(page, MAX_EXTENSION_PAGE_COUNT, Sort.by(Sort.Direction.ASC, "uri"));
             final Set<ExtensionDTO> extensions = extensionService.findAll(pageRequest);
             final boolean partIndexSuccess = indexData(extensions, indexName, ELASTIC_TYPE_EXTENSION, NAME_EXTENSIONS, Views.ExtendedExtension.class);
             if (!partIndexSuccess) {
@@ -209,7 +209,7 @@ public class IndexingImpl implements Indexing {
         int page = 0;
         boolean success = true;
         while (page + 1 <= pageCount) {
-            final PageRequest pageRequest = PageRequest.of(page, MAX_MEMBER_PAGE_COUNT, new Sort(Sort.Direction.ASC, "uri"));
+            final PageRequest pageRequest = PageRequest.of(page, MAX_MEMBER_PAGE_COUNT, Sort.by(Sort.Direction.ASC, "uri"));
             final Set<MemberDTO> members = memberService.findAll(pageRequest);
             final boolean partIndexSuccess = indexData(members, indexName, ELASTIC_TYPE_MEMBER, NAME_MEMBERS, Views.ExtendedMember.class);
             if (!partIndexSuccess) {

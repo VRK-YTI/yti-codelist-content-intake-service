@@ -33,13 +33,13 @@ public class CodeDaoTest {
         for (final Code code : codes) {
             assertEquals(++i, (int) code.getHierarchyLevel());
         }
-        assertEquals(8, codes.size());
+        assertEquals(15, codes.size());
     }
 
     private Set<Code> createCodes() {
         final Set<Code> codes = new LinkedHashSet<>();
         Code earlierCode = null;
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 15; i++) {
             final Code code = new Code();
             code.setId(UUID.randomUUID());
             code.setCodeValue("codevalue" + i);

@@ -40,17 +40,16 @@ import fi.vm.yti.codelist.intake.model.CodeScheme;
 import fi.vm.yti.codelist.intake.model.Extension;
 import fi.vm.yti.codelist.intake.model.ExternalReference;
 import fi.vm.yti.codelist.intake.model.Member;
-import fi.vm.yti.codelist.intake.parser.impl.CodeSchemeParserImpl;
 import fi.vm.yti.codelist.intake.security.AuthorizationManager;
 import fi.vm.yti.codelist.intake.util.ValidationUtils;
 import static fi.vm.yti.codelist.intake.exception.ErrorConstants.*;
 import static fi.vm.yti.codelist.intake.parser.impl.AbstractBaseParser.validateCodeCodeValue;
 
 @Component
-public class CodeDaoImpl implements CodeDao {
+public class CodeDaoImpl extends AbstractDao implements CodeDao {
 
-    private static final int MAX_LEVEL = 10;
-    private static final Logger LOG = LoggerFactory.getLogger(CodeSchemeParserImpl.class);
+    private static final int MAX_LEVEL = 15;
+    private static final Logger LOG = LoggerFactory.getLogger(CodeDaoImpl.class);
 
     private final EntityChangeLogger entityChangeLogger;
     private final ApiUtils apiUtils;
@@ -73,6 +72,7 @@ public class CodeDaoImpl implements CodeDao {
                        final CodeSchemeDao codeSchemeDao,
                        @Lazy final ExtensionDao extensionDao,
                        @Lazy final MemberDao memberDao) {
+        super(languageService);
         this.entityChangeLogger = entityChangeLogger;
         this.apiUtils = apiUtils;
         this.authorizationManager = authorizationManager;
@@ -325,7 +325,7 @@ public class CodeDaoImpl implements CodeDao {
 
     private void validateCodeStatusChange(final Code existingCode,
                                           final CodeDTO codeWithChanges) {
-        ValidationUtils.validateCodeStatusTransitions(existingCode.getStatus(), codeWithChanges.getStatus());
+        ValidationUtils.validateStatusTransitions(existingCode.getStatus(), codeWithChanges.getStatus());
     }
 
     private boolean codeStatusHasChanged(final Code existingCode,
@@ -649,51 +649,21 @@ public class CodeDaoImpl implements CodeDao {
     private void mapPrefLabel(final CodeDTO fromCode,
                               final Code code,
                               final CodeScheme codeScheme) {
-        final Map<String, String> prefLabel = fromCode.getPrefLabel();
-        if (prefLabel != null && !prefLabel.isEmpty()) {
-            for (final Map.Entry<String, String> entry : prefLabel.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
-                final String value = entry.getValue();
-                if (!Objects.equals(code.getPrefLabel(language), value)) {
-                    code.setPrefLabel(language, value);
-                }
-            }
-        } else {
-            code.setPrefLabel(null);
-        }
-    }
-
-    private void mapDescription(final CodeDTO fromCode,
-                                final Code code,
-                                final CodeScheme codeScheme) {
-        final Map<String, String> description = fromCode.getDescription();
-        if (description != null && !description.isEmpty()) {
-            for (final Map.Entry<String, String> entry : description.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
-                final String value = entry.getValue();
-                if (!Objects.equals(code.getDescription(language), value)) {
-                    code.setDescription(language, value);
-                }
-            }
-        } else {
-            code.setDescription(null);
-        }
+        final Map<String, String> prefLabel = validateAndAppendLanguagesForCodeScheme(fromCode.getPrefLabel(),codeScheme);
+        code.setPrefLabel(prefLabel);
     }
 
     private void mapDefinition(final CodeDTO fromCode,
                                final Code code,
                                final CodeScheme codeScheme) {
-        final Map<String, String> definition = fromCode.getDefinition();
-        if (definition != null && !definition.isEmpty()) {
-            for (final Map.Entry<String, String> entry : definition.entrySet()) {
-                final String language = languageService.validateInputLanguageForCodeScheme(codeScheme, entry.getKey(), false);
-                final String value = entry.getValue();
-                if (!Objects.equals(code.getDefinition(language), value)) {
-                    code.setDefinition(language, value);
-                }
-            }
-        } else {
-            code.setDefinition(null);
-        }
+        final Map<String, String> definition = validateAndAppendLanguagesForCodeScheme(fromCode.getDefinition(), codeScheme);
+        code.setDefinition(definition);
+    }
+
+    private void mapDescription(final CodeDTO fromCode,
+                                final Code code,
+                                final CodeScheme codeScheme) {
+        final Map<String, String> description = validateAndAppendLanguagesForCodeScheme(fromCode.getDescription(), codeScheme);
+        code.setDescription(description);
     }
 }
