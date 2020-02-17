@@ -66,8 +66,9 @@ public class YtiDataAccess {
     private static final String DEFAULT_IDENTIFIER = "default";
     private static final String MIGRATION_URIS_VERSION = "v3";
     private static final String MIGRATION_LANGUAGECODES_VERSION = "v1";
-    private static final String PROPERTYTYPE_IDENTIFIER = "v16";
-    private static final String VALUETYPE_IDENTIFIER = "v8";
+    private static final String PROPERTYTYPE_IDENTIFIER = "v17";
+    private static final String VALUETYPE_IDENTIFIER = "v9";
+
     private final ContentIntakeServiceProperties contentIntakeServiceProperties;
     private final UpdateManager updateManager;
     private final CodeRegistryDao codeRegistryDao;
