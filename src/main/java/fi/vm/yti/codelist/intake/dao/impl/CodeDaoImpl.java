@@ -57,7 +57,6 @@ public class CodeDaoImpl extends AbstractDao implements CodeDao {
     private final CodeRepository codeRepository;
     private final CodeSchemeRepository codeSchemeRepository;
     private final ExternalReferenceDao externalReferenceDao;
-    private final LanguageService languageService;
     private final ExtensionDao extensionDao;
     private final MemberDao memberDao;
     private final CodeSchemeDao codeSchemeDao;
@@ -79,7 +78,6 @@ public class CodeDaoImpl extends AbstractDao implements CodeDao {
         this.codeRepository = codeRepository;
         this.codeSchemeRepository = codeSchemeRepository;
         this.externalReferenceDao = externalReferenceDao;
-        this.languageService = languageService;
         this.codeSchemeDao = codeSchemeDao;
         this.extensionDao = extensionDao;
         this.memberDao = memberDao;
