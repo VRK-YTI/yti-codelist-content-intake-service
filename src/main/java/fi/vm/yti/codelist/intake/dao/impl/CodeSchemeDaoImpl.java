@@ -154,6 +154,7 @@ public class CodeSchemeDaoImpl extends AbstractDao implements CodeSchemeDao {
         CodeScheme codeScheme = null;
         if (codeRegistry != null) {
             codeScheme = createOrUpdateCodeScheme(codeRegistry, codeSchemeDto);
+            save(codeScheme);
             updateExternalReferences(codeScheme, codeSchemeDto);
         }
         save(codeScheme);
@@ -171,6 +172,7 @@ public class CodeSchemeDaoImpl extends AbstractDao implements CodeSchemeDao {
             for (final CodeSchemeDTO codeSchemeDto : codeSchemeDtos) {
                 final CodeScheme codeScheme = createOrUpdateCodeScheme(isAuthorized, codeRegistry, codeSchemeDto);
                 if (updateExternalReferences) {
+                    save(codeScheme);
                     updateExternalReferences(codeScheme, codeSchemeDto);
                 }
                 codeSchemes.add(codeScheme);
