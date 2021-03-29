@@ -37,6 +37,14 @@
         "codeValue": {
           "type": "text",
           "analyzer": "text_analyzer"
+        },
+        "parentCodeScheme": {
+          "properties": {
+            "codeValue": {
+              "type": "text",
+              "analyzer": "text_analyzer"
+            }
+          }
         }
       }
     }
