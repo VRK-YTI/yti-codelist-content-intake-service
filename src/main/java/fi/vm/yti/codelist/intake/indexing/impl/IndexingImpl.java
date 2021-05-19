@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import com.google.common.collect.Iterables;
 import org.apache.commons.collections4.ListUtils;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -176,7 +177,14 @@ public class IndexingImpl implements Indexing {
 
     private boolean indexExternalReferences(final String indexName) {
         final Set<ExternalReferenceDTO> externalReferences = externalReferenceService.findAll();
-        return indexData(externalReferences, indexName, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
+        boolean success = true;
+        for (final List<ExternalReferenceDTO> pagedExternalReferences : Iterables.partition(externalReferences, MAX_PAGE_COUNT)) {
+            final boolean partIndexSuccess = indexData(new HashSet<>(pagedExternalReferences), indexName, ELASTIC_TYPE_EXTERNALREFERENCE, NAME_EXTERNALREFERENCES, Views.ExtendedExternalReference.class);
+            if (!partIndexSuccess) {
+                success = false;
+            }
+        }
+        return success;
     }
 
     private boolean indexExtensions(final String indexName) {
