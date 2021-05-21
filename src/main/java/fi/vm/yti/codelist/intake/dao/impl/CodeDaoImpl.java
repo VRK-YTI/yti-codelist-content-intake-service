@@ -494,7 +494,8 @@ public class CodeDaoImpl extends AbstractDao implements CodeDao {
         if (fromCode.getSubCodeScheme().getId() != null) {
             subCodeScheme = codeSchemeDao.findById(fromCode.getSubCodeScheme().getId());
         } else if (fromCode.getSubCodeScheme().getUri() != null) {
-            subCodeScheme = codeSchemeDao.findByUri(fromCode.getSubCodeScheme().getUri());
+            String uriWithoutParams = fromCode.getSubCodeScheme().getUri().split("\\?")[0];
+            subCodeScheme = codeSchemeDao.findByUri(uriWithoutParams);
         }
         if (subCodeScheme != null && codeScheme.getId().equals(subCodeScheme.getId())) {
             throw new YtiCodeListException(new ErrorModel(HttpStatus.NOT_ACCEPTABLE.value(), ERR_MSG_USER_SUBCODESCHEME_SAME_AS_CODE_CODESCHEME));
