@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import javax.sql.DataSource;
 
 import org.apache.catalina.connector.Connector;
+import org.apache.coyote.ajp.AjpNioProtocol;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -61,6 +62,10 @@ public class SpringAppConfig {
             ajpConnector.setSecure(false);
             ajpConnector.setAllowTrace(false);
             ajpConnector.setScheme("http");
+
+            AjpNioProtocol protocol= (AjpNioProtocol)ajpConnector.getProtocolHandler();
+            protocol.setSecretRequired(false);
+
             tomcat.addAdditionalTomcatConnectors(ajpConnector);
         }
         return tomcat;
