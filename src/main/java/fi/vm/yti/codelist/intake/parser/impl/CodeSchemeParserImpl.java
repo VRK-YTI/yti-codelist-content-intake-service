@@ -233,7 +233,9 @@ public class CodeSchemeParserImpl extends AbstractBaseParser implements CodeSche
                 validateRequiredHeaders(headerMap);
             } else if (!checkIfRowIsEmpty(row)) {
                 final CodeSchemeDTO codeScheme = new CodeSchemeDTO();
-                final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).trim();
+                final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)))
+                        .trim()
+                        .replaceAll("\u00A0", ""); // replace non breaking space;
                 final String status = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)));
                 validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeValue(codeValue, rowIdentifier);
