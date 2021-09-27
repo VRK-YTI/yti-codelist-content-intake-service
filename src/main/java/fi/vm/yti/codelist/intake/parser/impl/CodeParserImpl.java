@@ -167,7 +167,9 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 validateRequiredHeaders(headerMap);
             } else if (!checkIfRowIsEmpty(row)) {
                 final CodeDTO code = new CodeDTO();
-                final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).trim();
+                final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)))
+                        .trim()
+                        .replaceAll("\u00A0", ""); // replace non breaking space
                 final String status = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)));
                 validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeCodeValue(codeValue, rowIdentifier);
