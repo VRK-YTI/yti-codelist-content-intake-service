@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.2.4.RELEASE</version>
+        <version>2.5.2</version>
         <relativePath/>
     </parent>
 
@@ -31,7 +31,7 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <version>Hoxton.RELEASE</version>
+                <version>2020.0.3</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -44,7 +44,7 @@
         <dependency>
             <groupId>fi.vm.yti.codelist</groupId>
             <artifactId>yti-codelist-common-model</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.7-SNAPSHOT</version>
         </dependency>
 
         <!-- YTI Spring Security -->
@@ -112,14 +112,14 @@
         <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
-            <version>3.6</version>
+            <version>3.8.0</version>
         </dependency>
 
         <!-- Apache Commons IO -->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.6</version>
+            <version>2.11.0</version>
         </dependency>
 
         <dependency>
@@ -131,14 +131,14 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>5.0</version>
+            <version>6.6</version>
         </dependency>
 
         <!-- Logging -->
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
-            <version>3.2.4</version>
+            <version>3.4.4</version>
         </dependency>
 
         <dependency>
@@ -192,7 +192,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>28.1-jre</version>
+            <version>30.1.1-jre</version>
         </dependency>
 
         <!-- Apache HTTP Client -->
@@ -213,14 +213,14 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
-            <version>1.5</version>
+            <version>1.8</version>
         </dependency>
 
         <!-- Apache Commons Collections -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>4.3</version>
+            <version>4.4</version>
         </dependency>
 
         <!-- Jersey Multipart -->
@@ -234,7 +234,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.11.2</version>
+            <version>1.14.1</version>
         </dependency>
 
         <!-- Jackson mapping needs this with LocalDate -->
@@ -256,17 +256,17 @@
             <version>${swagger.version}</version>
         </dependency>
 
-        <!-- FindBugs Annotations -->
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>annotations</artifactId>
-            <version>3.0.1</version>
-        </dependency>
-
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -285,9 +285,18 @@
 
             <!-- Git commit Id Maven plugin -->
             <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <version>2.2.2</version>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <version>5.0.0</version>
+                <executions>
+                    <execution>
+                        <id>git-info</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                    </execution>
+                </executions>
                 <configuration>
                     <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
                     <dateFormat>dd.MM.yyyy '@' HH:mm:ss z</dateFormat>
@@ -330,7 +339,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.1</version>
+                <version>3.8.1</version>
                 <inherited>true</inherited>
                 <configuration>
                     <source>${java.version}</source>
@@ -366,7 +375,7 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.26.1</version>
+                <version>0.36.1</version>
                 <configuration>
                     <skip>${skipTests}</skip>
                     <portPropertyFile>target/test-classes/test-port.properties</portPropertyFile>
@@ -403,6 +412,9 @@
                             <alias>${project.artifactId}_test_postgres</alias>
                             <run>
                                 <namingStrategy>alias</namingStrategy>
+                                <env>
+                                    <POSTGRES_HOST_AUTH_METHOD>trust</POSTGRES_HOST_AUTH_METHOD>
+                                </env>
                                 <log>
                                     <enabled>true</enabled>
                                     <color>green</color>
@@ -486,15 +498,15 @@
             </plugin-->
 
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.5</version>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>4.2.2</version>
                 <executions>
                     <execution>
                         <id>failing-on-high</id>
                         <phase>verify</phase>
                         <goals>
-                            <goal>findbugs</goal>
+                            <goal>spotbugs</goal>
                         </goals>
                         <configuration>
                             <failOnError>true</failOnError>
@@ -507,7 +519,7 @@
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
-                <version>1.4.0</version>
+                <version>1.6.6</version>
                 <executions>
                     <execution>
                         <id>swagger-ui</id>
@@ -527,7 +539,7 @@
             <!-- Swagger UI resource copying -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <id>copy-swagger-resources</id>
@@ -581,17 +593,17 @@
     </build>
 
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
         <git.properties>git.properties</git.properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spotify-docker.version>1.1.1</spotify-docker.version>
-        <swagger.version>2.0.9</swagger.version>
+        <spotify-docker.version>1.2.2</spotify-docker.version>
+        <swagger.version>2.1.10</swagger.version>
         <swagger-ui.version>3.23.11</swagger-ui.version>
         <postgresql.version>42.2.8</postgresql.version>
         <elastic.version>6.5.4</elastic.version>
-        <apache.poi.version>4.1.0</apache.poi.version>
-        <apache.httpclient.version>4.5.10</apache.httpclient.version>
+        <apache.poi.version>5.0.0</apache.poi.version>
+        <apache.httpclient.version>4.5.13</apache.httpclient.version>
         <psql.host>localhost</psql.host>
         <psql.port>5432</psql.port>
         <project.db.name>yti_codelist</project.db.name>
