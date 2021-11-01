@@ -60,7 +60,7 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
         final Set<String> codeValues = new HashSet<>();
         try (final InputStreamReader inputStreamReader = new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8);
              final BufferedReader in = new BufferedReader(inputStreamReader);
-             final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
+             final CSVParser csvParser = new CSVParser(in, CSVFormat.newFormat(',').withQuote('"').withAllowDuplicateHeaderNames(false).withQuoteMode(QuoteMode.MINIMAL).withHeader())) {
             final Map<String, Integer> headerMap = csvParser.getHeaderMap();
             final Map<String, Integer> prefLabelHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_PREFLABEL_PREFIX);
             final Map<String, Integer> definitionHeaders = parseHeadersWithPrefix(headerMap, CONTENT_HEADER_DEFINITION_PREFIX);
@@ -167,7 +167,9 @@ public class CodeParserImpl extends AbstractBaseParser implements CodeParser {
                 validateRequiredHeaders(headerMap);
             } else if (!checkIfRowIsEmpty(row)) {
                 final CodeDTO code = new CodeDTO();
-                final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE))).trim();
+                final String codeValue = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_CODEVALUE)))
+                        .trim()
+                        .replaceAll("\u00A0", ""); // replace non breaking space
                 final String status = formatter.formatCellValue(row.getCell(headerMap.get(CONTENT_HEADER_STATUS)));
                 validateRequiredDataOnRow(row, headerMap, formatter);
                 validateCodeCodeValue(codeValue, rowIdentifier);

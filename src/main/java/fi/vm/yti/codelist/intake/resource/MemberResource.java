@@ -94,9 +94,11 @@ public class MemberResource implements AbstractBaseResource {
             memberService.deleteMember(existingMember.getId(), affectedMembers);
             final CodeSchemeDTO updatedCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(existingMember.getExtension().getParentCodeScheme().getCodeRegistry().getCodeValue(), existingMember.getExtension().getParentCodeScheme().getCodeValue());
             codeSchemeService.populateAllVersionsToCodeSchemeDTO(updatedCodeScheme);
+            Set<ExtensionDTO> extensions = extensionService.findByParentCodeSchemeId(updatedCodeScheme.getId());
             indexing.updateCodeScheme(updatedCodeScheme);
             indexing.deleteMember(existingMember);
             indexing.updateMembers(affectedMembers);
+            indexing.updateExtensions(extensions);
         } else {
             return Response.status(404).build();
         }
