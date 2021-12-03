@@ -1,12 +1,6 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import javax.inject.Inject;
 
@@ -229,7 +223,16 @@ public class CodeSchemeDaoImpl extends AbstractDao implements CodeSchemeDao {
             }
             codeScheme = updateCodeScheme(codeRegistry, existingCodeScheme, fromCodeScheme);
         } else {
-            if (!isAuthorized && !authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
+            // add privileges to the registry for child organizations
+            Set<Organization> organizations = codeRegistry.getOrganizations();
+
+            Iterator<Organization> organizationIterator = organizations.iterator();
+            while (organizationIterator.hasNext()) {
+                Organization org = organizationIterator.next();
+                organizations.addAll(organizationRepository.findByParentId(org.getId()));
+            }
+
+            if (!isAuthorized && !authorizationManager.canBeModifiedByUserInOrganization(organizations)) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
             codeScheme = createCodeScheme(codeRegistry, fromCodeScheme);
