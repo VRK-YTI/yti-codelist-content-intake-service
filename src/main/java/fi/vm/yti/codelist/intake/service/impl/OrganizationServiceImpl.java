@@ -49,8 +49,10 @@ public class OrganizationServiceImpl implements OrganizationService {
     public Set<OrganizationDTO> findByRemovedIsFalse(boolean onlyOrganizationsWithCodeSchemes) {
         Set<Organization> organizations;
         if (onlyOrganizationsWithCodeSchemes) {
+            // return only main organizations
             organizations = organizationRepository.findByRemovedIsFalseAndCodeSchemesIsNotNullAndParentIsNull();
         } else {
+            // return all non removed organizations
             organizations = organizationRepository.findByRemovedIsFalse();
         }
         return dtoMapperService.mapOrganizationDtos(organizations, true);
