@@ -6,23 +6,26 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import fi.vm.yti.codelist.intake.dao.impl.CodeDaoImpl;
 import fi.vm.yti.codelist.intake.model.Code;
-import static org.junit.Assert.assertEquals;
+import org.springframework.test.context.junit4.SpringRunner;
 
-@ActiveProfiles({"automatedtest"})
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doCallRealMethod;
+
+@RunWith(SpringRunner.class)
 public class CodeDaoTest {
 
-    @InjectMocks
+    @MockBean
     private CodeDaoImpl codeDao;
 
     @Before
     public void setup() {
-        MockitoAnnotations.initMocks(this);
+        doCallRealMethod().when(codeDao).evaluateAndSetHierarchyLevels(any(Set.class), any(Set.class));
     }
 
     @Test

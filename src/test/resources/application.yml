@@ -10,6 +10,9 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: false
+  cloud:
+    config:
+      enabled: false
 
 thread:
   pool:
@@ -18,18 +21,18 @@ thread:
     min: 10
 
 groupmanagement:
-  url: https://rhp.test.yti.cloud.vrk.fi
-  publicUrl: https://rhp.test.cloud.vrk.fi
+  url: https://rhp.dev.yti.cloud.vrk.fi
+  publicUrl: https://rhp.dev.cloud.vrk.fi
 
 terminology:
-  url: https://sanastot.test.cloud.vrk.fi
-  publicUrl: https://sanastot.test.cloud.vrk.fi
+  url: https://sanastot.dev.cloud.vrk.fi
+  publicUrl: https://sanastot.dev.cloud.vrk.fi
 
 datamodel:
-  publicUrl: https://tietomallit.test.cloud.vrk.fi
+  publicUrl: https://tietomallit.dev.cloud.vrk.fi
 
 comments:
-  publicUrl: https://kommentit.test.cloud.vrk.fi
+  publicUrl: https://kommentit.dev.cloud.vrk.fi
 
 messaging:
   enabled: false
