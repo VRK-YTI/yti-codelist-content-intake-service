@@ -223,16 +223,7 @@ public class CodeSchemeDaoImpl extends AbstractDao implements CodeSchemeDao {
             }
             codeScheme = updateCodeScheme(codeRegistry, existingCodeScheme, fromCodeScheme);
         } else {
-            // add privileges to the registry for child organizations
-            Set<Organization> organizations = codeRegistry.getOrganizations();
-
-            Iterator<Organization> organizationIterator = organizations.iterator();
-            while (organizationIterator.hasNext()) {
-                Organization org = organizationIterator.next();
-                organizations.addAll(organizationRepository.findByParentId(org.getId()));
-            }
-
-            if (!isAuthorized && !authorizationManager.canBeModifiedByUserInOrganization(organizations)) {
+            if (!isAuthorized && !authorizationManager.canBeModifiedByUserInOrganization(codeRegistry.getOrganizations())) {
                 throw new UnauthorizedException(new ErrorModel(HttpStatus.UNAUTHORIZED.value(), ERR_MSG_USER_401));
             }
             codeScheme = createCodeScheme(codeRegistry, fromCodeScheme);
