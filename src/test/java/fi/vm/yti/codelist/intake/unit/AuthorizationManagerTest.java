@@ -30,12 +30,11 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 // @RunWith(MockitoJUnitRunner.class)
-
-
 // @ExtendWith(MockitoExtension.class)
+
 @ExtendWith(SpringExtension.class)
 @Import({
-        AuthenticatedUserProvider.class,
+        // AuthenticatedUserProvider.class, needed if using @Mock
         AuthorizationManagerImpl.class
 })
 public class AuthorizationManagerTest {
