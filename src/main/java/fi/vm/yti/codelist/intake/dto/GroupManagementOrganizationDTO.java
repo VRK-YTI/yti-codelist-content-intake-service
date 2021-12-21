@@ -1,8 +1,11 @@
 package fi.vm.yti.codelist.intake.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.Map;
 import java.util.UUID;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GroupManagementOrganizationDTO {
 
     private UUID uuid;
