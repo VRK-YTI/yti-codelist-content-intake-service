@@ -672,6 +672,11 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 final Set<MemberDTO> members = memberService.findByExtensionId(extensionId);
                 final ExtensionDTO extension = extensionService.deleteExtension(extensionId);
                 final CodeSchemeDTO updatedCodeScheme = codeSchemeService.findByCodeRegistryCodeValueAndCodeValue(codeRegistryCodeValue, codeSchemeCodeValue);
+
+                codeSchemeService.populateAllVersionsToCodeSchemeDTO(updatedCodeScheme);
+                indexing.updateCodeScheme(updatedCodeScheme);
+                indexing.updateCodes(codeService.findByCodeSchemeId(updatedCodeScheme.getId()));
+
                 indexing.deleteMembers(members);
                 indexing.deleteExtension(extension);
                 ExtensionDTO extensionToBeRemoved = null;
@@ -683,9 +688,6 @@ public class CodeRegistryResource implements AbstractBaseResource {
                 if (extensionToBeRemoved != null) {
                     codeScheme.getExtensions().remove(extensionToBeRemoved);
                 }
-                codeSchemeService.populateAllVersionsToCodeSchemeDTO(updatedCodeScheme);
-                indexing.updateCodeScheme(updatedCodeScheme);
-                indexing.updateCodes(codeService.findByCodeSchemeId(updatedCodeScheme.getId()));
             } else {
                 return Response.status(404).build();
             }
