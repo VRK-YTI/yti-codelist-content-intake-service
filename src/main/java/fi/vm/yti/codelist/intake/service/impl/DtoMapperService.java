@@ -602,6 +602,10 @@ public class DtoMapperService {
         if (deep && organization.getCodeRegistries() != null) {
             organizationDto.setCodeRegistries(mapCodeRegistryDtos(organization.getCodeRegistries(), false));
         }
+        if (organization.getParent() != null) {
+            organizationDto.setParent(mapOrganizationDto(organization.getParent(), false));
+        }
+
         return organizationDto;
     }
 

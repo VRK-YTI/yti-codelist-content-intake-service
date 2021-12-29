@@ -49,8 +49,10 @@ public class OrganizationServiceImpl implements OrganizationService {
     public Set<OrganizationDTO> findByRemovedIsFalse(boolean onlyOrganizationsWithCodeSchemes) {
         Set<Organization> organizations;
         if (onlyOrganizationsWithCodeSchemes) {
-            organizations = organizationRepository.findByRemovedIsFalseAndCodeSchemesIsNotNull();
+            // return only main organizations
+            organizations = organizationRepository.findByRemovedIsFalseAndCodeSchemesIsNotNullAndParentIsNull();
         } else {
+            // return all non removed organizations
             organizations = organizationRepository.findByRemovedIsFalse();
         }
         return dtoMapperService.mapOrganizationDtos(organizations, true);
@@ -99,6 +101,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             existingOrganization.setPrefLabel(groupManagementOrganizationDto.getPrefLabel());
             existingOrganization.setDescription(groupManagementOrganizationDto.getDescription());
             existingOrganization.setRemoved(groupManagementOrganizationDto.getRemoved());
+            existingOrganization.setParent(findParentOrganization(groupManagementOrganizationDto));
             organization = existingOrganization;
         } else {
             organization = new Organization();
@@ -107,7 +110,20 @@ public class OrganizationServiceImpl implements OrganizationService {
             organization.setPrefLabel(groupManagementOrganizationDto.getPrefLabel());
             organization.setDescription(groupManagementOrganizationDto.getDescription());
             organization.setRemoved(groupManagementOrganizationDto.getRemoved());
+            organization.setParent(findParentOrganization(groupManagementOrganizationDto));
         }
         return organization;
+    }
+
+    private Organization findParentOrganization(GroupManagementOrganizationDTO groupManagementOrganizationDTO) {
+        if (groupManagementOrganizationDTO.getParentId() != null) {
+            Organization parent = organizationRepository.findById(groupManagementOrganizationDTO.getParentId());
+            if (parent == null) {
+                LOG.warn("Parent organization does not exist {}", groupManagementOrganizationDTO.getParentId());
+            } else {
+                return parent;
+            }
+        }
+        return null;
     }
 }

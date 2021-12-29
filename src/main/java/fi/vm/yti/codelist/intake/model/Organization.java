@@ -5,17 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.MapKeyColumn;
-import javax.persistence.OrderColumn;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "organization")
@@ -29,6 +19,7 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
     private Map<String, String> description;
     private Set<CodeRegistry> codeRegistries;
     private Set<CodeScheme> codeSchemes;
+    private Organization parent;
 
     @Column(name = "url")
     public String getUrl() {
@@ -143,5 +134,15 @@ public class Organization extends AbstractIdentifyableCode implements Serializab
 
     public void setCodeSchemes(final Set<CodeScheme> codeSchemes) {
         this.codeSchemes = codeSchemes;
+    }
+
+    @OneToOne
+    @JoinColumn(name = "parent_id")
+    public Organization getParent() {
+        return this.parent;
+    }
+
+    public void setParent(Organization parent) {
+        this.parent = parent;
     }
 }

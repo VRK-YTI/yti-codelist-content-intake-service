@@ -13,6 +13,7 @@ public class GroupManagementOrganizationDTO {
     private Boolean removed;
     private Map<String, String> prefLabel;
     private Map<String, String> description;
+    private UUID parentId;
 
     public UUID getUuid() {
         return uuid;
@@ -52,5 +53,13 @@ public class GroupManagementOrganizationDTO {
 
     public void setRemoved(final Boolean removed) {
         this.removed = removed;
+    }
+
+    public UUID getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(UUID parentId) {
+        this.parentId = parentId;
     }
 }
