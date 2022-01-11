@@ -1,12 +1,6 @@
 package fi.vm.yti.codelist.intake.dao.impl;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import javax.inject.Inject;
 

@@ -1,8 +1,6 @@
 package fi.vm.yti.codelist.intake.security;
 
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -49,20 +47,21 @@ public class AuthorizationManagerImpl implements AuthorizationManager {
     }
 
     public boolean canBeModifiedByUserInOrganization(final Collection<Organization> organizations) {
-        final Collection<UUID> organizationIds = organizations.stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
+        final Collection<UUID> organizationIds = getOrganizationIds(organizations);
+
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds);
     }
 
     public boolean canExtensionBeDeleted(final Extension extension) {
-        final Collection<UUID> organizationIds = extension.getParentCodeScheme().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
+        final Collection<UUID> organizationIds = getOrganizationIds(extension.getParentCodeScheme().getOrganizations());
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(extension.getStatus()).ordinal() <= Status.VALID.ordinal());
     }
 
     public boolean canMemberBeDeleted(final Member member) {
         final Extension extension = member.getExtension();
-        final Collection<UUID> organizationIds = extension.getParentCodeScheme().getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
+        final Collection<UUID> organizationIds = getOrganizationIds(extension.getParentCodeScheme().getOrganizations());
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(extension.getStatus()).ordinal() <= Status.VALID.ordinal());
     }
@@ -73,14 +72,14 @@ public class AuthorizationManagerImpl implements AuthorizationManager {
     }
 
     public boolean canCodeSchemeBeDeleted(final CodeScheme codeScheme) {
-        final Collection<UUID> organizationIds = codeScheme.getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
+        final Collection<UUID> organizationIds = getOrganizationIds(codeScheme.getOrganizations());
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(codeScheme.getStatus()).ordinal() <= Status.VALID.ordinal());
     }
 
     public boolean canCodeBeDeleted(final Code code) {
         final CodeScheme codeScheme = code.getCodeScheme();
-        final Collection<UUID> organizationIds = codeScheme.getOrganizations().stream().map(AbstractIdentifyableCode::getId).collect(Collectors.toList());
+        final Collection<UUID> organizationIds = getOrganizationIds(codeScheme.getOrganizations());
         final YtiUser user = userProvider.getUser();
         return user.isSuperuser() || (user.isInAnyRole(EnumSet.of(ADMIN, CODE_LIST_EDITOR), organizationIds) && Status.valueOf(codeScheme.getStatus()).ordinal() <= Status.VALID.ordinal());
     }
@@ -91,5 +90,17 @@ public class AuthorizationManagerImpl implements AuthorizationManager {
 
     public UUID getUserId() {
         return userProvider.getUser().getId();
+    }
+
+    private Collection<UUID> getOrganizationIds(Collection<Organization> organizations) {
+        return organizations.stream()
+                .map(organization -> {
+                    if (organization.getParent() != null) {
+                        return Arrays.asList(organization.getParent().getId(), organization.getId());
+                    }
+                    return Arrays.asList(organization.getId());
+                })
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 }

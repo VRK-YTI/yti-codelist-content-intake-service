@@ -17,7 +17,9 @@ public interface OrganizationRepository extends CrudRepository<Organization, Str
 
     Set<Organization> findByRemovedIsFalse();
 
-    Set<Organization> findByRemovedIsFalseAndCodeSchemesIsNotNull();
+    Set<Organization> findByRemovedIsFalseAndCodeSchemesIsNotNullAndParentIsNull();
+
+    Set<Organization> findByParentId(UUID parentId);
 
     Set<Organization> findAll();
 }
