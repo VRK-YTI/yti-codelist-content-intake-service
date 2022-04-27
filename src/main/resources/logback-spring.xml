@@ -3,10 +3,7 @@
     <springProfile name="dev,test,prod">
         <logger name="org.apache" level="WARN"/>
         <logger name="org.springframework" level="INFO"/>
-        <logger name="fi.vm" level="DEBUG"/>
-        <logger name="fi.vm.yti.codelist.intake.filter" level="DEBUG"/>
-        <logger name="fi.vm.yti.codelist.intake.log" level="DEBUG"/>
-        <logger name="fi.vm.yti.security" level="INFO"/>
+        <logger name="fi.vm" level="INFO"/>
         <property name="SERVICE_NAME" value="yti-codelist-content-intake-service"/>
         <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
