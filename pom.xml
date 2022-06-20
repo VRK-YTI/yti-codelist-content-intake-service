@@ -51,7 +51,7 @@
         <dependency>
             <groupId>fi.vm.yti</groupId>
             <artifactId>yti-spring-security</artifactId>
-            <version>0.1.17</version>
+            <version>0.2.0</version>
         </dependency>
 
         <!-- Spring Security -->
