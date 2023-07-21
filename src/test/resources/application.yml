@@ -18,18 +18,18 @@ thread:
     min: 10
 
 groupmanagement:
-  url: https://rhp.test.yti.cloud.vrk.fi
-  publicUrl: https://rhp.test.cloud.vrk.fi
+  url: https://rhp.test.yti.cloud.dvv.fi
+  publicUrl: https://rhp.test.cloud.dvv.fi
 
 terminology:
-  url: https://sanastot.test.cloud.vrk.fi
-  publicUrl: https://sanastot.test.cloud.vrk.fi
+  url: https://sanastot.test.cloud.dvv.fi
+  publicUrl: https://sanastot.test.cloud.dvv.fi
 
 datamodel:
-  publicUrl: https://tietomallit.test.cloud.vrk.fi
+  publicUrl: https://tietomallit.test.cloud.dvv.fi
 
 comments:
-  publicUrl: https://kommentit.test.cloud.vrk.fi
+  publicUrl: https://kommentit.test.cloud.dvv.fi
 
 messaging:
   enabled: false
