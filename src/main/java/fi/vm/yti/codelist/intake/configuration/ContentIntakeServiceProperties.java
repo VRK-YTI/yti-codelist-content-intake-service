@@ -27,6 +27,8 @@ public class ContentIntakeServiceProperties {
 
     private boolean initializeContent;
 
+    private boolean reIndexOnStartup;
+
     public String getEnv() {
         return env;
     }
@@ -73,5 +75,13 @@ public class ContentIntakeServiceProperties {
 
     public void setInitializeContent(final boolean initializeContent) {
         this.initializeContent = initializeContent;
+    }
+
+    public boolean isReIndexOnStartup() {
+        return reIndexOnStartup;
+    }
+
+    public void setReIndexOnStartup(boolean reIndexOnStartup) {
+        this.reIndexOnStartup = reIndexOnStartup;
     }
 }
