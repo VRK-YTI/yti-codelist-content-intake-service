@@ -261,7 +261,7 @@ public class IndexingImpl implements Indexing {
                                   final String elasticType,
                                   final String name,
                                   final Class<?> jsonViewClass) {
-        LOG.debug(String.format("%s%s indexing started with %d items.", BULK, name, set.size()));
+        LOG.info(String.format("%s%s indexing started with %d items.", BULK, name, set.size()));
         boolean success;
         if (!set.isEmpty()) {
             final ObjectMapper mapper = indexingTools.createObjectMapper();
