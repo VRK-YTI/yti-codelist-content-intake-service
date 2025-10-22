@@ -343,30 +343,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Spotify docker maven plugin -->
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>${spotify-docker.version}</version>
-                <configuration>
-                    <imageName>yti-codelist-content-intake-service</imageName>
-                    <dockerDirectory>docker</dockerDirectory>
-                    <pullOnBuild>false</pullOnBuild>
-                    <resources>
-                        <resource>
-                            <targetPath>/target</targetPath>
-                            <directory>${project.build.directory}</directory>
-                            <include>${project.build.finalName}.jar</include>
-                        </resource>
-                        <resource>
-                            <targetPath>/target</targetPath>
-                            <directory>${project.build.outputDirectory}</directory>
-                            <include>${git.properties}</include>
-                        </resource>
-                    </resources>
-                </configuration>
-            </plugin>
-
             <!-- Integration testing -->
             <plugin>
                 <groupId>io.fabric8</groupId>

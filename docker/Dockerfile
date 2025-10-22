@@ -2,7 +2,7 @@
 FROM yti-docker-java-base:corretto-11.0.22
 
 # Deploy project
-ADD target/yti-codelist-content-intake-service.jar ${deploy_dir}/yti-codelist-content-intake-service.jar
+ADD target/yti-codelist-content-intake-service.jar yti-codelist-content-intake-service.jar
 
 # Expose port
 EXPOSE 9602
